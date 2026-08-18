@@ -70,3 +70,13 @@
 - 세션 중 만난 새 문제(에러 → 원인 → 해결)는 `docs/troubleshooting.md`에 항목 추가.
 - 형식: 증상 한 줄 헤딩 + 상황/원인/해결 3줄. 이미 있는 항목이면 skip.
 - 커밋 시점에 함께 정리해서 스테이징.
+
+## 13. 브랜치 전략
+- `main`: 배포 지점. 릴리스 시에만 `develop`에서 병합. **직접 커밋/푸시 금지**.
+- `develop`: 통합 줄기. feat 브랜치들이 PR로 병합되는 대상.
+- 작업 단위마다 새 브랜치를 판다. 네이밍: `<type>/phase-<N>/<주제>` 형식.
+  - type: `feat` / `fix` / `chore` / `docs` / `refactor`
+  - phase 번호 없는 잡일이면 phase 세그먼트 생략 (예: `chore/update-deps`)
+  - 예: `feat/phase-2/companies-api`, `feat/phase-3/jobs-page`, `fix/phase-2/company-status-enum`
+- 코드 작성 전 항상 현재 브랜치 확인. `develop`/`main`이면 새 브랜치를 파고 시작한다.
+- 완료 후 GitHub PR로 develop에 병합. main으로는 릴리스 시에만.
