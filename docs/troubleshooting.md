@@ -60,6 +60,16 @@
 - 원인: 브라우저 확장 프로그램(다크리더/문법검사/비번매니저 등)이 서버 HTML을 받은 후 하이드레이션 전에 `<html>` 태그 속성을 수정
 - 해결: `<html>`에 `suppressHydrationWarning` 추가. **최상위에만** 적용 → 자식 컴포넌트의 실제 hydration 버그는 여전히 잡힘 (Next.js 공식 권장 패턴)
 
+### `PageProps<'/jobs'>`가 typecheck에서 `does not satisfy '/'`로 실패
+- 상황: 새 route 추가 후 `pnpm --filter web typecheck` 하면 `Type '"/jobs"' does not satisfy the constraint '"/"'` — 아직 `next dev`/`next build` 한 번도 안 돌린 상태
+- 원인: Next 16 타입 유틸(`PageProps<T>`, `LayoutProps<T>`)이 `.next/dev/types/routes.d.ts`에 있는 route union을 참조. 이 파일은 `next dev`/`build`가 라우트 스캔해서 생성. 안 돌리면 union이 `'/'`만 포함
+- 해결: 새 route 파일 만든 뒤 최소 한 번 `next dev` 띄우거나 `next build` 실행 → 이후 typecheck 통과. CI에선 typecheck 전에 `next build` 강제
+
+### 클라이언트 필터 컴포넌트에서 URL → local input state 동기화 안 됨
+- 상황: `useState(currentSearch)`로 초기화한 검색 input이, URL을 chip 클릭/뒤로가기/초기화로 외부 변경했을 때 값을 안 따라감 (표는 갱신되는데 검색창 텍스트가 stale)
+- 원인: `useState` 초기화는 mount 시점 1회. URL이 바뀌어도 state는 안 흔들림. typing → URL 반영은 debounce로 도는데 URL → input 방향은 자연히 안 됨
+- 해결: `lastPushedRef`로 "내가 마지막에 push한 값" 추적 → URL current 값이 lastPushed와 다르면(= 외부 변경) input state 강제 동기화. 자체 push 시엔 ref만 갱신해서 loop 방지
+
 ---
 
 ## class-validator / DTO
