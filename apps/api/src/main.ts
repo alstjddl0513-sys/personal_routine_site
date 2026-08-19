@@ -1,6 +1,7 @@
 import './bootstrap-env';
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
+import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -8,11 +9,20 @@ async function bootstrap() {
   const config = app.get(ConfigService);
 
   app.enableCors({
-    origin: config.get<string>('CORS_ALLOWED_ORIGIN') ?? 'http://localhost:3000',
+    origin:
+      config.get<string>('CORS_ALLOWED_ORIGIN') ?? 'http://localhost:3000',
     credentials: true,
   });
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
 
   const port = config.get<number>('API_PORT') ?? 3001;
   await app.listen(port);
 }
-bootstrap();
+void bootstrap();

@@ -59,3 +59,26 @@
 - 상황: `/` 렌더 시 콘솔에 "A tree hydrated but some attributes of the server rendered HTML didn't match the client properties" (line 22, `<html>`)
 - 원인: 브라우저 확장 프로그램(다크리더/문법검사/비번매니저 등)이 서버 HTML을 받은 후 하이드레이션 전에 `<html>` 태그 속성을 수정
 - 해결: `<html>`에 `suppressHydrationWarning` 추가. **최상위에만** 적용 → 자식 컴포넌트의 실제 hydration 버그는 여전히 잡힘 (Next.js 공식 권장 패턴)
+
+---
+
+## class-validator / DTO
+
+### `IsEnum`이 readonly 배열에서 값 목록을 비운다
+- 상황: `@IsEnum(['big_tech', 'sme', ...] as const)`로 검증 걸었더니 에러 메시지가 `"type1 must be one of the following values: "` — 값 목록이 비어 있음
+- 원인: class-validator의 `getValidEnumValues`가 `Object.keys(entity).filter(k => !/^\d+$/.test(k))`로 숫자 인덱스를 걸러냄. 배열은 키가 전부 숫자 인덱스이므로 필터 후 빈 배열
+- 해결: enum을 객체 형태로 (`{ big_tech: 'big_tech', ... } as const`) 정의. 그럼 키가 문자열이라 필터를 통과, 메시지에 값 목록 정상 출력
+
+### `enableImplicitConversion: true` + `@Transform` boolean이 뒤엎힌다
+- 상황: 쿼리 `?isHiring=false`가 `?isHiring=true`처럼 동작. `@Transform`으로 `'false' → false` 변환 걸었는데도 무시됨
+- 원인: ValidationPipe에 `transformOptions: { enableImplicitConversion: true }` 켜면 class-transformer가 declared type(`boolean`)에 맞춰 `Boolean(value)`를 적용. `Boolean('false') === true`라 `@Transform` 결과를 덮어씀
+- 해결: `enableImplicitConversion` 제거. 숫자 쿼리 파라미터가 필요해지면 그때 필드별로 `@Type(() => Number)`로 명시. Boolean은 `@Transform`으로 직접 다룸
+
+---
+
+## Windows 개발환경
+
+### `curl -d '{"name":"한글"}'`가 DB에 mojibake로 저장됨
+- 상황: Git Bash의 curl로 한글 포함 JSON POST → DB에 `���̹�` 저장됨
+- 원인: Windows curl.exe가 콘솔 코드페이지(cp949)로 body를 인코딩해서 전송. 서버는 UTF-8 가정
+- 해결: 검증은 PowerShell `Invoke-RestMethod ... -Body $body -ContentType 'application/json; charset=utf-8'`로. curl 굳이 쓰려면 `--data-binary @file.json`으로 UTF-8 파일 지정
