@@ -4,6 +4,7 @@ import { resolve } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HealthController } from './health/health.controller';
+import { CompaniesModule } from './companies/companies.module';
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { HealthController } from './health/health.controller';
       isGlobal: true,
       envFilePath: [resolve(process.cwd(), '../../.env')],
     }),
+    CompaniesModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],
