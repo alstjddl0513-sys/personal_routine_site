@@ -76,6 +76,13 @@ export async function createCompany(input: CreateCompanyInput): Promise<Company>
   return (await res.json()) as Company;
 }
 
+export async function deleteCompany(id: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/companies/${id}`, { method: 'DELETE' });
+  if (!res.ok) {
+    throw new Error(`DELETE /companies/${id} failed: HTTP ${res.status}`);
+  }
+}
+
 export async function patchCompany(id: string, patch: CompanyPatch): Promise<Company> {
   const res = await fetch(`${API_BASE}/companies/${id}`, {
     method: 'PATCH',
