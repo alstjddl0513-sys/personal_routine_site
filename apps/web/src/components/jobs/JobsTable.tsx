@@ -1,19 +1,13 @@
 import { Heart } from 'lucide-react';
-import {
-  APPLICATION_STATUS_LABELS,
-  COMPANY_TYPE_1_LABELS,
-  COMPANY_TYPE_2_LABELS,
-  PRIORITY_LABELS,
-  type Company,
-} from '@repo/shared';
-
-const PRIORITY_STYLE: Record<Company['priority'], string> = {
-  urgent:
-    'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300',
-  important:
-    'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300',
-  normal: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400',
-};
+import { type Company } from '@repo/shared';
+import { PrioritySelect } from './cells/PrioritySelect';
+import { StatusSelect } from './cells/StatusSelect';
+import { HiringToggle } from './cells/HiringToggle';
+import { NotePopover } from './cells/NotePopover';
+import { UrlPopover } from './cells/UrlPopover';
+import { TypeSelect } from './cells/TypeSelect';
+import { SizeSelect } from './cells/SizeSelect';
+import { DeadlinePopover } from './cells/DeadlinePopover';
 
 export function JobsTable({ rows }: { rows: Company[] }) {
   if (rows.length === 0) {
@@ -25,21 +19,24 @@ export function JobsTable({ rows }: { rows: Company[] }) {
   }
 
   return (
-    <div className="overflow-hidden rounded-md border border-zinc-200 dark:border-zinc-800">
+    <div className="rounded-md border border-zinc-200 dark:border-zinc-800">
       <table className="w-full text-sm">
-        <thead className="bg-zinc-50 text-left text-xs text-zinc-500 dark:bg-zinc-900/60 dark:text-zinc-400">
+        <thead className="bg-zinc-50 text-xs text-zinc-500 dark:bg-zinc-900/60 dark:text-zinc-400">
           <tr>
             <Th className="w-8" srOnly>
               즐겨찾기
             </Th>
-            <Th>회사명</Th>
+            <Th align="left" className="pr-1">
+              회사명
+            </Th>
             <Th>유형</Th>
             <Th>규모</Th>
             <Th>우선순위</Th>
             <Th>채용중</Th>
             <Th>지원상태</Th>
-            <Th>마감</Th>
-            <Th>공고</Th>
+            <Th>마감일</Th>
+            <Th className="pr-0">공고 링크</Th>
+            <Th className="pl-0">메모</Th>
           </tr>
         </thead>
         <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -56,46 +53,48 @@ export function JobsTable({ rows }: { rows: Company[] }) {
                   />
                 ) : null}
               </Td>
-              <Td className="font-medium">{c.name}</Td>
-              <Td className="text-zinc-600 dark:text-zinc-400">
-                {COMPANY_TYPE_2_LABELS[c.type2]}
-              </Td>
-              <Td className="text-zinc-600 dark:text-zinc-400">
-                {COMPANY_TYPE_1_LABELS[c.type1]}
+              <Td className="w-1 pr-1 font-medium whitespace-nowrap">
+                {c.name}
               </Td>
               <Td>
-                <span
-                  className={`inline-block rounded px-1.5 py-0.5 text-xs ${PRIORITY_STYLE[c.priority]}`}
-                >
-                  {PRIORITY_LABELS[c.priority]}
-                </span>
+                <Center>
+                  <TypeSelect id={c.id} value={c.type2} />
+                </Center>
               </Td>
               <Td>
-                {c.isHiring ? (
-                  <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
-                ) : (
-                  <span className="inline-block h-2 w-2 rounded-full bg-zinc-300 dark:bg-zinc-700" />
-                )}
-              </Td>
-              <Td className="text-zinc-600 dark:text-zinc-400">
-                {APPLICATION_STATUS_LABELS[c.applicationStatus]}
-              </Td>
-              <Td className="text-zinc-500">
-                {c.applicationDeadline ?? '—'}
+                <Center>
+                  <SizeSelect id={c.id} value={c.type1} />
+                </Center>
               </Td>
               <Td>
-                {c.postingUrl ? (
-                  <a
-                    href={c.postingUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-blue-600 hover:underline dark:text-blue-400"
-                  >
-                    링크
-                  </a>
-                ) : (
-                  <span className="text-zinc-400">—</span>
-                )}
+                <Center>
+                  <PrioritySelect id={c.id} value={c.priority} />
+                </Center>
+              </Td>
+              <Td>
+                <Center>
+                  <HiringToggle id={c.id} value={c.isHiring} />
+                </Center>
+              </Td>
+              <Td>
+                <Center>
+                  <StatusSelect id={c.id} value={c.applicationStatus} />
+                </Center>
+              </Td>
+              <Td>
+                <Center>
+                  <DeadlinePopover id={c.id} value={c.applicationDeadline} />
+                </Center>
+              </Td>
+              <Td className="pr-0">
+                <Center>
+                  <UrlPopover id={c.id} value={c.postingUrl} />
+                </Center>
+              </Td>
+              <Td className="pl-0">
+                <Center>
+                  <NotePopover id={c.id} value={c.note} />
+                </Center>
               </Td>
             </tr>
           ))}
@@ -109,13 +108,16 @@ function Th({
   children,
   className,
   srOnly,
+  align = 'center',
 }: {
   children: React.ReactNode;
   className?: string;
   srOnly?: boolean;
+  align?: 'left' | 'center';
 }) {
+  const alignClass = align === 'center' ? 'text-center' : 'text-left';
   return (
-    <th className={`px-3 py-2 font-medium ${className ?? ''}`}>
+    <th className={`px-3 py-2 font-medium ${alignClass} ${className ?? ''}`}>
       {srOnly ? <span className="sr-only">{children}</span> : children}
     </th>
   );
@@ -128,5 +130,11 @@ function Td({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <td className={`px-3 py-2 align-middle ${className ?? ''}`}>{children}</td>;
+  return (
+    <td className={`px-3 py-2 align-middle ${className ?? ''}`}>{children}</td>
+  );
+}
+
+function Center({ children }: { children: React.ReactNode }) {
+  return <div className="flex items-center justify-center">{children}</div>;
 }
