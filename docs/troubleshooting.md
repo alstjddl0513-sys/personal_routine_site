@@ -92,3 +92,13 @@
 - 상황: Git Bash의 curl로 한글 포함 JSON POST → DB에 `���̹�` 저장됨
 - 원인: Windows curl.exe가 콘솔 코드페이지(cp949)로 body를 인코딩해서 전송. 서버는 UTF-8 가정
 - 해결: 검증은 PowerShell `Invoke-RestMethod ... -Body $body -ContentType 'application/json; charset=utf-8'`로. curl 굳이 쓰려면 `--data-binary @file.json`으로 UTF-8 파일 지정
+
+### `turbo run dev`가 `spawn UNKNOWN` (errno -4094)로 죽음
+- 상황: `pnpm dev` → `Error: spawn UNKNOWN`. turbo.exe 직접 실행하면 "Device Guard 정책에 의해 차단되었습니다"
+- 원인: Windows 11 Smart App Control / Device Guard가 서명 안 된 `turbo.exe`(vercel 배포) 실행 차단. Smart App Control은 개별 예외 등록 UI 없음. 끄면 재설정 못 함
+- 해결: turbo 자체를 제거. 루트 `package.json` scripts를 `pnpm -r --parallel run dev` / `pnpm -r run build|lint|typecheck`로 교체. 앱 2개짜리 모노레포엔 turbo 캐시 이득 없음
+
+### 마이그레이션 후 `applicationDeadline`이 표에 안 뜸 (저장은 됨)
+- 상황: PATCH로 값 저장 → DB에 정상 저장 → GET에서 `"2026-08-25 09:00:00+00"` 반환 → 프론트가 `—`로 표시
+- 원인: PostgreSQL timestamptz의 텍스트 반환 형식(공백+짧은 `+00`)이 비표준. Firefox/Safari `new Date()`가 `Invalid Date` 반환. Chrome은 관대해서 통과
+- 해결: 표시 helper에서 공백→`T`, `+00`→`+00:00` 정규화 후 `new Date()`. 백엔드에서 ISO로 변환하는 대안도 있으나 프론트가 더 국지적

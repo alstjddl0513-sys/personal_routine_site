@@ -65,7 +65,10 @@ export const companies = pgTable('companies', {
   postingUrl: text('posting_url'),
 
   employmentType: employmentTypeEnum('employment_type'),
-  applicationDeadline: date('application_deadline'),
+  applicationDeadline: timestamp('application_deadline', {
+    withTimezone: true,
+    mode: 'string',
+  }),
   applicationStatus: applicationStatusEnum('application_status')
     .notNull()
     .default('not_applied'),

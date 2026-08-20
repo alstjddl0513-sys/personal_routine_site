@@ -1,30 +1,54 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useRef, useState, useTransition } from 'react';
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { Heart, Search, X } from 'lucide-react';
 import {
+  APPLICATION_STATUS_LABELS,
+  APPLICATION_STATUS_VALUES,
+  COMPANY_TYPE_1_LABELS,
+  COMPANY_TYPE_1_VALUES,
   COMPANY_TYPE_2_LABELS,
   COMPANY_TYPE_2_VALUES,
-  type CompanyType2,
+  PRIORITY_LABELS,
+  PRIORITY_VALUES,
+  type ApplicationStatus,
 } from '@repo/shared';
+import { AddCompanyButton } from './AddCompanyButton';
 
-const TYPE2_OPTIONS: (CompanyType2 | 'all')[] = ['all', ...COMPANY_TYPE_2_VALUES];
+const STATUS_CHIP_STYLE: Record<ApplicationStatus, string> = {
+  not_applied: 'border-zinc-300 bg-zinc-50 text-zinc-600',
+  applied: 'border-blue-300 bg-blue-50 text-blue-700',
+  document_passed: 'border-sky-300 bg-sky-50 text-sky-700',
+  document_failed: 'border-zinc-300 bg-zinc-50 text-zinc-400 line-through',
+  interview_1_passed: 'border-cyan-300 bg-cyan-50 text-cyan-700',
+  interview_1_failed: 'border-zinc-300 bg-zinc-50 text-zinc-400 line-through',
+  interview_2_passed: 'border-emerald-300 bg-emerald-100 text-emerald-800',
+  interview_2_failed: 'border-zinc-300 bg-zinc-50 text-zinc-400 line-through',
+  final_passed: 'border-amber-300 bg-amber-100 text-amber-800 font-semibold',
+  final_failed: 'border-zinc-300 bg-zinc-50 text-zinc-400 line-through',
+  withdrawn: 'border-zinc-300 bg-zinc-100 text-zinc-500 italic',
+};
 
 export function JobsFilters() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [, startTransition] = useTransition();
 
-  const currentType2 = searchParams.get('type2');
+  const type2Set = useMemo(() => parseCsv(searchParams.get('type2')), [searchParams]);
+  const type1Set = useMemo(() => parseCsv(searchParams.get('type1')), [searchParams]);
+  const prioritySet = useMemo(
+    () => parseCsv(searchParams.get('priority')),
+    [searchParams],
+  );
+  const statusSet = useMemo(() => parseCsv(searchParams.get('status')), [searchParams]);
+  const currentHiring = searchParams.get('hiring') === '1';
   const currentFavorite = searchParams.get('favorite') === '1';
   const currentSearch = searchParams.get('q') ?? '';
 
   const [searchInput, setSearchInput] = useState(currentSearch);
-  // track last value we pushed to URL, so URL-driven changes can sync back into local state
   const lastPushedRef = useRef(currentSearch);
 
-  // sync input <- URL when URL changes externally (back/forward, paste, reset button)
   useEffect(() => {
     if (currentSearch !== lastPushedRef.current) {
       setSearchInput(currentSearch);
@@ -32,7 +56,6 @@ export function JobsFilters() {
     }
   }, [currentSearch]);
 
-  // debounce input -> URL
   useEffect(() => {
     if (searchInput === lastPushedRef.current) return;
     const t = setTimeout(() => {
@@ -54,6 +77,13 @@ export function JobsFilters() {
     });
   }
 
+  function toggleMulti(key: string, values: Set<string>, v: string) {
+    const next = new Set(values);
+    if (next.has(v)) next.delete(v);
+    else next.add(v);
+    pushPatch({ [key]: next.size ? Array.from(next).join(',') : null });
+  }
+
   function clearAll() {
     lastPushedRef.current = '';
     setSearchInput('');
@@ -62,7 +92,14 @@ export function JobsFilters() {
     });
   }
 
-  const anyActive = currentType2 || currentFavorite || currentSearch;
+  const anyActive =
+    type2Set.size ||
+    type1Set.size ||
+    prioritySet.size ||
+    statusSet.size ||
+    currentHiring ||
+    currentFavorite ||
+    currentSearch;
 
   return (
     <div className="flex flex-col gap-3">
@@ -80,6 +117,7 @@ export function JobsFilters() {
             className="w-full rounded-md border border-zinc-300 bg-white py-2 pr-3 pl-9 text-sm outline-none placeholder:text-zinc-400 focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
           />
         </div>
+        <AddCompanyButton />
         <button
           type="button"
           onClick={() => pushPatch({ favorite: currentFavorite ? null : '1' })}
@@ -108,37 +146,121 @@ export function JobsFilters() {
         ) : null}
       </div>
 
-      <div className="flex flex-wrap gap-1.5">
-        {TYPE2_OPTIONS.map((opt) => {
-          const active =
-            opt === 'all' ? currentType2 === null : currentType2 === opt;
-          const label = opt === 'all' ? '전체' : COMPANY_TYPE_2_LABELS[opt];
-          return (
-            <button
-              key={opt}
-              type="button"
-              onClick={() => {
-                // 활성 chip 재클릭 -> 해제, 그 외 -> 그 값으로 세팅. '전체'는 항상 clear.
-                if (opt === 'all') {
-                  pushPatch({ type2: null });
-                } else if (active) {
-                  pushPatch({ type2: null });
-                } else {
-                  pushPatch({ type2: opt });
+      <div className="rounded-md border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 text-sm">
+          <FilterRow label="유형">
+            {COMPANY_TYPE_2_VALUES.map((v) => (
+              <Chip
+                key={v}
+                active={type2Set.has(v)}
+                onClick={() => toggleMulti('type2', type2Set, v)}
+              >
+                {COMPANY_TYPE_2_LABELS[v]}
+              </Chip>
+            ))}
+          </FilterRow>
+          <FilterRow label="규모">
+            {COMPANY_TYPE_1_VALUES.map((v) => (
+              <Chip
+                key={v}
+                active={type1Set.has(v)}
+                onClick={() => toggleMulti('type1', type1Set, v)}
+              >
+                {COMPANY_TYPE_1_LABELS[v]}
+              </Chip>
+            ))}
+          </FilterRow>
+          <FilterRow label="우선순위">
+            {PRIORITY_VALUES.map((v) => (
+              <Chip
+                key={v}
+                active={prioritySet.has(v)}
+                onClick={() => toggleMulti('priority', prioritySet, v)}
+              >
+                {PRIORITY_LABELS[v]}
+              </Chip>
+            ))}
+          </FilterRow>
+          <FilterRow label="채용중">
+            <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400">
+              <input
+                type="checkbox"
+                checked={currentHiring}
+                onChange={(e) =>
+                  pushPatch({ hiring: e.target.checked ? '1' : null })
                 }
-              }}
-              className={`rounded-full border px-3 py-1 text-xs transition-colors ${
-                active
-                  ? 'border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900'
-                  : 'border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800'
-              }`}
-              aria-pressed={active}
-            >
-              {label}
-            </button>
-          );
-        })}
+                className="h-4 w-4 cursor-pointer rounded border-zinc-300 accent-zinc-900 dark:border-zinc-600 dark:accent-zinc-100"
+              />
+              채용중만 보기
+            </label>
+          </FilterRow>
+          <FilterRow label="지원상태">
+            {APPLICATION_STATUS_VALUES.map((v) => {
+              const active = statusSet.has(v);
+              return (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => toggleMulti('status', statusSet, v)}
+                  aria-pressed={active}
+                  className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+                    active
+                      ? STATUS_CHIP_STYLE[v] + ' ring-2 ring-zinc-900 dark:ring-zinc-100'
+                      : STATUS_CHIP_STYLE[v] + ' opacity-60 hover:opacity-100'
+                  }`}
+                >
+                  {APPLICATION_STATUS_LABELS[v]}
+                </button>
+              );
+            })}
+          </FilterRow>
+        </div>
       </div>
     </div>
+  );
+}
+
+function parseCsv(raw: string | null): Set<string> {
+  if (!raw) return new Set();
+  return new Set(raw.split(',').map((s) => s.trim()).filter(Boolean));
+}
+
+function FilterRow({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <>
+      <span className="pt-1 text-xs text-zinc-500 dark:text-zinc-400">{label}</span>
+      <div className="flex flex-wrap gap-1.5">{children}</div>
+    </>
+  );
+}
+
+function Chip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+        active
+          ? 'border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900'
+          : 'border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800'
+      }`}
+    >
+      {children}
+    </button>
   );
 }
