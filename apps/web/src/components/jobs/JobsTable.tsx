@@ -1,4 +1,3 @@
-import { Heart } from 'lucide-react';
 import { type Company } from '@repo/shared';
 import { PrioritySelect } from './cells/PrioritySelect';
 import { StatusSelect } from './cells/StatusSelect';
@@ -8,6 +7,8 @@ import { UrlPopover } from './cells/UrlPopover';
 import { TypeSelect } from './cells/TypeSelect';
 import { SizeSelect } from './cells/SizeSelect';
 import { DeadlinePopover } from './cells/DeadlinePopover';
+import { FavoriteToggle } from './cells/FavoriteToggle';
+import { DeleteRowButton } from './cells/DeleteRowButton';
 
 export function JobsTable({ rows }: { rows: Company[] }) {
   if (rows.length === 0) {
@@ -37,21 +38,21 @@ export function JobsTable({ rows }: { rows: Company[] }) {
             <Th>마감일</Th>
             <Th className="pr-0">공고 링크</Th>
             <Th className="pl-0">메모</Th>
+            <Th className="w-8" srOnly>
+              액션
+            </Th>
           </tr>
         </thead>
         <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
           {rows.map((c) => (
             <tr
               key={c.id}
-              className="hover:bg-zinc-50/60 dark:hover:bg-zinc-900/30"
+              className="group hover:bg-zinc-50/60 dark:hover:bg-zinc-900/30"
             >
               <Td>
-                {c.isFavorite ? (
-                  <Heart
-                    className="h-4 w-4 fill-rose-500 text-rose-500"
-                    aria-label="즐겨찾기"
-                  />
-                ) : null}
+                <Center>
+                  <FavoriteToggle id={c.id} value={c.isFavorite} />
+                </Center>
               </Td>
               <Td className="w-1 pr-1 font-medium whitespace-nowrap">
                 {c.name}
@@ -94,6 +95,11 @@ export function JobsTable({ rows }: { rows: Company[] }) {
               <Td className="pl-0">
                 <Center>
                   <NotePopover id={c.id} value={c.note} />
+                </Center>
+              </Td>
+              <Td>
+                <Center>
+                  <DeleteRowButton id={c.id} name={c.name} />
                 </Center>
               </Td>
             </tr>
