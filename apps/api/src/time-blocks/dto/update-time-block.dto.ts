@@ -3,6 +3,7 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  Max,
   MaxLength,
   Min,
   MinLength,
@@ -23,4 +24,10 @@ export class UpdateTimeBlockDto {
   @IsOptional()
   @IsBoolean()
   isArchived?: boolean;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(1410)
+  startTime?: number | null;
 }

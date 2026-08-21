@@ -3,7 +3,10 @@ import type {
   Company,
   CompanyType1,
   CompanyType2,
+  DayNote,
   Priority,
+  RoutineCheck,
+  TimeBlock,
 } from '@repo/shared';
 
 export type CompanyPatch = Partial<
@@ -93,4 +96,92 @@ export async function patchCompany(id: string, patch: CompanyPatch): Promise<Com
     throw new Error(`PATCH /companies/${id} failed: HTTP ${res.status}`);
   }
   return (await res.json()) as Company;
+}
+
+// --- routines ---
+
+export async function getTimeBlocks(includeArchived = false): Promise<TimeBlock[]> {
+  const qs = includeArchived ? '?includeArchived=true' : '';
+  const res = await fetch(`${API_BASE}/time-blocks${qs}`, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`GET /time-blocks failed: HTTP ${res.status}`);
+  return (await res.json()) as TimeBlock[];
+}
+
+export async function createTimeBlock(input: {
+  label: string;
+  sortOrder?: number;
+  startTime?: number;
+}): Promise<TimeBlock> {
+  const res = await fetch(`${API_BASE}/time-blocks`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(`POST /time-blocks failed: HTTP ${res.status}`);
+  return (await res.json()) as TimeBlock;
+}
+
+export async function patchTimeBlock(
+  id: string,
+  patch: Partial<Pick<TimeBlock, 'label' | 'sortOrder' | 'isArchived' | 'startTime'>>,
+): Promise<TimeBlock> {
+  const res = await fetch(`${API_BASE}/time-blocks/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok) throw new Error(`PATCH /time-blocks/${id} failed: HTTP ${res.status}`);
+  return (await res.json()) as TimeBlock;
+}
+
+export async function deleteTimeBlock(id: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/time-blocks/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error(`DELETE /time-blocks/${id} failed: HTTP ${res.status}`);
+}
+
+export async function getRoutineChecks(range: {
+  from: string;
+  to: string;
+}): Promise<RoutineCheck[]> {
+  const qs = new URLSearchParams({ from: range.from, to: range.to });
+  const res = await fetch(`${API_BASE}/routine-checks?${qs.toString()}`, {
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error(`GET /routine-checks failed: HTTP ${res.status}`);
+  return (await res.json()) as RoutineCheck[];
+}
+
+export async function toggleRoutineCheck(input: {
+  blockId: string;
+  date: string;
+  checked: boolean;
+}): Promise<void> {
+  const res = await fetch(`${API_BASE}/routine-checks`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(`PUT /routine-checks failed: HTTP ${res.status}`);
+}
+
+export async function getDayNotes(range: {
+  from: string;
+  to: string;
+}): Promise<DayNote[]> {
+  const qs = new URLSearchParams({ from: range.from, to: range.to });
+  const res = await fetch(`${API_BASE}/day-notes?${qs.toString()}`, {
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error(`GET /day-notes failed: HTTP ${res.status}`);
+  return (await res.json()) as DayNote[];
+}
+
+export async function upsertDayNote(date: string, content: string): Promise<DayNote> {
+  const res = await fetch(`${API_BASE}/day-notes/${date}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content }),
+  });
+  if (!res.ok) throw new Error(`PUT /day-notes/${date} failed: HTTP ${res.status}`);
+  return (await res.json()) as DayNote;
 }

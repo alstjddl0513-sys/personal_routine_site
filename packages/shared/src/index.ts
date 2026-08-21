@@ -113,3 +113,27 @@ export const APPLICATION_STATUS_LABELS: Record<ApplicationStatus, string> = {
   final_failed: '최종탈락',
   withdrawn: '지원취소',
 };
+
+// --- routines ---
+
+export interface TimeBlock {
+  id: string;
+  label: string;
+  /** Minutes from midnight (0..1410, step 30). null when unset. */
+  startTime: number | null;
+  sortOrder: number;
+  isArchived: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RoutineCheck {
+  blockId: string;
+  date: string;
+}
+
+export interface DayNote {
+  date: string;
+  content: string;
+  updatedAt: string;
+}
