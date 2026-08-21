@@ -137,3 +137,45 @@ export interface DayNote {
   content: string;
   updatedAt: string;
 }
+
+// --- workouts ---
+
+export interface Exercise {
+  id: string;
+  name: string;
+  targetMuscle: string | null;
+  defaultSets: number;
+  repMin: number;
+  repMax: number;
+  sortOrder: number;
+  isArchived: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WorkoutSession {
+  id: string;
+  date: string;
+  note: string | null;
+  startedAt: string | null;
+  endedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WorkoutSet {
+  id: string;
+  sessionId: string;
+  exerciseId: string;
+  setNumber: number;
+  /** numeric(6,2) returned as string by pg. parseFloat on the client. */
+  weightKg: string | null;
+  reps: number | null;
+  rir: number | null;
+  createdAt: string;
+}
+
+export interface PreviousWorkout {
+  date: string;
+  sets: Pick<WorkoutSet, 'setNumber' | 'weightKg' | 'reps' | 'rir'>[];
+}
