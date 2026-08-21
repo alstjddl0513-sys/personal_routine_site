@@ -1,4 +1,12 @@
-import { IsInt, IsOptional, IsString, MaxLength, Min, MinLength } from 'class-validator';
+import {
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  MaxLength,
+  Min,
+  MinLength,
+} from 'class-validator';
 
 export class CreateTimeBlockDto {
   @IsString()
@@ -10,4 +18,11 @@ export class CreateTimeBlockDto {
   @IsInt()
   @Min(0)
   sortOrder?: number;
+
+  // Minutes from midnight (0..1410), 30-min step enforced client-side.
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(1410)
+  startTime?: number;
 }
