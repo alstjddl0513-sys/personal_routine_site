@@ -8,8 +8,10 @@ import {
   ChevronDown,
   ChevronRight,
   Dumbbell,
+  Settings,
 } from 'lucide-react';
 import { useEffect, useState, type ComponentType, type SVGProps } from 'react';
+import { ThemeToggle } from './ThemeToggle';
 
 interface NavChild {
   href: string;
@@ -106,7 +108,7 @@ export function Sidebar() {
           Rally
         </Link>
       </div>
-      <nav className="flex flex-col gap-0.5 px-2">
+      <nav className="flex flex-1 flex-col gap-0.5 px-2">
         {NAV.map((item) => {
           const { href, label, icon: Icon, children } = item;
           const parentActive = isParentActive(pathname, item);
@@ -168,6 +170,21 @@ export function Sidebar() {
           );
         })}
       </nav>
+
+      <div className="mt-2 flex items-center justify-between border-t border-zinc-200 px-3 py-2 dark:border-zinc-800">
+        <Link
+          href="/settings"
+          className={`inline-flex items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-colors ${
+            isActive(pathname, '/settings')
+              ? 'bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-50'
+              : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100'
+          }`}
+        >
+          <Settings className="h-3.5 w-3.5" aria-hidden />
+          <span>설정</span>
+        </Link>
+        <ThemeToggle />
+      </div>
     </aside>
   );
 }
