@@ -65,6 +65,11 @@
 - 원인: Next 16 타입 유틸(`PageProps<T>`, `LayoutProps<T>`)이 `.next/dev/types/routes.d.ts`에 있는 route union을 참조. 이 파일은 `next dev`/`build`가 라우트 스캔해서 생성. 안 돌리면 union이 `'/'`만 포함
 - 해결: 새 route 파일 만든 뒤 최소 한 번 `next dev` 띄우거나 `next build` 실행 → 이후 typecheck 통과. CI에선 typecheck 전에 `next build` 강제
 
+### Optimistic 토글 버튼이 연타에 반응이 느려짐 (하트/채용중)
+- 상황: 하트/토글 버튼을 활성→비활성 빠르게 누르면 두번째 클릭이 지연 후 반영되거나 잘못된 값으로 되돌아감
+- 원인: `disabled={isPending}` + `useTransition`으로 PATCH+`router.refresh` 왕복 중 버튼이 잠김. `useEffect([value])`가 매번 prop→state 리셋해서 in-flight 중 이전 refresh 결과가 현재 optimistic 상태를 덮음
+- 해결: (1) `disabled` 제거 → 항상 클릭 가능. (2) `inFlightRef` 카운터로 왕복 중일 땐 useEffect의 prop 동기화 skip → 마지막 사용자 클릭 의도 보존. router.refresh는 유지(필터가 켜져 있을 때 행이 사라지는 동작을 위해)
+
 ### Nest 핸들러가 `null` 반환하면 client의 `res.json()`이 터짐
 - 상황: `/workout-sets/previous`가 이전 세션 없을 때 `null` 반환. 클라이언트에서 `SyntaxError: Unexpected end of JSON input` → 서버 컴포넌트 500
 - 원인: NestJS는 handler가 `null`을 리턴하면 응답 바디를 비워버림 (Content-Length: 0). 문자열 `"null"`이 아니라서 `res.json()`이 파싱 실패
