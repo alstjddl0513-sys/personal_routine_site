@@ -3,6 +3,7 @@ import { WorkoutSetsService } from './workout-sets.service';
 import { BatchWorkoutSetsDto } from './dto/batch-workout-sets.dto';
 import { QueryWorkoutSetsDto } from './dto/query-workout-sets.dto';
 import { QueryPreviousDto } from './dto/query-previous.dto';
+import { QueryExerciseStatsDto } from './dto/query-exercise-stats.dto';
 
 @Controller('workout-sets')
 export class WorkoutSetsController {
@@ -16,6 +17,11 @@ export class WorkoutSetsController {
   @Get('previous')
   findPrevious(@Query() query: QueryPreviousDto) {
     return this.service.findPrevious(query);
+  }
+
+  @Get('exercise-stats')
+  findExerciseStats(@Query() query: QueryExerciseStatsDto) {
+    return this.service.findExerciseStats(query);
   }
 
   @Put('batch')

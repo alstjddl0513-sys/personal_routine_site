@@ -2,13 +2,19 @@
 
 import { useState, useTransition } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import type { Exercise, PreviousWorkout, WorkoutSet } from '@repo/shared';
+import type {
+  Exercise,
+  ExerciseStatsPR,
+  PreviousWorkout,
+  WorkoutSet,
+} from '@repo/shared';
 import { SetInputs } from './SetInputs';
 
 interface Props {
   exercise: Exercise;
   existingSets: WorkoutSet[];
   previous: PreviousWorkout | null;
+  pr: ExerciseStatsPR | null;
   ensureSession: () => Promise<string>;
   canMoveUp: boolean;
   canMoveDown: boolean;
@@ -71,15 +77,28 @@ export function ExerciseCard(props: Props) {
       </div>
 
       {prev ? (
-        <div className="mb-2 rounded bg-zinc-50 px-2 py-1.5 text-[11px] text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
+        <div className="mb-1 rounded bg-zinc-50 px-2 py-1.5 text-[11px] text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
           <span className="font-medium">지난번</span>
           <span className="ml-1 text-zinc-400">({prev.date})</span>: {prev.rendered}
         </div>
       ) : (
-        <div className="mb-2 rounded bg-zinc-50 px-2 py-1.5 text-[11px] italic text-zinc-400 dark:bg-zinc-900">
+        <div className="mb-1 rounded bg-zinc-50 px-2 py-1.5 text-[11px] italic text-zinc-400 dark:bg-zinc-900">
           지난 기록 없음
         </div>
       )}
+
+      {props.pr ? (
+        <div className="mb-2 flex items-center gap-1 text-[10px] text-amber-700 dark:text-amber-400">
+          <span className="rounded bg-amber-100 px-1 py-0.5 font-semibold dark:bg-amber-950/50">
+            PR
+          </span>
+          <span>
+            {Number(props.pr.weightKg)}kg
+            {props.pr.reps != null ? ` × ${props.pr.reps}` : ''}
+            <span className="ml-1 text-zinc-400">({props.pr.sessionDate})</span>
+          </span>
+        </div>
+      ) : null}
 
       <SetInputs
         exerciseId={props.exercise.id}

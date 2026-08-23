@@ -1,18 +1,15 @@
-import type { PreviousWorkout, WorkoutSet } from '@repo/shared';
+import type { ExerciseStatsPR, PreviousWorkout, WorkoutSet } from '@repo/shared';
 import {
+  getExerciseStats,
   getExercises,
   getPreviousWorkout,
   getWorkoutSessionByDate,
-  getWorkoutSessionsRange,
   getWorkoutSets,
 } from '../../lib/api';
-import { addDays, mondayOf, parseISODate, toISODate } from '../../lib/routines-week';
+import { parseISODate, toISODate } from '../../lib/routines-week';
 import { AddExerciseButton } from '../../components/workouts/AddExerciseButton';
-import { HeatmapCard } from '../../components/workouts/HeatmapCard';
 import { WorkoutBoard } from '../../components/workouts/WorkoutBoard';
 import { WorkoutDateNav } from '../../components/workouts/WorkoutDateNav';
-
-const HEATMAP_WEEKS = 12;
 
 function first(raw: string | string[] | undefined): string | undefined {
   return Array.isArray(raw) ? raw[0] : raw;
@@ -26,21 +23,20 @@ export default async function WorkoutsPage({
   const displayDate = (dateParam ? parseISODate(dateParam) : null) ?? new Date();
   const dateIso = toISODate(displayDate);
 
-  const today = new Date();
-  const currentMon = mondayOf(today);
-  const heatmapFrom = toISODate(addDays(currentMon, -(HEATMAP_WEEKS - 1) * 7));
-  const heatmapTo = toISODate(addDays(currentMon, 6));
-
-  const [exercises, session, heatmapSessions] = await Promise.all([
+  const [exercises, session] = await Promise.all([
     getExercises(),
     getWorkoutSessionByDate(dateIso),
-    getWorkoutSessionsRange({ from: heatmapFrom, to: heatmapTo }),
   ]);
 
-  const [allSets, previousList] = await Promise.all([
+  // limit=1 fetches PR (all-time) with only 1 history row we don't use.
+  // Cheaper than adding a dedicated /pr endpoint just for this page.
+  const [allSets, previousList, statsList] = await Promise.all([
     session ? getWorkoutSets(session.id) : Promise.resolve<WorkoutSet[]>([]),
     Promise.all(
       exercises.map((e) => getPreviousWorkout({ exerciseId: e.id, beforeDate: dateIso })),
+    ),
+    Promise.all(
+      exercises.map((e) => getExerciseStats({ exerciseId: e.id, limit: 1 })),
     ),
   ]);
 
@@ -53,8 +49,10 @@ export default async function WorkoutsPage({
   }
 
   const previousByExercise: Record<string, PreviousWorkout | null> = {};
+  const prByExercise: Record<string, ExerciseStatsPR | null> = {};
   exercises.forEach((e, i) => {
     previousByExercise[e.id] = previousList[i];
+    prByExercise[e.id] = statsList[i].pr;
   });
 
   return (
@@ -73,12 +71,7 @@ export default async function WorkoutsPage({
         initialSession={session}
         setsByExercise={setsByExercise}
         previousByExercise={previousByExercise}
-      />
-
-      <HeatmapCard
-        sessionDates={heatmapSessions.map((s) => s.date)}
-        today={today}
-        weeks={HEATMAP_WEEKS}
+        prByExercise={prByExercise}
       />
     </div>
   );
