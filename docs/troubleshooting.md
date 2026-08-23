@@ -65,6 +65,11 @@
 - 원인: Next 16 타입 유틸(`PageProps<T>`, `LayoutProps<T>`)이 `.next/dev/types/routes.d.ts`에 있는 route union을 참조. 이 파일은 `next dev`/`build`가 라우트 스캔해서 생성. 안 돌리면 union이 `'/'`만 포함
 - 해결: 새 route 파일 만든 뒤 최소 한 번 `next dev` 띄우거나 `next build` 실행 → 이후 typecheck 통과. CI에선 typecheck 전에 `next build` 강제
 
+### Nest 핸들러가 `null` 반환하면 client의 `res.json()`이 터짐
+- 상황: `/workout-sets/previous`가 이전 세션 없을 때 `null` 반환. 클라이언트에서 `SyntaxError: Unexpected end of JSON input` → 서버 컴포넌트 500
+- 원인: NestJS는 handler가 `null`을 리턴하면 응답 바디를 비워버림 (Content-Length: 0). 문자열 `"null"`이 아니라서 `res.json()`이 파싱 실패
+- 해결: 클라이언트에서 `res.text()`로 먼저 읽고 empty면 `null` 반환, 아니면 `JSON.parse`. 서버쪽 shape를 바꾸는 것보단 클라이언트가 방어하는 게 지역적
+
 ### 클라이언트 필터 컴포넌트에서 URL → local input state 동기화 안 됨
 - 상황: `useState(currentSearch)`로 초기화한 검색 input이, URL을 chip 클릭/뒤로가기/초기화로 외부 변경했을 때 값을 안 따라감 (표는 갱신되는데 검색창 텍스트가 stale)
 - 원인: `useState` 초기화는 mount 시점 1회. URL이 바뀌어도 state는 안 흔들림. typing → URL 반영은 debounce로 도는데 URL → input 방향은 자연히 안 됨

@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "routine-site",
+  title: "Rally",
   description: "취준 루틴/커리어 트래커",
 };
 

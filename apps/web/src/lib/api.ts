@@ -4,9 +4,13 @@ import type {
   CompanyType1,
   CompanyType2,
   DayNote,
+  Exercise,
+  PreviousWorkout,
   Priority,
   RoutineCheck,
   TimeBlock,
+  WorkoutSession,
+  WorkoutSet,
 } from '@repo/shared';
 
 export type CompanyPatch = Partial<
@@ -184,4 +188,136 @@ export async function upsertDayNote(date: string, content: string): Promise<DayN
   });
   if (!res.ok) throw new Error(`PUT /day-notes/${date} failed: HTTP ${res.status}`);
   return (await res.json()) as DayNote;
+}
+
+// --- workouts ---
+
+export async function getExercises(includeArchived = false): Promise<Exercise[]> {
+  const qs = includeArchived ? '?includeArchived=true' : '';
+  const res = await fetch(`${API_BASE}/exercises${qs}`, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`GET /exercises failed: HTTP ${res.status}`);
+  return (await res.json()) as Exercise[];
+}
+
+export async function createExercise(input: {
+  name: string;
+  targetMuscle?: string;
+  defaultSets?: number;
+  repMin: number;
+  repMax: number;
+}): Promise<Exercise> {
+  const res = await fetch(`${API_BASE}/exercises`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(`POST /exercises failed: HTTP ${res.status}`);
+  return (await res.json()) as Exercise;
+}
+
+export async function patchExercise(
+  id: string,
+  patch: Partial<Pick<Exercise, 'name' | 'targetMuscle' | 'defaultSets' | 'repMin' | 'repMax' | 'sortOrder' | 'isArchived'>>,
+): Promise<Exercise> {
+  const res = await fetch(`${API_BASE}/exercises/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok) throw new Error(`PATCH /exercises/${id} failed: HTTP ${res.status}`);
+  return (await res.json()) as Exercise;
+}
+
+// Returns null when no session exists for this date.
+export async function getWorkoutSessionByDate(date: string): Promise<WorkoutSession | null> {
+  const qs = new URLSearchParams({ date });
+  const res = await fetch(`${API_BASE}/workout-sessions?${qs.toString()}`, {
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error(`GET /workout-sessions failed: HTTP ${res.status}`);
+  const arr = (await res.json()) as WorkoutSession[];
+  return arr[0] ?? null;
+}
+
+export async function getWorkoutSessionsRange(range: {
+  from: string;
+  to: string;
+}): Promise<WorkoutSession[]> {
+  const qs = new URLSearchParams({ from: range.from, to: range.to });
+  const res = await fetch(`${API_BASE}/workout-sessions?${qs.toString()}`, {
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error(`GET /workout-sessions failed: HTTP ${res.status}`);
+  return (await res.json()) as WorkoutSession[];
+}
+
+export async function createWorkoutSession(input: {
+  date: string;
+  note?: string;
+}): Promise<WorkoutSession> {
+  const res = await fetch(`${API_BASE}/workout-sessions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(`POST /workout-sessions failed: HTTP ${res.status}`);
+  return (await res.json()) as WorkoutSession;
+}
+
+export async function patchWorkoutSession(
+  id: string,
+  patch: { note?: string | null },
+): Promise<WorkoutSession> {
+  const res = await fetch(`${API_BASE}/workout-sessions/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok) throw new Error(`PATCH /workout-sessions/${id} failed: HTTP ${res.status}`);
+  return (await res.json()) as WorkoutSession;
+}
+
+export async function getWorkoutSets(sessionId: string): Promise<WorkoutSet[]> {
+  const qs = new URLSearchParams({ sessionId });
+  const res = await fetch(`${API_BASE}/workout-sets?${qs.toString()}`, {
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error(`GET /workout-sets failed: HTTP ${res.status}`);
+  return (await res.json()) as WorkoutSet[];
+}
+
+export interface WorkoutSetInput {
+  setNumber: number;
+  weightKg: number | null;
+  reps: number | null;
+  rir: number | null;
+}
+
+export async function batchWorkoutSets(input: {
+  sessionId: string;
+  exerciseId: string;
+  sets: WorkoutSetInput[];
+}): Promise<WorkoutSet[]> {
+  const res = await fetch(`${API_BASE}/workout-sets/batch`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(`PUT /workout-sets/batch failed: HTTP ${res.status}`);
+  return (await res.json()) as WorkoutSet[];
+}
+
+export async function getPreviousWorkout(params: {
+  exerciseId: string;
+  beforeDate: string;
+}): Promise<PreviousWorkout | null> {
+  const qs = new URLSearchParams(params);
+  const res = await fetch(`${API_BASE}/workout-sets/previous?${qs.toString()}`, {
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error(`GET /workout-sets/previous failed: HTTP ${res.status}`);
+  // Nest serializes `null` return as an empty body (Content-Length: 0) rather
+  // than the string "null", so res.json() would throw. Read as text first.
+  const text = await res.text();
+  return text ? (JSON.parse(text) as PreviousWorkout) : null;
 }

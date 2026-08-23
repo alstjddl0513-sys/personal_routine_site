@@ -55,7 +55,7 @@ export function Sidebar() {
     <aside className="sticky top-0 flex h-screen w-60 shrink-0 flex-col border-r border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950">
       <div className="px-5 pt-5 pb-4">
         <Link href="/jobs" className="text-base font-semibold tracking-tight">
-          routine-site
+          Rally
         </Link>
       </div>
       <nav className="flex flex-col gap-0.5 px-2">
