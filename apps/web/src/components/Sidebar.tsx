@@ -31,11 +31,22 @@ const NAV: NavItem[] = [
     ],
   },
   { href: '/routines', label: '루틴', icon: CalendarCheck2 },
-  { href: '/workouts', label: '운동', icon: Dumbbell },
+  {
+    href: '/workouts',
+    label: '운동',
+    icon: Dumbbell,
+    matchPrefixes: ['/workouts'],
+    children: [
+      { href: '/workouts', label: '기록' },
+      { href: '/workouts/statistics', label: '통계' },
+    ],
+  },
 ];
 
 function isActive(pathname: string, href: string) {
-  if (href === '/jobs') return pathname === '/jobs';
+  // Parents whose own href doubles as a child link (/jobs, /workouts) need
+  // exact match so the child stays highlighted when on the sub-route.
+  if (href === '/jobs' || href === '/workouts') return pathname === href;
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 

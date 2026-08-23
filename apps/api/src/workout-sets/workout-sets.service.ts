@@ -1,10 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { and, asc, desc, eq, lt } from 'drizzle-orm';
+import { and, asc, desc, eq, isNotNull, lt } from 'drizzle-orm';
 import { db } from '../db/client';
 import { workoutSessions, workoutSets } from '../db/schema';
 import type { BatchWorkoutSetsDto } from './dto/batch-workout-sets.dto';
 import type { QueryWorkoutSetsDto } from './dto/query-workout-sets.dto';
 import type { QueryPreviousDto } from './dto/query-previous.dto';
+import type { QueryExerciseStatsDto } from './dto/query-exercise-stats.dto';
 
 @Injectable()
 export class WorkoutSetsService {
@@ -95,5 +96,87 @@ export class WorkoutSetsService {
       .orderBy(asc(workoutSets.setNumber));
 
     return { date: prevSession.date, sets };
+  }
+
+  // Stats for a single exercise:
+  //   - history: top set per session (max weight, tie-break max reps),
+  //     most recent `limit` sessions with weight recorded
+  //   - pr: all-time top set (max weight, tie-break max reps, then latest date)
+  // Both require weight_kg IS NOT NULL — a reps-only row can't sit on a
+  // progression chart.
+  async findExerciseStats(query: QueryExerciseStatsDto) {
+    const limit = query.limit ?? 12;
+
+    // Fetch (recent first) all weighted sets for this exercise, DB sorts
+    // so first row per session is the top. Dedup by session in JS.
+    const rows = await db
+      .select({
+        sessionId: workoutSets.sessionId,
+        sessionDate: workoutSessions.date,
+        weightKg: workoutSets.weightKg,
+        reps: workoutSets.reps,
+      })
+      .from(workoutSets)
+      .innerJoin(workoutSessions, eq(workoutSessions.id, workoutSets.sessionId))
+      .where(
+        and(
+          eq(workoutSets.exerciseId, query.exerciseId),
+          isNotNull(workoutSets.weightKg),
+        ),
+      )
+      .orderBy(
+        desc(workoutSessions.date),
+        desc(workoutSets.weightKg),
+        desc(workoutSets.reps),
+      );
+
+    const seen = new Set<string>();
+    const history: {
+      sessionDate: string;
+      topWeightKg: string;
+      topReps: number | null;
+    }[] = [];
+    for (const r of rows) {
+      if (seen.has(r.sessionId)) continue;
+      seen.add(r.sessionId);
+      history.push({
+        sessionDate: r.sessionDate,
+        topWeightKg: r.weightKg as string,
+        topReps: r.reps,
+      });
+      if (history.length >= limit) break;
+    }
+
+    const [prRow] = await db
+      .select({
+        weightKg: workoutSets.weightKg,
+        reps: workoutSets.reps,
+        sessionDate: workoutSessions.date,
+      })
+      .from(workoutSets)
+      .innerJoin(workoutSessions, eq(workoutSessions.id, workoutSets.sessionId))
+      .where(
+        and(
+          eq(workoutSets.exerciseId, query.exerciseId),
+          isNotNull(workoutSets.weightKg),
+        ),
+      )
+      .orderBy(
+        desc(workoutSets.weightKg),
+        desc(workoutSets.reps),
+        desc(workoutSessions.date),
+      )
+      .limit(1);
+
+    return {
+      history,
+      pr: prRow
+        ? {
+            weightKg: prRow.weightKg as string,
+            reps: prRow.reps,
+            sessionDate: prRow.sessionDate,
+          }
+        : null,
+    };
   }
 }

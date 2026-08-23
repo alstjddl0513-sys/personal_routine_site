@@ -179,3 +179,22 @@ export interface PreviousWorkout {
   date: string;
   sets: Pick<WorkoutSet, 'setNumber' | 'weightKg' | 'reps' | 'rir'>[];
 }
+
+export interface ExerciseStatsHistoryEntry {
+  sessionDate: string;
+  /** numeric(6,2) returned as string. parseFloat on the client. */
+  topWeightKg: string;
+  topReps: number | null;
+}
+
+export interface ExerciseStatsPR {
+  /** numeric(6,2) returned as string. parseFloat on the client. */
+  weightKg: string;
+  reps: number | null;
+  sessionDate: string;
+}
+
+export interface ExerciseStats {
+  history: ExerciseStatsHistoryEntry[];
+  pr: ExerciseStatsPR | null;
+}

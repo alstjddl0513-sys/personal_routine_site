@@ -2,7 +2,13 @@
 
 import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import type { Exercise, PreviousWorkout, WorkoutSession, WorkoutSet } from '@repo/shared';
+import type {
+  Exercise,
+  ExerciseStatsPR,
+  PreviousWorkout,
+  WorkoutSession,
+  WorkoutSet,
+} from '@repo/shared';
 import { createWorkoutSession, patchExercise } from '../../lib/api';
 import { ExerciseCard } from './ExerciseCard';
 import { SessionNoteCard } from './SessionNoteCard';
@@ -13,6 +19,7 @@ interface Props {
   initialSession: WorkoutSession | null;
   setsByExercise: Record<string, WorkoutSet[]>;
   previousByExercise: Record<string, PreviousWorkout | null>;
+  prByExercise: Record<string, ExerciseStatsPR | null>;
 }
 
 export function WorkoutBoard(props: Props) {
@@ -76,6 +83,7 @@ export function WorkoutBoard(props: Props) {
               exercise={e}
               existingSets={props.setsByExercise[e.id] ?? []}
               previous={props.previousByExercise[e.id] ?? null}
+              pr={props.prByExercise[e.id] ?? null}
               ensureSession={ensureSession}
               canMoveUp={idx > 0}
               canMoveDown={idx < props.exercises.length - 1}

@@ -5,6 +5,7 @@ import type {
   CompanyType2,
   DayNote,
   Exercise,
+  ExerciseStats,
   PreviousWorkout,
   Priority,
   RoutineCheck,
@@ -305,6 +306,19 @@ export async function batchWorkoutSets(input: {
   });
   if (!res.ok) throw new Error(`PUT /workout-sets/batch failed: HTTP ${res.status}`);
   return (await res.json()) as WorkoutSet[];
+}
+
+export async function getExerciseStats(params: {
+  exerciseId: string;
+  limit?: number;
+}): Promise<ExerciseStats> {
+  const qs = new URLSearchParams({ exerciseId: params.exerciseId });
+  if (params.limit !== undefined) qs.set('limit', String(params.limit));
+  const res = await fetch(`${API_BASE}/workout-sets/exercise-stats?${qs.toString()}`, {
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error(`GET /workout-sets/exercise-stats failed: HTTP ${res.status}`);
+  return (await res.json()) as ExerciseStats;
 }
 
 export async function getPreviousWorkout(params: {
