@@ -2,7 +2,7 @@ import { config } from 'dotenv';
 import { resolve } from 'path';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import { companies } from './schema';
+import { companies, exercises } from './schema';
 
 config({ path: resolve(__dirname, '../../../../.env') });
 
@@ -348,10 +348,27 @@ async function main() {
     console.log('Cleared companies.');
     await db.insert(companies).values(rows);
     console.log(`Inserted ${rows.length} companies.`);
+
+    // Exercises: only seed if the table is empty, to preserve any user edits.
+    const existing = await db.select({ id: exercises.id }).from(exercises).limit(1);
+    if (existing.length === 0) {
+      await db.insert(exercises).values(EXERCISE_SEED);
+      console.log(`Inserted ${EXERCISE_SEED.length} exercises.`);
+    } else {
+      console.log('Exercises table not empty — skipping exercise seed.');
+    }
   } finally {
     await client.end();
   }
 }
+
+const EXERCISE_SEED = [
+  { name: '랫풀다운', targetMuscle: 'back', defaultSets: 3, repMin: 8, repMax: 12, sortOrder: 0 },
+  { name: '벤치프레스', targetMuscle: 'chest', defaultSets: 3, repMin: 8, repMax: 12, sortOrder: 1 },
+  { name: '숄더프레스', targetMuscle: 'shoulder', defaultSets: 3, repMin: 8, repMax: 12, sortOrder: 2 },
+  { name: '케이블·머신 로우', targetMuscle: 'back', defaultSets: 3, repMin: 8, repMax: 12, sortOrder: 3 },
+  { name: '레터럴 레이즈', targetMuscle: 'shoulder', defaultSets: 3, repMin: 12, repMax: 15, sortOrder: 4 },
+];
 
 main().catch((err) => {
   console.error(err);
