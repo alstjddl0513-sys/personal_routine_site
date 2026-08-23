@@ -11,6 +11,7 @@ import { DayNotesModule } from './day-notes/day-notes.module';
 import { ExercisesModule } from './exercises/exercises.module';
 import { WorkoutSessionsModule } from './workout-sessions/workout-sessions.module';
 import { WorkoutSetsModule } from './workout-sets/workout-sets.module';
+import { ExportModule } from './export/export.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { WorkoutSetsModule } from './workout-sets/workout-sets.module';
     ExercisesModule,
     WorkoutSessionsModule,
     WorkoutSetsModule,
+    ExportModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],

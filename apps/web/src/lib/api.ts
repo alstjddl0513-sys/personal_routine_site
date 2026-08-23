@@ -321,6 +321,17 @@ export async function getExerciseStats(params: {
   return (await res.json()) as ExerciseStats;
 }
 
+// --- export (backup) ---
+
+// Returns the raw JSON text so the caller can hand it straight to a Blob
+// without re-serializing (and losing any nuance in Postgres numeric strings,
+// timestamp formatting, etc.).
+export async function getExportJson(): Promise<string> {
+  const res = await fetch(`${API_BASE}/export`, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`GET /export failed: HTTP ${res.status}`);
+  return await res.text();
+}
+
 export async function getPreviousWorkout(params: {
   exerciseId: string;
   beforeDate: string;
