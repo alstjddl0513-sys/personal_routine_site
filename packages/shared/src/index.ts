@@ -125,6 +125,7 @@ export interface TimeBlock {
   endTime: number | null;
   sortOrder: number;
   isArchived: boolean;
+  archivedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }

@@ -20,6 +20,9 @@ export const timeBlocks = pgTable('time_blocks', {
   endTime: smallint('end_time'),
   sortOrder: integer('sort_order').notNull(),
   isArchived: boolean('is_archived').notNull().default(false),
+  // Set alongside isArchived so the calendar view can reconstruct which blocks
+  // were live on a past date (createdAt <= D and (archivedAt is null or archivedAt >= D)).
+  archivedAt: timestamp('archived_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
     .defaultNow(),

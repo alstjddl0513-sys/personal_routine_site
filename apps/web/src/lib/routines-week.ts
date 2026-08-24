@@ -64,3 +64,52 @@ export function formatWeekRange(week: WeekInfo): string {
   const sd = String(s.getDate()).padStart(2, '0');
   return `${m.getFullYear()}. ${mm}. ${md} ~ ${sm}. ${sd}`;
 }
+
+// --- month view (calendar) ---
+
+export interface MonthInfo {
+  year: number;
+  month: number; // 1..12
+  firstOfMonth: Date;
+  /** 6×7 = 42 cells, starting from the Monday on/before the 1st. */
+  gridDays: Date[];
+  gridFrom: string;
+  gridTo: string;
+}
+
+// Monday-start to stay consistent with the weekly view.
+export function monthOf(anchor: Date): MonthInfo {
+  const year = anchor.getFullYear();
+  const month = anchor.getMonth() + 1;
+  const firstOfMonth = new Date(year, month - 1, 1);
+  const gridStart = mondayOf(firstOfMonth);
+  const gridDays: Date[] = [];
+  for (let i = 0; i < 42; i++) gridDays.push(addDays(gridStart, i));
+  return {
+    year,
+    month,
+    firstOfMonth,
+    gridDays,
+    gridFrom: toISODate(gridDays[0]),
+    gridTo: toISODate(gridDays[41]),
+  };
+}
+
+export function parseISOMonth(s: string): Date | null {
+  const m = /^(\d{4})-(\d{2})$/.exec(s);
+  if (!m) return null;
+  const year = Number(m[1]);
+  const mon = Number(m[2]);
+  if (mon < 1 || mon > 12) return null;
+  return new Date(year, mon - 1, 1);
+}
+
+export function toISOMonth(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  return `${y}-${m}`;
+}
+
+export function addMonths(d: Date, n: number): Date {
+  return new Date(d.getFullYear(), d.getMonth() + n, 1);
+}
