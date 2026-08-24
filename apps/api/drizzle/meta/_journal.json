@@ -36,6 +36,13 @@
       "when": 1787317620076,
       "tag": "0004_rainy_unus",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1787573188861,
+      "tag": "0005_quick_jackal",
+      "breakpoints": true
     }
   ]
 }

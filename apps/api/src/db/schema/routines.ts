@@ -10,13 +10,14 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 
-// start_time stored as minutes-from-midnight (0..1410, step 30).
-// Nullable so existing rows aren't broken and blocks without a fixed time
-// can render as "—".
+// start_time / end_time stored as minutes-from-midnight (0..1410, step 30).
+// Both nullable: start-only blocks render as "7:00", ranges as "8:30~11:30".
+// end_time must be > start_time when both present (enforced app-side).
 export const timeBlocks = pgTable('time_blocks', {
   id: uuid('id').defaultRandom().primaryKey(),
   label: text('label').notNull(),
   startTime: smallint('start_time'),
+  endTime: smallint('end_time'),
   sortOrder: integer('sort_order').notNull(),
   isArchived: boolean('is_archived').notNull().default(false),
   createdAt: timestamp('created_at', { withTimezone: true })

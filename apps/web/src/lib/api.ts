@@ -128,7 +128,7 @@ export async function createTimeBlock(input: {
 
 export async function patchTimeBlock(
   id: string,
-  patch: Partial<Pick<TimeBlock, 'label' | 'sortOrder' | 'isArchived' | 'startTime'>>,
+  patch: Partial<Pick<TimeBlock, 'label' | 'sortOrder' | 'isArchived' | 'startTime' | 'endTime'>>,
 ): Promise<TimeBlock> {
   const res = await fetch(`${API_BASE}/time-blocks/${id}`, {
     method: 'PATCH',

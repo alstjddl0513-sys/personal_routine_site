@@ -30,4 +30,10 @@ export class UpdateTimeBlockDto {
   @Min(0)
   @Max(1410)
   startTime?: number | null;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(1410)
+  endTime?: number | null;
 }
