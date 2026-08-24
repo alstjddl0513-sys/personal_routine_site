@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 import { resolve } from 'path';
+import { AccessTokenGuard } from './access-token.guard';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HealthController } from './health/health.controller';
@@ -29,6 +31,9 @@ import { ExportModule } from './export/export.module';
     ExportModule,
   ],
   controllers: [AppController, HealthController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    { provide: APP_GUARD, useClass: AccessTokenGuard },
+  ],
 })
 export class AppModule {}
