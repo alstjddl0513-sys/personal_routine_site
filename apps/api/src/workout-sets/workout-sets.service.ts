@@ -1,8 +1,9 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { and, asc, desc, eq, isNotNull, lt, sql } from 'drizzle-orm';
+import { and, asc, between, desc, eq, isNotNull, lt, sql } from 'drizzle-orm';
 import { db } from '../db/client';
 import { workoutSessions, workoutSets } from '../db/schema';
 import type { BatchWorkoutSetsDto } from './dto/batch-workout-sets.dto';
+import type { QueryHeatmapDto } from './dto/query-heatmap.dto';
 import type { QueryWorkoutSetsDto } from './dto/query-workout-sets.dto';
 import type { QueryPreviousDto } from './dto/query-previous.dto';
 import type { QueryExerciseStatsDto } from './dto/query-exercise-stats.dto';
@@ -83,6 +84,27 @@ export class WorkoutSetsService {
 
       return inserted;
     });
+  }
+
+  // Heatmap counts: per date, how many distinct exercises had at least one
+  // "complete" set (weight AND reps both recorded). Rows for empty days are
+  // omitted; the caller fills them in as zero.
+  async findHeatmap(query: QueryHeatmapDto) {
+    return db
+      .select({
+        date: workoutSessions.date,
+        completedExerciseCount: sql<number>`count(distinct ${workoutSets.exerciseId})::int`,
+      })
+      .from(workoutSessions)
+      .innerJoin(workoutSets, eq(workoutSets.sessionId, workoutSessions.id))
+      .where(
+        and(
+          between(workoutSessions.date, query.from, query.to),
+          isNotNull(workoutSets.weightKg),
+          isNotNull(workoutSets.reps),
+        ),
+      )
+      .groupBy(workoutSessions.date);
   }
 
   // Sets from the most recent session (before `beforeDate`) that used this exercise.

@@ -201,3 +201,8 @@ export interface ExerciseStats {
   history: ExerciseStatsHistoryEntry[];
   pr: ExerciseStatsPR | null;
 }
+
+export interface WorkoutHeatmapEntry {
+  date: string;
+  completedExerciseCount: number;
+}

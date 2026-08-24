@@ -1,6 +1,7 @@
 import {
   getExerciseStats,
   getExercises,
+  getWorkoutHeatmap,
   getWorkoutSessionsRange,
 } from '../../../lib/api';
 import { addDays, mondayOf, toISODate } from '../../../lib/routines-week';
@@ -17,13 +18,14 @@ const WEEKLY_THRESHOLD = 3;
 export default async function WorkoutsStatisticsPage() {
   const today = new Date();
   const currentMon = mondayOf(today);
-  // Fetch the wider streak window; heatmap slices its own 12-week grid.
-  const rangeFrom = toISODate(addDays(currentMon, -(STREAK_WEEKS - 1) * 7));
+  const streakFrom = toISODate(addDays(currentMon, -(STREAK_WEEKS - 1) * 7));
   const rangeTo = toISODate(addDays(currentMon, 6));
+  const heatmapFrom = toISODate(addDays(currentMon, -(HEATMAP_WEEKS - 1) * 7));
 
-  const [exercises, sessions] = await Promise.all([
+  const [exercises, sessions, heatmapEntries] = await Promise.all([
     getExercises(),
-    getWorkoutSessionsRange({ from: rangeFrom, to: rangeTo }),
+    getWorkoutSessionsRange({ from: streakFrom, to: rangeTo }),
+    getWorkoutHeatmap({ from: heatmapFrom, to: rangeTo }),
   ]);
 
   const statsList = await Promise.all(
@@ -54,7 +56,8 @@ export default async function WorkoutsStatisticsPage() {
       />
 
       <HeatmapCard
-        sessionDates={sessionDates}
+        entries={heatmapEntries}
+        totalExercises={exercises.length}
         today={today}
         weeks={HEATMAP_WEEKS}
       />
