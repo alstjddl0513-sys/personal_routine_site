@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import type { WorkoutSet } from '@repo/shared';
 import { batchWorkoutSets, type WorkoutSetInput } from '../../lib/api';
 
@@ -40,6 +41,7 @@ function rowsSignature(rows: Row[]): string {
 }
 
 export function SetInputs(props: Props) {
+  const router = useRouter();
   const [rows, setRows] = useState<Row[]>(() => initRows(props.defaultSets, props.existingSets));
   const lastSavedRef = useRef<string>(rowsSignature(rows));
   const [saving, setSaving] = useState(false);
@@ -91,6 +93,10 @@ export function SetInputs(props: Props) {
         sets: payload,
       });
       lastSavedRef.current = sig;
+      // Backend may auto-delete the session when it ends up empty (no sets, no
+      // note). Refresh so the parent re-fetches — otherwise UI still points to
+      // a session id that no longer exists.
+      router.refresh();
     } catch (err) {
       console.error(err);
       setError((err as Error).message);

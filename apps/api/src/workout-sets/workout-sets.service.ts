@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { and, asc, desc, eq, isNotNull, lt } from 'drizzle-orm';
+import { and, asc, desc, eq, isNotNull, lt, sql } from 'drizzle-orm';
 import { db } from '../db/client';
 import { workoutSessions, workoutSets } from '../db/schema';
 import type { BatchWorkoutSetsDto } from './dto/batch-workout-sets.dto';
@@ -41,22 +41,46 @@ export class WorkoutSetsService {
             eq(workoutSets.exerciseId, dto.exerciseId),
           ),
         );
-      if (dto.sets.length === 0) return [];
-      const inserted = await tx
-        .insert(workoutSets)
-        .values(
-          dto.sets.map((s) => ({
-            sessionId: dto.sessionId,
-            exerciseId: dto.exerciseId,
-            setNumber: s.setNumber,
-            // drizzle-orm's numeric column takes string; coerce here so callers
-            // can pass a plain number.
-            weightKg: s.weightKg === null || s.weightKg === undefined ? null : String(s.weightKg),
-            reps: s.reps ?? null,
-            rir: s.rir ?? null,
-          })),
-        )
-        .returning();
+      const inserted =
+        dto.sets.length === 0
+          ? []
+          : await tx
+              .insert(workoutSets)
+              .values(
+                dto.sets.map((s) => ({
+                  sessionId: dto.sessionId,
+                  exerciseId: dto.exerciseId,
+                  setNumber: s.setNumber,
+                  // drizzle-orm's numeric column takes string; coerce here so callers
+                  // can pass a plain number.
+                  weightKg:
+                    s.weightKg === null || s.weightKg === undefined
+                      ? null
+                      : String(s.weightKg),
+                  reps: s.reps ?? null,
+                  rir: s.rir ?? null,
+                })),
+              )
+              .returning();
+
+      // If the session ended up empty (no sets, no note), delete it so the
+      // heatmap doesn't keep lighting up for a day the user cleared out.
+      const [{ count }] = await tx
+        .select({ count: sql<number>`count(*)::int` })
+        .from(workoutSets)
+        .where(eq(workoutSets.sessionId, dto.sessionId));
+      if (count === 0) {
+        const [session] = await tx
+          .select({ note: workoutSessions.note })
+          .from(workoutSessions)
+          .where(eq(workoutSessions.id, dto.sessionId));
+        if (session && (session.note === null || session.note.trim() === '')) {
+          await tx
+            .delete(workoutSessions)
+            .where(eq(workoutSessions.id, dto.sessionId));
+        }
+      }
+
       return inserted;
     });
   }

@@ -75,6 +75,11 @@
 - 원인: NestJS는 handler가 `null`을 리턴하면 응답 바디를 비워버림 (Content-Length: 0). 문자열 `"null"`이 아니라서 `res.json()`이 파싱 실패
 - 해결: 클라이언트에서 `res.text()`로 먼저 읽고 empty면 `null` 반환, 아니면 `JSON.parse`. 서버쪽 shape를 바꾸는 것보단 클라이언트가 방어하는 게 지역적
 
+### 세트 값 전부 지워도 잔디에 오늘 셀이 계속 뜸
+- 상황: `/workouts`에서 오늘 세트 kg/reps 다 지우고 blur → sets는 삭제 → 하지만 `/workouts/statistics` 잔디에 오늘 셀 여전히 초록
+- 원인: `batchReplace`가 sets만 replace하고 `workout_sessions` row는 유지. 잔디는 세션 존재 여부만 봄. 추가로 `SetInputs.commit`이 `sig === lastSavedRef` 이면 early return이라 이미 empty였던 상태에서 다시 blur해도 API 안 부름 (재입력→재삭제로 workaround 가능)
+- 해결: `batchReplace` 트랜잭션 안에서 sets 0개 + note 비어있으면 세션도 delete. commit 후 `router.refresh()`로 부모 재렌더링
+
 ### 클라이언트 필터 컴포넌트에서 URL → local input state 동기화 안 됨
 - 상황: `useState(currentSearch)`로 초기화한 검색 input이, URL을 chip 클릭/뒤로가기/초기화로 외부 변경했을 때 값을 안 따라감 (표는 갱신되는데 검색창 텍스트가 stale)
 - 원인: `useState` 초기화는 mount 시점 1회. URL이 바뀌어도 state는 안 흔들림. typing → URL 반영은 debounce로 도는데 URL → input 방향은 자연히 안 됨
