@@ -4,7 +4,10 @@ import { NextRequest, NextResponse } from 'next/server';
 // are unset so local dev needs no extra config. Same-origin fetches from the
 // browser will carry the credentials automatically, so /api/proxy/... works
 // once the user has authenticated the initial page load.
-export function middleware(req: NextRequest) {
+//
+// Next.js 16 renamed the middleware file convention to "proxy" (the export
+// name follows suit).
+export function proxy(req: NextRequest) {
   const expectedUser = process.env.BASIC_AUTH_USER;
   const expectedPass = process.env.BASIC_AUTH_PASSWORD;
   if (!expectedUser || !expectedPass) return NextResponse.next();
