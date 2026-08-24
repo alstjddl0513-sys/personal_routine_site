@@ -10,6 +10,7 @@ import type {
   Priority,
   RoutineCheck,
   TimeBlock,
+  WorkoutHeatmapEntry,
   WorkoutSession,
   WorkoutSet,
 } from '@repo/shared';
@@ -338,6 +339,19 @@ export async function batchWorkoutSets(input: {
   });
   if (!res.ok) throw new Error(`PUT /workout-sets/batch failed: HTTP ${res.status}`);
   return (await res.json()) as WorkoutSet[];
+}
+
+export async function getWorkoutHeatmap(range: {
+  from: string;
+  to: string;
+}): Promise<WorkoutHeatmapEntry[]> {
+  const qs = new URLSearchParams({ from: range.from, to: range.to });
+  const res = await fetch(apiUrl(`/workout-sets/heatmap?${qs.toString()}`), {
+    cache: 'no-store',
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(`GET /workout-sets/heatmap failed: HTTP ${res.status}`);
+  return (await res.json()) as WorkoutHeatmapEntry[];
 }
 
 export async function getExerciseStats(params: {
