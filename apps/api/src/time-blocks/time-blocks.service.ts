@@ -43,9 +43,13 @@ export class TimeBlocksService {
     return row;
   }
 
+  // Soft delete: calendar view reconstructs past active-block counts from
+  // createdAt/archivedAt, so the row must be preserved.
   async remove(id: string) {
+    const now = new Date();
     const [row] = await db
-      .delete(timeBlocks)
+      .update(timeBlocks)
+      .set({ isArchived: true, archivedAt: now, updatedAt: now })
       .where(eq(timeBlocks.id, id))
       .returning({ id: timeBlocks.id });
     if (!row) {

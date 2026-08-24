@@ -38,7 +38,16 @@ const NAV: NavItem[] = [
       { href: '/jobs/statistics', label: '기업 통계' },
     ],
   },
-  { href: '/routines', label: '루틴', icon: CalendarCheck2 },
+  {
+    href: '/routines',
+    label: '루틴',
+    icon: CalendarCheck2,
+    matchPrefixes: ['/routines'],
+    children: [
+      { href: '/routines', label: '트래커' },
+      { href: '/routines/calendar', label: '캘린더' },
+    ],
+  },
   {
     href: '/workouts',
     label: '운동',
@@ -54,9 +63,11 @@ const NAV: NavItem[] = [
 const STORAGE_KEY = 'rally.sidebar.collapsed';
 
 function isActive(pathname: string, href: string) {
-  // Parents whose own href doubles as a child link (/jobs, /workouts) need
-  // exact match so the child stays highlighted when on the sub-route.
-  if (href === '/jobs' || href === '/workouts') return pathname === href;
+  // Parents whose own href doubles as a child link (/jobs, /workouts, /routines)
+  // need exact match so the child stays highlighted when on the sub-route.
+  if (href === '/jobs' || href === '/workouts' || href === '/routines') {
+    return pathname === href;
+  }
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
