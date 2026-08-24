@@ -34,7 +34,22 @@ export type CompanyPatch = Partial<
   >
 >;
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001';
+// Two fetch paths so the API access token never reaches the browser:
+//   - SSR (server component / route handler): hit the upstream directly, token
+//     goes in a request header set here.
+//   - Client component: hit our own /api/proxy/... which reruns the request on
+//     the server side and stamps the token there (see route.ts).
+function apiUrl(path: string): string {
+  if (typeof window !== 'undefined') return `/api/proxy${path}`;
+  const base = process.env.API_INTERNAL_URL ?? 'http://localhost:3001';
+  return `${base}${path}`;
+}
+
+function authHeaders(): Record<string, string> {
+  if (typeof window !== 'undefined') return {};
+  const token = process.env.API_ACCESS_TOKEN;
+  return token ? { 'x-auth-token': token } : {};
+}
 
 export interface GetCompaniesParams {
   type1?: CompanyType1[];
@@ -54,8 +69,8 @@ export async function getCompanies(params: GetCompaniesParams = {}): Promise<Com
   if (params.isFavorite !== undefined) qs.set('isFavorite', String(params.isFavorite));
   if (params.search) qs.set('search', params.search);
 
-  const url = `${API_BASE}/companies${qs.size ? `?${qs.toString()}` : ''}`;
-  const res = await fetch(url, { cache: 'no-store' });
+  const url = apiUrl(`/companies${qs.size ? `?${qs.toString()}` : ''}`);
+  const res = await fetch(url, { cache: 'no-store', headers: authHeaders() });
   if (!res.ok) {
     throw new Error(`GET /companies failed: HTTP ${res.status}`);
   }
@@ -73,9 +88,9 @@ export type CreateCompanyInput = Pick<Company, 'name' | 'type1' | 'type2'> &
   Partial<Omit<CompanyPatch, 'name' | 'type1' | 'type2'>>;
 
 export async function createCompany(input: CreateCompanyInput): Promise<Company> {
-  const res = await fetch(`${API_BASE}/companies`, {
+  const res = await fetch(apiUrl('/companies'), {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify(input),
   });
   if (!res.ok) {
@@ -85,16 +100,19 @@ export async function createCompany(input: CreateCompanyInput): Promise<Company>
 }
 
 export async function deleteCompany(id: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/companies/${id}`, { method: 'DELETE' });
+  const res = await fetch(apiUrl(`/companies/${id}`), {
+    method: 'DELETE',
+    headers: authHeaders(),
+  });
   if (!res.ok) {
     throw new Error(`DELETE /companies/${id} failed: HTTP ${res.status}`);
   }
 }
 
 export async function patchCompany(id: string, patch: CompanyPatch): Promise<Company> {
-  const res = await fetch(`${API_BASE}/companies/${id}`, {
+  const res = await fetch(apiUrl(`/companies/${id}`), {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify(patch),
   });
   if (!res.ok) {
@@ -107,7 +125,10 @@ export async function patchCompany(id: string, patch: CompanyPatch): Promise<Com
 
 export async function getTimeBlocks(includeArchived = false): Promise<TimeBlock[]> {
   const qs = includeArchived ? '?includeArchived=true' : '';
-  const res = await fetch(`${API_BASE}/time-blocks${qs}`, { cache: 'no-store' });
+  const res = await fetch(apiUrl(`/time-blocks${qs}`), {
+    cache: 'no-store',
+    headers: authHeaders(),
+  });
   if (!res.ok) throw new Error(`GET /time-blocks failed: HTTP ${res.status}`);
   return (await res.json()) as TimeBlock[];
 }
@@ -117,9 +138,9 @@ export async function createTimeBlock(input: {
   sortOrder?: number;
   startTime?: number;
 }): Promise<TimeBlock> {
-  const res = await fetch(`${API_BASE}/time-blocks`, {
+  const res = await fetch(apiUrl('/time-blocks'), {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify(input),
   });
   if (!res.ok) throw new Error(`POST /time-blocks failed: HTTP ${res.status}`);
@@ -130,9 +151,9 @@ export async function patchTimeBlock(
   id: string,
   patch: Partial<Pick<TimeBlock, 'label' | 'sortOrder' | 'isArchived' | 'startTime' | 'endTime'>>,
 ): Promise<TimeBlock> {
-  const res = await fetch(`${API_BASE}/time-blocks/${id}`, {
+  const res = await fetch(apiUrl(`/time-blocks/${id}`), {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify(patch),
   });
   if (!res.ok) throw new Error(`PATCH /time-blocks/${id} failed: HTTP ${res.status}`);
@@ -140,7 +161,10 @@ export async function patchTimeBlock(
 }
 
 export async function deleteTimeBlock(id: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/time-blocks/${id}`, { method: 'DELETE' });
+  const res = await fetch(apiUrl(`/time-blocks/${id}`), {
+    method: 'DELETE',
+    headers: authHeaders(),
+  });
   if (!res.ok) throw new Error(`DELETE /time-blocks/${id} failed: HTTP ${res.status}`);
 }
 
@@ -149,8 +173,9 @@ export async function getRoutineChecks(range: {
   to: string;
 }): Promise<RoutineCheck[]> {
   const qs = new URLSearchParams({ from: range.from, to: range.to });
-  const res = await fetch(`${API_BASE}/routine-checks?${qs.toString()}`, {
+  const res = await fetch(apiUrl(`/routine-checks?${qs.toString()}`), {
     cache: 'no-store',
+    headers: authHeaders(),
   });
   if (!res.ok) throw new Error(`GET /routine-checks failed: HTTP ${res.status}`);
   return (await res.json()) as RoutineCheck[];
@@ -161,9 +186,9 @@ export async function toggleRoutineCheck(input: {
   date: string;
   checked: boolean;
 }): Promise<void> {
-  const res = await fetch(`${API_BASE}/routine-checks`, {
+  const res = await fetch(apiUrl('/routine-checks'), {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify(input),
   });
   if (!res.ok) throw new Error(`PUT /routine-checks failed: HTTP ${res.status}`);
@@ -174,17 +199,18 @@ export async function getDayNotes(range: {
   to: string;
 }): Promise<DayNote[]> {
   const qs = new URLSearchParams({ from: range.from, to: range.to });
-  const res = await fetch(`${API_BASE}/day-notes?${qs.toString()}`, {
+  const res = await fetch(apiUrl(`/day-notes?${qs.toString()}`), {
     cache: 'no-store',
+    headers: authHeaders(),
   });
   if (!res.ok) throw new Error(`GET /day-notes failed: HTTP ${res.status}`);
   return (await res.json()) as DayNote[];
 }
 
 export async function upsertDayNote(date: string, content: string): Promise<DayNote> {
-  const res = await fetch(`${API_BASE}/day-notes/${date}`, {
+  const res = await fetch(apiUrl(`/day-notes/${date}`), {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify({ content }),
   });
   if (!res.ok) throw new Error(`PUT /day-notes/${date} failed: HTTP ${res.status}`);
@@ -195,7 +221,10 @@ export async function upsertDayNote(date: string, content: string): Promise<DayN
 
 export async function getExercises(includeArchived = false): Promise<Exercise[]> {
   const qs = includeArchived ? '?includeArchived=true' : '';
-  const res = await fetch(`${API_BASE}/exercises${qs}`, { cache: 'no-store' });
+  const res = await fetch(apiUrl(`/exercises${qs}`), {
+    cache: 'no-store',
+    headers: authHeaders(),
+  });
   if (!res.ok) throw new Error(`GET /exercises failed: HTTP ${res.status}`);
   return (await res.json()) as Exercise[];
 }
@@ -207,9 +236,9 @@ export async function createExercise(input: {
   repMin: number;
   repMax: number;
 }): Promise<Exercise> {
-  const res = await fetch(`${API_BASE}/exercises`, {
+  const res = await fetch(apiUrl('/exercises'), {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify(input),
   });
   if (!res.ok) throw new Error(`POST /exercises failed: HTTP ${res.status}`);
@@ -220,9 +249,9 @@ export async function patchExercise(
   id: string,
   patch: Partial<Pick<Exercise, 'name' | 'targetMuscle' | 'defaultSets' | 'repMin' | 'repMax' | 'sortOrder' | 'isArchived'>>,
 ): Promise<Exercise> {
-  const res = await fetch(`${API_BASE}/exercises/${id}`, {
+  const res = await fetch(apiUrl(`/exercises/${id}`), {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify(patch),
   });
   if (!res.ok) throw new Error(`PATCH /exercises/${id} failed: HTTP ${res.status}`);
@@ -232,8 +261,9 @@ export async function patchExercise(
 // Returns null when no session exists for this date.
 export async function getWorkoutSessionByDate(date: string): Promise<WorkoutSession | null> {
   const qs = new URLSearchParams({ date });
-  const res = await fetch(`${API_BASE}/workout-sessions?${qs.toString()}`, {
+  const res = await fetch(apiUrl(`/workout-sessions?${qs.toString()}`), {
     cache: 'no-store',
+    headers: authHeaders(),
   });
   if (!res.ok) throw new Error(`GET /workout-sessions failed: HTTP ${res.status}`);
   const arr = (await res.json()) as WorkoutSession[];
@@ -245,8 +275,9 @@ export async function getWorkoutSessionsRange(range: {
   to: string;
 }): Promise<WorkoutSession[]> {
   const qs = new URLSearchParams({ from: range.from, to: range.to });
-  const res = await fetch(`${API_BASE}/workout-sessions?${qs.toString()}`, {
+  const res = await fetch(apiUrl(`/workout-sessions?${qs.toString()}`), {
     cache: 'no-store',
+    headers: authHeaders(),
   });
   if (!res.ok) throw new Error(`GET /workout-sessions failed: HTTP ${res.status}`);
   return (await res.json()) as WorkoutSession[];
@@ -256,9 +287,9 @@ export async function createWorkoutSession(input: {
   date: string;
   note?: string;
 }): Promise<WorkoutSession> {
-  const res = await fetch(`${API_BASE}/workout-sessions`, {
+  const res = await fetch(apiUrl('/workout-sessions'), {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify(input),
   });
   if (!res.ok) throw new Error(`POST /workout-sessions failed: HTTP ${res.status}`);
@@ -269,9 +300,9 @@ export async function patchWorkoutSession(
   id: string,
   patch: { note?: string | null },
 ): Promise<WorkoutSession> {
-  const res = await fetch(`${API_BASE}/workout-sessions/${id}`, {
+  const res = await fetch(apiUrl(`/workout-sessions/${id}`), {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify(patch),
   });
   if (!res.ok) throw new Error(`PATCH /workout-sessions/${id} failed: HTTP ${res.status}`);
@@ -280,8 +311,9 @@ export async function patchWorkoutSession(
 
 export async function getWorkoutSets(sessionId: string): Promise<WorkoutSet[]> {
   const qs = new URLSearchParams({ sessionId });
-  const res = await fetch(`${API_BASE}/workout-sets?${qs.toString()}`, {
+  const res = await fetch(apiUrl(`/workout-sets?${qs.toString()}`), {
     cache: 'no-store',
+    headers: authHeaders(),
   });
   if (!res.ok) throw new Error(`GET /workout-sets failed: HTTP ${res.status}`);
   return (await res.json()) as WorkoutSet[];
@@ -299,9 +331,9 @@ export async function batchWorkoutSets(input: {
   exerciseId: string;
   sets: WorkoutSetInput[];
 }): Promise<WorkoutSet[]> {
-  const res = await fetch(`${API_BASE}/workout-sets/batch`, {
+  const res = await fetch(apiUrl('/workout-sets/batch'), {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify(input),
   });
   if (!res.ok) throw new Error(`PUT /workout-sets/batch failed: HTTP ${res.status}`);
@@ -314,8 +346,9 @@ export async function getExerciseStats(params: {
 }): Promise<ExerciseStats> {
   const qs = new URLSearchParams({ exerciseId: params.exerciseId });
   if (params.limit !== undefined) qs.set('limit', String(params.limit));
-  const res = await fetch(`${API_BASE}/workout-sets/exercise-stats?${qs.toString()}`, {
+  const res = await fetch(apiUrl(`/workout-sets/exercise-stats?${qs.toString()}`), {
     cache: 'no-store',
+    headers: authHeaders(),
   });
   if (!res.ok) throw new Error(`GET /workout-sets/exercise-stats failed: HTTP ${res.status}`);
   return (await res.json()) as ExerciseStats;
@@ -327,7 +360,10 @@ export async function getExerciseStats(params: {
 // without re-serializing (and losing any nuance in Postgres numeric strings,
 // timestamp formatting, etc.).
 export async function getExportJson(): Promise<string> {
-  const res = await fetch(`${API_BASE}/export`, { cache: 'no-store' });
+  const res = await fetch(apiUrl('/export'), {
+    cache: 'no-store',
+    headers: authHeaders(),
+  });
   if (!res.ok) throw new Error(`GET /export failed: HTTP ${res.status}`);
   return await res.text();
 }
@@ -337,8 +373,9 @@ export async function getPreviousWorkout(params: {
   beforeDate: string;
 }): Promise<PreviousWorkout | null> {
   const qs = new URLSearchParams(params);
-  const res = await fetch(`${API_BASE}/workout-sets/previous?${qs.toString()}`, {
+  const res = await fetch(apiUrl(`/workout-sets/previous?${qs.toString()}`), {
     cache: 'no-store',
+    headers: authHeaders(),
   });
   if (!res.ok) throw new Error(`GET /workout-sets/previous failed: HTTP ${res.status}`);
   // Nest serializes `null` return as an empty body (Content-Length: 0) rather
