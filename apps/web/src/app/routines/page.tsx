@@ -3,10 +3,14 @@ import {
   getRoutineChecks,
   getTimeBlocks,
 } from '../../lib/api';
-import { parseISODate, weekOf } from '../../lib/routines-week';
+import { addDays, parseISODate, toISODate, weekOf } from '../../lib/routines-week';
+import { calcBestDailyStreak, calcDailyStreak } from '../../lib/streak';
 import { RoutineRetro } from '../../components/routines/RoutineRetro';
 import { RoutineTable } from '../../components/routines/RoutineTable';
 import { RoutineWeekNav } from '../../components/routines/RoutineWeekNav';
+import { StreakBadge } from '../../components/StreakBadge';
+
+const STREAK_WINDOW_DAYS = 180;
 
 function first(raw: string | string[] | undefined): string | undefined {
   return Array.isArray(raw) ? raw[0] : raw;
@@ -17,16 +21,25 @@ export default async function RoutinesPage({
 }: PageProps<'/routines'>) {
   const sp = await searchParams;
   const weekParam = first(sp.week);
-  const anchor = (weekParam ? parseISODate(weekParam) : null) ?? new Date();
+  const today = new Date();
+  const anchor = (weekParam ? parseISODate(weekParam) : null) ?? today;
   const week = weekOf(anchor);
 
+  const streakFrom = addDays(today, -(STREAK_WINDOW_DAYS - 1));
+
   // Retro is one note per week, stored in day_notes keyed by the week's Monday.
-  const [blocks, checks, retroNotes] = await Promise.all([
+  const [blocks, checks, retroNotes, streakChecks] = await Promise.all([
     getTimeBlocks(),
     getRoutineChecks({ from: week.from, to: week.to }),
     getDayNotes({ from: week.from, to: week.from }),
+    getRoutineChecks({ from: toISODate(streakFrom), to: toISODate(today) }),
   ]);
   const retroContent = retroNotes[0]?.content ?? '';
+
+  // A day counts as "done" if any block was checked. Row existence = checked.
+  const successDays = new Set(streakChecks.map((c) => c.date));
+  const currentStreak = calcDailyStreak(successDays, today);
+  const bestStreak = calcBestDailyStreak(successDays, streakFrom, today);
 
   return (
     <div className="flex flex-col gap-4 p-6">
@@ -34,6 +47,13 @@ export default async function RoutinesPage({
         <h1 className="text-xl font-semibold">루틴 트래커</h1>
         <RoutineWeekNav week={week} />
       </header>
+
+      <StreakBadge
+        label="루틴 스트릭"
+        current={currentStreak}
+        best={bestStreak}
+        unit="일"
+      />
 
       <RoutineTable blocks={blocks} checks={checks} days={week.days} />
 

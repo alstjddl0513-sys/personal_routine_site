@@ -4,25 +4,39 @@ import {
   getWorkoutSessionsRange,
 } from '../../../lib/api';
 import { addDays, mondayOf, toISODate } from '../../../lib/routines-week';
+import { calcBestWeeklyStreak, calcWeeklyStreak } from '../../../lib/streak';
 import { ExerciseStatsCard } from '../../../components/workouts/ExerciseStatsCard';
 import { HeatmapCard } from '../../../components/workouts/HeatmapCard';
+import { StreakBadge } from '../../../components/StreakBadge';
 
 const HEATMAP_WEEKS = 12;
 const HISTORY_LIMIT = 12;
+const STREAK_WEEKS = 26; // ~6 months for best-streak lookback
+const WEEKLY_THRESHOLD = 3;
 
 export default async function WorkoutsStatisticsPage() {
   const today = new Date();
   const currentMon = mondayOf(today);
-  const heatmapFrom = toISODate(addDays(currentMon, -(HEATMAP_WEEKS - 1) * 7));
-  const heatmapTo = toISODate(addDays(currentMon, 6));
+  // Fetch the wider streak window; heatmap slices its own 12-week grid.
+  const rangeFrom = toISODate(addDays(currentMon, -(STREAK_WEEKS - 1) * 7));
+  const rangeTo = toISODate(addDays(currentMon, 6));
 
-  const [exercises, heatmapSessions] = await Promise.all([
+  const [exercises, sessions] = await Promise.all([
     getExercises(),
-    getWorkoutSessionsRange({ from: heatmapFrom, to: heatmapTo }),
+    getWorkoutSessionsRange({ from: rangeFrom, to: rangeTo }),
   ]);
 
   const statsList = await Promise.all(
     exercises.map((e) => getExerciseStats({ exerciseId: e.id, limit: HISTORY_LIMIT })),
+  );
+
+  const sessionDates = sessions.map((s) => s.date);
+  const currentStreak = calcWeeklyStreak(sessionDates, WEEKLY_THRESHOLD, today);
+  const bestStreak = calcBestWeeklyStreak(
+    sessionDates,
+    WEEKLY_THRESHOLD,
+    addDays(currentMon, -(STREAK_WEEKS - 1) * 7),
+    currentMon,
   );
 
   return (
@@ -31,8 +45,16 @@ export default async function WorkoutsStatisticsPage() {
         <h1 className="text-xl font-semibold">운동 통계</h1>
       </header>
 
+      <StreakBadge
+        label="운동 스트릭"
+        current={currentStreak}
+        best={bestStreak}
+        unit="주"
+        caption={`주 ${WEEKLY_THRESHOLD}회+`}
+      />
+
       <HeatmapCard
-        sessionDates={heatmapSessions.map((s) => s.date)}
+        sessionDates={sessionDates}
         today={today}
         weeks={HEATMAP_WEEKS}
       />

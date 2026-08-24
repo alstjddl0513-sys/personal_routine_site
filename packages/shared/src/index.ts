@@ -121,6 +121,8 @@ export interface TimeBlock {
   label: string;
   /** Minutes from midnight (0..1410, step 30). null when unset. */
   startTime: number | null;
+  /** Minutes from midnight. null for single-time blocks; must be > startTime when set. */
+  endTime: number | null;
   sortOrder: number;
   isArchived: boolean;
   createdAt: string;
