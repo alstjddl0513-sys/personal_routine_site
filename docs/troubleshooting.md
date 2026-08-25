@@ -117,3 +117,18 @@
 - 상황: PATCH로 값 저장 → DB에 정상 저장 → GET에서 `"2026-08-25 09:00:00+00"` 반환 → 프론트가 `—`로 표시
 - 원인: PostgreSQL timestamptz의 텍스트 반환 형식(공백+짧은 `+00`)이 비표준. Firefox/Safari `new Date()`가 `Invalid Date` 반환. Chrome은 관대해서 통과
 - 해결: 표시 helper에서 공백→`T`, `+00`→`+00:00` 정규화 후 `new Date()`. 백엔드에서 ISO로 변환하는 대안도 있으나 프론트가 더 국지적
+
+### dev 서버 재시작해도 `EADDRINUSE :::3001`이 반복됨
+- 상황: TaskStop으로 pnpm dev 프로세스 죽였는데 재시작 시 계속 포트 잡힘. `next dev`/`nest start --watch`가 여러 orphan으로 남아서 요청은 뜬금없는 낡은 dist가 처리
+- 원인: Windows에서 pnpm 래퍼 프로세스를 죽여도 자식 node.exe(next/nest)는 살아남음. Node 24 + Windows 조합에서 흔함
+- 해결: `netstat -ano | grep ":3001.*LISTENING"`으로 PID 찾고 `taskkill //PID <pid> //F`로 강제 종료. 여러 개면 다 죽여야 함. 그 후 `pnpm --filter <app> dev` 재기동
+
+### 브랜치 이동 후 `pnpm typecheck`가 사라진 route validator를 참조하며 실패
+- 상황: 브랜치 checkout으로 `apps/web/src/app/api/proxy/[...path]/route.ts` 가 없어졌는데 `tsc`가 `.next/types/validator.ts(...) Cannot find module '.../route.js'`로 실패
+- 원인: `.next/` 캐시가 이전 브랜치의 라우트를 기준으로 생성한 validator를 남겨둠. Next 16 turbopack이 파일 삭제를 항상 감지하진 않음
+- 해결: `rm -rf apps/web/.next` 후 다시 typecheck. 브랜치 자주 오갈 때 첫 typecheck에서 걸리면 이걸 의심
+
+### Drizzle 마이그레이션 번호 충돌 (병합 대기 중 다른 PR과)
+- 상황: PR A가 `0005_*.sql` 만들어놓고 대기, PR A가 병합 안 된 채로 새 브랜치에서 `db:generate` 실행 → 새 마이그레이션도 `0005_*.sql`로 생성 → 나중에 rebase하면 파일명 충돌
+- 원인: drizzle-kit이 idx를 `_journal.json`의 마지막 idx+1로 결정. 병합 안 된 PR의 파일이 로컬에 없으니 같은 번호가 다시 나옴
+- 해결: 병합 이후 rebase 시 잘못된 번호 파일 삭제 → `_journal.json`의 해당 entry 제거 → 로컬 스키마는 이미 최종 상태이므로 `db:generate` 재실행하면 다음 번호로 다시 생성됨(`0005_free_sphinx.sql` → `0006_busy_randall.sql` 케이스). 로컬 DB의 `__drizzle_migrations` 테이블에 옛 tag가 남을 수 있지만 idempotent라 다음 마이그레이션엔 무해
