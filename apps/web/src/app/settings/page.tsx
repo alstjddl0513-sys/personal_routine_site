@@ -1,4 +1,5 @@
 import { BackupButton } from '../../components/settings/BackupButton';
+import { APP_VERSION } from '../../lib/version';
 
 export default function SettingsPage() {
   return (
@@ -20,6 +21,10 @@ export default function SettingsPage() {
         </div>
         <BackupButton />
       </section>
+
+      <footer className="mt-2 text-center text-xs text-zinc-400 dark:text-zinc-600">
+        Rally v{APP_VERSION}
+      </footer>
     </div>
   );
 }

@@ -32,6 +32,6 @@ coverage/
 .nyc_output/
 
 #etc
-docs/supabasePassword.md
+docs/secretPassword.md
 docs/*.pdf
 docs/todo.md
