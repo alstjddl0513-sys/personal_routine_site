@@ -146,3 +146,9 @@
 - 상황: Render 부팅 시 `node dist/main` 실패. 로컬에선 `pnpm --filter api build`가 통과했는데 산출물이 `dist/src/main.js`에 생김
 - 원인: `apps/api/drizzle.config.ts` 같은 루트 스크립트가 `tsconfig.build.json`에서 제외 안 됨 → nest build 대상에 포함 → TypeScript rootDir이 `apps/api/`로 넓어져 산출물 구조가 `dist/src/*`로 밀림
 - 해결: `tsconfig.build.json`의 `exclude`에 `"drizzle.config.ts"` 추가. drizzle-kit은 자체 TS 로더를 쓰니 빌드 대상에서 빼도 db 스크립트에 영향 없음. `rm -rf apps/api/dist && pnpm --filter api build`로 `dist/main.js` 위치 확인
+- 주의: fix 커밋을 main에 병합한 뒤에도 Render가 동일 에러를 뱉으면 **Manual Deploy → Clear build cache & deploy**로 다시. `nest-cli.json`의 `deleteOutDir`가 있어도 Render 워크스페이스가 이전 실패 빌드의 `dist/`를 캐시하고 새 빌드가 그 위에 얹히는 케이스가 있음
+
+### `db:migrate`가 이미 적용된 이전 마이그레이션부터 재시도 (column already exists)
+- 상황: 새 마이그레이션을 돌렸는데 그 전 마이그레이션(예: 0006)부터 재적용을 시도해 `column "xxx" already exists`로 죽음
+- 원인: `drizzle.__drizzle_migrations` 테이블의 마지막 레코드 `created_at`이 현재 `_journal.json`의 `when` 값과 어긋남. 과거 어느 시점에 `db:generate`를 다시 돌리면서 journal의 `when`이 바뀌었지만 DB tracker는 옛 값 그대로. Drizzle 마이그레이터가 hash 비교 전에 `when`으로 매칭하는 로직에서 "이 마이그레이션은 안 적용됨"으로 판단
+- 해결: DB tracker의 마지막 레코드 `created_at`을 journal의 `when` 값으로 UPDATE (hash가 이미 맞으면 그대로 유지). 임시 tsx 스크립트로 postgres 직접 접속해 `UPDATE drizzle.__drizzle_migrations SET created_at = <journal.when> WHERE id = <last>` 후 `db:migrate` 재실행. 스키마는 실제로 이미 최신이므로 다음 마이그레이션만 얹혀서 정상 종료. 임시 스크립트는 세션 후 삭제(커밋 X)

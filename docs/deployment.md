@@ -42,7 +42,7 @@ Render 대시보드 → **Environment** → 추가:
 | `DATABASE_URL` | `postgresql://postgres.<ref>:<pw>@<host>:5432/postgres` | Supabase Session Pooler(port 5432). Direct(6543)는 IPv6 전용이라 실패 |
 | `API_ACCESS_TOKEN` | `openssl rand -hex 32` 실행값 | 32바이트 랜덤. §2 Web env와 **반드시 동일값** |
 | `CORS_ALLOWED_ORIGIN` | `*` | 임시. §3에서 Vercel URL로 교체 |
-| `NODE_VERSION` | `20` | Render 기본이 낮을 수 있음 |
+| `NODE_VERSION` | `22.11.0` | Node 20은 의존 트리 중 `node:sqlite`(22.5+) 요구 패키지로 실패. `22`만 넣지 말고 정확한 patch 버전으로 |
 
 `PORT`는 Render가 자동 주입 — 설정하지 말 것.
 
@@ -54,6 +54,16 @@ Render는 마이그레이션을 돌리지 않음. **로컬에서** prod DB에 �
 # .env를 잠시 prod로 스왑하거나, 별도 shell에서:
 DATABASE_URL="<prod URL>" pnpm --filter api db:migrate
 ```
+
+Windows PowerShell:
+
+```powershell
+$env:DATABASE_URL="<prod URL>"
+pnpm.cmd --filter api db:migrate   # pnpm.ps1이 실행 정책에 막히므로 .cmd 래퍼
+Remove-Item env:DATABASE_URL       # 세션 정리 (또는 창 닫기)
+```
+
+`migrate.ts`가 dotenv를 default 모드로 로드해서 이미 세팅된 `$env:DATABASE_URL`을 덮지 않으므로 `.env` 파일은 그대로 둬도 됨.
 
 이후 새 마이그레이션 파일 생성할 때마다 동일 수동 절차. (`CLAUDE.md` 규칙 4: 자동 실행 금지)
 
@@ -77,7 +87,7 @@ DATABASE_URL="<prod URL>" pnpm --filter api db:migrate
    - **Root Directory**: `apps/web`
    - **Build Command**: 기본값(`next build`) 그대로. Vercel이 pnpm workspace 자동 감지
    - **Install Command**: 기본값(`pnpm install`) 그대로
-   - **Node.js Version**: 20.x
+   - **Node.js Version**: 22.x (Render와 일관)
 
 ### 환경 변수
 

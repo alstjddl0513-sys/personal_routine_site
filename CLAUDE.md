@@ -80,3 +80,8 @@
   - 예: `feat/phase-2/companies-api`, `feat/phase-3/jobs-page`, `fix/phase-2/company-status-enum`
 - 코드 작성 전 항상 현재 브랜치 확인. `develop`/`main`이면 새 브랜치를 파고 시작한다.
 - 완료 후 GitHub PR로 develop에 병합. main으로는 릴리스 시에만.
+
+## 14. 기술 선택은 이유와 함께 문서화
+- 새 라이브러리·서비스·배포 플랫폼 도입, 기존 스택의 중요 업데이트가 있을 때 `docs/architecture.md`의 "선택 이유" 섹션(없으면 신설)에 **왜 이걸 골랐나** 한두 줄 추가.
+- 스킬 파일(`.claude/skills/*/SKILL.md`)에 나오는 도구/패턴도 처음 도입 시 이유 명시. 반복적으로 쓰이기 시작하면 skill로 승격.
+- 미래의 나(또는 팀)가 "왜 이걸 썼지?" 되물을 시간을 줄이는 게 목적. 대안 후보와 채택 이유를 함께 적어두면 회고 때도 편함.

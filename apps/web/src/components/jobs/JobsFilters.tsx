@@ -8,11 +8,10 @@ import {
   APPLICATION_STATUS_VALUES,
   COMPANY_TYPE_1_LABELS,
   COMPANY_TYPE_1_VALUES,
-  COMPANY_TYPE_2_LABELS,
-  COMPANY_TYPE_2_VALUES,
   PRIORITY_LABELS,
   PRIORITY_VALUES,
   type ApplicationStatus,
+  type CompanyType,
 } from '@repo/shared';
 import { AddCompanyButton } from './AddCompanyButton';
 
@@ -30,7 +29,7 @@ const STATUS_CHIP_STYLE: Record<ApplicationStatus, string> = {
   withdrawn: 'border-zinc-300 bg-zinc-100 text-zinc-500 italic',
 };
 
-export function JobsFilters() {
+export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [, startTransition] = useTransition();
@@ -117,7 +116,7 @@ export function JobsFilters() {
             className="w-full rounded-md border border-zinc-300 bg-white py-2 pr-3 pl-9 text-sm outline-none placeholder:text-zinc-400 focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
           />
         </div>
-        <AddCompanyButton />
+        <AddCompanyButton companyTypes={companyTypes} />
         <button
           type="button"
           onClick={() => pushPatch({ favorite: currentFavorite ? null : '1' })}
@@ -149,13 +148,13 @@ export function JobsFilters() {
       <div className="rounded-md border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
         <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 text-sm">
           <FilterRow label="유형">
-            {COMPANY_TYPE_2_VALUES.map((v) => (
+            {companyTypes.map((t) => (
               <Chip
-                key={v}
-                active={type2Set.has(v)}
-                onClick={() => toggleMulti('type2', type2Set, v)}
+                key={t.key}
+                active={type2Set.has(t.key)}
+                onClick={() => toggleMulti('type2', type2Set, t.key)}
               >
-                {COMPANY_TYPE_2_LABELS[v]}
+                {t.label}
               </Chip>
             ))}
           </FilterRow>

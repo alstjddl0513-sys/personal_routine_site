@@ -6,22 +6,20 @@ import { Plus, X } from 'lucide-react';
 import {
   COMPANY_TYPE_1_LABELS,
   COMPANY_TYPE_1_VALUES,
-  COMPANY_TYPE_2_LABELS,
-  COMPANY_TYPE_2_VALUES,
+  type CompanyType,
   type CompanyType1,
-  type CompanyType2,
 } from '@repo/shared';
 import { createCompany } from '../../lib/api';
 import { useOutsideClick } from '../../lib/useOutsideClick';
 
 const DEFAULT_TYPE1: CompanyType1 = 'sme';
-const DEFAULT_TYPE2: CompanyType2 = 'service';
 
-export function AddCompanyButton() {
+export function AddCompanyButton({ companyTypes }: { companyTypes: CompanyType[] }) {
   const router = useRouter();
+  const defaultType2 = companyTypes[0]?.key ?? '';
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
-  const [type2, setType2] = useState<CompanyType2>(DEFAULT_TYPE2);
+  const [type2, setType2] = useState<string>(defaultType2);
   const [type1, setType1] = useState<CompanyType1>(DEFAULT_TYPE1);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -33,12 +31,12 @@ export function AddCompanyButton() {
   useEffect(() => {
     if (open) {
       setName('');
-      setType2(DEFAULT_TYPE2);
+      setType2(defaultType2);
       setType1(DEFAULT_TYPE1);
       setError(null);
       queueMicrotask(() => nameRef.current?.focus());
     }
-  }, [open]);
+  }, [open, defaultType2]);
 
   useEffect(() => {
     if (!open) return;
@@ -139,12 +137,12 @@ export function AddCompanyButton() {
                   <select
                     id="add-type2"
                     value={type2}
-                    onChange={(e) => setType2(e.target.value as CompanyType2)}
+                    onChange={(e) => setType2(e.target.value)}
                     className="rounded border border-zinc-300 bg-white px-2 py-1.5 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
                   >
-                    {COMPANY_TYPE_2_VALUES.map((v) => (
-                      <option key={v} value={v}>
-                        {COMPANY_TYPE_2_LABELS[v]}
+                    {companyTypes.map((t) => (
+                      <option key={t.key} value={t.key}>
+                        {t.label}
                       </option>
                     ))}
                   </select>

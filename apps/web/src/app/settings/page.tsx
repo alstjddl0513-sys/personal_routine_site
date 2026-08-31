@@ -1,4 +1,7 @@
+import Link from 'next/link';
+import { ChevronRight, Tag } from 'lucide-react';
 import { BackupButton } from '../../components/settings/BackupButton';
+import { APP_VERSION } from '../../lib/version';
 
 export default function SettingsPage() {
   return (
@@ -6,6 +9,24 @@ export default function SettingsPage() {
       <header>
         <h1 className="text-xl font-semibold">설정</h1>
       </header>
+
+      <section className="rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+        <Link
+          href="/settings/company-types"
+          className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
+        >
+          <Tag className="h-4 w-4 text-zinc-500" aria-hidden />
+          <div className="flex-1">
+            <div className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+              기업 유형 관리
+            </div>
+            <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+              채용 리스트의 &quot;유형&quot; 필터/선택에 나오는 항목을 추가·편집·삭제.
+            </p>
+          </div>
+          <ChevronRight className="h-4 w-4 text-zinc-400" aria-hidden />
+        </Link>
+      </section>
 
       <section className="flex flex-col gap-3 rounded-md border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
         <div>
@@ -20,6 +41,10 @@ export default function SettingsPage() {
         </div>
         <BackupButton />
       </section>
+
+      <footer className="mt-2 text-center text-xs text-zinc-400 dark:text-zinc-600">
+        Rally v{APP_VERSION}
+      </footer>
     </div>
   );
 }

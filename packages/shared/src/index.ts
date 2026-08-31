@@ -14,15 +14,17 @@ export const COMPANY_TYPE_1_VALUES = [
 ] as const;
 export type CompanyType1 = (typeof COMPANY_TYPE_1_VALUES)[number];
 
-export const COMPANY_TYPE_2_VALUES = [
-  'service',
-  'solution',
-  'si',
-  'inhouse',
-  'lab',
-  'freelance',
-] as const;
-export type CompanyType2 = (typeof COMPANY_TYPE_2_VALUES)[number];
+// company_type_2는 user-editable로 이관됨 (company_types 테이블).
+// 프론트는 CompanyType 리스트를 API에서 가져와 사용.
+export interface CompanyType {
+  id: string;
+  key: string;
+  label: string;
+  sortOrder: number;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export const PRIORITY_VALUES = ['important', 'normal', 'urgent'] as const;
 export type Priority = (typeof PRIORITY_VALUES)[number];
@@ -54,7 +56,7 @@ export interface Company {
   id: string;
   name: string;
   type1: CompanyType1;
-  type2: CompanyType2;
+  type2: string;
   priority: Priority;
   isHiring: boolean;
   isFavorite: boolean;
@@ -78,14 +80,8 @@ export const COMPANY_TYPE_1_LABELS: Record<CompanyType1, string> = {
   public: '공공',
 };
 
-export const COMPANY_TYPE_2_LABELS: Record<CompanyType2, string> = {
-  service: '서비스',
-  solution: '솔루션',
-  si: 'SI',
-  inhouse: '인하우스',
-  lab: '랩',
-  freelance: '프리랜서',
-};
+// COMPANY_TYPE_2_LABELS는 user-editable로 이관되어 제거됨.
+// 프론트는 CompanyType[].label을 사용.
 
 export const PRIORITY_LABELS: Record<Priority, string> = {
   urgent: '긴급',

@@ -7,15 +7,8 @@ export const CompanyType1 = {
 } as const;
 export type CompanyType1 = (typeof CompanyType1)[keyof typeof CompanyType1];
 
-export const CompanyType2 = {
-  service: 'service',
-  solution: 'solution',
-  si: 'si',
-  inhouse: 'inhouse',
-  lab: 'lab',
-  freelance: 'freelance',
-} as const;
-export type CompanyType2 = (typeof CompanyType2)[keyof typeof CompanyType2];
+// CompanyType2는 이제 user-editable — company_types 테이블에서 관리.
+// companies.type2는 plain text이며 CreateCompanyDto가 형식만 검증.
 
 export const Priority = {
   important: 'important',
