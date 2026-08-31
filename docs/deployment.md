@@ -4,7 +4,7 @@
 
 ## 사전 조건
 
-- GitHub에 `develop` 브랜치 push 완료
+- GitHub의 `main` 브랜치가 배포하고 싶은 상태로 최신화됨 (개발은 `develop`에서, 릴리스 시 `develop → main` PR)
 - Supabase 프로젝트가 이미 있고 로컬 `.env`의 `DATABASE_URL`이 정상 작동
 - 로컬에서 `pnpm build && pnpm typecheck` 통과
 
@@ -19,7 +19,7 @@
 3. 설정:
    - **Name**: `rally-api` (원하는 이름)
    - **Region**: Singapore (한국 기준 가장 가까움)
-   - **Branch**: `develop`
+   - **Branch**: `main` (배포 지점. develop → main PR 병합 시 자동 재배포)
    - **Root Directory**: **비워둠** (`.`) — monorepo 워크스페이스 의존성(`@repo/shared: workspace:*`) 때문에 repo 루트가 필요
    - **Runtime**: Node
    - **Build Command**:
