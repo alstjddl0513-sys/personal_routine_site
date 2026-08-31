@@ -1,4 +1,4 @@
-import { type Company } from '@repo/shared';
+import { type Company, type CompanyType } from '@repo/shared';
 import { PrioritySelect } from './cells/PrioritySelect';
 import { StatusSelect } from './cells/StatusSelect';
 import { HiringToggle } from './cells/HiringToggle';
@@ -10,7 +10,13 @@ import { DeadlinePopover } from './cells/DeadlinePopover';
 import { FavoriteToggle } from './cells/FavoriteToggle';
 import { DeleteRowButton } from './cells/DeleteRowButton';
 
-export function JobsTable({ rows }: { rows: Company[] }) {
+export function JobsTable({
+  rows,
+  companyTypes,
+}: {
+  rows: Company[];
+  companyTypes: CompanyType[];
+}) {
   if (rows.length === 0) {
     return (
       <div className="rounded-md border border-dashed border-zinc-300 p-10 text-center text-sm text-zinc-500 dark:border-zinc-700">
@@ -59,7 +65,7 @@ export function JobsTable({ rows }: { rows: Company[] }) {
               </Td>
               <Td>
                 <Center>
-                  <TypeSelect id={c.id} value={c.type2} />
+                  <TypeSelect id={c.id} value={c.type2} types={companyTypes} />
                 </Center>
               </Td>
               <Td>

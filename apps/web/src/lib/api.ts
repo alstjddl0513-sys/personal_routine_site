@@ -1,8 +1,8 @@
 import type {
   ApplicationStatus,
   Company,
+  CompanyType,
   CompanyType1,
-  CompanyType2,
   DayNote,
   Exercise,
   ExerciseStats,
@@ -54,7 +54,9 @@ function authHeaders(): Record<string, string> {
 
 export interface GetCompaniesParams {
   type1?: CompanyType1[];
-  type2?: CompanyType2[];
+  // type2는 user-editable이라 문자열 배열. 유효값 검증은 /jobs 페이지가
+  // getCompanyTypes()로 받은 키 목록에 대해 SSR 시점에 수행.
+  type2?: string[];
   priority?: Priority[];
   applicationStatus?: ApplicationStatus[];
   isHiring?: boolean;
@@ -108,6 +110,52 @@ export async function deleteCompany(id: string): Promise<void> {
   if (!res.ok) {
     throw new Error(`DELETE /companies/${id} failed: HTTP ${res.status}`);
   }
+}
+
+// --- company-types (user-editable list backing companies.type2) ---
+
+export async function getCompanyTypes(): Promise<CompanyType[]> {
+  const res = await fetch(apiUrl('/company-types'), {
+    cache: 'no-store',
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(`GET /company-types failed: HTTP ${res.status}`);
+  return (await res.json()) as CompanyType[];
+}
+
+export async function createCompanyType(input: {
+  key: string;
+  label: string;
+  sortOrder?: number;
+}): Promise<CompanyType> {
+  const res = await fetch(apiUrl('/company-types'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(`POST /company-types failed: HTTP ${res.status}`);
+  return (await res.json()) as CompanyType;
+}
+
+export async function patchCompanyType(
+  id: string,
+  patch: { label?: string; sortOrder?: number },
+): Promise<CompanyType> {
+  const res = await fetch(apiUrl(`/company-types/${id}`), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok) throw new Error(`PATCH /company-types/${id} failed: HTTP ${res.status}`);
+  return (await res.json()) as CompanyType;
+}
+
+export async function deleteCompanyType(id: string): Promise<void> {
+  const res = await fetch(apiUrl(`/company-types/${id}`), {
+    method: 'DELETE',
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(`DELETE /company-types/${id} failed: HTTP ${res.status}`);
 }
 
 export async function patchCompany(id: string, patch: CompanyPatch): Promise<Company> {
