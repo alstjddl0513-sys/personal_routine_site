@@ -146,3 +146,4 @@
 - 상황: Render 부팅 시 `node dist/main` 실패. 로컬에선 `pnpm --filter api build`가 통과했는데 산출물이 `dist/src/main.js`에 생김
 - 원인: `apps/api/drizzle.config.ts` 같은 루트 스크립트가 `tsconfig.build.json`에서 제외 안 됨 → nest build 대상에 포함 → TypeScript rootDir이 `apps/api/`로 넓어져 산출물 구조가 `dist/src/*`로 밀림
 - 해결: `tsconfig.build.json`의 `exclude`에 `"drizzle.config.ts"` 추가. drizzle-kit은 자체 TS 로더를 쓰니 빌드 대상에서 빼도 db 스크립트에 영향 없음. `rm -rf apps/api/dist && pnpm --filter api build`로 `dist/main.js` 위치 확인
+- 주의: fix 커밋을 main에 병합한 뒤에도 Render가 동일 에러를 뱉으면 **Manual Deploy → Clear build cache & deploy**로 다시. `nest-cli.json`의 `deleteOutDir`가 있어도 Render 워크스페이스가 이전 실패 빌드의 `dist/`를 캐시하고 새 빌드가 그 위에 얹히는 케이스가 있음
