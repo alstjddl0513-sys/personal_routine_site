@@ -132,3 +132,17 @@
 - 상황: PR A가 `0005_*.sql` 만들어놓고 대기, PR A가 병합 안 된 채로 새 브랜치에서 `db:generate` 실행 → 새 마이그레이션도 `0005_*.sql`로 생성 → 나중에 rebase하면 파일명 충돌
 - 원인: drizzle-kit이 idx를 `_journal.json`의 마지막 idx+1로 결정. 병합 안 된 PR의 파일이 로컬에 없으니 같은 번호가 다시 나옴
 - 해결: 병합 이후 rebase 시 잘못된 번호 파일 삭제 → `_journal.json`의 해당 entry 제거 → 로컬 스키마는 이미 최종 상태이므로 `db:generate` 재실행하면 다음 번호로 다시 생성됨(`0005_free_sphinx.sql` → `0006_busy_randall.sql` 케이스). 로컬 DB의 `__drizzle_migrations` 테이블에 옛 tag가 남을 수 있지만 idempotent라 다음 마이그레이션엔 무해
+
+---
+
+## Render 배포
+
+### `ERR_UNKNOWN_BUILTIN_MODULE: No such built-in module: node:sqlite`
+- 상황: Render에 `NODE_VERSION=20.x`로 배포 → Node 설치 직후 위 에러로 죽음
+- 원인: `node:sqlite`는 Node 22.5+ experimental / 24 stable. monorepo 빌드에서 `pnpm install`이 Next 16 등 프론트 의존 트리 전체를 끌어오는데 그중 이 API를 요구하는 툴이 낮은 Node에서 로드됨. `NODE_VERSION=20.20.2` 같은 존재하지 않는 버전 지정도 fallback 이상하게 잡히는 원인
+- 해결: `NODE_VERSION=22.11.0`(현 Active LTS) 지정 → **Clear build cache & deploy**. `22`만 넣지 말고 정확한 patch 버전으로
+
+### `Cannot find module '/opt/render/project/src/apps/api/dist/main'`
+- 상황: Render 부팅 시 `node dist/main` 실패. 로컬에선 `pnpm --filter api build`가 통과했는데 산출물이 `dist/src/main.js`에 생김
+- 원인: `apps/api/drizzle.config.ts` 같은 루트 스크립트가 `tsconfig.build.json`에서 제외 안 됨 → nest build 대상에 포함 → TypeScript rootDir이 `apps/api/`로 넓어져 산출물 구조가 `dist/src/*`로 밀림
+- 해결: `tsconfig.build.json`의 `exclude`에 `"drizzle.config.ts"` 추가. drizzle-kit은 자체 TS 로더를 쓰니 빌드 대상에서 빼도 db 스크립트에 영향 없음. `rm -rf apps/api/dist && pnpm --filter api build`로 `dist/main.js` 위치 확인
