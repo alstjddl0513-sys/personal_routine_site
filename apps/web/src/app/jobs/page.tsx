@@ -1,15 +1,13 @@
 import { Suspense } from 'react';
 import { JobsFilters } from '../../components/jobs/JobsFilters';
 import { JobsTable } from '../../components/jobs/JobsTable';
-import { getCompanies } from '../../lib/api';
+import { getCompanies, getCompanyTypes } from '../../lib/api';
 import {
   APPLICATION_STATUS_VALUES,
   COMPANY_TYPE_1_VALUES,
-  COMPANY_TYPE_2_VALUES,
   PRIORITY_VALUES,
   type ApplicationStatus,
   type CompanyType1,
-  type CompanyType2,
   type Priority,
 } from '@repo/shared';
 
@@ -33,7 +31,11 @@ function parseEnumMulti<T extends string>(
 
 export default async function JobsPage({ searchParams }: PageProps<'/jobs'>) {
   const sp = await searchParams;
-  const type2 = parseEnumMulti<CompanyType2>(sp.type2, COMPANY_TYPE_2_VALUES);
+  // Fetch types first so we can validate the type2 filter param against
+  // the current user-editable list instead of a hardcoded enum.
+  const companyTypes = await getCompanyTypes();
+  const type2Keys = companyTypes.map((t) => t.key);
+  const type2 = parseEnumMulti<string>(sp.type2, type2Keys);
   const type1 = parseEnumMulti<CompanyType1>(sp.type1, COMPANY_TYPE_1_VALUES);
   const priority = parseEnumMulti<Priority>(sp.priority, PRIORITY_VALUES);
   const applicationStatus = parseEnumMulti<ApplicationStatus>(
@@ -64,10 +66,10 @@ export default async function JobsPage({ searchParams }: PageProps<'/jobs'>) {
       </header>
 
       <Suspense fallback={null}>
-        <JobsFilters />
+        <JobsFilters companyTypes={companyTypes} />
       </Suspense>
 
-      <JobsTable rows={rows} />
+      <JobsTable rows={rows} companyTypes={companyTypes} />
     </div>
   );
 }

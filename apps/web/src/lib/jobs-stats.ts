@@ -1,10 +1,8 @@
 import {
   COMPANY_TYPE_1_VALUES,
-  COMPANY_TYPE_2_VALUES,
   type ApplicationStatus,
   type Company,
   type CompanyType1,
-  type CompanyType2,
 } from '@repo/shared';
 
 export interface KpiSummary {
@@ -77,13 +75,18 @@ export function computeType1Distribution(
   return counts;
 }
 
+// Counts by whichever type2 keys the given types list contains, plus a
+// bucket per orphan key found on companies (rows whose type2 no longer
+// exists in company_types). Orphan bars still render so users can see
+// stale data and decide whether to re-assign.
 export function computeType2Distribution(
   rows: Company[],
-): Record<CompanyType2, number> {
-  const counts = Object.fromEntries(
-    COMPANY_TYPE_2_VALUES.map((v) => [v, 0]),
-  ) as Record<CompanyType2, number>;
-  for (const c of rows) counts[c.type2] += 1;
+  keys: readonly string[],
+): Record<string, number> {
+  const counts: Record<string, number> = Object.fromEntries(keys.map((k) => [k, 0]));
+  for (const c of rows) {
+    counts[c.type2] = (counts[c.type2] ?? 0) + 1;
+  }
   return counts;
 }
 

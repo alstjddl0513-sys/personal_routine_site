@@ -2,10 +2,8 @@ import {
   APPLICATION_STATUS_LABELS,
   COMPANY_TYPE_1_LABELS,
   COMPANY_TYPE_1_VALUES,
-  COMPANY_TYPE_2_LABELS,
-  COMPANY_TYPE_2_VALUES,
 } from '@repo/shared';
-import { getCompanies } from '../../../lib/api';
+import { getCompanies, getCompanyTypes } from '../../../lib/api';
 import { StatCard } from '../../../components/jobs/StatCard';
 import { StatBar } from '../../../components/jobs/StatBar';
 import {
@@ -28,11 +26,15 @@ function formatDeadline(iso: string, daysLeft: number): string {
 }
 
 export default async function JobsStatisticsPage() {
-  const rows = await getCompanies();
+  const [rows, companyTypes] = await Promise.all([getCompanies(), getCompanyTypes()]);
   const kpi = computeKpi(rows);
   const pipeline = computePipeline(rows);
   const t1 = computeType1Distribution(rows);
-  const t2 = computeType2Distribution(rows);
+  const type2Keys = companyTypes.map((t) => t.key);
+  const t2 = computeType2Distribution(rows, type2Keys);
+  const type2Labels: Record<string, string> = Object.fromEntries(
+    companyTypes.map((t) => [t.key, t.label]),
+  );
   const upcoming = computeUpcomingDeadlines(rows);
 
   const appliedPct =
@@ -126,10 +128,10 @@ export default async function JobsStatisticsPage() {
         <section className="rounded-md border border-zinc-200 p-4 dark:border-zinc-800">
           <h2 className="mb-3 text-sm font-medium">규모 분포</h2>
           <div className="flex flex-col gap-2">
-            {COMPANY_TYPE_2_VALUES.map((k) => (
+            {Object.keys(t2).map((k) => (
               <StatBar
                 key={k}
-                label={COMPANY_TYPE_2_LABELS[k]}
+                label={type2Labels[k] ?? `${k} (삭제됨)`}
                 count={t2[k]}
                 total={kpi.total}
               />
