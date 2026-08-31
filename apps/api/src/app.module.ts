@@ -7,6 +7,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HealthController } from './health/health.controller';
 import { CompaniesModule } from './companies/companies.module';
+import { CompanyTypesModule } from './company-types/company-types.module';
 import { TimeBlocksModule } from './time-blocks/time-blocks.module';
 import { RoutineChecksModule } from './routine-checks/routine-checks.module';
 import { DayNotesModule } from './day-notes/day-notes.module';
@@ -22,6 +23,7 @@ import { ExportModule } from './export/export.module';
       envFilePath: [resolve(process.cwd(), '../../.env')],
     }),
     CompaniesModule,
+    CompanyTypesModule,
     TimeBlocksModule,
     RoutineChecksModule,
     DayNotesModule,
