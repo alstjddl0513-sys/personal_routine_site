@@ -8,6 +8,7 @@ import {
   ChevronDown,
   ChevronRight,
   Dumbbell,
+  LogOut,
   Settings,
 } from 'lucide-react';
 import { useEffect, useState, type ComponentType, type SVGProps } from 'react';
@@ -61,6 +62,26 @@ const NAV: NavItem[] = [
 ];
 
 const STORAGE_KEY = 'rally.sidebar.collapsed';
+
+function LogoutButton() {
+  async function handleLogout() {
+    await fetch('/api/auth/login', { method: 'DELETE' }).catch(() => {
+      // Even if the request fails, force navigate so the user isn't stuck.
+    });
+    window.location.href = '/login';
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleLogout}
+      aria-label="로그아웃"
+      className="inline-flex h-7 w-7 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+    >
+      <LogOut className="h-3.5 w-3.5" aria-hidden />
+    </button>
+  );
+}
 
 function isActive(pathname: string, href: string) {
   // Parents whose own href doubles as a child link (/jobs, /workouts, /routines)
@@ -194,7 +215,10 @@ export function Sidebar() {
           <Settings className="h-3.5 w-3.5" aria-hidden />
           <span>설정</span>
         </Link>
-        <ThemeToggle />
+        <div className="flex items-center gap-1">
+          <LogoutButton />
+          <ThemeToggle />
+        </div>
       </div>
     </aside>
   );
