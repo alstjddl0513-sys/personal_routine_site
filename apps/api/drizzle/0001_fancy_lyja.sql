@@ -1,0 +1,1 @@
+ALTER TABLE "companies" ALTER COLUMN "application_deadline" SET DATA TYPE timestamp with time zone;

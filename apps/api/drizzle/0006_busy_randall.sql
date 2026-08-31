@@ -1,0 +1,1 @@
+ALTER TABLE "time_blocks" ADD COLUMN "archived_at" timestamp with time zone;

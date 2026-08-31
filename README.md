@@ -8,7 +8,7 @@
 - **Backend**: NestJS 11 + Drizzle ORM (`apps/api`)
 - **DB**: Supabase (매니지드 PostgreSQL)
 - **Monorepo**: pnpm workspaces + Turborepo
-- **Deploy**: Vercel (web) + Railway/Fly.io (api) + Supabase (db)
+- **Deploy**: Vercel (web) + Render (api) + Supabase (db) — 절차는 `docs/deployment.md`
 
 ## 폴더 구조
 
@@ -52,6 +52,10 @@ pnpm build      # 전체 빌드
 pnpm lint       # 전체 lint
 pnpm typecheck  # 전체 타입 체크
 ```
+
+## 배포
+
+Render(API) + Vercel(Web) + Supabase 조합. 단계별 절차와 env 세팅은 `docs/deployment.md`.
 
 ## 규칙
 
