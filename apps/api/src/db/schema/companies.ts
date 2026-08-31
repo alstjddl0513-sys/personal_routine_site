@@ -16,14 +16,10 @@ export const companyType1Enum = pgEnum('company_type_1', [
   'public',
 ]);
 
-export const companyType2Enum = pgEnum('company_type_2', [
-  'service',
-  'solution',
-  'si',
-  'inhouse',
-  'lab',
-  'freelance',
-]);
+// company_type_2 was previously a Postgres enum; it's now a plain text column
+// backed by the user-editable `company_types` table (see company-types.ts).
+// Kept as text (not FK) so removing a type from the list doesn't touch
+// existing companies — they retain the value they were assigned.
 
 export const priorityEnum = pgEnum('priority', [
   'important',
@@ -57,7 +53,7 @@ export const companies = pgTable('companies', {
 
   name: text('name').notNull(),
   type1: companyType1Enum('type1').notNull(),
-  type2: companyType2Enum('type2').notNull(),
+  type2: text('type2').notNull(),
   priority: priorityEnum('priority').notNull().default('normal'),
   isHiring: boolean('is_hiring').notNull().default(false),
   isFavorite: boolean('is_favorite').notNull().default(false),

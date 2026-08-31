@@ -11,7 +11,6 @@ import {
 import {
   ApplicationStatus,
   CompanyType1,
-  CompanyType2,
   EmploymentType,
   Priority,
 } from './enums';
@@ -25,8 +24,12 @@ export class CreateCompanyDto {
   @IsEnum(CompanyType1)
   type1!: CompanyType1;
 
-  @IsEnum(CompanyType2)
-  type2!: CompanyType2;
+  // type2는 user-editable company_types 테이블의 key. 여기선 문자열
+  // 형식만 검증 (실존 여부는 프론트 선택 UX가 보장).
+  @IsString()
+  @MinLength(1)
+  @MaxLength(50)
+  type2!: string;
 
   @IsOptional()
   @IsEnum(Priority)

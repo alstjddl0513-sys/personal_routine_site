@@ -14,6 +14,9 @@ export const COMPANY_TYPE_1_VALUES = [
 ] as const;
 export type CompanyType1 = (typeof COMPANY_TYPE_1_VALUES)[number];
 
+// company_type_2는 user-editable로 이관됨 (company_types 테이블).
+// 프론트는 CompanyType 리스트를 API에서 가져와 사용.
+// 기존 상수/타입은 하위호환 위해 잠시 유지되었다가 프론트 이관 후 제거 예정.
 export const COMPANY_TYPE_2_VALUES = [
   'service',
   'solution',
@@ -22,7 +25,17 @@ export const COMPANY_TYPE_2_VALUES = [
   'lab',
   'freelance',
 ] as const;
-export type CompanyType2 = (typeof COMPANY_TYPE_2_VALUES)[number];
+export type CompanyType2 = string;
+
+export interface CompanyType {
+  id: string;
+  key: string;
+  label: string;
+  sortOrder: number;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export const PRIORITY_VALUES = ['important', 'normal', 'urgent'] as const;
 export type Priority = (typeof PRIORITY_VALUES)[number];
@@ -54,7 +67,7 @@ export interface Company {
   id: string;
   name: string;
   type1: CompanyType1;
-  type2: CompanyType2;
+  type2: string;
   priority: Priority;
   isHiring: boolean;
   isFavorite: boolean;
