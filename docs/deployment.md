@@ -55,6 +55,16 @@ Render는 마이그레이션을 돌리지 않음. **로컬에서** prod DB에 �
 DATABASE_URL="<prod URL>" pnpm --filter api db:migrate
 ```
 
+Windows PowerShell:
+
+```powershell
+$env:DATABASE_URL="<prod URL>"
+pnpm.cmd --filter api db:migrate   # pnpm.ps1이 실행 정책에 막히므로 .cmd 래퍼
+Remove-Item env:DATABASE_URL       # 세션 정리 (또는 창 닫기)
+```
+
+`migrate.ts`가 dotenv를 default 모드로 로드해서 이미 세팅된 `$env:DATABASE_URL`을 덮지 않으므로 `.env` 파일은 그대로 둬도 됨.
+
 이후 새 마이그레이션 파일 생성할 때마다 동일 수동 절차. (`CLAUDE.md` 규칙 4: 자동 실행 금지)
 
 ### 배포 확인
