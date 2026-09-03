@@ -138,6 +138,57 @@ Vercel 대시보드 → **Settings** → **Environment Variables** → 추가 (�
 
 ---
 
+## §5. 스케줄러 (cronjob.org)
+
+무료 티어 Render는 15분 idle 시 슬립 + 자체 cron 없음. 외부 트리거로 두 가지 훅 등록:
+
+1. **콜드 스타트 방지** — 10분마다 `/health`
+2. **RSS 자동 수집** — 하루 1~2회 `POST /blog-posts/refresh`
+
+### 계정/공통 세팅
+
+- https://cronjob.org 가입 (무료, 이메일만)
+- **Cronjobs** → **Create cronjob**
+
+### 훅 1 · Health ping (콜드 스타트 방지)
+
+| 필드 | 값 |
+|---|---|
+| Title | `rally health ping` |
+| URL | `https://<render-service>.onrender.com/health` |
+| Method | GET |
+| Schedule | Every 10 minutes |
+| Timeout | 30s |
+
+`/health`는 `AccessTokenGuard` 예외라 토큰 헤더 불필요.
+
+### 훅 2 · RSS refresh
+
+| 필드 | 값 |
+|---|---|
+| Title | `rally rss refresh` |
+| URL | `https://<render-service>.onrender.com/blog-posts/refresh` |
+| Method | **POST** |
+| Schedule | 하루 2회 (예: 08:00 · 20:00 KST) |
+| Timeout | **90s** (콜드 스타트 + 8개 소스 순회 여유) |
+| Headers | `x-auth-token: <API_ACCESS_TOKEN>` (Render env와 동일값) |
+
+cronjob.org UI: **Advanced** 탭 → **HTTP method** = POST → **HTTP headers**에 위 헤더 추가.
+
+### 검증
+
+- 훅 2를 저장 후 **Test run** 클릭 → 응답 상태 200 + body에 `{"processed":N,"added":M,"errors":[...]}` 확인
+- 웹 `/blog`에서 신규 글 반영 확인 (SSR이라 F5)
+- 실행 이력은 cronjob.org **History** 탭. 실패가 반복되면 Render 로그 · `errors` 배열 개별 소스 확인 후 `/settings/blog-sources`에서 URL 수정/비활성화
+
+### 왜 하루 2회
+
+- 대부분 기술 블로그는 주 1~2회 발행. 하루 2회면 충분히 신선
+- refresh는 소스 8개 순회에 ~10~20초 (콜드 스타트 없을 때). 하루 24회 이상으로 늘려도 API 부하는 문제 없으나 `errors` 반복 알림이 노이즈가 됨
+- 향후 소스 수가 크게 늘거나 실시간성이 필요해지면 주기 상향 검토
+
+---
+
 ## 트러블슈팅 요약
 
 | 증상 | 원인 · 해결 |
