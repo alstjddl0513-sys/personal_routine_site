@@ -42,9 +42,14 @@ export default function SettingsPage() {
         <BackupButton />
       </section>
 
-      <footer className="mt-2 text-center text-xs text-zinc-400 dark:text-zinc-600">
-        Rally v{APP_VERSION}
-      </footer>
+      <section className="flex items-center justify-between rounded-md border border-zinc-200 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-zinc-950">
+        <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+          버전
+        </span>
+        <span className="font-mono text-xs text-zinc-500 dark:text-zinc-400">
+          Rally v{APP_VERSION}
+        </span>
+      </section>
     </div>
   );
 }
