@@ -161,6 +161,8 @@ https://cronjob.org 가입 → **Cronjobs** → **Create cronjob**:
 
 **주의**: cronjob.org는 연속 실패가 누적되면 job을 자동 disable함. Render 콜드 스타트가 30초 넘으면 timeout이 반복되고 결국 꺼진다. **History에서 disable 이유 확인 → 필요하면 timeout 상향 후 재활성**. Health ping이 죽어 있으면 아래 내부 RSS cron도 서버 슬립 창에 미스될 수 있음.
 
+**알림 세팅**: 매번 대시보드에 로그인해서 확인하지 않도록, job 편집 → **Notifications** 탭 → *Notify on failure* 체크. `Failures in a row`는 2~3 정도가 노이즈 덜함(첫 실패에 즉시 알림은 시끄러움). 등록된 계정 이메일로 자동 발송되므로, 문제가 생기면 메일 받고 그때만 대시보드 열면 됨.
+
 ### 내부 스케줄 · RSS refresh
 
 코드로 구현. `apps/api/src/blog-posts/blog-posts.service.ts`의 `scheduledRefresh()`가 담당:
