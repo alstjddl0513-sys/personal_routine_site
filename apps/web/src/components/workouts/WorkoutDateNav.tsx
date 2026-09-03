@@ -4,15 +4,29 @@ import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { addDays, dowLabel, toISODate } from '../../lib/routines-week';
+import type { MuscleGroupFilter } from '../../lib/muscle-groups';
 
-export function WorkoutDateNav({ date }: { date: Date }) {
+export function WorkoutDateNav({
+  date,
+  group,
+}: {
+  date: Date;
+  group: MuscleGroupFilter;
+}) {
   const router = useRouter();
   const [, startTransition] = useTransition();
 
+  function buildUrl(next: Date | null): string {
+    const qs = new URLSearchParams();
+    if (next) qs.set('date', toISODate(next));
+    if (group !== 'all') qs.set('group', group);
+    const s = qs.toString();
+    return s ? `/workouts?${s}` : '/workouts';
+  }
+
   function goto(next: Date | null) {
     startTransition(() => {
-      if (!next) router.push('/workouts');
-      else router.push(`/workouts?date=${toISODate(next)}`);
+      router.push(buildUrl(next));
     });
   }
 

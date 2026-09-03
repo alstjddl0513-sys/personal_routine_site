@@ -11,6 +11,8 @@ import {
   patchExercise,
 } from '../../lib/api';
 import { useOutsideClick } from '../../lib/useOutsideClick';
+import { muscleLabel } from '../../lib/muscle-groups';
+import { TargetMuscleSelect } from '../workouts/TargetMuscleSelect';
 
 type Draft = {
   name: string;
@@ -115,7 +117,7 @@ export function ExercisesManager({ initial }: { initial: Exercise[] }) {
         router.refresh();
       } catch (err) {
         console.error(err);
-        setError(row.isArchived ? '복원에 실패했습니다.' : '아카이브에 실패했습니다.');
+        setError(row.isArchived ? '숨김 해제에 실패했습니다.' : '숨김 처리에 실패했습니다.');
       }
     });
   }
@@ -153,7 +155,7 @@ export function ExercisesManager({ initial }: { initial: Exercise[] }) {
         router.refresh();
       } catch (err) {
         console.error(err);
-        setError('아카이브에 실패했습니다.');
+        setError('숨김 처리에 실패했습니다.');
         setConfirm(null);
       }
     });
@@ -178,7 +180,7 @@ export function ExercisesManager({ initial }: { initial: Exercise[] }) {
           onChange={(e) => setIncludeArchived(e.target.checked)}
           className="h-3.5 w-3.5"
         />
-        아카이브된 종목 포함 ({rows.filter((r) => r.isArchived).length})
+        숨긴 종목 포함 ({rows.filter((r) => r.isArchived).length})
       </label>
 
       <div className="rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
@@ -202,7 +204,7 @@ export function ExercisesManager({ initial }: { initial: Exercise[] }) {
                     <span className="font-medium">{row.name}</span>
                     {row.targetMuscle ? (
                       <span className="rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-                        {row.targetMuscle}
+                        {muscleLabel(row.targetMuscle)}
                       </span>
                     ) : null}
                     <span className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -210,7 +212,7 @@ export function ExercisesManager({ initial }: { initial: Exercise[] }) {
                     </span>
                     {row.isArchived ? (
                       <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] text-amber-700 dark:bg-amber-950/50 dark:text-amber-300">
-                        아카이브
+                        숨김
                       </span>
                     ) : null}
                   </button>
@@ -219,7 +221,7 @@ export function ExercisesManager({ initial }: { initial: Exercise[] }) {
                     <IconButton
                       onClick={() => toggleArchive(row)}
                       disabled={isPending}
-                      label={row.isArchived ? '복원' : '아카이브'}
+                      label={row.isArchived ? '숨김 해제' : '숨김'}
                     >
                       {row.isArchived ? (
                         <ArchiveRestore className="h-3.5 w-3.5" />
@@ -259,7 +261,7 @@ export function ExercisesManager({ initial }: { initial: Exercise[] }) {
       </div>
 
       <p className="text-xs text-zinc-500 dark:text-zinc-400">
-        <strong>아카이브</strong>는 리스트에서만 숨기고 이력은 보존.
+        <strong>숨김</strong>은 리스트에서만 감추고 세트 이력은 보존.
         <strong>삭제</strong>는 세트 기록이 하나도 없는 종목에만 허용됨.
         운동 순서는 <code>/workouts</code> 카드 hover ↑↓로 조정.
       </p>
@@ -275,7 +277,7 @@ export function ExercisesManager({ initial }: { initial: Exercise[] }) {
                 {confirm.row.name}
               </span>
               을(를) 삭제할까요? 세트 이력이 있으면 삭제할 수 없고,
-              대신 아카이브(숨김)로 안내됩니다.
+              대신 &quot;숨김&quot; 처리로 안내됩니다.
             </>
           }
           confirmLabel={isPending ? '삭제 중…' : '삭제'}
@@ -296,11 +298,11 @@ export function ExercisesManager({ initial }: { initial: Exercise[] }) {
                 {confirm.row.name}
               </span>
               에 세트 이력이 있어서 삭제할 수 없습니다.
-              대신 <strong>아카이브</strong>(리스트에서 숨김, 이력은 보존)
+              대신 <strong>숨김</strong> (리스트에서 감춤, 이력은 보존)
               처리할까요?
             </>
           }
-          confirmLabel={isPending ? '아카이브 중…' : '아카이브'}
+          confirmLabel={isPending ? '숨기는 중…' : '숨김 처리'}
           onConfirm={() => performArchiveFallback(confirm.row)}
           onCancel={() => setConfirm(null)}
           isPending={isPending}
@@ -420,13 +422,10 @@ function EditForm({
             />
           </Field>
           <Field label="타겟 부위 (선택)">
-            <input
-              type="text"
+            <TargetMuscleSelect
               value={draft.targetMuscle}
-              onChange={(e) => onChange({ ...draft, targetMuscle: e.target.value })}
+              onChange={(next) => onChange({ ...draft, targetMuscle: next })}
               disabled={isPending}
-              maxLength={50}
-              placeholder="예: leg"
               className="rounded border border-zinc-300 bg-white px-2 py-1 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
             />
           </Field>
@@ -573,13 +572,10 @@ function AddRow({
           />
         </Field>
         <Field label="타겟 부위 (선택)">
-          <input
-            type="text"
+          <TargetMuscleSelect
             value={draft.targetMuscle}
-            onChange={(e) => setDraft({ ...draft, targetMuscle: e.target.value })}
+            onChange={(next) => setDraft({ ...draft, targetMuscle: next })}
             disabled={isPending}
-            maxLength={50}
-            placeholder="예: leg"
             className="rounded border border-zinc-300 bg-white px-2 py-1 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
           />
         </Field>
