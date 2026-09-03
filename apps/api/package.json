@@ -24,6 +24,7 @@
     "db:migrate": "tsx src/db/migrate.ts",
     "db:seed": "tsx src/db/seed.ts",
     "db:seed:exercises": "tsx src/db/seed-exercises.ts",
+    "db:seed:blog-sources": "tsx src/db/seed-blog-sources.ts",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
@@ -38,6 +39,7 @@
     "drizzle-orm": "^0.45.2",
     "postgres": "^3.4.9",
     "reflect-metadata": "^0.2.2",
+    "rss-parser": "^3.13.0",
     "rxjs": "^7.8.1"
   },
   "devDependencies": {

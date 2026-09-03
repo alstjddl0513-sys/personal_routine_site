@@ -202,3 +202,32 @@ export interface WorkoutHeatmapEntry {
   date: string;
   completedExerciseCount: number;
 }
+
+// --- blog ---
+
+export interface BlogSource {
+  id: string;
+  name: string;
+  rssUrl: string;
+  siteUrl: string | null;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BlogPost {
+  id: string;
+  sourceId: string;
+  title: string;
+  url: string;
+  summary: string | null;
+  publishedAt: string | null;
+  createdAt: string;
+}
+
+export interface BlogRefreshResult {
+  processed: number;
+  added: number;
+  errors: { sourceId: string; name: string; message: string }[];
+}
