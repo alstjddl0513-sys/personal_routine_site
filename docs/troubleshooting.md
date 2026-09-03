@@ -46,6 +46,11 @@
 - 원인: NestJS CLI 기본 스캐폴드가 `baseUrl: "./"`를 넣지만, path 매핑을 안 쓰면 불필요. TS 6.5+에서 deprecated
 - 해결: `baseUrl: "./"` 라인 삭제 (`ignoreDeprecations` 로 덮는 건 임시방편이라 비추)
 
+### Drizzle `db.delete`가 FK-restrict를 던져도 `err.code` 매칭이 miss (23503이 catch를 통과)
+- 상황: `ExercisesService.remove`가 FK-restrict(23503)를 catch에서 잡아 `ConflictException`(409)로 변환하도록 짜뒀는데, 실제 삭제 시 500이 튀어나옴 → 클라 dev overlay에 `HttpError HTTP 500`으로 노출
+- 원인: postgres.js가 원본 에러를 던질 땐 `err.code`에 SQLSTATE가 top-level로 담기지만, Drizzle delete 경로에서는 wrap된 에러가 나오면서 code가 `err.cause.code`로 밀리는 케이스가 있음. `if (err.code === '23503')` 만으론 못 잡고 그대로 re-throw → NestJS 기본 500
+- 해결: `pgCode(err)` 헬퍼로 `err.code || err.cause?.code` 둘 다 훑도록 방어. 이후 삭제 → 409 → 클라 `HttpError.status === 409` fallback 모달 정상 진입
+
 ### `DATABASE_URL is not set` — Nest 부트스트랩 전 module import 시점에 env 미로드
 - 상황: `HealthController`가 `db/client`를 import → `client.ts`가 module load 시점에 `process.env.DATABASE_URL` 읽음 → 아직 `ConfigModule.forRoot`가 실행되기 전이라 undefined
 - 원인: TS import는 hoisted. Nest의 ConfigModule은 `NestFactory.create()` 이후에야 .env를 로드
