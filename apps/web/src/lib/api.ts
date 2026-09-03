@@ -52,6 +52,13 @@ function authHeaders(): Record<string, string> {
   return token ? { 'x-auth-token': token } : {};
 }
 
+export class HttpError extends Error {
+  constructor(message: string, public status: number) {
+    super(message);
+    this.name = 'HttpError';
+  }
+}
+
 export interface GetCompaniesParams {
   type1?: CompanyType1[];
   // type2는 user-editable이라 문자열 배열. 유효값 검증은 /jobs 페이지가
@@ -305,6 +312,17 @@ export async function patchExercise(
   });
   if (!res.ok) throw new Error(`PATCH /exercises/${id} failed: HTTP ${res.status}`);
   return (await res.json()) as Exercise;
+}
+
+// 409는 세트 이력이 있어 DELETE FK-restrict가 걸린 경우. 호출자는 HttpError.status로 분기.
+export async function deleteExercise(id: string): Promise<void> {
+  const res = await fetch(apiUrl(`/exercises/${id}`), {
+    method: 'DELETE',
+    headers: authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(`DELETE /exercises/${id} failed: HTTP ${res.status}`, res.status);
+  }
 }
 
 // Returns null when no session exists for this date.

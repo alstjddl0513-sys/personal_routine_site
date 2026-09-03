@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ChevronRight, Tag } from 'lucide-react';
+import { ChevronRight, Dumbbell, Tag } from 'lucide-react';
 import { BackupButton } from '../../components/settings/BackupButton';
 import { APP_VERSION } from '../../lib/version';
 
@@ -13,7 +13,7 @@ export default function SettingsPage() {
       <section className="rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
         <Link
           href="/settings/company-types"
-          className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
+          className="flex items-center gap-3 border-b border-zinc-100 px-4 py-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900"
         >
           <Tag className="h-4 w-4 text-zinc-500" aria-hidden />
           <div className="flex-1">
@@ -22,6 +22,21 @@ export default function SettingsPage() {
             </div>
             <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
               채용 리스트의 &quot;유형&quot; 필터/선택에 나오는 항목을 추가·편집·삭제.
+            </p>
+          </div>
+          <ChevronRight className="h-4 w-4 text-zinc-400" aria-hidden />
+        </Link>
+        <Link
+          href="/settings/exercises"
+          className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
+        >
+          <Dumbbell className="h-4 w-4 text-zinc-500" aria-hidden />
+          <div className="flex-1">
+            <div className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+              운동 종목 관리
+            </div>
+            <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+              운동 기록 페이지의 종목을 추가·편집·아카이브·삭제.
             </p>
           </div>
           <ChevronRight className="h-4 w-4 text-zinc-400" aria-hidden />

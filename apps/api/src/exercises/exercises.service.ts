@@ -74,7 +74,8 @@ export class ExercisesService {
       if (!row) throw new NotFoundException(`Exercise ${id} not found`);
       return { id: row.id };
     } catch (err) {
-      if ((err as { code?: string }).code === '23503') {
+      if (err instanceof NotFoundException) throw err;
+      if (pgCode(err) === '23503') {
         throw new ConflictException(
           'Exercise has recorded sets — archive it instead of deleting.',
         );
@@ -82,4 +83,17 @@ export class ExercisesService {
       throw err;
     }
   }
+}
+
+// postgres.js는 대개 err.code에 SQLSTATE를 직접 담지만, Drizzle이 wrap하는
+// 경로에서는 err.cause.code에 들어오는 케이스가 있어 양쪽 다 훑는다.
+function pgCode(err: unknown): string | undefined {
+  if (!err || typeof err !== 'object') return;
+  const e = err as { code?: unknown; cause?: unknown };
+  if (typeof e.code === 'string') return e.code;
+  if (e.cause && typeof e.cause === 'object') {
+    const c = (e.cause as { code?: unknown }).code;
+    if (typeof c === 'string') return c;
+  }
+  return;
 }
