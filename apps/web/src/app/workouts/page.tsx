@@ -13,6 +13,7 @@ import {
   type MuscleGroupFilter,
 } from '../../lib/muscle-groups';
 import { AddExerciseButton } from '../../components/workouts/AddExerciseButton';
+import { RestTimer } from '../../components/workouts/RestTimer';
 import { WorkoutBoard } from '../../components/workouts/WorkoutBoard';
 import { WorkoutDateNav } from '../../components/workouts/WorkoutDateNav';
 import { WorkoutGroupTabs } from '../../components/workouts/WorkoutGroupTabs';
@@ -101,6 +102,8 @@ export default async function WorkoutsPage({
         previousByExercise={previousByExercise}
         prByExercise={prByExercise}
       />
+
+      <RestTimer />
     </div>
   );
 }
