@@ -152,3 +152,12 @@
 - 상황: 새 마이그레이션을 돌렸는데 그 전 마이그레이션(예: 0006)부터 재적용을 시도해 `column "xxx" already exists`로 죽음
 - 원인: `drizzle.__drizzle_migrations` 테이블의 마지막 레코드 `created_at`이 현재 `_journal.json`의 `when` 값과 어긋남. 과거 어느 시점에 `db:generate`를 다시 돌리면서 journal의 `when`이 바뀌었지만 DB tracker는 옛 값 그대로. Drizzle 마이그레이터가 hash 비교 전에 `when`으로 매칭하는 로직에서 "이 마이그레이션은 안 적용됨"으로 판단
 - 해결: DB tracker의 마지막 레코드 `created_at`을 journal의 `when` 값으로 UPDATE (hash가 이미 맞으면 그대로 유지). 임시 tsx 스크립트로 postgres 직접 접속해 `UPDATE drizzle.__drizzle_migrations SET created_at = <journal.when> WHERE id = <last>` 후 `db:migrate` 재실행. 스키마는 실제로 이미 최신이므로 다음 마이그레이션만 얹혀서 정상 종료. 임시 스크립트는 세션 후 삭제(커밋 X)
+
+---
+
+## 시드 / 데이터 관리
+
+### `db:seed` 재실행 위험 — companies 테이블을 전부 delete/reinsert
+- 상황: 하체 운동 추가하려고 `db:seed`를 재실행하려 했더니, 같은 스크립트가 `companies`도 delete 후 재삽입하는 구조라 그동안 편집해온 회사 데이터(지원 상태/메모/체크 등)가 다 날아갈 뻔
+- 원인: 초기 대량 시드 스크립트를 그대로 유지 중. exercises는 이후 `if empty` 조건이 붙었지만 companies는 여전히 무조건 wipe
+- 해결: 재실행이 필요한 도메인은 **전용 스크립트로 분리 + upsert-if-missing**. exercises는 `db:seed:exercises` (`seed-exercises.ts`)로 분리, 이름 기준으로 신규만 insert, `sortOrder`는 기존 max+1부터 이어붙임. 새 도메인 시드 확장 시에도 같은 패턴 권장
