@@ -138,19 +138,16 @@ Vercel 대시보드 → **Settings** → **Environment Variables** → 추가 (�
 
 ---
 
-## §5. 스케줄러 (cronjob.org)
+## §5. 스케줄러
 
-무료 티어 Render는 15분 idle 시 슬립 + 자체 cron 없음. 외부 트리거로 두 가지 훅 등록:
+무료 티어 Render는 15분 idle 시 슬립 + 자체 cron 없음. 구성:
 
-1. **콜드 스타트 방지** — 10분마다 `/health`
-2. **RSS 자동 수집** — 하루 1~2회 `POST /blog-posts/refresh`
+1. **콜드 스타트 방지** — 외부 cronjob.org에서 10분마다 `/health` (필수)
+2. **RSS 자동 수집** — 서버 프로세스 안에서 `@nestjs/schedule` `@Cron('0 11,23 * * *')` (하루 2회, 08:00/20:00 KST). 외부 훅 불필요
 
-### 계정/공통 세팅
+### 외부 훅 · Health ping (콜드 스타트 방지)
 
-- https://cronjob.org 가입 (무료, 이메일만)
-- **Cronjobs** → **Create cronjob**
-
-### 훅 1 · Health ping (콜드 스타트 방지)
+https://cronjob.org 가입 → **Cronjobs** → **Create cronjob**:
 
 | 필드 | 값 |
 |---|---|
@@ -162,30 +159,28 @@ Vercel 대시보드 → **Settings** → **Environment Variables** → 추가 (�
 
 `/health`는 `AccessTokenGuard` 예외라 토큰 헤더 불필요.
 
-### 훅 2 · RSS refresh
+**주의**: cronjob.org는 연속 실패가 누적되면 job을 자동 disable함. Render 콜드 스타트가 30초 넘으면 timeout이 반복되고 결국 꺼진다. **History에서 disable 이유 확인 → 필요하면 timeout 상향 후 재활성**. Health ping이 죽어 있으면 아래 내부 RSS cron도 서버 슬립 창에 미스될 수 있음.
 
-| 필드 | 값 |
-|---|---|
-| Title | `rally rss refresh` |
-| URL | `https://<render-service>.onrender.com/blog-posts/refresh` |
-| Method | **POST** |
-| Schedule | 하루 2회 (예: 08:00 · 20:00 KST) |
-| Timeout | **90s** (콜드 스타트 + 8개 소스 순회 여유) |
-| Headers | `x-auth-token: <API_ACCESS_TOKEN>` (Render env와 동일값) |
+### 내부 스케줄 · RSS refresh
 
-cronjob.org UI: **Advanced** 탭 → **HTTP method** = POST → **HTTP headers**에 위 헤더 추가.
+코드로 구현. `apps/api/src/blog-posts/blog-posts.service.ts`의 `scheduledRefresh()`가 담당:
 
-### 검증
+```ts
+@Cron('0 11,23 * * *')  // UTC 기준 → 08:00·20:00 KST
+async scheduledRefresh() { ... }
+```
 
-- 훅 2를 저장 후 **Test run** 클릭 → 응답 상태 200 + body에 `{"processed":N,"added":M,"errors":[...]}` 확인
-- 웹 `/blog`에서 신규 글 반영 확인 (SSR이라 F5)
-- 실행 이력은 cronjob.org **History** 탭. 실패가 반복되면 Render 로그 · `errors` 배열 개별 소스 확인 후 `/settings/blog-sources`에서 URL 수정/비활성화
+- 응답 크기·타임아웃·헤더 등 외부 cron 서비스의 제약 (예: cronjob.org "Failed (output too large)")에서 자유
+- 실행 결과는 Render **Logs** 탭에서 `Scheduled RSS refresh…` / `added=N, processed=M` 로그로 확인
+- 스케줄 변경은 `@Cron` 표현식만 수정 후 재배포
 
-### 왜 하루 2회
+수동 트리거는 여전히 웹 `/blog`의 "RSS 새로고침" 버튼으로 가능.
 
-- 대부분 기술 블로그는 주 1~2회 발행. 하루 2회면 충분히 신선
-- refresh는 소스 8개 순회에 ~10~20초 (콜드 스타트 없을 때). 하루 24회 이상으로 늘려도 API 부하는 문제 없으나 `errors` 반복 알림이 노이즈가 됨
-- 향후 소스 수가 크게 늘거나 실시간성이 필요해지면 주기 상향 검토
+### 왜 내부 cron으로 옮겼나 (2026-09)
+
+초기엔 cronjob.org에 RSS refresh 훅도 등록하려 했으나:
+- refresh 응답 JSON이 임계값을 초과해 cronjob.org가 "Failed (output too large)"로 표시 → 실패 이력 누적 → 자동 disable
+- 서버 프로세스가 어차피 살아있어야 하는(health ping) 조건에선 앱 내부 cron이 응답 크기·타임아웃 제약 없이 단순
 
 ---
 
