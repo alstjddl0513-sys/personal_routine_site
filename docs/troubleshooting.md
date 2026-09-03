@@ -166,3 +166,17 @@
 - 상황: 하체 운동 추가하려고 `db:seed`를 재실행하려 했더니, 같은 스크립트가 `companies`도 delete 후 재삽입하는 구조라 그동안 편집해온 회사 데이터(지원 상태/메모/체크 등)가 다 날아갈 뻔
 - 원인: 초기 대량 시드 스크립트를 그대로 유지 중. exercises는 이후 `if empty` 조건이 붙었지만 companies는 여전히 무조건 wipe
 - 해결: 재실행이 필요한 도메인은 **전용 스크립트로 분리 + upsert-if-missing**. exercises는 `db:seed:exercises` (`seed-exercises.ts`)로 분리, 이름 기준으로 신규만 insert, `sortOrder`는 기존 max+1부터 이어붙임. 새 도메인 시드 확장 시에도 같은 패턴 권장
+
+---
+
+## 스케줄러 (cronjob.org · 내부 cron)
+
+### cronjob.org "Failed (output too large)"
+- 상황: `POST /blog-posts/refresh` 훅 실행 결과가 "Failed" — Test run 응답에 "output too large" 문구
+- 원인: cronjob.org 무료 티어는 응답 body 크기 임계값을 두고 그걸 넘으면 실행 자체를 실패로 표시. RSS refresh는 `{ processed, added, errors: [...] }` JSON을 반환하는데 errors 배열 · postgres 오류 메시지 · stack 등이 붙으면 몇 KB를 쉽게 넘김
+- 해결: RSS refresh는 **서버 프로세스 안 `@nestjs/schedule` `@Cron`**으로 이관 (`BlogPostsService.scheduledRefresh`, `@Cron('0 11,23 * * *')`). cronjob.org에는 콜드 스타트 방지용 `/health` 훅 하나만 유지. 결과는 Render Logs 탭에서 확인. `deployment.md` §5 참고
+
+### cronjob.org 훅이 알림 없이 disabled됨
+- 상황: `/health` ping이 계속 되고 있다고 생각했는데 어느 순간 cronjob.org 대시보드에서 job이 disabled 상태 → 그 사이 Render가 슬립했고 첫 요청 30초 콜드 스타트 반복
+- 원인: cronjob.org는 연속 실패가 일정 횟수 누적되면 job을 자동 disable. Render 콜드 스타트가 30초를 넘으면 훅의 기본 timeout(30s)에 걸려 fail로 집계됨. 이게 반복되면 disable 트리거
+- 해결: **History 탭**에서 fail 이력·원인 확인. timeout을 45~60s로 올리고 재활성. Health ping은 살아 있어야 `@nestjs/schedule` 내부 cron도 슬립 창에 미스되지 않음 (내부 cron만 있고 서버가 슬립이면 그 시간대 실행 못함)

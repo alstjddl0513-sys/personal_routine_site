@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
 import { resolve } from 'path';
 import { AccessTokenGuard } from './access-token.guard';
 import { AppController } from './app.controller';
@@ -24,6 +25,7 @@ import { BlogPostsModule } from './blog-posts/blog-posts.module';
       isGlobal: true,
       envFilePath: [resolve(process.cwd(), '../../.env')],
     }),
+    ScheduleModule.forRoot(),
     CompaniesModule,
     CompanyTypesModule,
     TimeBlocksModule,
