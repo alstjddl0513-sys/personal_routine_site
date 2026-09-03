@@ -9,6 +9,7 @@ import type {
   WorkoutSet,
 } from '@repo/shared';
 import { SetInputs } from './SetInputs';
+import { muscleLabel } from '../../lib/muscle-groups';
 
 interface Props {
   exercise: Exercise;
@@ -51,7 +52,7 @@ export function ExerciseCard(props: Props) {
         <div className="min-w-0">
           <div className="text-sm font-semibold">{props.exercise.name}</div>
           <div className="text-[11px] text-zinc-500">
-            {props.exercise.targetMuscle ?? '-'} · 목표 {props.exercise.repMin}~{props.exercise.repMax}회
+            {muscleLabel(props.exercise.targetMuscle) ?? '-'} · 목표 {props.exercise.repMin}~{props.exercise.repMax}회
           </div>
         </div>
         <div className="flex items-center gap-0.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">

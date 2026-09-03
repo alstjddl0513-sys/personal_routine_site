@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Plus, X } from 'lucide-react';
 import { createExercise } from '../../lib/api';
 import { useOutsideClick } from '../../lib/useOutsideClick';
+import { TargetMuscleSelect } from './TargetMuscleSelect';
 
 const DEFAULT_SETS = 3;
 const DEFAULT_REP_MIN = 8;
@@ -159,14 +160,11 @@ export function AddExerciseButton() {
                 <label htmlFor="add-ex-muscle" className="text-xs text-zinc-500 dark:text-zinc-400">
                   타겟 부위 <span className="text-zinc-400">(선택)</span>
                 </label>
-                <input
+                <TargetMuscleSelect
                   id="add-ex-muscle"
-                  type="text"
                   value={targetMuscle}
-                  onChange={(e) => setTargetMuscle(e.target.value)}
-                  maxLength={50}
-                  placeholder="예: leg"
-                  className="rounded border border-zinc-300 bg-white px-2 py-1.5 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
+                  onChange={setTargetMuscle}
+                  disabled={isPending}
                 />
               </div>
 

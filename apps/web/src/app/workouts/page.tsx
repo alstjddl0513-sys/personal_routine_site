@@ -7,9 +7,15 @@ import {
   getWorkoutSets,
 } from '../../lib/api';
 import { parseISODate, toISODate } from '../../lib/routines-week';
+import {
+  classifyMuscleGroup,
+  parseGroupFilter,
+  type MuscleGroupFilter,
+} from '../../lib/muscle-groups';
 import { AddExerciseButton } from '../../components/workouts/AddExerciseButton';
 import { WorkoutBoard } from '../../components/workouts/WorkoutBoard';
 import { WorkoutDateNav } from '../../components/workouts/WorkoutDateNav';
+import { WorkoutGroupTabs } from '../../components/workouts/WorkoutGroupTabs';
 
 function first(raw: string | string[] | undefined): string | undefined {
   return Array.isArray(raw) ? raw[0] : raw;
@@ -22,11 +28,27 @@ export default async function WorkoutsPage({
   const dateParam = first(sp.date);
   const displayDate = (dateParam ? parseISODate(dateParam) : null) ?? new Date();
   const dateIso = toISODate(displayDate);
+  const groupFilter = parseGroupFilter(first(sp.group));
 
-  const [exercises, session] = await Promise.all([
+  const [allExercises, session] = await Promise.all([
     getExercises(),
     getWorkoutSessionByDate(dateIso),
   ]);
+
+  const counts: Record<MuscleGroupFilter, number> = {
+    all: allExercises.length,
+    upper: 0,
+    lower: 0,
+    other: 0,
+  };
+  for (const e of allExercises) {
+    counts[classifyMuscleGroup(e.targetMuscle)]++;
+  }
+
+  const exercises =
+    groupFilter === 'all'
+      ? allExercises
+      : allExercises.filter((e) => classifyMuscleGroup(e.targetMuscle) === groupFilter);
 
   // limit=1 fetches PR (all-time) with only 1 history row we don't use.
   // Cheaper than adding a dedicated /pr endpoint just for this page.
@@ -62,8 +84,14 @@ export default async function WorkoutsPage({
           <h1 className="text-xl font-semibold">운동 기록</h1>
           <AddExerciseButton />
         </div>
-        <WorkoutDateNav date={displayDate} />
+        <WorkoutDateNav date={displayDate} group={groupFilter} />
       </header>
+
+      <WorkoutGroupTabs
+        active={groupFilter}
+        counts={counts}
+        preserveParams={{ date: dateParam }}
+      />
 
       <WorkoutBoard
         exercises={exercises}

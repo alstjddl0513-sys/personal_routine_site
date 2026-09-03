@@ -1,5 +1,6 @@
 import type { Exercise, ExerciseStats } from '@repo/shared';
 import { MiniLineChart } from './MiniLineChart';
+import { muscleLabel } from '../../lib/muscle-groups';
 
 interface Props {
   exercise: Exercise;
@@ -31,7 +32,7 @@ export function ExerciseStatsCard({ exercise, stats }: Props) {
         <div className="min-w-0">
           <div className="text-sm font-semibold">{exercise.name}</div>
           <div className="text-[11px] text-zinc-500">
-            {exercise.targetMuscle ?? '-'} · 목표 {exercise.repMin}~{exercise.repMax}회
+            {muscleLabel(exercise.targetMuscle) ?? '-'} · 목표 {exercise.repMin}~{exercise.repMax}회
           </div>
         </div>
         <div className="shrink-0 rounded bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">

@@ -36,7 +36,7 @@ export default function SettingsPage() {
               운동 종목 관리
             </div>
             <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-              운동 기록 페이지의 종목을 추가·편집·아카이브·삭제.
+              운동 기록 페이지의 종목을 추가·편집·숨김·삭제.
             </p>
           </div>
           <ChevronRight className="h-4 w-4 text-zinc-400" aria-hidden />
