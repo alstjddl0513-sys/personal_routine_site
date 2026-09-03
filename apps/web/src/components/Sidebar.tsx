@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Dumbbell,
   LogOut,
+  Rss,
   Settings,
 } from 'lucide-react';
 import { useEffect, useState, type ComponentType, type SVGProps } from 'react';
@@ -58,6 +59,12 @@ const NAV: NavItem[] = [
       { href: '/workouts', label: '기록' },
       { href: '/workouts/statistics', label: '통계' },
     ],
+  },
+  {
+    href: '/blog',
+    label: '블로그',
+    icon: Rss,
+    matchPrefixes: ['/blog'],
   },
 ];
 
