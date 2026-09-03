@@ -1,5 +1,8 @@
 import type {
   ApplicationStatus,
+  BlogPost,
+  BlogRefreshResult,
+  BlogSource,
   Company,
   CompanyType,
   CompanyType1,
@@ -462,4 +465,81 @@ export async function getPreviousWorkout(params: {
   // than the string "null", so res.json() would throw. Read as text first.
   const text = await res.text();
   return text ? (JSON.parse(text) as PreviousWorkout) : null;
+}
+
+// --- blog ---
+
+export async function getBlogSources(includeInactive = true): Promise<BlogSource[]> {
+  const qs = includeInactive ? '' : '?isActive=true';
+  const res = await fetch(apiUrl(`/blog-sources${qs}`), {
+    cache: 'no-store',
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(`GET /blog-sources failed: HTTP ${res.status}`);
+  return (await res.json()) as BlogSource[];
+}
+
+export async function createBlogSource(input: {
+  name: string;
+  rssUrl: string;
+  siteUrl?: string;
+  isActive?: boolean;
+}): Promise<BlogSource> {
+  const res = await fetch(apiUrl('/blog-sources'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(`POST /blog-sources failed: HTTP ${res.status}`);
+  return (await res.json()) as BlogSource;
+}
+
+export async function patchBlogSource(
+  id: string,
+  patch: Partial<Pick<BlogSource, 'name' | 'rssUrl' | 'siteUrl' | 'isActive' | 'sortOrder'>>,
+): Promise<BlogSource> {
+  const res = await fetch(apiUrl(`/blog-sources/${id}`), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok) throw new Error(`PATCH /blog-sources/${id} failed: HTTP ${res.status}`);
+  return (await res.json()) as BlogSource;
+}
+
+export async function deleteBlogSource(id: string): Promise<void> {
+  const res = await fetch(apiUrl(`/blog-sources/${id}`), {
+    method: 'DELETE',
+    headers: authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(`DELETE /blog-sources/${id} failed: HTTP ${res.status}`, res.status);
+  }
+}
+
+export async function getBlogPosts(params: {
+  sourceId?: string;
+  limit?: number;
+  offset?: number;
+} = {}): Promise<BlogPost[]> {
+  const qs = new URLSearchParams();
+  if (params.sourceId) qs.set('sourceId', params.sourceId);
+  if (params.limit !== undefined) qs.set('limit', String(params.limit));
+  if (params.offset !== undefined) qs.set('offset', String(params.offset));
+  const s = qs.toString();
+  const res = await fetch(apiUrl(`/blog-posts${s ? `?${s}` : ''}`), {
+    cache: 'no-store',
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(`GET /blog-posts failed: HTTP ${res.status}`);
+  return (await res.json()) as BlogPost[];
+}
+
+export async function refreshBlogPosts(): Promise<BlogRefreshResult> {
+  const res = await fetch(apiUrl('/blog-posts/refresh'), {
+    method: 'POST',
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(`POST /blog-posts/refresh failed: HTTP ${res.status}`);
+  return (await res.json()) as BlogRefreshResult;
 }
