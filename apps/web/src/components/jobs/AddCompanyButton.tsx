@@ -11,6 +11,7 @@ import {
 } from '@repo/shared';
 import { createCompany } from '../../lib/api';
 import { useOutsideClick } from '../../lib/useOutsideClick';
+import { Select } from '../ui/Select';
 
 const DEFAULT_TYPE1: CompanyType1 = 'sme';
 
@@ -134,35 +135,27 @@ export function AddCompanyButton({ companyTypes }: { companyTypes: CompanyType[]
                   <label htmlFor="add-type2" className="text-xs text-zinc-500 dark:text-zinc-400">
                     유형
                   </label>
-                  <select
+                  <Select
                     id="add-type2"
                     value={type2}
-                    onChange={(e) => setType2(e.target.value)}
-                    className="min-h-11 rounded border border-zinc-300 bg-white px-2 py-1.5 text-base outline-none focus:border-zinc-500 md:min-h-0 md:text-sm dark:border-zinc-700 dark:bg-zinc-950"
-                  >
-                    {companyTypes.map((t) => (
-                      <option key={t.key} value={t.key}>
-                        {t.label}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={setType2}
+                    options={companyTypes.map((t) => ({ value: t.key, label: t.label }))}
+                    ariaLabel="유형"
+                    triggerClassName="min-h-11 justify-between rounded border border-zinc-300 bg-white px-2 py-1.5 text-base outline-none focus:border-zinc-500 md:min-h-0 md:text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                  />
                 </div>
                 <div className="flex flex-1 flex-col gap-1">
                   <label htmlFor="add-type1" className="text-xs text-zinc-500 dark:text-zinc-400">
                     규모
                   </label>
-                  <select
+                  <Select
                     id="add-type1"
                     value={type1}
-                    onChange={(e) => setType1(e.target.value as CompanyType1)}
-                    className="min-h-11 rounded border border-zinc-300 bg-white px-2 py-1.5 text-base outline-none focus:border-zinc-500 md:min-h-0 md:text-sm dark:border-zinc-700 dark:bg-zinc-950"
-                  >
-                    {COMPANY_TYPE_1_VALUES.map((v) => (
-                      <option key={v} value={v}>
-                        {COMPANY_TYPE_1_LABELS[v]}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(v) => setType1(v as CompanyType1)}
+                    options={COMPANY_TYPE_1_VALUES.map((v) => ({ value: v, label: COMPANY_TYPE_1_LABELS[v] }))}
+                    ariaLabel="규모"
+                    triggerClassName="min-h-11 justify-between rounded border border-zinc-300 bg-white px-2 py-1.5 text-base outline-none focus:border-zinc-500 md:min-h-0 md:text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                  />
                 </div>
               </div>
 
