@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Briefcase,
   CalendarCheck2,
@@ -122,11 +122,11 @@ function writeCollapsed(next: CollapsedMap) {
 }
 
 function LogoutButton() {
+  const router = useRouter();
+
   async function handleLogout() {
-    await fetch('/api/auth/login', { method: 'DELETE' }).catch(() => {
-      // Even if the request fails, force navigate so the user isn't stuck.
-    });
-    window.location.href = '/login';
+    await fetch('/api/auth/login', { method: 'DELETE' }).catch(() => {});
+    router.replace('/login');
   }
 
   return (

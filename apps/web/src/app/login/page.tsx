@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, useState, type FormEvent } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { LogIn, AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
@@ -19,8 +19,16 @@ function LoginShell() {
 }
 
 function LoginForm() {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const nextPath = searchParams.get('next') || '/jobs';
+  // Only accept same-origin internal paths — bare `/foo`, never `//host`
+  // (protocol-relative) or absolute URLs — so a crafted `?next=` can't
+  // hijack the post-login redirect.
+  const rawNext = searchParams.get('next');
+  const nextPath =
+    rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//')
+      ? rawNext
+      : '/jobs';
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -43,8 +51,8 @@ function LoginForm() {
         setSubmitting(false);
         return;
       }
-      // Full navigation so the cookie is picked up by proxy.ts on next request.
-      window.location.href = nextPath;
+      // replace (not push) so back-nav can't return to /login.
+      router.replace(nextPath);
     } catch {
       setError('네트워크 오류가 발생했습니다. 다시 시도해주세요.');
       setSubmitting(false);

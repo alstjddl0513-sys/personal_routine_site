@@ -1,11 +1,14 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { LogOut } from 'lucide-react';
 
 export function LogoutRow() {
+  const router = useRouter();
+
   async function handleLogout() {
     await fetch('/api/auth/login', { method: 'DELETE' }).catch(() => {});
-    window.location.href = '/login';
+    router.replace('/login');
   }
 
   return (
