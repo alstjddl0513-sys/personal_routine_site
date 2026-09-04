@@ -9,7 +9,7 @@ import {
 } from '@repo/shared';
 import { patchCompany } from '../../../lib/api';
 
-const STATUS_STYLE: Record<ApplicationStatus, string> = {
+export const STATUS_STYLE: Record<ApplicationStatus, string> = {
   not_applied:
     'bg-zinc-100 text-zinc-500 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700',
   applied:

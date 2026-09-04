@@ -92,7 +92,7 @@ export function NotePopover({
         type="button"
         onClick={() => setOpen((v) => !v)}
         disabled={isPending}
-        className="inline-flex w-[10rem] items-center justify-center gap-1 rounded px-1.5 py-0.5 text-xs text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
+        className="inline-flex items-center justify-center gap-1 rounded px-1.5 py-0.5 text-xs text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 md:w-[10rem] dark:text-zinc-400 dark:hover:bg-zinc-800"
         aria-label={preview ? '메모 편집' : '메모 추가'}
         aria-expanded={open}
       >
