@@ -1,6 +1,8 @@
 import Link from 'next/link';
-import { ChevronRight, Dumbbell, Rss, Tag } from 'lucide-react';
+import { ChevronRight, Dumbbell, Palette, Rss, Tag } from 'lucide-react';
 import { BackupButton } from '../../components/settings/BackupButton';
+import { LogoutRow } from '../../components/settings/LogoutRow';
+import { ThemeToggle } from '../../components/ThemeToggle';
 import { APP_VERSION } from '../../lib/version';
 
 export default function SettingsPage() {
@@ -56,6 +58,22 @@ export default function SettingsPage() {
           </div>
           <ChevronRight className="h-4 w-4 text-zinc-400" aria-hidden />
         </Link>
+      </section>
+
+      <section className="rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="flex items-center gap-3 border-b border-zinc-100 px-4 py-3 dark:border-zinc-800">
+          <Palette className="h-4 w-4 text-zinc-500" aria-hidden />
+          <div className="flex-1">
+            <div className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+              테마
+            </div>
+            <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+              라이트/다크 모드 전환.
+            </p>
+          </div>
+          <ThemeToggle />
+        </div>
+        <LogoutRow />
       </section>
 
       <section className="flex flex-col gap-3 rounded-md border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
