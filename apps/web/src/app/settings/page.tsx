@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { BackupButton } from '../../components/settings/BackupButton';
 import { LogoutRow } from '../../components/settings/LogoutRow';
+import { NotificationPermissionRow } from '../../components/settings/NotificationPermissionRow';
 import { ThemeToggle } from '../../components/ThemeToggle';
 import { APP_VERSION } from '../../lib/version';
 
@@ -95,6 +96,7 @@ export default function SettingsPage() {
           </div>
           <ThemeToggle />
         </div>
+        <NotificationPermissionRow />
         <LogoutRow />
       </section>
 
