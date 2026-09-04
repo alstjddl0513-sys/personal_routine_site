@@ -2,13 +2,13 @@
 
 import {
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown } from 'lucide-react';
 import { useOutsideClick } from '../../lib/useOutsideClick';
 import { usePopoverPosition } from '../../lib/usePopoverPosition';
 
@@ -38,10 +38,18 @@ interface Props {
   triggerClassName?: string;
   /** Shown when `value` doesn't match any option (defaults to empty string). */
   placeholder?: string;
+  /**
+   * How highlighted (hovered/keyboard-focused) options are indicated.
+   * - 'bg' (default): fills with `bg-zinc-100` — hides per-option colors
+   * - 'ring': inset ring — keeps colored chips visible under highlight
+   */
+  highlightStyle?: 'bg' | 'ring';
 }
 
 const POPOVER_MAX_HEIGHT = 288; // max-h-72
-const MIN_POPOVER_WIDTH = 160;
+// Only used to feed `usePopoverPosition` for right-edge clamping. Actual
+// popover width follows content (see style below) with `minWidth` = trigger.
+const POSITION_HINT_WIDTH = 200;
 
 function isGrouped(options: SelectOptions): options is SelectGroup[] {
   return options.length > 0 && 'options' in options[0];
@@ -62,11 +70,17 @@ export function Select({
   id,
   triggerClassName,
   placeholder,
+  highlightStyle = 'bg',
 }: Props) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [triggerWidth, setTriggerWidth] = useState(MIN_POPOVER_WIDTH);
+  const [triggerWidth, setTriggerWidth] = useState(0);
   const [highlightIdx, setHighlightIdx] = useState(-1);
+  // After popover mounts we measure its actual width and clamp `left`
+  // against the anchor's real position — usePopoverPosition uses a fixed
+  // hint width which pushes the popover far from the anchor when actual
+  // content is narrower (e.g. Priority: `긴급/상/하`).
+  const [leftPx, setLeftPx] = useState<number | null>(null);
   const anchorRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const optionRefs = useRef<Array<HTMLLIElement | null>>([]);
@@ -75,12 +89,11 @@ export function Select({
   const selectedOption = flatOptions.find((o) => o.value === value);
   const grouped = isGrouped(options);
 
-  const popoverWidth = Math.max(MIN_POPOVER_WIDTH, triggerWidth);
   const pos = usePopoverPosition(
     anchorRef,
     open,
     POPOVER_MAX_HEIGHT,
-    popoverWidth,
+    POSITION_HINT_WIDTH,
   );
 
   useEffect(() => {
@@ -94,8 +107,26 @@ export function Select({
     if (open && anchorRef.current) {
       const w = anchorRef.current.getBoundingClientRect().width;
       if (w > 0) setTriggerWidth(w);
+    } else if (!open) {
+      setLeftPx(null);
     }
   }, [open]);
+
+  // After the popover mounts, measure its actual width and reposition so
+  // it stays next to the anchor. If it would overflow the right edge,
+  // right-anchor (align popover's right with anchor's right).
+  useLayoutEffect(() => {
+    if (!open || !pos || !popoverRef.current || !anchorRef.current) return;
+    const popRect = popoverRef.current.getBoundingClientRect();
+    const anchorRect = anchorRef.current.getBoundingClientRect();
+    const margin = 16;
+    let left = anchorRect.left;
+    if (left + popRect.width > window.innerWidth - margin) {
+      left = anchorRect.right - popRect.width;
+    }
+    if (left < margin) left = margin;
+    setLeftPx(left);
+  }, [open, pos]);
 
   // Reset highlight to the current value (or first enabled) on open.
   useEffect(() => {
@@ -209,7 +240,6 @@ export function Select({
         <span className="truncate">
           {selectedOption?.label ?? placeholder ?? ''}
         </span>
-        <ChevronDown className="h-3 w-3 shrink-0 opacity-60" aria-hidden />
       </button>
 
       {mounted && open && pos
@@ -219,11 +249,12 @@ export function Select({
               style={{
                 position: 'fixed',
                 top: pos.top,
-                left: pos.left,
-                width: popoverWidth,
+                left: leftPx ?? pos.left,
+                minWidth: triggerWidth || undefined,
+                maxWidth: '90vw',
                 zIndex: 50,
               }}
-              className="max-h-72 overflow-y-auto rounded-md border border-zinc-200 bg-white py-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
+              className="thin-scrollbar max-h-72 w-max overflow-y-auto rounded-md border border-zinc-200 bg-white py-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
               role="listbox"
               aria-label={ariaLabel}
               aria-activedescendant={
@@ -275,11 +306,13 @@ export function Select({
         onClick={() => !opt.disabled && commitAndClose(opt.value)}
         className={`mx-1 flex cursor-pointer items-center rounded px-2 py-1.5 text-sm ${
           opt.disabled ? 'cursor-not-allowed opacity-40' : ''
-        } ${
+        } ${selected ? 'font-medium' : ''} ${opt.className ?? ''} ${
           highlighted && !opt.disabled
-            ? 'bg-zinc-100 dark:bg-zinc-800'
+            ? highlightStyle === 'ring'
+              ? 'ring-2 ring-inset ring-zinc-400 dark:ring-zinc-500'
+              : 'bg-zinc-100 dark:bg-zinc-800'
             : ''
-        } ${selected ? 'font-medium' : ''} ${opt.className ?? ''}`}
+        }`}
       >
         {opt.label}
       </li>

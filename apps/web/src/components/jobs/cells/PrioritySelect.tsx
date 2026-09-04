@@ -58,6 +58,7 @@ export function PrioritySelect({
       options={OPTIONS}
       disabled={isPending}
       ariaLabel="우선순위"
+      highlightStyle="ring"
       triggerClassName="cursor-pointer rounded px-2 py-0.5 text-xs focus:ring-2 focus:ring-zinc-400 focus:outline-none"
     />
   );
