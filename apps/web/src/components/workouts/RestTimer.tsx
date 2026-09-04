@@ -78,6 +78,9 @@ export function RestTimer() {
   const [totalSec, setTotalSec] = useState<number>(DEFAULT_PRESET);
   const [remainingMs, setRemainingMs] = useState<number>(DEFAULT_PRESET * 1000);
   const [lastPreset, setLastPreset] = useState<number>(DEFAULT_PRESET);
+  // Mobile-only: collapse to a FAB when idle so the full preset bar
+  // doesn't block content. Desktop always shows the full card (md:).
+  const [mobileExpanded, setMobileExpanded] = useState(false);
   // 실제 종료 시각(ms since epoch). setInterval은 백그라운드에서 스로틀되므로,
   // deadline 기준으로 남은 시간을 계산해 스로틀에 무관하게 정확도 유지.
   const deadlineRef = useRef<number | null>(null);
@@ -170,36 +173,68 @@ export function RestTimer() {
     setTotalSec(lastPreset);
   }, [lastPreset]);
 
+  // Auto-expand card on mobile whenever timer is not idle so the running/
+  // done state is always visible. Collapse back to FAB when returning to
+  // idle (via reset/close).
+  useEffect(() => {
+    setMobileExpanded(status !== 'idle');
+  }, [status]);
+
   const progress =
     totalSec > 0 ? 1 - Math.max(0, Math.min(1, remainingMs / (totalSec * 1000))) : 0;
   const isDone = status === 'done';
+  const showMobileFab = status === 'idle' && !mobileExpanded;
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-4 z-40 flex justify-center px-4">
+    <>
+      {/* Mobile FAB — visible when idle+collapsed so preset bar doesn't
+          block content. Tap to expand. Desktop always shows the card. */}
+      {showMobileFab ? (
+        <button
+          type="button"
+          onClick={() => setMobileExpanded(true)}
+          aria-label="휴식 타이머"
+          className="fixed bottom-24 left-4 z-40 flex h-14 w-14 items-center justify-center rounded-full border border-zinc-200 bg-white/95 text-zinc-600 shadow-lg backdrop-blur md:hidden dark:border-zinc-800 dark:bg-zinc-950/95 dark:text-zinc-400"
+        >
+          <Timer className="h-5 w-5" aria-hidden />
+        </button>
+      ) : null}
+
       <div
-        className={`pointer-events-auto flex w-full max-w-md flex-col gap-2 rounded-lg border p-3 shadow-lg backdrop-blur transition-colors ${
-          isDone
-            ? 'border-emerald-300 bg-emerald-50/95 dark:border-emerald-800 dark:bg-emerald-950/90'
-            : 'border-zinc-200 bg-white/95 dark:border-zinc-800 dark:bg-zinc-950/95'
+        className={`pointer-events-none fixed inset-x-0 bottom-24 z-40 justify-center px-4 md:bottom-4 md:pl-[calc(15rem+1rem)] ${
+          showMobileFab ? 'hidden md:flex' : 'flex'
         }`}
       >
-        {status === 'idle' ? (
-          <IdleBar presets={PRESETS} lastPreset={lastPreset} onStart={start} />
-        ) : (
-          <ActiveBar
-            status={status}
-            remainingMs={remainingMs}
-            totalSec={totalSec}
-            progress={progress}
-            onPause={pause}
-            onResume={resume}
-            onReset={reset}
-            onRestart={() => start(lastPreset)}
-            onClose={close}
-          />
-        )}
+        <div
+          className={`pointer-events-auto flex w-fit max-w-md flex-col gap-2 rounded-lg border p-3 shadow-lg backdrop-blur transition-colors ${
+            isDone
+              ? 'border-emerald-300 bg-emerald-50/95 dark:border-emerald-800 dark:bg-emerald-950/90'
+              : 'border-zinc-200 bg-white/95 dark:border-zinc-800 dark:bg-zinc-950/95'
+          }`}
+        >
+          {status === 'idle' ? (
+            <IdleBar
+              presets={PRESETS}
+              lastPreset={lastPreset}
+              onStart={start}
+              onCollapseMobile={() => setMobileExpanded(false)}
+            />
+          ) : (
+            <ActiveBar
+              status={status}
+              remainingMs={remainingMs}
+              totalSec={totalSec}
+              progress={progress}
+              onPause={pause}
+              onResume={resume}
+              onReset={reset}
+              onRestart={() => start(lastPreset)}
+              onClose={close}
+            />
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -207,10 +242,12 @@ function IdleBar({
   presets,
   lastPreset,
   onStart,
+  onCollapseMobile,
 }: {
   presets: readonly number[];
   lastPreset: number;
   onStart: (sec: number) => void;
+  onCollapseMobile: () => void;
 }) {
   return (
     <div className="flex items-center gap-2">
@@ -232,6 +269,14 @@ function IdleBar({
           </button>
         ))}
       </div>
+      <button
+        type="button"
+        onClick={onCollapseMobile}
+        aria-label="타이머 접기"
+        className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 md:hidden dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+      >
+        <X className="h-4 w-4" aria-hidden />
+      </button>
     </div>
   );
 }
