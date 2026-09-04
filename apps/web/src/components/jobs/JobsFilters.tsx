@@ -128,14 +128,14 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="회사명 검색"
-            className="w-full rounded-md border border-zinc-300 bg-white py-2 pr-3 pl-9 text-sm outline-none placeholder:text-zinc-400 focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
+            className="min-h-11 w-full rounded-md border border-zinc-300 bg-white py-2 pr-3 pl-9 text-base outline-none placeholder:text-zinc-400 focus:border-zinc-500 md:min-h-0 md:text-sm dark:border-zinc-700 dark:bg-zinc-900"
           />
         </div>
         <AddCompanyButton companyTypes={companyTypes} />
         <button
           type="button"
           onClick={() => pushPatch({ favorite: currentFavorite ? null : '1' })}
-          className={`inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors ${
+          className={`inline-flex min-h-11 items-center gap-2 rounded-md border px-3 text-sm transition-colors md:min-h-0 md:py-2 ${
             currentFavorite
               ? 'border-rose-300 bg-rose-50 text-rose-700 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-300'
               : 'border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800'
@@ -152,7 +152,7 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
           <button
             type="button"
             onClick={clearAll}
-            className="inline-flex items-center gap-1 rounded-md px-2 py-2 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+            className="inline-flex min-h-11 items-center gap-1 rounded-md px-2 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 md:min-h-0 md:py-2 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
           >
             <X className="h-3.5 w-3.5" aria-hidden />
             초기화
@@ -164,7 +164,7 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
         type="button"
         onClick={() => setMobileOpen((o) => !o)}
         aria-expanded={mobileOpen}
-        className="inline-flex items-center justify-between gap-2 rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50 md:hidden dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900"
+        className="inline-flex min-h-11 items-center justify-between gap-2 rounded-md border border-zinc-200 bg-white px-3 text-sm text-zinc-700 hover:bg-zinc-50 md:hidden dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900"
       >
         <span className="inline-flex items-center gap-2">
           <SlidersHorizontal className="h-4 w-4" aria-hidden />
