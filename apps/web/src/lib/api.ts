@@ -195,7 +195,8 @@ export async function getTimeBlocks(includeArchived = false): Promise<TimeBlock[
 export async function createTimeBlock(input: {
   label: string;
   sortOrder?: number;
-  startTime?: number;
+  startTime?: number | null;
+  endTime?: number | null;
 }): Promise<TimeBlock> {
   const res = await fetch(apiUrl('/time-blocks'), {
     method: 'POST',

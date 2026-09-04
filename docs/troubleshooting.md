@@ -51,6 +51,13 @@
 - 원인: postgres.js가 원본 에러를 던질 땐 `err.code`에 SQLSTATE가 top-level로 담기지만, Drizzle delete 경로에서는 wrap된 에러가 나오면서 code가 `err.cause.code`로 밀리는 케이스가 있음. `if (err.code === '23503')` 만으론 못 잡고 그대로 re-throw → NestJS 기본 500
 - 해결: `pgCode(err)` 헬퍼로 `err.code || err.cause?.code` 둘 다 훑도록 방어. 이후 삭제 → 409 → 클라 `HttpError.status === 409` fallback 모달 정상 진입
 
+### Service `insert().values({...})`가 DTO의 optional 필드를 조용히 drop
+- 상황: `CreateTimeBlockDto`에 `startTime?: number` 필드 정의돼 있고 컨트롤러는 통과하는데, 실제 저장 후 DB에 startTime이 null. 매니저 UI에서 시간 넣어도 저장 안 됨
+- 원인: `TimeBlocksService.create()`가 `.values({ label: dto.label, sortOrder })`로 명시 필드만 insert. `dto.startTime`이 컨트롤러까지 도달했지만 서비스 layer에서 빠짐. class-validator는 필드 검증만 하고 다음 계층으로 자동 전달 X — insert values는 개발자가 명시 스프레드해야 함
+- 해결: `.values({ label, sortOrder, startTime: dto.startTime, endTime: dto.endTime })`로 확장. **신규 DTO 필드 추가 시 서비스 create/update 둘 다 확인**. 팁: `.values({ ...dto, sortOrder })` 패턴으로 스프레드해두면 재발 방지되지만 DTO에 원치 않는 필드 있을 때 위험 — trade-off 판단
+
+---
+
 ### `DATABASE_URL is not set` — Nest 부트스트랩 전 module import 시점에 env 미로드
 - 상황: `HealthController`가 `db/client`를 import → `client.ts`가 module load 시점에 `process.env.DATABASE_URL` 읽음 → 아직 `ConfigModule.forRoot`가 실행되기 전이라 undefined
 - 원인: TS import는 hoisted. Nest의 ConfigModule은 `NestFactory.create()` 이후에야 .env를 로드

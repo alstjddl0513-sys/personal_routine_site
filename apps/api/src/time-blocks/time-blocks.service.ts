@@ -26,7 +26,12 @@ export class TimeBlocksService {
     }
     const [row] = await db
       .insert(timeBlocks)
-      .values({ label: dto.label, sortOrder })
+      .values({
+        label: dto.label,
+        sortOrder,
+        startTime: dto.startTime,
+        endTime: dto.endTime,
+      })
       .returning();
     return row;
   }
