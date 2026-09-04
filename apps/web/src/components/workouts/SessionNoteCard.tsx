@@ -64,7 +64,7 @@ export function SessionNoteCard(props: Props) {
         onBlur={onSave}
         maxLength={500}
         placeholder="오늘 컨디션 한 줄..."
-        className="flex-1 rounded border border-zinc-200 bg-white px-2 py-1 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
+        className="min-h-11 flex-1 rounded border border-zinc-200 bg-white px-2 py-2 text-base outline-none focus:border-zinc-500 md:min-h-0 md:py-1 md:text-sm dark:border-zinc-700 dark:bg-zinc-950"
       />
       <span className="min-w-[60px] text-right text-[10px] text-zinc-400">
         {saving ? '저장 중…' : flash === 'saved' ? '저장됨' : dirty ? '변경사항 있음' : ' '}
