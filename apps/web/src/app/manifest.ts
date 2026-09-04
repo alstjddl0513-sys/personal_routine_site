@@ -14,6 +14,23 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: '#fafafa',
     theme_color: '#fafafa',
     icons: [
+      // Scalable SVG satisfies Chrome's install-prompt requirement for
+      // both 192 and 512 without needing separate PNG renders.
+      {
+        src: '/icon.svg',
+        sizes: 'any',
+        type: 'image/svg+xml',
+        purpose: 'any',
+      },
+      // Maskable variant with full-bleed bg + inner 80% safe zone so
+      // Android adaptive-icon shapes don't clip the flag.
+      {
+        src: '/icon-maskable.svg',
+        sizes: 'any',
+        type: 'image/svg+xml',
+        purpose: 'maskable',
+      },
+      // PNG fallback for browsers that don't accept SVG in manifest.
       {
         src: '/flag-512.png',
         sizes: '512x512',

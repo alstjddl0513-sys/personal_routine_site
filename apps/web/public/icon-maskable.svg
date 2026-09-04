@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Full-bleed background so Android adaptive-icon masks (circle,
+       squircle, etc.) don't clip a transparent edge. -->
+  <rect width="512" height="512" fill="#10b981"/>
+  <!-- Content confined to the inner 80% safe zone. Nested SVG with
+       preserveAspectRatio centers the flag inside that box. -->
+  <svg x="10%" y="10%" width="80%" height="80%" viewBox="0 0 512 512" preserveAspectRatio="xMidYMid meet">
+    <rect x="216" y="90" width="34" height="360" rx="10" fill="#ffffff"/>
+    <path d="M250 100 L440 190 L250 280 Z" fill="#ffffff"/>
+  </svg>
+</svg>
