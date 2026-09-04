@@ -12,7 +12,7 @@ import {
   Rss,
   Settings,
 } from 'lucide-react';
-import { useEffect, useState, type ComponentType, type SVGProps } from 'react';
+import { useSyncExternalStore, type ComponentType, type SVGProps } from 'react';
 import { ThemeToggle } from './ThemeToggle';
 
 interface NavChild {
@@ -70,6 +70,57 @@ const NAV: NavItem[] = [
 
 const STORAGE_KEY = 'rally.sidebar.collapsed';
 
+// localStorage-backed store for `useSyncExternalStore`. Avoids the
+// setState-in-effect anti-pattern (React 19 warns).
+type CollapsedMap = Record<string, boolean>;
+const EMPTY_COLLAPSED: CollapsedMap = {};
+const collapsedListeners = new Set<() => void>();
+// getSnapshot must return a stable reference — cache by raw string so
+// unchanged localStorage returns the same object across renders.
+let cachedRaw: string | null | undefined;
+let cachedSnapshot: CollapsedMap = EMPTY_COLLAPSED;
+
+function readCollapsedClient(): CollapsedMap {
+  let raw: string | null;
+  try {
+    raw = window.localStorage.getItem(STORAGE_KEY);
+  } catch {
+    return EMPTY_COLLAPSED;
+  }
+  if (raw === cachedRaw) return cachedSnapshot;
+  cachedRaw = raw;
+  if (!raw) {
+    cachedSnapshot = EMPTY_COLLAPSED;
+    return cachedSnapshot;
+  }
+  try {
+    cachedSnapshot = JSON.parse(raw) as CollapsedMap;
+  } catch {
+    cachedSnapshot = EMPTY_COLLAPSED;
+  }
+  return cachedSnapshot;
+}
+
+function readCollapsedServer(): CollapsedMap {
+  return EMPTY_COLLAPSED;
+}
+
+function subscribeCollapsed(callback: () => void) {
+  collapsedListeners.add(callback);
+  return () => {
+    collapsedListeners.delete(callback);
+  };
+}
+
+function writeCollapsed(next: CollapsedMap) {
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  } catch {}
+  cachedRaw = undefined;
+  cachedSnapshot = next;
+  collapsedListeners.forEach((fn) => fn());
+}
+
 function LogoutButton() {
   async function handleLogout() {
     await fetch('/api/auth/login', { method: 'DELETE' }).catch(() => {
@@ -91,8 +142,8 @@ function LogoutButton() {
 }
 
 function isActive(pathname: string, href: string) {
-  // Parents whose own href doubles as a child link (/jobs, /workouts, /routines)
-  // need exact match so the child stays highlighted when on the sub-route.
+  // Parents whose href doubles as a child link need exact match, otherwise
+  // both parent and sub-route link highlight simultaneously.
   if (href === '/jobs' || href === '/workouts' || href === '/routines') {
     return pathname === href;
   }
@@ -110,34 +161,21 @@ function isParentActive(pathname: string, item: NavItem) {
 
 export function Sidebar() {
   const pathname = usePathname();
-  // Only *collapsed* parents are stored; missing entries mean expanded.
-  // Initial `{}` on both server and client keeps hydration clean — the
-  // effect below rehydrates from localStorage on mount, so a previously
-  // collapsed group briefly shows expanded on first paint. Acceptable
-  // for a rare one-time action.
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) setCollapsed(JSON.parse(raw) as Record<string, boolean>);
-    } catch {
-      // localStorage unavailable / bad JSON → stay with defaults.
-    }
-  }, []);
+  // Missing entries = expanded (default). Previously-collapsed groups
+  // briefly flash expanded on first paint before hydration swaps in the
+  // localStorage snapshot — acceptable for a rare one-time action.
+  const collapsed = useSyncExternalStore(
+    subscribeCollapsed,
+    readCollapsedClient,
+    readCollapsedServer,
+  );
 
   function toggle(href: string) {
-    setCollapsed((prev) => {
-      const next = { ...prev };
-      if (next[href]) delete next[href];
-      else next[href] = true;
-      try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      } catch {
-        // Ignore storage failures — state still lives in memory.
-      }
-      return next;
-    });
+    const current = readCollapsedClient();
+    const next = { ...current };
+    if (next[href]) delete next[href];
+    else next[href] = true;
+    writeCollapsed(next);
   }
 
   return (
