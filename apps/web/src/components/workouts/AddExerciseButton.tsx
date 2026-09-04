@@ -98,7 +98,7 @@ export function AddExerciseButton() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+        className="inline-flex min-h-11 items-center gap-1 rounded-md border border-zinc-300 bg-white px-3 text-sm text-zinc-700 hover:bg-zinc-50 md:min-h-0 md:py-2 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
       >
         <Plus className="h-4 w-4" aria-hidden />
         운동 추가
@@ -152,7 +152,7 @@ export function AddExerciseButton() {
                   }}
                   maxLength={100}
                   placeholder="예: 스쿼트"
-                  className="rounded border border-zinc-300 bg-white px-2 py-1.5 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
+                  className="min-h-11 rounded border border-zinc-300 bg-white px-2 py-1.5 text-base outline-none focus:border-zinc-500 md:min-h-0 md:text-sm dark:border-zinc-700 dark:bg-zinc-950"
                 />
               </div>
 
@@ -181,7 +181,7 @@ export function AddExerciseButton() {
                     max={20}
                     value={defaultSets}
                     onChange={(e) => setDefaultSets(e.target.value)}
-                    className="rounded border border-zinc-300 bg-white px-2 py-1.5 text-sm tabular-nums outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
+                    className="min-h-11 rounded border border-zinc-300 bg-white px-2 py-1.5 text-base tabular-nums outline-none focus:border-zinc-500 md:min-h-0 md:text-sm dark:border-zinc-700 dark:bg-zinc-950"
                   />
                 </div>
                 <div className="flex flex-1 flex-col gap-1">
@@ -196,7 +196,7 @@ export function AddExerciseButton() {
                     max={100}
                     value={repMin}
                     onChange={(e) => setRepMin(e.target.value)}
-                    className="rounded border border-zinc-300 bg-white px-2 py-1.5 text-sm tabular-nums outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
+                    className="min-h-11 rounded border border-zinc-300 bg-white px-2 py-1.5 text-base tabular-nums outline-none focus:border-zinc-500 md:min-h-0 md:text-sm dark:border-zinc-700 dark:bg-zinc-950"
                   />
                 </div>
                 <div className="flex flex-1 flex-col gap-1">
@@ -211,7 +211,7 @@ export function AddExerciseButton() {
                     max={100}
                     value={repMax}
                     onChange={(e) => setRepMax(e.target.value)}
-                    className="rounded border border-zinc-300 bg-white px-2 py-1.5 text-sm tabular-nums outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
+                    className="min-h-11 rounded border border-zinc-300 bg-white px-2 py-1.5 text-base tabular-nums outline-none focus:border-zinc-500 md:min-h-0 md:text-sm dark:border-zinc-700 dark:bg-zinc-950"
                   />
                 </div>
               </div>
@@ -229,7 +229,7 @@ export function AddExerciseButton() {
                   type="button"
                   onClick={() => setOpen(false)}
                   disabled={isPending}
-                  className="rounded px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                  className="inline-flex min-h-11 items-center rounded px-3 text-sm text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 md:min-h-0 md:py-1.5 dark:text-zinc-400 dark:hover:bg-zinc-800"
                 >
                   취소
                 </button>
@@ -237,7 +237,7 @@ export function AddExerciseButton() {
                   type="button"
                   onClick={submit}
                   disabled={isPending}
-                  className="rounded bg-zinc-900 px-3 py-1.5 text-sm text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+                  className="inline-flex min-h-11 items-center rounded bg-zinc-900 px-3 text-sm text-white hover:bg-zinc-800 disabled:opacity-50 md:min-h-0 md:py-1.5 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
                 >
                   {isPending ? '추가 중...' : '추가'}
                 </button>

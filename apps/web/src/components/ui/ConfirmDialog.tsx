@@ -77,7 +77,7 @@ export function ConfirmDialog({
             type="button"
             onClick={onCancel}
             disabled={pending}
-            className="rounded px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
+            className="inline-flex min-h-11 items-center rounded px-3 text-sm text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 md:min-h-0 md:py-1.5 dark:text-zinc-400 dark:hover:bg-zinc-800"
           >
             {cancelLabel}
           </button>
@@ -85,7 +85,7 @@ export function ConfirmDialog({
             type="button"
             onClick={onConfirm}
             disabled={pending}
-            className={`rounded px-3 py-1.5 text-sm text-white disabled:opacity-50 ${
+            className={`inline-flex min-h-11 items-center rounded px-3 text-sm text-white disabled:opacity-50 md:min-h-0 md:py-1.5 ${
               variant === 'danger'
                 ? 'bg-rose-600 hover:bg-rose-700'
                 : 'bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200'
