@@ -5,6 +5,7 @@ import {
 } from '../../lib/api';
 import { addDays, parseISODate, toISODate, weekOf } from '../../lib/routines-week';
 import { calcBestDailyStreak, calcDailyStreak } from '../../lib/streak';
+import { RoutineDayView } from '../../components/routines/RoutineDayView';
 import { RoutineRetro } from '../../components/routines/RoutineRetro';
 import { RoutineTable } from '../../components/routines/RoutineTable';
 import { RoutineWeekNav } from '../../components/routines/RoutineWeekNav';
@@ -43,7 +44,7 @@ export default async function RoutinesPage({
 
   return (
     <div className="flex flex-col gap-4 p-6">
-      <header className="flex items-baseline justify-between">
+      <header className="flex flex-col gap-2 md:flex-row md:items-baseline md:justify-between">
         <h1 className="text-xl font-semibold">루틴 트래커</h1>
         <RoutineWeekNav week={week} />
       </header>
@@ -56,6 +57,7 @@ export default async function RoutinesPage({
       />
 
       <RoutineTable blocks={blocks} checks={checks} days={week.days} />
+      <RoutineDayView blocks={blocks} checks={checks} days={week.days} />
 
       <section className="flex flex-col gap-2">
         <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">

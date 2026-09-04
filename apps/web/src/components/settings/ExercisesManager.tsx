@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useTransition, type FormEvent } from 'react';
+import { useState, useTransition, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, Archive, ArchiveRestore, Check, ChevronDown, ChevronRight, Info, Plus, Trash2, X } from 'lucide-react';
 import { type Exercise } from '@repo/shared';
@@ -10,9 +10,9 @@ import {
   deleteExercise,
   patchExercise,
 } from '../../lib/api';
-import { useOutsideClick } from '../../lib/useOutsideClick';
 import { muscleLabel } from '../../lib/muscle-groups';
 import { TargetMuscleSelect } from '../workouts/TargetMuscleSelect';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 
 type Draft = {
   name: string;
@@ -266,128 +266,51 @@ export function ExercisesManager({ initial }: { initial: Exercise[] }) {
         운동 순서는 <code>/workouts</code> 카드 hover ↑↓로 조정.
       </p>
 
-      {confirm?.kind === 'delete' ? (
-        <ConfirmDialog
-          tone="danger"
-          icon={<Trash2 className="h-5 w-5" aria-hidden />}
-          title="운동 종목 삭제"
-          body={
-            <>
-              <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                {confirm.row.name}
-              </span>
-              을(를) 삭제할까요? 세트 이력이 있으면 삭제할 수 없고,
-              대신 &quot;숨김&quot; 처리로 안내됩니다.
-            </>
-          }
-          confirmLabel={isPending ? '삭제 중…' : '삭제'}
-          onConfirm={() => performDelete(confirm.row)}
-          onCancel={() => setConfirm(null)}
-          isPending={isPending}
-        />
-      ) : null}
+      <ConfirmDialog
+        open={confirm?.kind === 'delete'}
+        title="운동 종목 삭제"
+        description={
+          <p>
+            <span className="font-medium text-zinc-900 dark:text-zinc-100">
+              {confirm?.kind === 'delete' ? confirm.row.name : ''}
+            </span>
+            을(를) 삭제할까요? 세트 이력이 있으면 삭제할 수 없고,
+            대신 &quot;숨김&quot; 처리로 안내됩니다.
+          </p>
+        }
+        confirmLabel={isPending ? '삭제 중…' : '삭제'}
+        pending={isPending}
+        onConfirm={() => confirm?.kind === 'delete' && performDelete(confirm.row)}
+        onCancel={() => setConfirm(null)}
+      />
 
-      {confirm?.kind === 'archive-fallback' ? (
-        <ConfirmDialog
-          tone="neutral"
-          icon={<Info className="h-5 w-5" aria-hidden />}
-          title="삭제할 수 없어요"
-          body={
-            <>
-              <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                {confirm.row.name}
-              </span>
-              에 세트 이력이 있어서 삭제할 수 없습니다.
-              대신 <strong>숨김</strong> (리스트에서 감춤, 이력은 보존)
-              처리할까요?
-            </>
-          }
-          confirmLabel={isPending ? '숨기는 중…' : '숨김 처리'}
-          onConfirm={() => performArchiveFallback(confirm.row)}
-          onCancel={() => setConfirm(null)}
-          isPending={isPending}
-        />
-      ) : null}
+      <ConfirmDialog
+        open={confirm?.kind === 'archive-fallback'}
+        variant="default"
+        icon={<Info className="h-5 w-5 text-zinc-500 dark:text-zinc-400" aria-hidden />}
+        title="삭제할 수 없어요"
+        description={
+          <p>
+            <span className="font-medium text-zinc-900 dark:text-zinc-100">
+              {confirm?.kind === 'archive-fallback' ? confirm.row.name : ''}
+            </span>
+            에 세트 이력이 있어서 삭제할 수 없습니다.
+            대신 <strong>숨김</strong> (리스트에서 감춤, 이력은 보존)
+            처리할까요?
+          </p>
+        }
+        confirmLabel={isPending ? '숨기는 중…' : '숨김 처리'}
+        pending={isPending}
+        onConfirm={() =>
+          confirm?.kind === 'archive-fallback' &&
+          performArchiveFallback(confirm.row)
+        }
+        onCancel={() => setConfirm(null)}
+      />
     </div>
   );
 }
 
-function ConfirmDialog({
-  tone,
-  icon,
-  title,
-  body,
-  confirmLabel,
-  onConfirm,
-  onCancel,
-  isPending,
-}: {
-  tone: 'danger' | 'neutral';
-  icon: React.ReactNode;
-  title: string;
-  body: React.ReactNode;
-  confirmLabel: string;
-  onConfirm: () => void;
-  onCancel: () => void;
-  isPending: boolean;
-}) {
-  const dialogRef = useRef<HTMLDivElement>(null);
-  useOutsideClick(dialogRef, () => !isPending && onCancel(), true);
-
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape' && !isPending) onCancel();
-    }
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [isPending, onCancel]);
-
-  const iconColor =
-    tone === 'danger'
-      ? 'text-rose-600 dark:text-rose-400'
-      : 'text-zinc-500 dark:text-zinc-400';
-  const confirmClasses =
-    tone === 'danger'
-      ? 'rounded bg-rose-600 px-3 py-1.5 text-sm text-white hover:bg-rose-700 disabled:opacity-50'
-      : 'rounded bg-zinc-900 px-3 py-1.5 text-sm text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200';
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-      role="dialog"
-      aria-modal="true"
-    >
-      <div
-        ref={dialogRef}
-        className="w-full max-w-sm rounded-lg border border-zinc-200 bg-white p-5 shadow-xl dark:border-zinc-800 dark:bg-zinc-900"
-      >
-        <div className="mb-3 flex items-center gap-2">
-          <span className={iconColor}>{icon}</span>
-          <h2 className="text-base font-semibold">{title}</h2>
-        </div>
-        <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">{body}</p>
-        <div className="flex items-center justify-end gap-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={isPending}
-            className="rounded px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
-          >
-            취소
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={isPending}
-            className={confirmClasses}
-          >
-            {confirmLabel}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function EditForm({
   draft,

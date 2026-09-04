@@ -20,7 +20,7 @@ interface Props {
   days: Date[];
 }
 
-function checkKey(blockId: string, date: string): string {
+export function checkKey(blockId: string, date: string): string {
   return `${blockId}|${date}`;
 }
 
@@ -52,7 +52,7 @@ export function RoutineTable({ blocks, checks, days }: Props) {
   }
 
   return (
-    <div className="overflow-x-auto rounded-md border border-zinc-200 dark:border-zinc-800">
+    <div className="hidden overflow-x-auto rounded-md border border-zinc-200 md:block dark:border-zinc-800">
       <table className="w-full text-sm">
         <thead className="bg-zinc-50 text-xs text-zinc-500 dark:bg-zinc-900/60 dark:text-zinc-400">
           <tr>

@@ -1,8 +1,16 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
-import { ChevronDown, Heart, Search, SlidersHorizontal, X } from 'lucide-react';
+import {
+  ChevronDown,
+  Heart,
+  Search,
+  Settings2,
+  SlidersHorizontal,
+  X,
+} from 'lucide-react';
 import {
   APPLICATION_STATUS_LABELS,
   APPLICATION_STATUS_VALUES,
@@ -176,8 +184,28 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
       <div
         className={`${mobileOpen ? '' : 'hidden'} md:block rounded-md border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950`}
       >
+        <div className="mb-2 flex justify-end md:hidden">
+          <Link
+            href="/settings/company-types"
+            className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+          >
+            <Settings2 className="h-3.5 w-3.5" aria-hidden />
+            유형 관리
+          </Link>
+        </div>
         <div className="grid grid-cols-1 gap-x-3 gap-y-2 text-sm md:grid-cols-[auto_1fr] md:items-center">
-          <FilterRow label="유형">
+          <FilterRow
+            label="유형"
+            trailing={
+              <Link
+                href="/settings/company-types"
+                className="ml-auto hidden items-center gap-1 rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 md:inline-flex dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+              >
+                <Settings2 className="h-3.5 w-3.5" aria-hidden />
+                유형 관리
+              </Link>
+            }
+          >
             {companyTypes.map((t) => (
               <Chip
                 key={t.key}
@@ -257,16 +285,21 @@ function parseCsv(raw: string | null): Set<string> {
 function FilterRow({
   label,
   children,
+  trailing,
 }: {
   label: string;
   children: React.ReactNode;
+  trailing?: React.ReactNode;
 }) {
   return (
     <>
       <span className="mt-2 text-xs text-zinc-500 first:mt-0 md:mt-0 md:pt-1 dark:text-zinc-400">
         {label}
       </span>
-      <div className="flex flex-wrap gap-1.5">{children}</div>
+      <div className="flex flex-wrap items-center gap-1.5">
+        {children}
+        {trailing}
+      </div>
     </>
   );
 }

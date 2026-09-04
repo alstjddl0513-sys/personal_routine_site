@@ -1,5 +1,12 @@
 import Link from 'next/link';
-import { ChevronRight, Dumbbell, Palette, Rss, Tag } from 'lucide-react';
+import {
+  CalendarClock,
+  ChevronRight,
+  Dumbbell,
+  Palette,
+  Rss,
+  Tag,
+} from 'lucide-react';
 import { BackupButton } from '../../components/settings/BackupButton';
 import { LogoutRow } from '../../components/settings/LogoutRow';
 import { ThemeToggle } from '../../components/ThemeToggle';
@@ -24,6 +31,21 @@ export default function SettingsPage() {
             </div>
             <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
               채용 리스트의 &quot;유형&quot; 필터/선택에 나오는 항목을 추가·편집·삭제.
+            </p>
+          </div>
+          <ChevronRight className="h-4 w-4 text-zinc-400" aria-hidden />
+        </Link>
+        <Link
+          href="/settings/time-blocks"
+          className="flex items-center gap-3 border-b border-zinc-100 px-4 py-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900"
+        >
+          <CalendarClock className="h-4 w-4 text-zinc-500" aria-hidden />
+          <div className="flex-1">
+            <div className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+              시간블록 관리
+            </div>
+            <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+              루틴 트래커의 시간블록을 추가·편집·재정렬·삭제.
             </p>
           </div>
           <ChevronRight className="h-4 w-4 text-zinc-400" aria-hidden />
