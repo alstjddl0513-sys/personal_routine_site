@@ -17,16 +17,8 @@ export function JobsTable({
   rows: Company[];
   companyTypes: CompanyType[];
 }) {
-  if (rows.length === 0) {
-    return (
-      <div className="rounded-md border border-dashed border-zinc-300 p-10 text-center text-sm text-zinc-500 dark:border-zinc-700">
-        조건에 맞는 회사가 없습니다.
-      </div>
-    );
-  }
-
   return (
-    <div className="rounded-md border border-zinc-200 dark:border-zinc-800">
+    <div className="hidden rounded-md border border-zinc-200 md:block dark:border-zinc-800">
       <table className="w-full text-sm">
         <thead className="bg-zinc-50 text-xs text-zinc-500 dark:bg-zinc-900/60 dark:text-zinc-400">
           <tr>

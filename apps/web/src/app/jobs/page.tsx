@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { JobsCards } from '../../components/jobs/JobsCards';
 import { JobsFilters } from '../../components/jobs/JobsFilters';
 import { JobsTable } from '../../components/jobs/JobsTable';
 import { getCompanies, getCompanyTypes } from '../../lib/api';
@@ -69,7 +70,16 @@ export default async function JobsPage({ searchParams }: PageProps<'/jobs'>) {
         <JobsFilters companyTypes={companyTypes} />
       </Suspense>
 
-      <JobsTable rows={rows} companyTypes={companyTypes} />
+      {rows.length === 0 ? (
+        <div className="rounded-md border border-dashed border-zinc-300 p-10 text-center text-sm text-zinc-500 dark:border-zinc-700">
+          조건에 맞는 회사가 없습니다.
+        </div>
+      ) : (
+        <>
+          <JobsTable rows={rows} companyTypes={companyTypes} />
+          <JobsCards rows={rows} companyTypes={companyTypes} />
+        </>
+      )}
     </div>
   );
 }

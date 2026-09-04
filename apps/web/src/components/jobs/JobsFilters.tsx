@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
-import { Heart, Search, X } from 'lucide-react';
+import { ChevronDown, Heart, Search, SlidersHorizontal, X } from 'lucide-react';
 import {
   APPLICATION_STATUS_LABELS,
   APPLICATION_STATUS_VALUES,
@@ -100,9 +100,16 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
     currentFavorite ||
     currentSearch;
 
+  // Sum only the chip-group filters — search/favorite/hiring have their own
+  // controls above the disclosure and don't belong in the mobile chip badge.
+  const chipFilterCount =
+    type2Set.size + type1Set.size + prioritySet.size + statusSet.size;
+
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <div className="relative max-w-sm flex-1">
           <Search
             className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-zinc-400"
@@ -145,8 +152,31 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
         ) : null}
       </div>
 
-      <div className="rounded-md border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
-        <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 text-sm">
+      <button
+        type="button"
+        onClick={() => setMobileOpen((o) => !o)}
+        aria-expanded={mobileOpen}
+        className="inline-flex items-center justify-between gap-2 rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50 md:hidden dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900"
+      >
+        <span className="inline-flex items-center gap-2">
+          <SlidersHorizontal className="h-4 w-4" aria-hidden />
+          필터
+          {chipFilterCount > 0 ? (
+            <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-zinc-900 px-1.5 text-[10px] font-medium text-white dark:bg-zinc-100 dark:text-zinc-900">
+              {chipFilterCount}
+            </span>
+          ) : null}
+        </span>
+        <ChevronDown
+          className={`h-4 w-4 text-zinc-400 transition-transform ${mobileOpen ? 'rotate-180' : ''}`}
+          aria-hidden
+        />
+      </button>
+
+      <div
+        className={`${mobileOpen ? '' : 'hidden'} md:block rounded-md border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950`}
+      >
+        <div className="grid grid-cols-1 gap-x-3 gap-y-2 text-sm md:grid-cols-[auto_1fr] md:items-center">
           <FilterRow label="유형">
             {companyTypes.map((t) => (
               <Chip
@@ -233,7 +263,9 @@ function FilterRow({
 }) {
   return (
     <>
-      <span className="pt-1 text-xs text-zinc-500 dark:text-zinc-400">{label}</span>
+      <span className="mt-2 text-xs text-zinc-500 first:mt-0 md:mt-0 md:pt-1 dark:text-zinc-400">
+        {label}
+      </span>
       <div className="flex flex-wrap gap-1.5">{children}</div>
     </>
   );
