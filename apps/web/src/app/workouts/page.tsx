@@ -1,3 +1,5 @@
+import Link from 'next/link';
+import { Settings2 } from 'lucide-react';
 import type { ExerciseStatsPR, PreviousWorkout, WorkoutSet } from '@repo/shared';
 import {
   getExerciseStats,
@@ -88,11 +90,20 @@ export default async function WorkoutsPage({
         <WorkoutDateNav date={displayDate} group={groupFilter} />
       </header>
 
-      <WorkoutGroupTabs
-        active={groupFilter}
-        counts={counts}
-        preserveParams={{ date: dateParam }}
-      />
+      <div className="flex items-end justify-between gap-2 border-b border-zinc-200 dark:border-zinc-800">
+        <WorkoutGroupTabs
+          active={groupFilter}
+          counts={counts}
+          preserveParams={{ date: dateParam }}
+        />
+        <Link
+          href="/settings/exercises"
+          className="mb-1.5 inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+        >
+          <Settings2 className="h-3.5 w-3.5" aria-hidden />
+          종목 관리
+        </Link>
+      </div>
 
       <WorkoutBoard
         exercises={exercises}

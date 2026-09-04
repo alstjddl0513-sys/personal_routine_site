@@ -23,7 +23,7 @@ export function WorkoutGroupTabs({ active, counts, preserveParams }: Props) {
 
   return (
     <nav
-      className="flex items-center gap-1 border-b border-zinc-200 dark:border-zinc-800"
+      className="flex items-center gap-1"
       aria-label="운동 부위 필터"
     >
       {GROUP_TABS.map((t) => {

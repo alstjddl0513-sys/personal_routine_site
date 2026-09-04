@@ -9,6 +9,7 @@ import {
   deleteCompanyType,
   patchCompanyType,
 } from '../../lib/api';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 
 // Row-level state kept in a Map so multiple rows can be edited independently.
 type EditState = {
@@ -22,6 +23,7 @@ export function CompanyTypesManager({ initial }: { initial: CompanyType[] }) {
   const [edits, setEdits] = useState<Record<string, EditState>>({});
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [deleteTarget, setDeleteTarget] = useState<CompanyType | null>(null);
 
   function beginEdit(row: CompanyType) {
     setEdits((prev) => ({ ...prev, [row.id]: { editing: true, label: row.label } }));
@@ -61,19 +63,20 @@ export function CompanyTypesManager({ initial }: { initial: CompanyType[] }) {
     });
   }
 
-  function remove(row: CompanyType) {
-    if (!window.confirm(`"${row.label}" 유형을 삭제할까요? 기존 회사에 저장된 값은 그대로 유지됩니다.`)) {
-      return;
-    }
+  function confirmDelete() {
+    if (!deleteTarget) return;
+    const target = deleteTarget;
     setError(null);
     startTransition(async () => {
       try {
-        await deleteCompanyType(row.id);
-        setRows((prev) => prev.filter((r) => r.id !== row.id));
+        await deleteCompanyType(target.id);
+        setRows((prev) => prev.filter((r) => r.id !== target.id));
+        setDeleteTarget(null);
         router.refresh();
       } catch (err) {
         console.error(err);
         setError('삭제에 실패했습니다.');
+        setDeleteTarget(null);
       }
     });
   }
@@ -143,7 +146,7 @@ export function CompanyTypesManager({ initial }: { initial: CompanyType[] }) {
                         <Pencil className="h-3.5 w-3.5" />
                       </IconButton>
                       <IconButton
-                        onClick={() => remove(row)}
+                        onClick={() => setDeleteTarget(row)}
                         disabled={isPending}
                         label="삭제"
                         danger
@@ -168,6 +171,23 @@ export function CompanyTypesManager({ initial }: { initial: CompanyType[] }) {
         <strong>key</strong>는 회사 데이터에 저장되는 값이라 편집 불가. 라벨만 자유롭게 바꿀 수 있음.
         새 key는 소문자/숫자/언더스코어(<code>_</code>)만 허용.
       </p>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="기업 유형 삭제"
+        description={
+          <p>
+            <span className="font-medium text-zinc-900 dark:text-zinc-100">
+              {deleteTarget?.label}
+            </span>
+            {' '}유형을 삭제할까요? 기존 회사에 저장된 값은 그대로 유지됩니다.
+          </p>
+        }
+        confirmLabel={isPending ? '삭제 중…' : '삭제'}
+        pending={isPending}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

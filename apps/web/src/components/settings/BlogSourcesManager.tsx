@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useTransition, type FormEvent } from 'react';
+import { useState, useTransition, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, Check, ChevronDown, ChevronRight, PauseCircle, PlayCircle, Plus, Trash2, X } from 'lucide-react';
 import type { BlogSource } from '@repo/shared';
@@ -9,7 +9,7 @@ import {
   deleteBlogSource,
   patchBlogSource,
 } from '../../lib/api';
-import { useOutsideClick } from '../../lib/useOutsideClick';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 
 type Draft = {
   name: string;
@@ -202,14 +202,23 @@ export function BlogSourcesManager({ initial }: { initial: BlogSource[] }) {
         <strong>삭제</strong>는 소스와 함께 수집된 <strong>모든 글도 함께 삭제</strong>됨 (되돌릴 수 없음).
       </p>
 
-      {confirmDeleteRow ? (
-        <ConfirmDialog
-          row={confirmDeleteRow}
-          onConfirm={() => performDelete(confirmDeleteRow)}
-          onCancel={() => setConfirmDeleteRow(null)}
-          isPending={isPending}
-        />
-      ) : null}
+      <ConfirmDialog
+        open={!!confirmDeleteRow}
+        title="소스 삭제"
+        description={
+          <p>
+            <span className="font-medium text-zinc-900 dark:text-zinc-100">
+              {confirmDeleteRow?.name}
+            </span>
+            을(를) 삭제할까요? 이 소스에서 수집된{' '}
+            <strong>모든 글도 함께 삭제</strong>되며, 되돌릴 수 없습니다.
+          </p>
+        }
+        confirmLabel={isPending ? '삭제 중…' : '삭제'}
+        pending={isPending}
+        onConfirm={() => confirmDeleteRow && performDelete(confirmDeleteRow)}
+        onCancel={() => setConfirmDeleteRow(null)}
+      />
     </div>
   );
 }
@@ -452,66 +461,3 @@ function IconButton({
   );
 }
 
-function ConfirmDialog({
-  row,
-  onConfirm,
-  onCancel,
-  isPending,
-}: {
-  row: BlogSource;
-  onConfirm: () => void;
-  onCancel: () => void;
-  isPending: boolean;
-}) {
-  const dialogRef = useRef<HTMLDivElement>(null);
-  useOutsideClick(dialogRef, () => !isPending && onCancel(), true);
-
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape' && !isPending) onCancel();
-    }
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [isPending, onCancel]);
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-      role="dialog"
-      aria-modal="true"
-    >
-      <div
-        ref={dialogRef}
-        className="w-full max-w-sm rounded-lg border border-zinc-200 bg-white p-5 shadow-xl dark:border-zinc-800 dark:bg-zinc-900"
-      >
-        <div className="mb-3 flex items-center gap-2">
-          <Trash2 className="h-5 w-5 text-rose-600 dark:text-rose-400" aria-hidden />
-          <h2 className="text-base font-semibold">소스 삭제</h2>
-        </div>
-        <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-          <span className="font-medium text-zinc-900 dark:text-zinc-100">{row.name}</span>
-          을(를) 삭제할까요? 이 소스에서 수집된 <strong>모든 글도 함께 삭제</strong>되며,
-          되돌릴 수 없습니다.
-        </p>
-        <div className="flex items-center justify-end gap-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={isPending}
-            className="rounded px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
-          >
-            취소
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={isPending}
-            className="rounded bg-rose-600 px-3 py-1.5 text-sm text-white hover:bg-rose-700 disabled:opacity-50"
-          >
-            {isPending ? '삭제 중…' : '삭제'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
