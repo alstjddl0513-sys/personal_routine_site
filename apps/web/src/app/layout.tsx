@@ -18,12 +18,21 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'Rally',
   description: '취준 루틴/커리어 트래커',
+  appleWebApp: {
+    capable: true,
+    title: 'Rally',
+    statusBarStyle: 'default',
+  },
 };
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   userScalable: true,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#fafafa' },
+    { media: '(prefers-color-scheme: dark)', color: '#09090b' },
+  ],
 };
 
 // Runs synchronously in <head> before any React or paint so `.dark` is on
