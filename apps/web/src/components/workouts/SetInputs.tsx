@@ -47,12 +47,21 @@ export function SetInputs(props: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Resync when server props change (date navigation, reorder → router.refresh).
+  // Resync when server props change (reorder / another card's save →
+  // router.refresh re-fetches everything). Guard against wiping in-flight
+  // typing: if the local sig differs from lastSaved, the user is mid-edit and
+  // we'd otherwise erase what they just typed in the next field.
+  // Date/session change is handled by the parent's `key` remount, not here.
   useEffect(() => {
+    const currentSig = rowsSignature(rows);
+    if (currentSig !== lastSavedRef.current) return;
     const next = initRows(props.defaultSets, props.existingSets);
     setRows(next);
     lastSavedRef.current = rowsSignature(next);
     setError(null);
+    // rows intentionally excluded — this effect responds to server prop
+    // changes; we peek at rows via closure only to decide whether to apply.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.defaultSets, props.existingSets]);
 
   function update(idx: number, field: 'weight' | 'reps' | 'rir', value: string) {

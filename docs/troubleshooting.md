@@ -187,3 +187,12 @@
 - 상황: `/health` ping이 계속 되고 있다고 생각했는데 어느 순간 cronjob.org 대시보드에서 job이 disabled 상태 → 그 사이 Render가 슬립했고 첫 요청 30초 콜드 스타트 반복
 - 원인: cronjob.org는 연속 실패가 일정 횟수 누적되면 job을 자동 disable. Render 콜드 스타트가 30초를 넘으면 훅의 기본 timeout(30s)에 걸려 fail로 집계됨. 이게 반복되면 disable 트리거
 - 해결: **History 탭**에서 fail 이력·원인 확인. timeout을 45~60s로 올리고 재활성. Health ping은 살아 있어야 `@nestjs/schedule` 내부 cron도 슬립 창에 미스되지 않음 (내부 cron만 있고 서버가 슬립이면 그 시간대 실행 못함)
+
+---
+
+## Next.js 프론트
+
+### `/workouts` 세트 입력 시 두 번째 필드 값이 씹힘
+- 상황: 무게 입력 후 Tab하여 횟수 입력하는 순간 UI에서 방금 입력한 숫자가 사라짐. 무게 단독은 정상, 횟수만 씹힘
+- 원인: 무게 blur → `commit` → `router.refresh()` → 서버가 새 `existingSets` 반환 → `SetInputs`의 useEffect가 rows를 `initRows`로 재초기화 → 그 사이 사용자가 다음 필드에 typing한 값이 덮어쓰기됨
+- 해결: useEffect 시작에서 `rowsSignature(rows) !== lastSavedRef.current`이면 (사용자 미저장 편집 중) 재초기화 skip. 실제 서버 상태 변경(reorder, 다른 카드 save)에도 in-flight typing은 보존
