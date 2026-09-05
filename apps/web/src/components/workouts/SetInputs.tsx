@@ -47,12 +47,21 @@ export function SetInputs(props: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Resync when server props change (date navigation, reorder → router.refresh).
+  // Resync when server props change (reorder / another card's save →
+  // router.refresh re-fetches everything). Guard against wiping in-flight
+  // typing: if the local sig differs from lastSaved, the user is mid-edit and
+  // we'd otherwise erase what they just typed in the next field.
+  // Date/session change is handled by the parent's `key` remount, not here.
   useEffect(() => {
+    const currentSig = rowsSignature(rows);
+    if (currentSig !== lastSavedRef.current) return;
     const next = initRows(props.defaultSets, props.existingSets);
     setRows(next);
     lastSavedRef.current = rowsSignature(next);
     setError(null);
+    // rows intentionally excluded — this effect responds to server prop
+    // changes; we peek at rows via closure only to decide whether to apply.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.defaultSets, props.existingSets]);
 
   function update(idx: number, field: 'weight' | 'reps' | 'rir', value: string) {
@@ -135,7 +144,7 @@ export function SetInputs(props: Props) {
             value={row.weight}
             onChange={(e) => update(idx, 'weight', e.target.value)}
             onBlur={commit}
-            className="w-full rounded border border-zinc-200 bg-white px-2 py-1 text-center text-sm tabular-nums outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
+            className="min-h-11 w-full rounded border border-zinc-200 bg-white px-2 py-2 text-center text-base tabular-nums outline-none focus:border-zinc-500 md:min-h-0 md:py-1 md:text-sm dark:border-zinc-700 dark:bg-zinc-950"
             aria-label={`세트 ${row.setNumber} 무게`}
           />
           <input
@@ -146,7 +155,7 @@ export function SetInputs(props: Props) {
             value={row.reps}
             onChange={(e) => update(idx, 'reps', e.target.value)}
             onBlur={commit}
-            className="w-full rounded border border-zinc-200 bg-white px-2 py-1 text-center text-sm tabular-nums outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
+            className="min-h-11 w-full rounded border border-zinc-200 bg-white px-2 py-2 text-center text-base tabular-nums outline-none focus:border-zinc-500 md:min-h-0 md:py-1 md:text-sm dark:border-zinc-700 dark:bg-zinc-950"
             aria-label={`세트 ${row.setNumber} 횟수`}
           />
           {props.showRir ? (
@@ -159,7 +168,7 @@ export function SetInputs(props: Props) {
               value={row.rir}
               onChange={(e) => update(idx, 'rir', e.target.value)}
               onBlur={commit}
-              className="w-full rounded border border-zinc-200 bg-white px-2 py-1 text-center text-sm tabular-nums outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
+              className="min-h-11 w-full rounded border border-zinc-200 bg-white px-2 py-2 text-center text-base tabular-nums outline-none focus:border-zinc-500 md:min-h-0 md:py-1 md:text-sm dark:border-zinc-700 dark:bg-zinc-950"
               aria-label={`세트 ${row.setNumber} RIR`}
             />
           ) : null}

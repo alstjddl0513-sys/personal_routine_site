@@ -57,6 +57,20 @@
       "when": 1788165186094,
       "tag": "0007_steep_norman_osborn",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1788450502577,
+      "tag": "0008_bouncy_skaar",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1788590615368,
+      "tag": "0009_curly_agent_brand",
+      "breakpoints": true
     }
   ]
 }

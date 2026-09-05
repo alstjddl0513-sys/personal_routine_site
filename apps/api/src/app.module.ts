@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
 import { resolve } from 'path';
 import { AccessTokenGuard } from './access-token.guard';
 import { AppController } from './app.controller';
@@ -15,6 +16,8 @@ import { ExercisesModule } from './exercises/exercises.module';
 import { WorkoutSessionsModule } from './workout-sessions/workout-sessions.module';
 import { WorkoutSetsModule } from './workout-sets/workout-sets.module';
 import { ExportModule } from './export/export.module';
+import { BlogSourcesModule } from './blog-sources/blog-sources.module';
+import { BlogPostsModule } from './blog-posts/blog-posts.module';
 
 @Module({
   imports: [
@@ -22,6 +25,7 @@ import { ExportModule } from './export/export.module';
       isGlobal: true,
       envFilePath: [resolve(process.cwd(), '../../.env')],
     }),
+    ScheduleModule.forRoot(),
     CompaniesModule,
     CompanyTypesModule,
     TimeBlocksModule,
@@ -31,6 +35,8 @@ import { ExportModule } from './export/export.module';
     WorkoutSessionsModule,
     WorkoutSetsModule,
     ExportModule,
+    BlogSourcesModule,
+    BlogPostsModule,
   ],
   controllers: [AppController, HealthController],
   providers: [

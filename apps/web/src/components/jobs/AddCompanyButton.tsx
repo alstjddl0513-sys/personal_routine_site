@@ -11,6 +11,7 @@ import {
 } from '@repo/shared';
 import { createCompany } from '../../lib/api';
 import { useOutsideClick } from '../../lib/useOutsideClick';
+import { Select } from '../ui/Select';
 
 const DEFAULT_TYPE1: CompanyType1 = 'sme';
 
@@ -71,7 +72,7 @@ export function AddCompanyButton({ companyTypes }: { companyTypes: CompanyType[]
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+        className="inline-flex min-h-11 items-center gap-1 rounded-md border border-zinc-300 bg-white px-3 text-sm text-zinc-700 hover:bg-zinc-50 md:min-h-0 md:py-2 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
       >
         <Plus className="h-4 w-4" aria-hidden />
         추가하기
@@ -125,7 +126,7 @@ export function AddCompanyButton({ companyTypes }: { companyTypes: CompanyType[]
                   }}
                   maxLength={200}
                   placeholder="회사명 입력"
-                  className="rounded border border-zinc-300 bg-white px-2 py-1.5 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
+                  className="min-h-11 rounded border border-zinc-300 bg-white px-2 py-1.5 text-base outline-none focus:border-zinc-500 md:min-h-0 md:text-sm dark:border-zinc-700 dark:bg-zinc-950"
                 />
               </div>
 
@@ -134,35 +135,27 @@ export function AddCompanyButton({ companyTypes }: { companyTypes: CompanyType[]
                   <label htmlFor="add-type2" className="text-xs text-zinc-500 dark:text-zinc-400">
                     유형
                   </label>
-                  <select
+                  <Select
                     id="add-type2"
                     value={type2}
-                    onChange={(e) => setType2(e.target.value)}
-                    className="rounded border border-zinc-300 bg-white px-2 py-1.5 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
-                  >
-                    {companyTypes.map((t) => (
-                      <option key={t.key} value={t.key}>
-                        {t.label}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={setType2}
+                    options={companyTypes.map((t) => ({ value: t.key, label: t.label }))}
+                    ariaLabel="유형"
+                    triggerClassName="min-h-11 justify-between rounded border border-zinc-300 bg-white px-2 py-1.5 text-base outline-none focus:border-zinc-500 md:min-h-0 md:text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                  />
                 </div>
                 <div className="flex flex-1 flex-col gap-1">
                   <label htmlFor="add-type1" className="text-xs text-zinc-500 dark:text-zinc-400">
                     규모
                   </label>
-                  <select
+                  <Select
                     id="add-type1"
                     value={type1}
-                    onChange={(e) => setType1(e.target.value as CompanyType1)}
-                    className="rounded border border-zinc-300 bg-white px-2 py-1.5 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
-                  >
-                    {COMPANY_TYPE_1_VALUES.map((v) => (
-                      <option key={v} value={v}>
-                        {COMPANY_TYPE_1_LABELS[v]}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(v) => setType1(v as CompanyType1)}
+                    options={COMPANY_TYPE_1_VALUES.map((v) => ({ value: v, label: COMPANY_TYPE_1_LABELS[v] }))}
+                    ariaLabel="규모"
+                    triggerClassName="min-h-11 justify-between rounded border border-zinc-300 bg-white px-2 py-1.5 text-base outline-none focus:border-zinc-500 md:min-h-0 md:text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                  />
                 </div>
               </div>
 
@@ -179,7 +172,7 @@ export function AddCompanyButton({ companyTypes }: { companyTypes: CompanyType[]
                   type="button"
                   onClick={() => setOpen(false)}
                   disabled={isPending}
-                  className="rounded px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                  className="inline-flex min-h-11 items-center rounded px-3 text-sm text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 md:min-h-0 md:py-1.5 dark:text-zinc-400 dark:hover:bg-zinc-800"
                 >
                   취소
                 </button>
@@ -187,7 +180,7 @@ export function AddCompanyButton({ companyTypes }: { companyTypes: CompanyType[]
                   type="button"
                   onClick={submit}
                   disabled={isPending}
-                  className="rounded bg-zinc-900 px-3 py-1.5 text-sm text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+                  className="inline-flex min-h-11 items-center rounded bg-zinc-900 px-3 text-sm text-white hover:bg-zinc-800 disabled:opacity-50 md:min-h-0 md:py-1.5 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
                 >
                   {isPending ? '추가 중...' : '추가'}
                 </button>

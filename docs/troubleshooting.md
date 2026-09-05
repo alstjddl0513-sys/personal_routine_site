@@ -46,6 +46,18 @@
 - 원인: NestJS CLI 기본 스캐폴드가 `baseUrl: "./"`를 넣지만, path 매핑을 안 쓰면 불필요. TS 6.5+에서 deprecated
 - 해결: `baseUrl: "./"` 라인 삭제 (`ignoreDeprecations` 로 덮는 건 임시방편이라 비추)
 
+### Drizzle `db.delete`가 FK-restrict를 던져도 `err.code` 매칭이 miss (23503이 catch를 통과)
+- 상황: `ExercisesService.remove`가 FK-restrict(23503)를 catch에서 잡아 `ConflictException`(409)로 변환하도록 짜뒀는데, 실제 삭제 시 500이 튀어나옴 → 클라 dev overlay에 `HttpError HTTP 500`으로 노출
+- 원인: postgres.js가 원본 에러를 던질 땐 `err.code`에 SQLSTATE가 top-level로 담기지만, Drizzle delete 경로에서는 wrap된 에러가 나오면서 code가 `err.cause.code`로 밀리는 케이스가 있음. `if (err.code === '23503')` 만으론 못 잡고 그대로 re-throw → NestJS 기본 500
+- 해결: `pgCode(err)` 헬퍼로 `err.code || err.cause?.code` 둘 다 훑도록 방어. 이후 삭제 → 409 → 클라 `HttpError.status === 409` fallback 모달 정상 진입
+
+### Service `insert().values({...})`가 DTO의 optional 필드를 조용히 drop
+- 상황: `CreateTimeBlockDto`에 `startTime?: number` 필드 정의돼 있고 컨트롤러는 통과하는데, 실제 저장 후 DB에 startTime이 null. 매니저 UI에서 시간 넣어도 저장 안 됨
+- 원인: `TimeBlocksService.create()`가 `.values({ label: dto.label, sortOrder })`로 명시 필드만 insert. `dto.startTime`이 컨트롤러까지 도달했지만 서비스 layer에서 빠짐. class-validator는 필드 검증만 하고 다음 계층으로 자동 전달 X — insert values는 개발자가 명시 스프레드해야 함
+- 해결: `.values({ label, sortOrder, startTime: dto.startTime, endTime: dto.endTime })`로 확장. **신규 DTO 필드 추가 시 서비스 create/update 둘 다 확인**. 팁: `.values({ ...dto, sortOrder })` 패턴으로 스프레드해두면 재발 방지되지만 DTO에 원치 않는 필드 있을 때 위험 — trade-off 판단
+
+---
+
 ### `DATABASE_URL is not set` — Nest 부트스트랩 전 module import 시점에 env 미로드
 - 상황: `HealthController`가 `db/client`를 import → `client.ts`가 module load 시점에 `process.env.DATABASE_URL` 읽음 → 아직 `ConfigModule.forRoot`가 실행되기 전이라 undefined
 - 원인: TS import는 hoisted. Nest의 ConfigModule은 `NestFactory.create()` 이후에야 .env를 로드
@@ -152,3 +164,59 @@
 - 상황: 새 마이그레이션을 돌렸는데 그 전 마이그레이션(예: 0006)부터 재적용을 시도해 `column "xxx" already exists`로 죽음
 - 원인: `drizzle.__drizzle_migrations` 테이블의 마지막 레코드 `created_at`이 현재 `_journal.json`의 `when` 값과 어긋남. 과거 어느 시점에 `db:generate`를 다시 돌리면서 journal의 `when`이 바뀌었지만 DB tracker는 옛 값 그대로. Drizzle 마이그레이터가 hash 비교 전에 `when`으로 매칭하는 로직에서 "이 마이그레이션은 안 적용됨"으로 판단
 - 해결: DB tracker의 마지막 레코드 `created_at`을 journal의 `when` 값으로 UPDATE (hash가 이미 맞으면 그대로 유지). 임시 tsx 스크립트로 postgres 직접 접속해 `UPDATE drizzle.__drizzle_migrations SET created_at = <journal.when> WHERE id = <last>` 후 `db:migrate` 재실행. 스키마는 실제로 이미 최신이므로 다음 마이그레이션만 얹혀서 정상 종료. 임시 스크립트는 세션 후 삭제(커밋 X)
+
+### 빌드 실패 `ERR_PNPM_NO_MATCHING_VERSION_INSIDE_WORKSPACE`
+- 상황: Render Web Service 첫 배포 시 pnpm install 단계에서 실패
+- 원인: **Root Directory**를 `apps/api`로 지정 → 워크스페이스 의존(`"@repo/shared": "workspace:*"`)이 부모 pnpm-workspace.yaml 컨텍스트 밖이라 매칭 실패
+- 해결: Root Directory를 **비워둠**(`.`)으로 설정 후 build command에서 `pnpm --filter api build`로 지정. 재배포 시 **Clear build cache & deploy**
+
+### 클라이언트에서 API 호출 시 401
+- 상황: Vercel 배포된 웹에서 데이터 로딩 실패, Network 탭에 `/api/proxy/*` → 401
+- 원인: Web의 `API_ACCESS_TOKEN` env 값과 Render API의 `API_ACCESS_TOKEN` 값 불일치. `AccessTokenGuard`가 헤더 검증 실패로 401 반환
+- 해결: 두 대시보드에서 정확히 같은 값인지 확인(공백·복사 실수 흔함). 한쪽 재생성 시 다른 쪽도 동시 갱신. 변경 후 Render는 자동 재배포, Vercel은 수동 재배포 필요
+
+### 브라우저 CORS 에러 (배포 후)
+- 상황: Vercel 사이트에서 fetch → 콘솔에 `blocked by CORS policy: No 'Access-Control-Allow-Origin' header`
+- 원인: Render의 `CORS_ALLOWED_ORIGIN`이 아직 `*`(초기 셋업값)이거나 실제 Vercel URL과 오타. Production alias + branch alias 모두 등록 안 되면 preview에서만 CORS 실패
+- 해결: Render → Environment → `CORS_ALLOWED_ORIGIN`을 실제 Vercel URL들로 comma-separated 지정 (예: `https://rally-web.vercel.app,https://rally-web-git-develop-<team>.vercel.app`). env 변경 시 Render 자동 재배포
+
+---
+
+## Vercel 배포
+
+### 빌드에서 `@repo/shared`를 못 찾음
+- 상황: Vercel 빌드 로그에 `Module not found: Can't resolve '@repo/shared'`
+- 원인: Root Directory가 잘못 지정됐거나(`.` 대신 `apps/web`이어야 함) `pnpm-lock.yaml`이 커밋 안 됐거나. Vercel의 pnpm workspace 감지가 lockfile + root 조합에 의존
+- 해결: **Root Directory**를 `apps/web`으로 세팅. `pnpm-lock.yaml`이 repo 루트에 커밋됐는지 확인. Framework preset은 Next.js 자동 감지 유지
+
+---
+
+## 시드 / 데이터 관리
+
+### `db:seed` 재실행 위험 — companies 테이블을 전부 delete/reinsert
+- 상황: 하체 운동 추가하려고 `db:seed`를 재실행하려 했더니, 같은 스크립트가 `companies`도 delete 후 재삽입하는 구조라 그동안 편집해온 회사 데이터(지원 상태/메모/체크 등)가 다 날아갈 뻔
+- 원인: 초기 대량 시드 스크립트를 그대로 유지 중. exercises는 이후 `if empty` 조건이 붙었지만 companies는 여전히 무조건 wipe
+- 해결: 재실행이 필요한 도메인은 **전용 스크립트로 분리 + upsert-if-missing**. exercises는 `db:seed:exercises` (`seed-exercises.ts`)로 분리, 이름 기준으로 신규만 insert, `sortOrder`는 기존 max+1부터 이어붙임. 새 도메인 시드 확장 시에도 같은 패턴 권장
+
+---
+
+## 스케줄러 (cronjob.org · 내부 cron)
+
+### cronjob.org "Failed (output too large)"
+- 상황: `POST /blog-posts/refresh` 훅 실행 결과가 "Failed" — Test run 응답에 "output too large" 문구
+- 원인: cronjob.org 무료 티어는 응답 body 크기 임계값을 두고 그걸 넘으면 실행 자체를 실패로 표시. RSS refresh는 `{ processed, added, errors: [...] }` JSON을 반환하는데 errors 배열 · postgres 오류 메시지 · stack 등이 붙으면 몇 KB를 쉽게 넘김
+- 해결: RSS refresh는 **서버 프로세스 안 `@nestjs/schedule` `@Cron`**으로 이관 (`BlogPostsService.scheduledRefresh`, `@Cron('0 11,23 * * *')`). cronjob.org에는 콜드 스타트 방지용 `/health` 훅 하나만 유지. 결과는 Render Logs 탭에서 확인. `deployment.md` §5 참고
+
+### cronjob.org 훅이 알림 없이 disabled됨
+- 상황: `/health` ping이 계속 되고 있다고 생각했는데 어느 순간 cronjob.org 대시보드에서 job이 disabled 상태 → 그 사이 Render가 슬립했고 첫 요청 30초 콜드 스타트 반복
+- 원인: cronjob.org는 연속 실패가 일정 횟수 누적되면 job을 자동 disable. Render 콜드 스타트가 30초를 넘으면 훅의 기본 timeout(30s)에 걸려 fail로 집계됨. 이게 반복되면 disable 트리거
+- 해결: **History 탭**에서 fail 이력·원인 확인. timeout을 45~60s로 올리고 재활성. Health ping은 살아 있어야 `@nestjs/schedule` 내부 cron도 슬립 창에 미스되지 않음 (내부 cron만 있고 서버가 슬립이면 그 시간대 실행 못함)
+
+---
+
+## Next.js 프론트
+
+### `/workouts` 세트 입력 시 두 번째 필드 값이 씹힘
+- 상황: 무게 입력 후 Tab하여 횟수 입력하는 순간 UI에서 방금 입력한 숫자가 사라짐. 무게 단독은 정상, 횟수만 씹힘
+- 원인: 무게 blur → `commit` → `router.refresh()` → 서버가 새 `existingSets` 반환 → `SetInputs`의 useEffect가 rows를 `initRows`로 재초기화 → 그 사이 사용자가 다음 필드에 typing한 값이 덮어쓰기됨
+- 해결: useEffect 시작에서 `rowsSignature(rows) !== lastSavedRef.current`이면 (사용자 미저장 편집 중) 재초기화 skip. 실제 서버 상태 변경(reorder, 다른 카드 save)에도 in-flight typing은 보존

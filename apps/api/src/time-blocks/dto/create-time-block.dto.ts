@@ -25,4 +25,10 @@ export class CreateTimeBlockDto {
   @Min(0)
   @Max(1410)
   startTime?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(1410)
+  endTime?: number;
 }

@@ -1,40 +1,50 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import { Moon, Sun } from 'lucide-react';
 
 const STORAGE_KEY = 'rally.theme';
 type Theme = 'light' | 'dark';
+type Snapshot = Theme | null;
 
-function apply(next: Theme) {
+// The <html>.dark class is set by an inline script in layout.tsx before
+// React hydrates, so `useSyncExternalStore` can read it directly instead
+// of the setState-in-effect anti-pattern (React 19 warns).
+const themeListeners = new Set<() => void>();
+
+function readThemeClient(): Snapshot {
+  return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+}
+
+function readThemeServer(): Snapshot {
+  return null;
+}
+
+function subscribeTheme(callback: () => void) {
+  themeListeners.add(callback);
+  return () => {
+    themeListeners.delete(callback);
+  };
+}
+
+function applyTheme(next: Theme) {
   const el = document.documentElement;
   if (next === 'dark') el.classList.add('dark');
   else el.classList.remove('dark');
   try {
     window.localStorage.setItem(STORAGE_KEY, next);
-  } catch {
-    // localStorage unavailable — theme still applies in memory.
-  }
+  } catch {}
+  themeListeners.forEach((fn) => fn());
 }
 
 export function ThemeToggle() {
-  // The <html>.dark class is set by an inline script before hydration, but
-  // useState initial value can't peek at it (SSR sees null document). Read
-  // once on mount to sync UI with what's already visible.
-  const [theme, setTheme] = useState<Theme | null>(null);
+  const theme = useSyncExternalStore(
+    subscribeTheme,
+    readThemeClient,
+    readThemeServer,
+  );
 
-  useEffect(() => {
-    setTheme(document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-  }, []);
-
-  function toggle() {
-    const next: Theme = theme === 'dark' ? 'light' : 'dark';
-    apply(next);
-    setTheme(next);
-  }
-
-  // While the icon identity is unknown we render a placeholder of the same
-  // size — keeps sidebar layout stable and avoids showing the wrong icon.
+  // Same-size placeholder while SSR snapshot is null — keeps layout stable.
   if (theme === null) {
     return (
       <div
@@ -42,6 +52,10 @@ export function ThemeToggle() {
         className="h-7 w-7 rounded-md border border-transparent"
       />
     );
+  }
+
+  function toggle() {
+    applyTheme(theme === 'dark' ? 'light' : 'dark');
   }
 
   return (

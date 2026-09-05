@@ -1,5 +1,7 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
+import { BottomNav } from '../components/BottomNav';
+import { SectionSubNav } from '../components/SectionSubNav';
 import { Sidebar } from '../components/Sidebar';
 import './globals.css';
 
@@ -16,6 +18,21 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'Rally',
   description: '취준 루틴/커리어 트래커',
+  appleWebApp: {
+    capable: true,
+    title: 'Rally',
+    statusBarStyle: 'default',
+  },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  userScalable: true,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#fafafa' },
+    { media: '(prefers-color-scheme: dark)', color: '#09090b' },
+  ],
 };
 
 // Runs synchronously in <head> before any React or paint so `.dark` is on
@@ -45,8 +62,12 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
       <body className="min-h-full">
         <div className="flex min-h-screen">
           <Sidebar />
-          <main className="flex-1 overflow-x-auto">{children}</main>
+          <main className="flex-1 overflow-x-auto pb-20 md:pb-0">
+            <SectionSubNav />
+            {children}
+          </main>
         </div>
+        <BottomNav />
       </body>
     </html>
   );

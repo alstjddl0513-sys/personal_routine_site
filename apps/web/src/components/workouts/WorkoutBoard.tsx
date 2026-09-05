@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import type {
   Exercise,
   ExerciseStatsPR,
@@ -12,11 +12,15 @@ import type {
 import { createWorkoutSession, patchExercise } from '../../lib/api';
 import { ExerciseCard } from './ExerciseCard';
 import { SessionNoteCard } from './SessionNoteCard';
+import { SessionTabs } from './SessionTabs';
+import type { MuscleGroupFilter } from '../../lib/muscle-groups';
 
 interface Props {
   exercises: Exercise[];
   date: string;
-  initialSession: WorkoutSession | null;
+  group: MuscleGroupFilter;
+  sessions: WorkoutSession[];
+  activeSession: WorkoutSession | null;
   setsByExercise: Record<string, WorkoutSet[]>;
   previousByExercise: Record<string, PreviousWorkout | null>;
   prByExercise: Record<string, ExerciseStatsPR | null>;
@@ -24,18 +28,19 @@ interface Props {
 
 export function WorkoutBoard(props: Props) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   // Refs (not state) so single-flight tracking is immediate and immune to the
   // "state updated but closure not re-rendered yet" race between concurrent
   // card saves — otherwise two blurs firing back-to-back could both see
-  // sessionId=null and each POST a session, hitting the date UNIQUE violation.
-  const sessionRef = useRef<string | null>(props.initialSession?.id ?? null);
+  // sessionId=null and each POST a session, hitting a duplicate insert.
+  const sessionRef = useRef<string | null>(props.activeSession?.id ?? null);
   const pendingRef = useRef<Promise<string> | null>(null);
 
-  // Resync on date change (server re-renders with new initialSession).
+  // Resync on date/session change (server re-renders with new activeSession).
   useEffect(() => {
-    sessionRef.current = props.initialSession?.id ?? null;
+    sessionRef.current = props.activeSession?.id ?? null;
     pendingRef.current = null;
-  }, [props.date, props.initialSession]);
+  }, [props.date, props.activeSession]);
 
   async function ensureSession(): Promise<string> {
     if (sessionRef.current) return sessionRef.current;
@@ -44,6 +49,14 @@ export function WorkoutBoard(props: Props) {
       try {
         const s = await createWorkoutSession({ date: props.date });
         sessionRef.current = s.id;
+        // First lazy-created session on this date — pin it into the URL so a
+        // page refresh keeps the same active session (relevant once the user
+        // adds a second session).
+        if (props.sessions.length === 0) {
+          const qs = new URLSearchParams(searchParams?.toString() ?? '');
+          qs.set('session', s.id);
+          router.replace(`/workouts?${qs.toString()}`);
+        }
         return s.id;
       } finally {
         pendingRef.current = null;
@@ -67,8 +80,15 @@ export function WorkoutBoard(props: Props) {
 
   return (
     <div className="flex flex-col gap-3">
+      <SessionTabs
+        date={props.date}
+        group={props.group}
+        sessions={props.sessions}
+        activeSessionId={props.activeSession?.id ?? null}
+      />
       <SessionNoteCard
-        initialNote={props.initialSession?.note ?? ''}
+        key={props.activeSession?.id ?? 'empty'}
+        initialNote={props.activeSession?.note ?? ''}
         ensureSession={ensureSession}
       />
       {props.exercises.length === 0 ? (
@@ -79,7 +99,7 @@ export function WorkoutBoard(props: Props) {
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
           {props.exercises.map((e, idx) => (
             <ExerciseCard
-              key={e.id}
+              key={`${props.activeSession?.id ?? 'empty'}:${e.id}`}
               exercise={e}
               existingSets={props.setsByExercise[e.id] ?? []}
               previous={props.previousByExercise[e.id] ?? null}

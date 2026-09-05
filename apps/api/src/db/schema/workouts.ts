@@ -30,10 +30,10 @@ export const exercises = pgTable('exercises', {
     .defaultNow(),
 });
 
-// 하루 1세션 정책 — date UNIQUE.
+// 하루 여러 세션 허용 (분할 훈련 대응). date는 그냥 index 대상.
 export const workoutSessions = pgTable('workout_sessions', {
   id: uuid('id').defaultRandom().primaryKey(),
-  date: date('date').notNull().unique(),
+  date: date('date').notNull(),
   note: text('note'),
   startedAt: timestamp('started_at', { withTimezone: true, mode: 'string' }),
   endedAt: timestamp('ended_at', { withTimezone: true, mode: 'string' }),

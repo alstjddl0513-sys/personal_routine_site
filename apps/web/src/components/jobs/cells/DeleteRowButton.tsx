@@ -46,8 +46,15 @@ export function DeleteRowButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
+        className="rounded px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 md:hidden dark:text-red-400 dark:hover:bg-red-950/30"
+      >
+        삭제
+      </button>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
         aria-label={`${name} 삭제`}
-        className="inline-flex h-6 w-6 items-center justify-center rounded text-zinc-400 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-rose-50 hover:text-rose-600 focus-visible:opacity-100 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
+        className="hidden h-6 w-6 items-center justify-center rounded text-zinc-400 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-rose-50 hover:text-rose-600 focus-visible:opacity-100 md:inline-flex dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
       >
         <X className="h-4 w-4" aria-hidden />
       </button>

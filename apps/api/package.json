@@ -23,6 +23,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/db/migrate.ts",
     "db:seed": "tsx src/db/seed.ts",
+    "db:seed:exercises": "tsx src/db/seed-exercises.ts",
+    "db:seed:blog-sources": "tsx src/db/seed-blog-sources.ts",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
@@ -31,12 +33,14 @@
     "@nestjs/core": "^11.0.1",
     "@nestjs/mapped-types": "^2.1.1",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/schedule": "^12.0.1",
     "@repo/shared": "workspace:*",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "drizzle-orm": "^0.45.2",
     "postgres": "^3.4.9",
     "reflect-metadata": "^0.2.2",
+    "rss-parser": "^3.13.0",
     "rxjs": "^7.8.1"
   },
   "devDependencies": {

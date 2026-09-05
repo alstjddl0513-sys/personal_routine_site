@@ -1,0 +1,1 @@
+ALTER TABLE "workout_sessions" DROP CONSTRAINT "workout_sessions_date_unique";

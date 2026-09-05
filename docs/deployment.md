@@ -48,24 +48,7 @@ Render 대시보드 → **Environment** → 추가:
 
 ### DB 마이그레이션 (수동)
 
-Render는 마이그레이션을 돌리지 않음. **로컬에서** prod DB에 직접 적용:
-
-```bash
-# .env를 잠시 prod로 스왑하거나, 별도 shell에서:
-DATABASE_URL="<prod URL>" pnpm --filter api db:migrate
-```
-
-Windows PowerShell:
-
-```powershell
-$env:DATABASE_URL="<prod URL>"
-pnpm.cmd --filter api db:migrate   # pnpm.ps1이 실행 정책에 막히므로 .cmd 래퍼
-Remove-Item env:DATABASE_URL       # 세션 정리 (또는 창 닫기)
-```
-
-`migrate.ts`가 dotenv를 default 모드로 로드해서 이미 세팅된 `$env:DATABASE_URL`을 덮지 않으므로 `.env` 파일은 그대로 둬도 됨.
-
-이후 새 마이그레이션 파일 생성할 때마다 동일 수동 절차. (`CLAUDE.md` 규칙 4: 자동 실행 금지)
+Render는 마이그레이션을 돌리지 않음. 릴리스마다 로컬에서 prod DB에 직접 적용. 상세 절차는 **§6 릴리스 절차** 참고.
 
 ### 배포 확인
 
@@ -138,13 +121,137 @@ Vercel 대시보드 → **Settings** → **Environment Variables** → 추가 (�
 
 ---
 
-## 트러블슈팅 요약
+## §5. 스케줄러
 
-| 증상 | 원인 · 해결 |
+무료 티어 Render는 15분 idle 시 슬립 + 자체 cron 없음. 구성:
+
+1. **콜드 스타트 방지** — 외부 cronjob.org에서 10분마다 `/health` (필수)
+2. **RSS 자동 수집** — 서버 프로세스 안에서 `@nestjs/schedule` `@Cron('0 11,23 * * *')` (하루 2회, 08:00/20:00 KST). 외부 훅 불필요
+
+### 외부 훅 · Health ping (콜드 스타트 방지)
+
+https://cronjob.org 가입 → **Cronjobs** → **Create cronjob**:
+
+| 필드 | 값 |
 |---|---|
-| Render 빌드 `ERR_PNPM_NO_MATCHING_VERSION_INSIDE_WORKSPACE` | Root Directory를 `apps/api`로 세팅함 → `.`로 되돌리기 |
-| 클라이언트에서 API 호출 시 401 | Web/API의 `API_ACCESS_TOKEN` 값 불일치 |
-| 브라우저 CORS 에러 | Render `CORS_ALLOWED_ORIGIN`이 아직 `*`거나 Vercel URL과 오타. 재배포 필요 |
-| Render 첫 요청이 30초 걸림 | 무료 티어 콜드 스타트. 유료 전환 or cron으로 5분마다 `/health` 핑 |
-| Supabase 연결 실패 (`ENOTFOUND`) | Session Pooler(port 5432) 아닌 Direct(6543) 사용 중. 문자열 재확인 |
-| Vercel 빌드에서 `@repo/shared` 못 찾음 | Root Directory가 `apps/web`이 맞는지 · pnpm-lock.yaml 커밋됐는지 확인 |
+| Title | `rally health ping` |
+| URL | `https://<render-service>.onrender.com/health` |
+| Method | GET |
+| Schedule | Every 10 minutes |
+| Timeout | 30s |
+
+`/health`는 `AccessTokenGuard` 예외라 토큰 헤더 불필요.
+
+**주의**: cronjob.org는 연속 실패가 누적되면 job을 자동 disable함. Render 콜드 스타트가 30초 넘으면 timeout이 반복되고 결국 꺼진다. **History에서 disable 이유 확인 → 필요하면 timeout 상향 후 재활성**. Health ping이 죽어 있으면 아래 내부 RSS cron도 서버 슬립 창에 미스될 수 있음.
+
+**알림 세팅**: 매번 대시보드에 로그인해서 확인하지 않도록, job 편집 → **Notifications** 탭 → *Notify on failure* 체크. `Failures in a row`는 2~3 정도가 노이즈 덜함(첫 실패에 즉시 알림은 시끄러움). 등록된 계정 이메일로 자동 발송되므로, 문제가 생기면 메일 받고 그때만 대시보드 열면 됨.
+
+### 내부 스케줄 · RSS refresh
+
+코드로 구현. `apps/api/src/blog-posts/blog-posts.service.ts`의 `scheduledRefresh()`가 담당:
+
+```ts
+@Cron('0 11,23 * * *')  // UTC 기준 → 08:00·20:00 KST
+async scheduledRefresh() { ... }
+```
+
+- 응답 크기·타임아웃·헤더 등 외부 cron 서비스의 제약 (예: cronjob.org "Failed (output too large)")에서 자유
+- 실행 결과는 Render **Logs** 탭에서 `Scheduled RSS refresh…` / `added=N, processed=M` 로그로 확인
+- 스케줄 변경은 `@Cron` 표현식만 수정 후 재배포
+
+수동 트리거는 여전히 웹 `/blog`의 "RSS 새로고침" 버튼으로 가능.
+
+### 왜 내부 cron으로 옮겼나 (2026-09)
+
+초기엔 cronjob.org에 RSS refresh 훅도 등록하려 했으나:
+- refresh 응답 JSON이 임계값을 초과해 cronjob.org가 "Failed (output too large)"로 표시 → 실패 이력 누적 → 자동 disable
+- 서버 프로세스가 어차피 살아있어야 하는(health ping) 조건에선 앱 내부 cron이 응답 크기·타임아웃 제약 없이 단순
+
+---
+
+## §6. 릴리스 절차 (develop → main)
+
+### 흐름 요약
+
+1. develop이 릴리스 준비 상태 (신규 마이그·기능 병합 완료)
+2. 로컬에서 root `package.json` version bump → PR로 develop 병합 (예: `chore/release-X.Y.Z` 브랜치)
+3. GitHub에서 **develop → main** 릴리스 PR 생성 · 병합
+4. Render/Vercel이 main 감지 → 자동 재배포 (Vercel ~1분, Render ~2~5분)
+5. **신규 마이그 파일이 있으면 prod Supabase에 수동 적용** (아래 절차)
+6. 배포 완료 후 사이트 스모크 테스트 (§4 체크리스트)
+
+### 마이그 적용 타이밍
+
+| 변경 종류 | 예시 | 적용 순서 |
+|---|---|---|
+| additive | 새 컬럼(nullable) · 새 테이블 · 새 인덱스 | **코드 배포 전** — 새 API가 새 컬럼을 참조하므로 |
+| destructive | 컬럼 drop · 테이블 drop · NOT NULL 추가 | **코드 배포 후** — 옛 API가 참조 중이면 500 |
+| neutral | UNIQUE 해제 · 컬럼 rename(코드도 함께 변경) | 아무 순서 (release PR 병합 직후가 편함) |
+
+`0009_curly_agent_brand.sql` (UNIQUE 해제)은 neutral. release PR 병합 직후 아무 때나 적용.
+
+### 마이그 적용 (PowerShell)
+
+**1. Prod DATABASE_URL 준비**
+
+Supabase 대시보드 → 프로젝트 → **Project Settings** → **Database** → **Connection string** 탭 → **Session pooler** 선택 (Transaction 모드는 마이그레이션 부적합):
+
+```
+postgresql://postgres.<project-ref>:<PASSWORD>@aws-0-<region>.pooler.supabase.com:5432/postgres
+```
+
+Port `5432`(Session pooler) 확인. Direct(6543)는 IPv6 전용이라 국내에서 DNS 실패.
+
+**2. 실행**
+
+```powershell
+# 세션 한정 env (창 닫으면 사라짐, .env 파일은 안 건드림)
+$env:DATABASE_URL = "postgresql://postgres.<ref>:<pw>@aws-0-<region>.pooler.supabase.com:5432/postgres"
+
+# 미적용 마이그 파일 확인 (선택. "No schema changes"면 스키마-DB 이미 일치)
+pnpm.cmd --filter api db:generate
+
+# 실제 적용
+pnpm.cmd --filter api db:migrate
+# → "Running migrations..." → "Migrations applied." 로그로 확인
+
+# 세션 정리
+Remove-Item env:DATABASE_URL
+```
+
+`pnpm.ps1`은 PowerShell 실행 정책에 막히므로 `.cmd` 래퍼 사용. `migrate.ts`가 dotenv를 default 모드로 로드해서 이미 세팅된 `$env:DATABASE_URL`을 안 덮음.
+
+**3. 적용 확인**
+
+Supabase 대시보드 → **SQL Editor**:
+
+```sql
+SELECT id, hash, created_at
+FROM drizzle.__drizzle_migrations
+ORDER BY id DESC LIMIT 5;
+```
+
+방금 실행한 마이그 파일명 접두어(예: `0009`)의 hash가 뜨면 성공. 이후 API 재배포된 프로세스가 첫 요청부터 정상 동작해야 함.
+
+### 롤백
+
+- 안전한 방법: **미리 대비**. destructive 마이그면 실행 전 Supabase SQL Editor에서 백업 dump 확보 (예: `pg_dump` 흉내로 CREATE TABLE + INSERT SELECT 저장)
+- Free 티어는 자동 백업 7일 · Point-in-time recovery는 Pro만
+- 급하면 수동 SQL로 revert (예: UNIQUE 해제 롤백 = `ALTER TABLE ... ADD CONSTRAINT ... UNIQUE(...)`). 이 경우 `drizzle.__drizzle_migrations`에서 해당 row도 delete해야 다음 `db:migrate`가 재시도 안 함
+
+### 릴리스 체크리스트
+
+- [ ] develop → main PR 병합 완료
+- [ ] Vercel 배포 성공 (Deployments 탭 · production alias 갱신)
+- [ ] Render 배포 성공 (Events 탭 · "Deploy live")
+- [ ] 신규 마이그 파일 확인 → 있으면 위 절차로 prod 적용
+- [ ] `/health` 응답 정상
+- [ ] 배포 사이트 접속 → 스모크 테스트 (§4)
+- [ ] 새 기능 하나 실제 조작 (릴리스 노트에 있는 것)
+- [ ] `docs/todo.md`의 이번 릴리스 항목 체크
+
+---
+
+## 트러블슈팅
+
+배포·런타임 문제는 [`docs/troubleshooting.md`](./troubleshooting.md) 참고 (Render 배포 · Vercel 배포 · Supabase 연결 · 스케줄러 섹션).

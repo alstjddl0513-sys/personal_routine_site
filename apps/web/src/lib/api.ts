@@ -1,5 +1,8 @@
 import type {
   ApplicationStatus,
+  BlogPost,
+  BlogRefreshResult,
+  BlogSource,
   Company,
   CompanyType,
   CompanyType1,
@@ -50,6 +53,13 @@ function authHeaders(): Record<string, string> {
   if (typeof window !== 'undefined') return {};
   const token = process.env.API_ACCESS_TOKEN;
   return token ? { 'x-auth-token': token } : {};
+}
+
+export class HttpError extends Error {
+  constructor(message: string, public status: number) {
+    super(message);
+    this.name = 'HttpError';
+  }
 }
 
 export interface GetCompaniesParams {
@@ -185,7 +195,8 @@ export async function getTimeBlocks(includeArchived = false): Promise<TimeBlock[
 export async function createTimeBlock(input: {
   label: string;
   sortOrder?: number;
-  startTime?: number;
+  startTime?: number | null;
+  endTime?: number | null;
 }): Promise<TimeBlock> {
   const res = await fetch(apiUrl('/time-blocks'), {
     method: 'POST',
@@ -307,16 +318,26 @@ export async function patchExercise(
   return (await res.json()) as Exercise;
 }
 
-// Returns null when no session exists for this date.
-export async function getWorkoutSessionByDate(date: string): Promise<WorkoutSession | null> {
+// 409는 세트 이력이 있어 DELETE FK-restrict가 걸린 경우. 호출자는 HttpError.status로 분기.
+export async function deleteExercise(id: string): Promise<void> {
+  const res = await fetch(apiUrl(`/exercises/${id}`), {
+    method: 'DELETE',
+    headers: authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(`DELETE /exercises/${id} failed: HTTP ${res.status}`, res.status);
+  }
+}
+
+// Returns all sessions for the given date, ordered by createdAt asc.
+export async function getWorkoutSessionsByDate(date: string): Promise<WorkoutSession[]> {
   const qs = new URLSearchParams({ date });
   const res = await fetch(apiUrl(`/workout-sessions?${qs.toString()}`), {
     cache: 'no-store',
     headers: authHeaders(),
   });
   if (!res.ok) throw new Error(`GET /workout-sessions failed: HTTP ${res.status}`);
-  const arr = (await res.json()) as WorkoutSession[];
-  return arr[0] ?? null;
+  return (await res.json()) as WorkoutSession[];
 }
 
 export async function getWorkoutSessionsRange(range: {
@@ -356,6 +377,16 @@ export async function patchWorkoutSession(
   });
   if (!res.ok) throw new Error(`PATCH /workout-sessions/${id} failed: HTTP ${res.status}`);
   return (await res.json()) as WorkoutSession;
+}
+
+export async function deleteWorkoutSession(id: string): Promise<void> {
+  const res = await fetch(apiUrl(`/workout-sessions/${id}`), {
+    method: 'DELETE',
+    headers: authHeaders(),
+  });
+  if (!res.ok && res.status !== 204) {
+    throw new Error(`DELETE /workout-sessions/${id} failed: HTTP ${res.status}`);
+  }
 }
 
 export async function getWorkoutSets(sessionId: string): Promise<WorkoutSet[]> {
@@ -444,4 +475,81 @@ export async function getPreviousWorkout(params: {
   // than the string "null", so res.json() would throw. Read as text first.
   const text = await res.text();
   return text ? (JSON.parse(text) as PreviousWorkout) : null;
+}
+
+// --- blog ---
+
+export async function getBlogSources(includeInactive = true): Promise<BlogSource[]> {
+  const qs = includeInactive ? '' : '?isActive=true';
+  const res = await fetch(apiUrl(`/blog-sources${qs}`), {
+    cache: 'no-store',
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(`GET /blog-sources failed: HTTP ${res.status}`);
+  return (await res.json()) as BlogSource[];
+}
+
+export async function createBlogSource(input: {
+  name: string;
+  rssUrl: string;
+  siteUrl?: string;
+  isActive?: boolean;
+}): Promise<BlogSource> {
+  const res = await fetch(apiUrl('/blog-sources'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(`POST /blog-sources failed: HTTP ${res.status}`);
+  return (await res.json()) as BlogSource;
+}
+
+export async function patchBlogSource(
+  id: string,
+  patch: Partial<Pick<BlogSource, 'name' | 'rssUrl' | 'siteUrl' | 'isActive' | 'sortOrder'>>,
+): Promise<BlogSource> {
+  const res = await fetch(apiUrl(`/blog-sources/${id}`), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok) throw new Error(`PATCH /blog-sources/${id} failed: HTTP ${res.status}`);
+  return (await res.json()) as BlogSource;
+}
+
+export async function deleteBlogSource(id: string): Promise<void> {
+  const res = await fetch(apiUrl(`/blog-sources/${id}`), {
+    method: 'DELETE',
+    headers: authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(`DELETE /blog-sources/${id} failed: HTTP ${res.status}`, res.status);
+  }
+}
+
+export async function getBlogPosts(params: {
+  sourceId?: string;
+  limit?: number;
+  offset?: number;
+} = {}): Promise<BlogPost[]> {
+  const qs = new URLSearchParams();
+  if (params.sourceId) qs.set('sourceId', params.sourceId);
+  if (params.limit !== undefined) qs.set('limit', String(params.limit));
+  if (params.offset !== undefined) qs.set('offset', String(params.offset));
+  const s = qs.toString();
+  const res = await fetch(apiUrl(`/blog-posts${s ? `?${s}` : ''}`), {
+    cache: 'no-store',
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(`GET /blog-posts failed: HTTP ${res.status}`);
+  return (await res.json()) as BlogPost[];
+}
+
+export async function refreshBlogPosts(): Promise<BlogRefreshResult> {
+  const res = await fetch(apiUrl('/blog-posts/refresh'), {
+    method: 'POST',
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(`POST /blog-posts/refresh failed: HTTP ${res.status}`);
+  return (await res.json()) as BlogRefreshResult;
 }

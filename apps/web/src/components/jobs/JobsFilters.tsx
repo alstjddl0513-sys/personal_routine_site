@@ -1,8 +1,16 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
-import { Heart, Search, X } from 'lucide-react';
+import {
+  ChevronDown,
+  Heart,
+  Search,
+  Settings2,
+  SlidersHorizontal,
+  X,
+} from 'lucide-react';
 import {
   APPLICATION_STATUS_LABELS,
   APPLICATION_STATUS_VALUES,
@@ -100,9 +108,16 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
     currentFavorite ||
     currentSearch;
 
+  // Sum only the chip-group filters — search/favorite/hiring have their own
+  // controls above the disclosure and don't belong in the mobile chip badge.
+  const chipFilterCount =
+    type2Set.size + type1Set.size + prioritySet.size + statusSet.size;
+
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <div className="relative max-w-sm flex-1">
           <Search
             className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-zinc-400"
@@ -113,14 +128,14 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="회사명 검색"
-            className="w-full rounded-md border border-zinc-300 bg-white py-2 pr-3 pl-9 text-sm outline-none placeholder:text-zinc-400 focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
+            className="min-h-11 w-full rounded-md border border-zinc-300 bg-white py-2 pr-3 pl-9 text-base outline-none placeholder:text-zinc-400 focus:border-zinc-500 md:min-h-0 md:text-sm dark:border-zinc-700 dark:bg-zinc-900"
           />
         </div>
         <AddCompanyButton companyTypes={companyTypes} />
         <button
           type="button"
           onClick={() => pushPatch({ favorite: currentFavorite ? null : '1' })}
-          className={`inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors ${
+          className={`inline-flex min-h-11 items-center gap-2 rounded-md border px-3 text-sm transition-colors md:min-h-0 md:py-2 ${
             currentFavorite
               ? 'border-rose-300 bg-rose-50 text-rose-700 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-300'
               : 'border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800'
@@ -137,7 +152,7 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
           <button
             type="button"
             onClick={clearAll}
-            className="inline-flex items-center gap-1 rounded-md px-2 py-2 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+            className="inline-flex min-h-11 items-center gap-1 rounded-md px-2 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 md:min-h-0 md:py-2 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
           >
             <X className="h-3.5 w-3.5" aria-hidden />
             초기화
@@ -145,9 +160,52 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
         ) : null}
       </div>
 
-      <div className="rounded-md border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
-        <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 text-sm">
-          <FilterRow label="유형">
+      <button
+        type="button"
+        onClick={() => setMobileOpen((o) => !o)}
+        aria-expanded={mobileOpen}
+        className="inline-flex min-h-11 items-center justify-between gap-2 rounded-md border border-zinc-200 bg-white px-3 text-sm text-zinc-700 hover:bg-zinc-50 md:hidden dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900"
+      >
+        <span className="inline-flex items-center gap-2">
+          <SlidersHorizontal className="h-4 w-4" aria-hidden />
+          필터
+          {chipFilterCount > 0 ? (
+            <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-zinc-900 px-1.5 text-[10px] font-medium text-white dark:bg-zinc-100 dark:text-zinc-900">
+              {chipFilterCount}
+            </span>
+          ) : null}
+        </span>
+        <ChevronDown
+          className={`h-4 w-4 text-zinc-400 transition-transform ${mobileOpen ? 'rotate-180' : ''}`}
+          aria-hidden
+        />
+      </button>
+
+      <div
+        className={`${mobileOpen ? '' : 'hidden'} md:block rounded-md border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950`}
+      >
+        <div className="mb-2 flex justify-end md:hidden">
+          <Link
+            href="/settings/company-types"
+            className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+          >
+            <Settings2 className="h-3.5 w-3.5" aria-hidden />
+            유형 관리
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 gap-x-3 gap-y-2 text-sm md:grid-cols-[auto_1fr] md:items-center">
+          <FilterRow
+            label="유형"
+            trailing={
+              <Link
+                href="/settings/company-types"
+                className="ml-auto hidden items-center gap-1 rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 md:inline-flex dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+              >
+                <Settings2 className="h-3.5 w-3.5" aria-hidden />
+                유형 관리
+              </Link>
+            }
+          >
             {companyTypes.map((t) => (
               <Chip
                 key={t.key}
@@ -227,14 +285,21 @@ function parseCsv(raw: string | null): Set<string> {
 function FilterRow({
   label,
   children,
+  trailing,
 }: {
   label: string;
   children: React.ReactNode;
+  trailing?: React.ReactNode;
 }) {
   return (
     <>
-      <span className="pt-1 text-xs text-zinc-500 dark:text-zinc-400">{label}</span>
-      <div className="flex flex-wrap gap-1.5">{children}</div>
+      <span className="mt-2 text-xs text-zinc-500 first:mt-0 md:mt-0 md:pt-1 dark:text-zinc-400">
+        {label}
+      </span>
+      <div className="flex flex-wrap items-center gap-1.5">
+        {children}
+        {trailing}
+      </div>
     </>
   );
 }
