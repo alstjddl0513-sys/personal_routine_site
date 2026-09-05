@@ -30,7 +30,7 @@ export default function SettingsPage() {
             <div className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
               기업 유형 관리
             </div>
-            <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="mt-0.5 break-keep text-xs text-zinc-500 dark:text-zinc-400">
               채용 리스트의 &quot;유형&quot; 필터/선택에 나오는 항목을 추가·편집·삭제.
             </p>
           </div>
@@ -45,7 +45,7 @@ export default function SettingsPage() {
             <div className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
               시간블록 관리
             </div>
-            <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="mt-0.5 break-keep text-xs text-zinc-500 dark:text-zinc-400">
               루틴 트래커의 시간블록을 추가·편집·재정렬·삭제.
             </p>
           </div>
@@ -60,7 +60,7 @@ export default function SettingsPage() {
             <div className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
               운동 종목 관리
             </div>
-            <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="mt-0.5 break-keep text-xs text-zinc-500 dark:text-zinc-400">
               운동 기록 페이지의 종목을 추가·편집·숨김·삭제.
             </p>
           </div>
@@ -75,7 +75,7 @@ export default function SettingsPage() {
             <div className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
               블로그 소스 관리
             </div>
-            <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="mt-0.5 break-keep text-xs text-zinc-500 dark:text-zinc-400">
               기술 블로그 페이지의 RSS 소스를 추가·편집·일시중지·삭제.
             </p>
           </div>
