@@ -39,8 +39,7 @@ export default async function WorkoutsPage({
     getWorkoutSessionsByDate(dateIso),
   ]);
 
-  // Active session: URL param → matching session, else first session, else null.
-  // Silently falls back if a stale `session=` param points to a deleted session.
+  // Stale ?session=<id> (deleted session) silently falls back to first / null.
   const activeSession =
     (sessionParam && sessions.find((s) => s.id === sessionParam)) ||
     sessions[0] ||
