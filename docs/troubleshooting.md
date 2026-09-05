@@ -165,6 +165,30 @@
 - 원인: `drizzle.__drizzle_migrations` 테이블의 마지막 레코드 `created_at`이 현재 `_journal.json`의 `when` 값과 어긋남. 과거 어느 시점에 `db:generate`를 다시 돌리면서 journal의 `when`이 바뀌었지만 DB tracker는 옛 값 그대로. Drizzle 마이그레이터가 hash 비교 전에 `when`으로 매칭하는 로직에서 "이 마이그레이션은 안 적용됨"으로 판단
 - 해결: DB tracker의 마지막 레코드 `created_at`을 journal의 `when` 값으로 UPDATE (hash가 이미 맞으면 그대로 유지). 임시 tsx 스크립트로 postgres 직접 접속해 `UPDATE drizzle.__drizzle_migrations SET created_at = <journal.when> WHERE id = <last>` 후 `db:migrate` 재실행. 스키마는 실제로 이미 최신이므로 다음 마이그레이션만 얹혀서 정상 종료. 임시 스크립트는 세션 후 삭제(커밋 X)
 
+### 빌드 실패 `ERR_PNPM_NO_MATCHING_VERSION_INSIDE_WORKSPACE`
+- 상황: Render Web Service 첫 배포 시 pnpm install 단계에서 실패
+- 원인: **Root Directory**를 `apps/api`로 지정 → 워크스페이스 의존(`"@repo/shared": "workspace:*"`)이 부모 pnpm-workspace.yaml 컨텍스트 밖이라 매칭 실패
+- 해결: Root Directory를 **비워둠**(`.`)으로 설정 후 build command에서 `pnpm --filter api build`로 지정. 재배포 시 **Clear build cache & deploy**
+
+### 클라이언트에서 API 호출 시 401
+- 상황: Vercel 배포된 웹에서 데이터 로딩 실패, Network 탭에 `/api/proxy/*` → 401
+- 원인: Web의 `API_ACCESS_TOKEN` env 값과 Render API의 `API_ACCESS_TOKEN` 값 불일치. `AccessTokenGuard`가 헤더 검증 실패로 401 반환
+- 해결: 두 대시보드에서 정확히 같은 값인지 확인(공백·복사 실수 흔함). 한쪽 재생성 시 다른 쪽도 동시 갱신. 변경 후 Render는 자동 재배포, Vercel은 수동 재배포 필요
+
+### 브라우저 CORS 에러 (배포 후)
+- 상황: Vercel 사이트에서 fetch → 콘솔에 `blocked by CORS policy: No 'Access-Control-Allow-Origin' header`
+- 원인: Render의 `CORS_ALLOWED_ORIGIN`이 아직 `*`(초기 셋업값)이거나 실제 Vercel URL과 오타. Production alias + branch alias 모두 등록 안 되면 preview에서만 CORS 실패
+- 해결: Render → Environment → `CORS_ALLOWED_ORIGIN`을 실제 Vercel URL들로 comma-separated 지정 (예: `https://rally-web.vercel.app,https://rally-web-git-develop-<team>.vercel.app`). env 변경 시 Render 자동 재배포
+
+---
+
+## Vercel 배포
+
+### 빌드에서 `@repo/shared`를 못 찾음
+- 상황: Vercel 빌드 로그에 `Module not found: Can't resolve '@repo/shared'`
+- 원인: Root Directory가 잘못 지정됐거나(`.` 대신 `apps/web`이어야 함) `pnpm-lock.yaml`이 커밋 안 됐거나. Vercel의 pnpm workspace 감지가 lockfile + root 조합에 의존
+- 해결: **Root Directory**를 `apps/web`으로 세팅. `pnpm-lock.yaml`이 repo 루트에 커밋됐는지 확인. Framework preset은 Next.js 자동 감지 유지
+
 ---
 
 ## 시드 / 데이터 관리
