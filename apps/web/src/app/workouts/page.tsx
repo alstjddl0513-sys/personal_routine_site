@@ -5,7 +5,7 @@ import {
   getExerciseStats,
   getExercises,
   getPreviousWorkout,
-  getWorkoutSessionByDate,
+  getWorkoutSessionsByDate,
   getWorkoutSets,
 } from '../../lib/api';
 import { parseISODate, toISODate } from '../../lib/routines-week';
@@ -31,12 +31,20 @@ export default async function WorkoutsPage({
   const dateParam = first(sp.date);
   const displayDate = (dateParam ? parseISODate(dateParam) : null) ?? new Date();
   const dateIso = toISODate(displayDate);
-  const groupFilter = parseGroupFilter(first(sp.group));
+  const groupFilter: MuscleGroupFilter = parseGroupFilter(first(sp.group));
+  const sessionParam = first(sp.session);
 
-  const [allExercises, session] = await Promise.all([
+  const [allExercises, sessions] = await Promise.all([
     getExercises(),
-    getWorkoutSessionByDate(dateIso),
+    getWorkoutSessionsByDate(dateIso),
   ]);
+
+  // Active session: URL param → matching session, else first session, else null.
+  // Silently falls back if a stale `session=` param points to a deleted session.
+  const activeSession =
+    (sessionParam && sessions.find((s) => s.id === sessionParam)) ||
+    sessions[0] ||
+    null;
 
   const counts: Record<MuscleGroupFilter, number> = {
     all: allExercises.length,
@@ -56,7 +64,7 @@ export default async function WorkoutsPage({
   // limit=1 fetches PR (all-time) with only 1 history row we don't use.
   // Cheaper than adding a dedicated /pr endpoint just for this page.
   const [allSets, previousList, statsList] = await Promise.all([
-    session ? getWorkoutSets(session.id) : Promise.resolve<WorkoutSet[]>([]),
+    activeSession ? getWorkoutSets(activeSession.id) : Promise.resolve<WorkoutSet[]>([]),
     Promise.all(
       exercises.map((e) => getPreviousWorkout({ exerciseId: e.id, beforeDate: dateIso })),
     ),
@@ -108,7 +116,9 @@ export default async function WorkoutsPage({
       <WorkoutBoard
         exercises={exercises}
         date={dateIso}
-        initialSession={session}
+        group={groupFilter}
+        sessions={sessions}
+        activeSession={activeSession}
         setsByExercise={setsByExercise}
         previousByExercise={previousByExercise}
         prByExercise={prByExercise}

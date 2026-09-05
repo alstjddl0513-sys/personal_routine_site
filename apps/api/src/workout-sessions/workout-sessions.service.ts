@@ -14,14 +14,14 @@ export class WorkoutSessionsService {
         .select()
         .from(workoutSessions)
         .where(eq(workoutSessions.date, query.date))
-        .limit(1);
+        .orderBy(asc(workoutSessions.createdAt));
     }
     if (query.from && query.to) {
       return db
         .select()
         .from(workoutSessions)
         .where(between(workoutSessions.date, query.from, query.to))
-        .orderBy(asc(workoutSessions.date));
+        .orderBy(asc(workoutSessions.date), asc(workoutSessions.createdAt));
     }
     return [];
   }

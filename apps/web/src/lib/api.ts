@@ -329,16 +329,15 @@ export async function deleteExercise(id: string): Promise<void> {
   }
 }
 
-// Returns null when no session exists for this date.
-export async function getWorkoutSessionByDate(date: string): Promise<WorkoutSession | null> {
+// Returns all sessions for the given date, ordered by createdAt asc.
+export async function getWorkoutSessionsByDate(date: string): Promise<WorkoutSession[]> {
   const qs = new URLSearchParams({ date });
   const res = await fetch(apiUrl(`/workout-sessions?${qs.toString()}`), {
     cache: 'no-store',
     headers: authHeaders(),
   });
   if (!res.ok) throw new Error(`GET /workout-sessions failed: HTTP ${res.status}`);
-  const arr = (await res.json()) as WorkoutSession[];
-  return arr[0] ?? null;
+  return (await res.json()) as WorkoutSession[];
 }
 
 export async function getWorkoutSessionsRange(range: {
@@ -378,6 +377,16 @@ export async function patchWorkoutSession(
   });
   if (!res.ok) throw new Error(`PATCH /workout-sessions/${id} failed: HTTP ${res.status}`);
   return (await res.json()) as WorkoutSession;
+}
+
+export async function deleteWorkoutSession(id: string): Promise<void> {
+  const res = await fetch(apiUrl(`/workout-sessions/${id}`), {
+    method: 'DELETE',
+    headers: authHeaders(),
+  });
+  if (!res.ok && res.status !== 204) {
+    throw new Error(`DELETE /workout-sessions/${id} failed: HTTP ${res.status}`);
+  }
 }
 
 export async function getWorkoutSets(sessionId: string): Promise<WorkoutSet[]> {
