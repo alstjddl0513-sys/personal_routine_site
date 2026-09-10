@@ -318,6 +318,10 @@ function translateAuthError(message: string): string {
   if (m.includes('password should be at least')) {
     return '비밀번호는 6자 이상이어야 합니다.';
   }
+  // Supabase "Prevent leaked passwords" (HIBP) 정책이 켜져있을 때 반환.
+  if (m.includes('pwned') || m.includes('leaked') || m.includes('compromised')) {
+    return '유출된 것으로 알려진 비밀번호입니다. 다른 비밀번호를 사용해주세요.';
+  }
   if (m.includes('invalid email') || m.includes('unable to validate email')) {
     return '이메일 형식이 올바르지 않습니다.';
   }

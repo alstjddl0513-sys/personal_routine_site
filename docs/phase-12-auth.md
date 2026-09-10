@@ -157,6 +157,14 @@ Next `proxy.ts` middleware + NestJS `SupabaseAuthGuard` 두 계층이 있어서 
 
 `lib/api.ts`는 client·server 양쪽에서 쓰이는데 SSR fetch용 auth header에 `next/headers`(via `@supabase/ssr`)가 필요. Dynamic import 트릭은 Turbopack이 모듈 그래프에 포함시켜 client 번들 빌드 실패. → `lib/supabase/auth-header.ts`에 `'use server'` 지시자를 붙여 Server Action으로 분리. Client 번들엔 RPC 스텁만 남고 server-only 의존은 격리됨. (Server-side callers는 in-process 직접 호출로 hop 없음.) 다른 server-only 로직을 client-shared 파일에서 참조해야 할 때 재사용 가능한 패턴.
 
+### Supabase Console 프로젝트 세팅 체크리스트
+
+env 파일에 없는 프로젝트-레벨 설정. 로컬·prod 각 프로젝트에 개별 적용. 새 환경(staging 등) 만들 때도 동일하게.
+
+- Authentication → Providers → **Email**: 활성 (기본)
+- Authentication → Providers → Email → **"Confirm email"** 토글 OFF (로컬 SMTP 없이 개발 편의. 다인화하면 재검토)
+- Authentication → Policies → **"Prevent use of leaked passwords"** 토글 ON (HIBP k-anonymity로 유출 비번 서버 거절. 프론트 `translateAuthError`가 `pwned/leaked/compromised` 키워드 매칭해서 한국어 안내)
+
 ## Google OAuth (12.3)
 
 - Supabase Console → Authentication → Providers → Google 활성화.
