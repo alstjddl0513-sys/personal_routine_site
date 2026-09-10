@@ -1,31 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { AUTH_COOKIE_NAME, isAuthConfigured, verifyAuthCookie } from '@/lib/auth-cookie';
+import { updateSupabaseSession } from '@/lib/supabase/middleware';
 
-// Cookie-based session guard for the whole app. When BASIC_AUTH_USER/PASSWORD
-// are unset the guard is a no-op so local dev needs no extra config. Once
-// enabled, unauthenticated page requests redirect to /login (preserving the
-// original path via `next`), while unauthenticated API requests return 401
-// JSON so client fetches can handle the failure without a full navigation.
+// Session guard for the whole app. When Supabase env is unset the guard is
+// a no-op so local dev needs no extra config. Once enabled, unauthenticated
+// page requests redirect to /login (preserving the original path via
+// `next`), while unauthenticated API requests return 401 JSON so client
+// fetches can handle the failure without a full navigation.
 //
 // Next.js 16 renamed the middleware file convention to "proxy" (the export
 // name follows suit).
 
-// Paths that must be reachable without a session — the login flow itself
+// Paths that must be reachable without a session — the auth flow itself
 // plus the safety-net unauthorized page.
-const PUBLIC_PATHS = ['/login', '/unauthorized', '/api/auth/login'];
+const PUBLIC_PATHS = ['/login', '/signup', '/unauthorized', '/auth/callback'];
 
 function isPublic(pathname: string): boolean {
   return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
-export function proxy(req: NextRequest) {
-  if (!isAuthConfigured()) return NextResponse.next();
+export async function proxy(req: NextRequest) {
+  const { response, user, configured } = await updateSupabaseSession(req);
+  if (!configured) return response;
 
   const { pathname, search } = req.nextUrl;
-  if (isPublic(pathname)) return NextResponse.next();
-
-  const cookie = req.cookies.get(AUTH_COOKIE_NAME)?.value;
-  if (verifyAuthCookie(cookie)) return NextResponse.next();
+  if (isPublic(pathname)) return response;
+  if (user) return response;
 
   // API requests: return JSON so client fetches don't try to render HTML.
   if (pathname.startsWith('/api/')) {
