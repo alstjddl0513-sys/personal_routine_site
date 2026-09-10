@@ -1,7 +1,11 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { and, asc, between, desc, eq, isNotNull, lt, sql } from 'drizzle-orm';
 import { db } from '../db/client';
-import { workoutSessions, workoutSets } from '../db/schema';
+import { exercises, workoutSessions, workoutSets } from '../db/schema';
 import type { BatchWorkoutSetsDto } from './dto/batch-workout-sets.dto';
 import type { QueryHeatmapDto } from './dto/query-heatmap.dto';
 import type { QueryWorkoutSetsDto } from './dto/query-workout-sets.dto';
@@ -10,19 +14,24 @@ import type { QueryExerciseStatsDto } from './dto/query-exercise-stats.dto';
 
 @Injectable()
 export class WorkoutSetsService {
-  async findAll(query: QueryWorkoutSetsDto) {
+  async findAll(ownerId: string, query: QueryWorkoutSetsDto) {
     if (!query.sessionId) {
       throw new BadRequestException('sessionId is required');
     }
     return db
       .select()
       .from(workoutSets)
-      .where(eq(workoutSets.sessionId, query.sessionId))
+      .where(
+        and(
+          eq(workoutSets.ownerId, ownerId),
+          eq(workoutSets.sessionId, query.sessionId),
+        ),
+      )
       .orderBy(asc(workoutSets.exerciseId), asc(workoutSets.setNumber));
   }
 
   // Replace all sets for (sessionId, exerciseId) atomically.
-  async batchReplace(dto: BatchWorkoutSetsDto) {
+  async batchReplace(ownerId: string, dto: BatchWorkoutSetsDto) {
     // Validate setNumber uniqueness inside the batch (DB will also reject via UNIQUE,
     // but a friendly 400 beats a 500).
     const nums = new Set<number>();
@@ -34,10 +43,37 @@ export class WorkoutSetsService {
     }
 
     return db.transaction(async (tx) => {
+      // Verify both parents belong to this user before touching sets. Prevents
+      // a caller from stamping their owner_id onto a stranger's session.
+      const [session] = await tx
+        .select({ id: workoutSessions.id })
+        .from(workoutSessions)
+        .where(
+          and(
+            eq(workoutSessions.id, dto.sessionId),
+            eq(workoutSessions.ownerId, ownerId),
+          ),
+        )
+        .limit(1);
+      if (!session) {
+        throw new NotFoundException(`WorkoutSession ${dto.sessionId} not found`);
+      }
+      const [exercise] = await tx
+        .select({ id: exercises.id })
+        .from(exercises)
+        .where(
+          and(eq(exercises.id, dto.exerciseId), eq(exercises.ownerId, ownerId)),
+        )
+        .limit(1);
+      if (!exercise) {
+        throw new NotFoundException(`Exercise ${dto.exerciseId} not found`);
+      }
+
       await tx
         .delete(workoutSets)
         .where(
           and(
+            eq(workoutSets.ownerId, ownerId),
             eq(workoutSets.sessionId, dto.sessionId),
             eq(workoutSets.exerciseId, dto.exerciseId),
           ),
@@ -49,6 +85,7 @@ export class WorkoutSetsService {
               .insert(workoutSets)
               .values(
                 dto.sets.map((s) => ({
+                  ownerId,
                   sessionId: dto.sessionId,
                   exerciseId: dto.exerciseId,
                   setNumber: s.setNumber,
@@ -69,16 +106,31 @@ export class WorkoutSetsService {
       const [{ count }] = await tx
         .select({ count: sql<number>`count(*)::int` })
         .from(workoutSets)
-        .where(eq(workoutSets.sessionId, dto.sessionId));
+        .where(
+          and(
+            eq(workoutSets.ownerId, ownerId),
+            eq(workoutSets.sessionId, dto.sessionId),
+          ),
+        );
       if (count === 0) {
-        const [session] = await tx
+        const [row] = await tx
           .select({ note: workoutSessions.note })
           .from(workoutSessions)
-          .where(eq(workoutSessions.id, dto.sessionId));
-        if (session && (session.note === null || session.note.trim() === '')) {
+          .where(
+            and(
+              eq(workoutSessions.id, dto.sessionId),
+              eq(workoutSessions.ownerId, ownerId),
+            ),
+          );
+        if (row && (row.note === null || row.note.trim() === '')) {
           await tx
             .delete(workoutSessions)
-            .where(eq(workoutSessions.id, dto.sessionId));
+            .where(
+              and(
+                eq(workoutSessions.id, dto.sessionId),
+                eq(workoutSessions.ownerId, ownerId),
+              ),
+            );
         }
       }
 
@@ -89,7 +141,7 @@ export class WorkoutSetsService {
   // Heatmap counts: per date, how many distinct exercises had at least one
   // "complete" set (weight AND reps both recorded). Rows for empty days are
   // omitted; the caller fills them in as zero.
-  async findHeatmap(query: QueryHeatmapDto) {
+  async findHeatmap(ownerId: string, query: QueryHeatmapDto) {
     return db
       .select({
         date: workoutSessions.date,
@@ -99,6 +151,7 @@ export class WorkoutSetsService {
       .innerJoin(workoutSets, eq(workoutSets.sessionId, workoutSessions.id))
       .where(
         and(
+          eq(workoutSessions.ownerId, ownerId),
           between(workoutSessions.date, query.from, query.to),
           isNotNull(workoutSets.weightKg),
           isNotNull(workoutSets.reps),
@@ -109,13 +162,14 @@ export class WorkoutSetsService {
 
   // Sets from the most recent session (before `beforeDate`) that used this exercise.
   // Returns { date, sets } or null.
-  async findPrevious(query: QueryPreviousDto) {
+  async findPrevious(ownerId: string, query: QueryPreviousDto) {
     const [prevSession] = await db
       .select({ id: workoutSessions.id, date: workoutSessions.date })
       .from(workoutSessions)
       .innerJoin(workoutSets, eq(workoutSets.sessionId, workoutSessions.id))
       .where(
         and(
+          eq(workoutSessions.ownerId, ownerId),
           eq(workoutSets.exerciseId, query.exerciseId),
           lt(workoutSessions.date, query.beforeDate),
         ),
@@ -135,6 +189,7 @@ export class WorkoutSetsService {
       .from(workoutSets)
       .where(
         and(
+          eq(workoutSets.ownerId, ownerId),
           eq(workoutSets.sessionId, prevSession.id),
           eq(workoutSets.exerciseId, query.exerciseId),
         ),
@@ -150,7 +205,7 @@ export class WorkoutSetsService {
   //   - pr: all-time top set (max weight, tie-break max reps, then latest date)
   // Both require weight_kg IS NOT NULL — a reps-only row can't sit on a
   // progression chart.
-  async findExerciseStats(query: QueryExerciseStatsDto) {
+  async findExerciseStats(ownerId: string, query: QueryExerciseStatsDto) {
     const limit = query.limit ?? 12;
 
     // Fetch (recent first) all weighted sets for this exercise, DB sorts
@@ -166,6 +221,7 @@ export class WorkoutSetsService {
       .innerJoin(workoutSessions, eq(workoutSessions.id, workoutSets.sessionId))
       .where(
         and(
+          eq(workoutSets.ownerId, ownerId),
           eq(workoutSets.exerciseId, query.exerciseId),
           isNotNull(workoutSets.weightKg),
         ),
@@ -203,6 +259,7 @@ export class WorkoutSetsService {
       .innerJoin(workoutSessions, eq(workoutSessions.id, workoutSets.sessionId))
       .where(
         and(
+          eq(workoutSets.ownerId, ownerId),
           eq(workoutSets.exerciseId, query.exerciseId),
           isNotNull(workoutSets.weightKg),
         ),

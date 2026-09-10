@@ -30,6 +30,16 @@ export interface AuthedRequest extends Request {
   user?: AuthUser;
 }
 
+// Controllers pull the owner id out of the request through this helper.
+// When SUPABASE_URL is unset (local dev without auth wired) the guard is a
+// no-op and req.user is absent — the helper still throws so we never issue
+// unscoped DB queries by accident.
+export function requireUserId(req: AuthedRequest): string {
+  const id = req.user?.id;
+  if (!id) throw new UnauthorizedException('authentication required');
+  return id;
+}
+
 type JWKS = ReturnType<typeof createRemoteJWKSet>;
 
 @Injectable()
