@@ -38,21 +38,27 @@ export type CompanyPatch = Partial<
   >
 >;
 
-// Two fetch paths so the API access token never reaches the browser:
-//   - SSR (server component / route handler): hit the upstream directly, token
-//     goes in a request header set here.
+// Two fetch paths so the auth token never reaches the browser:
+//   - SSR (server component / route handler): hit the upstream directly, the
+//     Supabase access token is read from cookies here and forwarded as
+//     Authorization: Bearer.
 //   - Client component: hit our own /api/proxy/... which reruns the request on
-//     the server side and stamps the token there (see route.ts).
+//     the server side and stamps the same header (see route.ts).
 function apiUrl(path: string): string {
   if (typeof window !== 'undefined') return `/api/proxy${path}`;
   const base = process.env.API_INTERNAL_URL ?? 'http://localhost:3001';
   return `${base}${path}`;
 }
 
-function authHeaders(): Record<string, string> {
+import { getServerAuthorizationHeader } from './supabase/auth-header';
+
+// Server Action reference (see supabase/auth-header.ts) — Next replaces it
+// with an RPC stub in the client bundle so no server-only imports leak.
+// Server-side, it's a direct in-process call.
+async function authHeaders(): Promise<Record<string, string>> {
   if (typeof window !== 'undefined') return {};
-  const token = process.env.API_ACCESS_TOKEN;
-  return token ? { 'x-auth-token': token } : {};
+  const header = await getServerAuthorizationHeader();
+  return header ? { authorization: header } : {};
 }
 
 export class HttpError extends Error {
@@ -83,7 +89,7 @@ export async function getCompanies(params: GetCompaniesParams = {}): Promise<Com
   if (params.search) qs.set('search', params.search);
 
   const url = apiUrl(`/companies${qs.size ? `?${qs.toString()}` : ''}`);
-  const res = await fetch(url, { cache: 'no-store', headers: authHeaders() });
+  const res = await fetch(url, { cache: 'no-store', headers: await authHeaders() });
   if (!res.ok) {
     throw new Error(`GET /companies failed: HTTP ${res.status}`);
   }
@@ -103,7 +109,7 @@ export type CreateCompanyInput = Pick<Company, 'name' | 'type1' | 'type2'> &
 export async function createCompany(input: CreateCompanyInput): Promise<Company> {
   const res = await fetch(apiUrl('/companies'), {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
     body: JSON.stringify(input),
   });
   if (!res.ok) {
@@ -115,7 +121,7 @@ export async function createCompany(input: CreateCompanyInput): Promise<Company>
 export async function deleteCompany(id: string): Promise<void> {
   const res = await fetch(apiUrl(`/companies/${id}`), {
     method: 'DELETE',
-    headers: authHeaders(),
+    headers: await authHeaders(),
   });
   if (!res.ok) {
     throw new Error(`DELETE /companies/${id} failed: HTTP ${res.status}`);
@@ -127,7 +133,7 @@ export async function deleteCompany(id: string): Promise<void> {
 export async function getCompanyTypes(): Promise<CompanyType[]> {
   const res = await fetch(apiUrl('/company-types'), {
     cache: 'no-store',
-    headers: authHeaders(),
+    headers: await authHeaders(),
   });
   if (!res.ok) throw new Error(`GET /company-types failed: HTTP ${res.status}`);
   return (await res.json()) as CompanyType[];
@@ -140,7 +146,7 @@ export async function createCompanyType(input: {
 }): Promise<CompanyType> {
   const res = await fetch(apiUrl('/company-types'), {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
     body: JSON.stringify(input),
   });
   if (!res.ok) throw new Error(`POST /company-types failed: HTTP ${res.status}`);
@@ -153,7 +159,7 @@ export async function patchCompanyType(
 ): Promise<CompanyType> {
   const res = await fetch(apiUrl(`/company-types/${id}`), {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
     body: JSON.stringify(patch),
   });
   if (!res.ok) throw new Error(`PATCH /company-types/${id} failed: HTTP ${res.status}`);
@@ -163,7 +169,7 @@ export async function patchCompanyType(
 export async function deleteCompanyType(id: string): Promise<void> {
   const res = await fetch(apiUrl(`/company-types/${id}`), {
     method: 'DELETE',
-    headers: authHeaders(),
+    headers: await authHeaders(),
   });
   if (!res.ok) throw new Error(`DELETE /company-types/${id} failed: HTTP ${res.status}`);
 }
@@ -171,7 +177,7 @@ export async function deleteCompanyType(id: string): Promise<void> {
 export async function patchCompany(id: string, patch: CompanyPatch): Promise<Company> {
   const res = await fetch(apiUrl(`/companies/${id}`), {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
     body: JSON.stringify(patch),
   });
   if (!res.ok) {
@@ -186,7 +192,7 @@ export async function getTimeBlocks(includeArchived = false): Promise<TimeBlock[
   const qs = includeArchived ? '?includeArchived=true' : '';
   const res = await fetch(apiUrl(`/time-blocks${qs}`), {
     cache: 'no-store',
-    headers: authHeaders(),
+    headers: await authHeaders(),
   });
   if (!res.ok) throw new Error(`GET /time-blocks failed: HTTP ${res.status}`);
   return (await res.json()) as TimeBlock[];
@@ -200,7 +206,7 @@ export async function createTimeBlock(input: {
 }): Promise<TimeBlock> {
   const res = await fetch(apiUrl('/time-blocks'), {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
     body: JSON.stringify(input),
   });
   if (!res.ok) throw new Error(`POST /time-blocks failed: HTTP ${res.status}`);
@@ -213,7 +219,7 @@ export async function patchTimeBlock(
 ): Promise<TimeBlock> {
   const res = await fetch(apiUrl(`/time-blocks/${id}`), {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
     body: JSON.stringify(patch),
   });
   if (!res.ok) throw new Error(`PATCH /time-blocks/${id} failed: HTTP ${res.status}`);
@@ -223,7 +229,7 @@ export async function patchTimeBlock(
 export async function deleteTimeBlock(id: string): Promise<void> {
   const res = await fetch(apiUrl(`/time-blocks/${id}`), {
     method: 'DELETE',
-    headers: authHeaders(),
+    headers: await authHeaders(),
   });
   if (!res.ok) throw new Error(`DELETE /time-blocks/${id} failed: HTTP ${res.status}`);
 }
@@ -235,7 +241,7 @@ export async function getRoutineChecks(range: {
   const qs = new URLSearchParams({ from: range.from, to: range.to });
   const res = await fetch(apiUrl(`/routine-checks?${qs.toString()}`), {
     cache: 'no-store',
-    headers: authHeaders(),
+    headers: await authHeaders(),
   });
   if (!res.ok) throw new Error(`GET /routine-checks failed: HTTP ${res.status}`);
   return (await res.json()) as RoutineCheck[];
@@ -248,7 +254,7 @@ export async function toggleRoutineCheck(input: {
 }): Promise<void> {
   const res = await fetch(apiUrl('/routine-checks'), {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
     body: JSON.stringify(input),
   });
   if (!res.ok) throw new Error(`PUT /routine-checks failed: HTTP ${res.status}`);
@@ -261,7 +267,7 @@ export async function getDayNotes(range: {
   const qs = new URLSearchParams({ from: range.from, to: range.to });
   const res = await fetch(apiUrl(`/day-notes?${qs.toString()}`), {
     cache: 'no-store',
-    headers: authHeaders(),
+    headers: await authHeaders(),
   });
   if (!res.ok) throw new Error(`GET /day-notes failed: HTTP ${res.status}`);
   return (await res.json()) as DayNote[];
@@ -270,7 +276,7 @@ export async function getDayNotes(range: {
 export async function upsertDayNote(date: string, content: string): Promise<DayNote> {
   const res = await fetch(apiUrl(`/day-notes/${date}`), {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
     body: JSON.stringify({ content }),
   });
   if (!res.ok) throw new Error(`PUT /day-notes/${date} failed: HTTP ${res.status}`);
@@ -283,7 +289,7 @@ export async function getExercises(includeArchived = false): Promise<Exercise[]>
   const qs = includeArchived ? '?includeArchived=true' : '';
   const res = await fetch(apiUrl(`/exercises${qs}`), {
     cache: 'no-store',
-    headers: authHeaders(),
+    headers: await authHeaders(),
   });
   if (!res.ok) throw new Error(`GET /exercises failed: HTTP ${res.status}`);
   return (await res.json()) as Exercise[];
@@ -298,7 +304,7 @@ export async function createExercise(input: {
 }): Promise<Exercise> {
   const res = await fetch(apiUrl('/exercises'), {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
     body: JSON.stringify(input),
   });
   if (!res.ok) throw new Error(`POST /exercises failed: HTTP ${res.status}`);
@@ -311,7 +317,7 @@ export async function patchExercise(
 ): Promise<Exercise> {
   const res = await fetch(apiUrl(`/exercises/${id}`), {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
     body: JSON.stringify(patch),
   });
   if (!res.ok) throw new Error(`PATCH /exercises/${id} failed: HTTP ${res.status}`);
@@ -322,7 +328,7 @@ export async function patchExercise(
 export async function deleteExercise(id: string): Promise<void> {
   const res = await fetch(apiUrl(`/exercises/${id}`), {
     method: 'DELETE',
-    headers: authHeaders(),
+    headers: await authHeaders(),
   });
   if (!res.ok) {
     throw new HttpError(`DELETE /exercises/${id} failed: HTTP ${res.status}`, res.status);
@@ -334,7 +340,7 @@ export async function getWorkoutSessionsByDate(date: string): Promise<WorkoutSes
   const qs = new URLSearchParams({ date });
   const res = await fetch(apiUrl(`/workout-sessions?${qs.toString()}`), {
     cache: 'no-store',
-    headers: authHeaders(),
+    headers: await authHeaders(),
   });
   if (!res.ok) throw new Error(`GET /workout-sessions failed: HTTP ${res.status}`);
   return (await res.json()) as WorkoutSession[];
@@ -347,7 +353,7 @@ export async function getWorkoutSessionsRange(range: {
   const qs = new URLSearchParams({ from: range.from, to: range.to });
   const res = await fetch(apiUrl(`/workout-sessions?${qs.toString()}`), {
     cache: 'no-store',
-    headers: authHeaders(),
+    headers: await authHeaders(),
   });
   if (!res.ok) throw new Error(`GET /workout-sessions failed: HTTP ${res.status}`);
   return (await res.json()) as WorkoutSession[];
@@ -359,7 +365,7 @@ export async function createWorkoutSession(input: {
 }): Promise<WorkoutSession> {
   const res = await fetch(apiUrl('/workout-sessions'), {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
     body: JSON.stringify(input),
   });
   if (!res.ok) throw new Error(`POST /workout-sessions failed: HTTP ${res.status}`);
@@ -372,7 +378,7 @@ export async function patchWorkoutSession(
 ): Promise<WorkoutSession> {
   const res = await fetch(apiUrl(`/workout-sessions/${id}`), {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
     body: JSON.stringify(patch),
   });
   if (!res.ok) throw new Error(`PATCH /workout-sessions/${id} failed: HTTP ${res.status}`);
@@ -382,7 +388,7 @@ export async function patchWorkoutSession(
 export async function deleteWorkoutSession(id: string): Promise<void> {
   const res = await fetch(apiUrl(`/workout-sessions/${id}`), {
     method: 'DELETE',
-    headers: authHeaders(),
+    headers: await authHeaders(),
   });
   if (!res.ok && res.status !== 204) {
     throw new Error(`DELETE /workout-sessions/${id} failed: HTTP ${res.status}`);
@@ -393,7 +399,7 @@ export async function getWorkoutSets(sessionId: string): Promise<WorkoutSet[]> {
   const qs = new URLSearchParams({ sessionId });
   const res = await fetch(apiUrl(`/workout-sets?${qs.toString()}`), {
     cache: 'no-store',
-    headers: authHeaders(),
+    headers: await authHeaders(),
   });
   if (!res.ok) throw new Error(`GET /workout-sets failed: HTTP ${res.status}`);
   return (await res.json()) as WorkoutSet[];
@@ -413,7 +419,7 @@ export async function batchWorkoutSets(input: {
 }): Promise<WorkoutSet[]> {
   const res = await fetch(apiUrl('/workout-sets/batch'), {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
     body: JSON.stringify(input),
   });
   if (!res.ok) throw new Error(`PUT /workout-sets/batch failed: HTTP ${res.status}`);
@@ -427,7 +433,7 @@ export async function getWorkoutHeatmap(range: {
   const qs = new URLSearchParams({ from: range.from, to: range.to });
   const res = await fetch(apiUrl(`/workout-sets/heatmap?${qs.toString()}`), {
     cache: 'no-store',
-    headers: authHeaders(),
+    headers: await authHeaders(),
   });
   if (!res.ok) throw new Error(`GET /workout-sets/heatmap failed: HTTP ${res.status}`);
   return (await res.json()) as WorkoutHeatmapEntry[];
@@ -441,7 +447,7 @@ export async function getExerciseStats(params: {
   if (params.limit !== undefined) qs.set('limit', String(params.limit));
   const res = await fetch(apiUrl(`/workout-sets/exercise-stats?${qs.toString()}`), {
     cache: 'no-store',
-    headers: authHeaders(),
+    headers: await authHeaders(),
   });
   if (!res.ok) throw new Error(`GET /workout-sets/exercise-stats failed: HTTP ${res.status}`);
   return (await res.json()) as ExerciseStats;
@@ -455,7 +461,7 @@ export async function getExerciseStats(params: {
 export async function getExportJson(): Promise<string> {
   const res = await fetch(apiUrl('/export'), {
     cache: 'no-store',
-    headers: authHeaders(),
+    headers: await authHeaders(),
   });
   if (!res.ok) throw new Error(`GET /export failed: HTTP ${res.status}`);
   return await res.text();
@@ -468,7 +474,7 @@ export async function getPreviousWorkout(params: {
   const qs = new URLSearchParams(params);
   const res = await fetch(apiUrl(`/workout-sets/previous?${qs.toString()}`), {
     cache: 'no-store',
-    headers: authHeaders(),
+    headers: await authHeaders(),
   });
   if (!res.ok) throw new Error(`GET /workout-sets/previous failed: HTTP ${res.status}`);
   // Nest serializes `null` return as an empty body (Content-Length: 0) rather
@@ -483,7 +489,7 @@ export async function getBlogSources(includeInactive = true): Promise<BlogSource
   const qs = includeInactive ? '' : '?isActive=true';
   const res = await fetch(apiUrl(`/blog-sources${qs}`), {
     cache: 'no-store',
-    headers: authHeaders(),
+    headers: await authHeaders(),
   });
   if (!res.ok) throw new Error(`GET /blog-sources failed: HTTP ${res.status}`);
   return (await res.json()) as BlogSource[];
@@ -497,7 +503,7 @@ export async function createBlogSource(input: {
 }): Promise<BlogSource> {
   const res = await fetch(apiUrl('/blog-sources'), {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
     body: JSON.stringify(input),
   });
   if (!res.ok) throw new Error(`POST /blog-sources failed: HTTP ${res.status}`);
@@ -510,7 +516,7 @@ export async function patchBlogSource(
 ): Promise<BlogSource> {
   const res = await fetch(apiUrl(`/blog-sources/${id}`), {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
     body: JSON.stringify(patch),
   });
   if (!res.ok) throw new Error(`PATCH /blog-sources/${id} failed: HTTP ${res.status}`);
@@ -520,7 +526,7 @@ export async function patchBlogSource(
 export async function deleteBlogSource(id: string): Promise<void> {
   const res = await fetch(apiUrl(`/blog-sources/${id}`), {
     method: 'DELETE',
-    headers: authHeaders(),
+    headers: await authHeaders(),
   });
   if (!res.ok) {
     throw new HttpError(`DELETE /blog-sources/${id} failed: HTTP ${res.status}`, res.status);
@@ -539,7 +545,7 @@ export async function getBlogPosts(params: {
   const s = qs.toString();
   const res = await fetch(apiUrl(`/blog-posts${s ? `?${s}` : ''}`), {
     cache: 'no-store',
-    headers: authHeaders(),
+    headers: await authHeaders(),
   });
   if (!res.ok) throw new Error(`GET /blog-posts failed: HTTP ${res.status}`);
   return (await res.json()) as BlogPost[];
@@ -548,7 +554,7 @@ export async function getBlogPosts(params: {
 export async function refreshBlogPosts(): Promise<BlogRefreshResult> {
   const res = await fetch(apiUrl('/blog-posts/refresh'), {
     method: 'POST',
-    headers: authHeaders(),
+    headers: await authHeaders(),
   });
   if (!res.ok) throw new Error(`POST /blog-posts/refresh failed: HTTP ${res.status}`);
   return (await res.json()) as BlogRefreshResult;
