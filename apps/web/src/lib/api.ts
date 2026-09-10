@@ -9,8 +9,10 @@ import type {
   DayNote,
   Exercise,
   ExerciseStats,
+  NicknameAvailability,
   PreviousWorkout,
   Priority,
+  Profile,
   RoutineCheck,
   TimeBlock,
   WorkoutHeatmapEntry,
@@ -558,4 +560,58 @@ export async function refreshBlogPosts(): Promise<BlogRefreshResult> {
   });
   if (!res.ok) throw new Error(`POST /blog-posts/refresh failed: HTTP ${res.status}`);
   return (await res.json()) as BlogRefreshResult;
+}
+
+// --- profiles ---
+
+// Returns null on 404 (no profile yet) so callers can distinguish "not
+// created" from "server error" without wrapping in try/catch.
+export async function getMyProfile(): Promise<Profile | null> {
+  const res = await fetch(apiUrl('/profiles/me'), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`GET /profiles/me failed: HTTP ${res.status}`);
+  return (await res.json()) as Profile;
+}
+
+// Create-or-update. Used by signup to stamp the profile right after auth.
+// Throws HttpError(409) when the nickname clashes with another user's row.
+export async function upsertMyProfile(nickname: string): Promise<Profile> {
+  const res = await fetch(apiUrl('/profiles/me'), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify({ nickname }),
+  });
+  if (!res.ok) {
+    throw new HttpError(`PUT /profiles/me failed: HTTP ${res.status}`, res.status);
+  }
+  return (await res.json()) as Profile;
+}
+
+export async function renameMyNickname(nickname: string): Promise<Profile> {
+  const res = await fetch(apiUrl('/profiles/me/nickname'), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify({ nickname }),
+  });
+  if (!res.ok) {
+    throw new HttpError(`PATCH /profiles/me/nickname failed: HTTP ${res.status}`, res.status);
+  }
+  return (await res.json()) as Profile;
+}
+
+// Public endpoint — no auth header needed. Safe to call before signup.
+export async function checkNicknameAvailability(
+  nickname: string,
+): Promise<NicknameAvailability> {
+  const qs = new URLSearchParams({ nickname });
+  const res = await fetch(apiUrl(`/profiles/check-nickname?${qs.toString()}`), {
+    cache: 'no-store',
+  });
+  if (!res.ok) {
+    throw new Error(`GET /profiles/check-nickname failed: HTTP ${res.status}`);
+  }
+  return (await res.json()) as NicknameAvailability;
 }
