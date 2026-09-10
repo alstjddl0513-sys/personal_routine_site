@@ -10,9 +10,17 @@ import { updateSupabaseSession } from '@/lib/supabase/middleware';
 // Next.js 16 renamed the middleware file convention to "proxy" (the export
 // name follows suit).
 
-// Paths that must be reachable without a session — the auth flow itself
-// plus the safety-net unauthorized page.
-const PUBLIC_PATHS = ['/login', '/signup', '/unauthorized', '/auth/callback'];
+// Paths that must be reachable without a session — the auth flow itself,
+// the safety-net unauthorized page, and the pre-signup nickname check.
+// /api/proxy/profiles/check-nickname corresponds to the API's @Public()
+// GET /profiles/check-nickname — both layers must let it through.
+const PUBLIC_PATHS = [
+  '/login',
+  '/signup',
+  '/unauthorized',
+  '/auth/callback',
+  '/api/proxy/profiles/check-nickname',
+];
 
 function isPublic(pathname: string): boolean {
   return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
