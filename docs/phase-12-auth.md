@@ -22,11 +22,11 @@
 
 | # | 산출물 | 위험도 | 되돌리기 |
 |---|---|---|---|
-| **12.0** | 이 문서 | 낮음 | 파일 삭제 |
-| **12.1** | `SupabaseAuthGuard` 스캐폴드 (등록 X, env 없으면 no-op), Supabase Console에서 email provider 확인 | 낮음 | 파일 삭제 |
-| 12.2 | 프론트 `/login`을 Supabase Auth SDK 이메일/비번으로 교체. `proxy.ts`를 Supabase 세션 쿠키 검증으로. Guard를 AppModule에 등록. Basic Auth 코드(`/api/auth/login`, `auth-cookie.ts`, `AccessTokenGuard`, `BASIC_AUTH_*`, `API_ACCESS_TOKEN`) 전면 제거 | 중 | 롤백 커밋 (아래 §안전장치) |
+| **12.0** ✅ | 이 문서 | 낮음 | 파일 삭제 |
+| **12.1** ✅ | `SupabaseAuthGuard` 스캐폴드 (등록 X, env 없으면 no-op), Supabase Console에서 email provider 확인 | 낮음 | 파일 삭제 |
+| **12.2** ✅ | 프론트 `/login`·`/signup` Supabase Auth SDK로 교체 + **profiles 테이블(닉네임 uniqueness)** + `proxy.ts`를 Supabase 세션 검증으로 재작성 + Guard AppModule 등록 + Basic Auth 잔재 전면 제거 + **rate limit + prod env hard-fail** | 중 | 롤백 커밋 (아래 §안전장치) |
 | 12.3 | Google OAuth provider 설정, `/auth/callback` 라우트, `/login`에 "Google로 로그인" 버튼 | 중 | 커밋 revert |
-| 12.4 | `owner_id` 컬럼 마이그레이션 (모든 도메인 테이블, 자식 포함) + 기존 데이터 백필 + NOT NULL + RLS 정책 + 서비스 필터 | **높음** | DB 백업 → drop column (아래 §안전장치) |
+| 12.4 | `owner_id` 컬럼 마이그레이션 (모든 도메인 테이블, 자식 포함) + 기존 데이터 백필 + NOT NULL + RLS 정책 + 서비스 필터. **profiles 테이블도 이 시점에 RLS 함께 활성** | **높음** | DB 백업 → drop column (아래 §안전장치) |
 | 12.5 | 어드민 페이지 (별도 세션) | 중 | — |
 
 ## 현재 상태 요약 (2026-09-10 기준)
@@ -122,13 +122,40 @@ CREATE POLICY companies_owner_delete ON companies FOR DELETE
 - **간단 옵션**: NestJS는 postgres user 유지(RLS bypass) + 서비스 레이어에서 owner_id 강제. RLS는 Supabase 클라이언트가 DB에 직접 붙는 미래 시나리오 대비 (프론트 → Supabase 직접 쿼리하는 경우 없으면 사실상 안 쓰임).
 - **선택 (초안)**: 후자. 오버엔지니어링 방지. 12.4에서 다시 검증.
 
-## 프론트 인증 흐름 (12.2)
+## 프론트 인증 흐름 (12.2) ✅
 
-- 신규: `@supabase/ssr` + `@supabase/supabase-js`. Next 16 middleware(=proxy.ts)에서 세션 쿠키 refresh.
-- `/login` 페이지: 이메일/비번 입력 → `supabase.auth.signInWithPassword`. sign-up 별도 페이지 or 같은 페이지 토글.
+- 신규 dep: `@supabase/ssr` + `@supabase/supabase-js`. Next 16 proxy(=middleware)에서 세션 쿠키 refresh.
+- `/login` 페이지: 이메일/비번 → `supabase.auth.signInWithPassword`.
+- `/signup` 별도 페이지: 이메일/닉네임(주사위·중복검사)/비번/비번확인 → `supabase.auth.signUp` → `PUT /profiles/me`로 프로필 스탬프.
 - 세션 저장: Supabase가 관리하는 쿠키 (`sb-<project-ref>-auth-token` 등). 기존 HMAC 쿠키(`auth-cookie.ts`) 제거.
 - `/api/proxy/[...path]`: 세션 access_token 꺼내 `Authorization: Bearer` 헤더로 첨부. 기존 `X-Auth-Token` 로직 제거.
 - SSR 서버 컴포넌트: `createServerClient` 로 세션 조회.
+
+### profiles 테이블 (12.2에서 도입) ✅
+
+원래 12.4에서 다룰 예정이었으나 닉네임 uniqueness 요건(중복 방지 = DB 제약 필요) 때문에 12.2에서 첫 auth-scoped 테이블로 선행 도입.
+
+```
+profiles (
+  id          uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  nickname    text UNIQUE NOT NULL,
+  created_at  timestamptz DEFAULT now() NOT NULL,
+  updated_at  timestamptz DEFAULT now() NOT NULL
+)
+```
+
+- 마이그레이션 `0010_strong_falcon.sql`. Drizzle이 auth schema를 모르므로 FK는 raw `ALTER TABLE`로 수동 추가.
+- 엔드포인트: `GET /profiles/me`, `PUT /profiles/me`(upsert), `PATCH /profiles/me/nickname`, `GET /profiles/check-nickname`(Public, rate-limited).
+- 닉네임 검증: `[\p{L}\p{N}_]+` 2~20자. 클라·서버·DB 3중.
+- **RLS는 12.4에서 다른 도메인 테이블과 함께 활성**. 지금은 backend 서비스 레이어가 `req.user.id` 강제.
+
+### 인증 계층 두 겹 유의사항
+
+Next `proxy.ts` middleware + NestJS `SupabaseAuthGuard` 두 계층이 있어서 **공용 엔드포인트는 양쪽 다 열어야 함**. `check-nickname`은 NestJS `@Public()` + Next `PUBLIC_PATHS`에 `/api/proxy/profiles/check-nickname` 등록. 이 이중 원칙은 어떤 공용 API를 추가하든 그대로 적용.
+
+### Server Action으로 server-only import 격리
+
+`lib/api.ts`는 client·server 양쪽에서 쓰이는데 SSR fetch용 auth header에 `next/headers`(via `@supabase/ssr`)가 필요. Dynamic import 트릭은 Turbopack이 모듈 그래프에 포함시켜 client 번들 빌드 실패. → `lib/supabase/auth-header.ts`에 `'use server'` 지시자를 붙여 Server Action으로 분리. Client 번들엔 RPC 스텁만 남고 server-only 의존은 격리됨. (Server-side callers는 in-process 직접 호출로 hop 없음.) 다른 server-only 로직을 client-shared 파일에서 참조해야 할 때 재사용 가능한 패턴.
 
 ## Google OAuth (12.3)
 
@@ -166,8 +193,9 @@ CREATE POLICY companies_owner_delete ON companies FOR DELETE
 
 ### 12.2 (프론트 로그인 교체)
 
-- 브랜치별 커밋 단위: (a) Supabase 클라이언트 추가, (b) proxy.ts 교체, (c) login 페이지 교체, (d) Basic Auth 제거. 마지막 (d)는 별도 커밋으로 분리해 revert 쉽게.
+- 브랜치별 커밋 단위: (a) Supabase 클라이언트 추가, (b) proxy.ts 교체, (c) login 페이지 교체, (d) Basic Auth 제거. 마지막 (d)는 별도 커밋으로 분리해 revert 쉽게. → 실제 15+ 커밋으로 세분화됨.
 - Vercel: 프로덕션 배포 전 preview로 검증. **프로덕션 배포는 12.4(RLS) 완료 후에만** — publishable key가 브라우저 노출되는데 RLS 없으면 무방비.
+- **Prod fail-fast (12.2에 추가)**: `bootstrap-env.ts` + Next `instrumentation.ts`가 `NODE_ENV=production && !SUPABASE_URL` 조건에서 startup throw. Guard의 no-op fallback을 실수로 prod에 실은 참사 방지.
 
 ### 12.4 (스키마 마이그레이션)
 
