@@ -38,6 +38,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "drizzle-orm": "^0.45.2",
+    "jose": "^6.2.12",
     "postgres": "^3.4.9",
     "reflect-metadata": "^0.2.2",
     "rss-parser": "^3.13.0",
