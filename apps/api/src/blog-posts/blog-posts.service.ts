@@ -55,8 +55,7 @@ export class BlogPostsService {
         if (items.length === 0) continue;
 
         // onConflictDoNothing으로 신규만 삽입. 반환된 row 수가 실제 added.
-        // commit D에서 blog_posts.url UNIQUE를 (owner_id, url) composite로 바꿈 —
-        // 그 전까진 전역 URL unique라 다른 유저가 이미 수집한 글은 skip됨.
+        // UNIQUE(owner_id, url) 기준으로 각 유저 관점에서 새 글만 들어옴.
         const inserted = await db
           .insert(blogPosts)
           .values(
@@ -69,7 +68,7 @@ export class BlogPostsService {
               publishedAt: it.publishedAt,
             })),
           )
-          .onConflictDoNothing({ target: blogPosts.url })
+          .onConflictDoNothing({ target: [blogPosts.ownerId, blogPosts.url] })
           .returning({ id: blogPosts.id });
 
         added += inserted.length;

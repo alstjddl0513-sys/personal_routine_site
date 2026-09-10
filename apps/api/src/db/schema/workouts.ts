@@ -16,7 +16,7 @@ import {
 export const exercises = pgTable('exercises', {
   id: uuid('id').defaultRandom().primaryKey(),
   // Owner (Phase 12.4). See companies.ts for the auth.users FK note.
-  ownerId: uuid('owner_id'),
+  ownerId: uuid('owner_id').notNull(),
   name: text('name').notNull(),
   targetMuscle: text('target_muscle'),
   defaultSets: smallint('default_sets').notNull().default(3),
@@ -36,7 +36,7 @@ export const exercises = pgTable('exercises', {
 export const workoutSessions = pgTable('workout_sessions', {
   id: uuid('id').defaultRandom().primaryKey(),
   // Owner (Phase 12.4). See companies.ts for the auth.users FK note.
-  ownerId: uuid('owner_id'),
+  ownerId: uuid('owner_id').notNull(),
   date: date('date').notNull(),
   note: text('note'),
   startedAt: timestamp('started_at', { withTimezone: true, mode: 'string' }),
@@ -57,7 +57,7 @@ export const workoutSets = pgTable(
     id: uuid('id').defaultRandom().primaryKey(),
     // Owner (Phase 12.4). Denormalized copy of workoutSessions.ownerId — the
     // app layer must set this to the parent session's owner on insert.
-    ownerId: uuid('owner_id'),
+    ownerId: uuid('owner_id').notNull(),
     sessionId: uuid('session_id')
       .notNull()
       .references(() => workoutSessions.id, { onDelete: 'cascade' }),

@@ -38,30 +38,13 @@ export class DayNotesService {
         .where(and(eq(dayNotes.ownerId, ownerId), eq(dayNotes.date, date)));
       return { date, content: '' };
     }
-    // Manual upsert. `date` is currently UNIQUE globally — commit D swaps
-    // it to UNIQUE(owner_id, date) so a proper INSERT..ON CONFLICT (owner_id, date)
-    // works. Until then, look up + branch to avoid tripping the global unique.
-    const [existing] = await db
-      .select({ id: dayNotes.id })
-      .from(dayNotes)
-      .where(and(eq(dayNotes.ownerId, ownerId), eq(dayNotes.date, date)))
-      .limit(1);
-
-    if (existing) {
-      const [row] = await db
-        .update(dayNotes)
-        .set({ content, updatedAt: new Date() })
-        .where(and(eq(dayNotes.ownerId, ownerId), eq(dayNotes.date, date)))
-        .returning({
-          date: dayNotes.date,
-          content: dayNotes.content,
-          updatedAt: dayNotes.updatedAt,
-        });
-      return row;
-    }
     const [row] = await db
       .insert(dayNotes)
       .values({ ownerId, date, content })
+      .onConflictDoUpdate({
+        target: [dayNotes.ownerId, dayNotes.date],
+        set: { content, updatedAt: new Date() },
+      })
       .returning({
         date: dayNotes.date,
         content: dayNotes.content,

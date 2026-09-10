@@ -1,6 +1,7 @@
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import { drizzle } from 'drizzle-orm/postgres-js';
+import { eq } from 'drizzle-orm';
 import postgres from 'postgres';
 import { companies, exercises } from './schema';
 
@@ -326,8 +327,12 @@ async function main() {
   if (!url) {
     throw new Error('DATABASE_URL is not set. Check the root .env file.');
   }
+  const ownerId = process.env.SEED_OWNER_ID;
+  if (!ownerId) {
+    throw new Error('SEED_OWNER_ID is not set (Phase 12.4: owner_id NOT NULL).');
+  }
 
-  const rows = buildRows();
+  const rows = buildRows().map((r) => ({ ...r, ownerId }));
   const perType2 = rows.reduce<Record<string, number>>((acc, r) => {
     acc[r.type2] = (acc[r.type2] ?? 0) + 1;
     return acc;
@@ -344,18 +349,24 @@ async function main() {
   const db = drizzle(client);
 
   try {
-    await db.delete(companies);
-    console.log('Cleared companies.');
+    await db.delete(companies).where(eq(companies.ownerId, ownerId));
+    console.log(`Cleared companies for owner ${ownerId}.`);
     await db.insert(companies).values(rows);
     console.log(`Inserted ${rows.length} companies.`);
 
-    // Exercises: only seed if the table is empty, to preserve any user edits.
-    const existing = await db.select({ id: exercises.id }).from(exercises).limit(1);
+    // Exercises: only seed if this owner has no rows yet, to preserve edits.
+    const existing = await db
+      .select({ id: exercises.id })
+      .from(exercises)
+      .where(eq(exercises.ownerId, ownerId))
+      .limit(1);
     if (existing.length === 0) {
-      await db.insert(exercises).values(EXERCISE_SEED);
+      await db
+        .insert(exercises)
+        .values(EXERCISE_SEED.map((e) => ({ ...e, ownerId })));
       console.log(`Inserted ${EXERCISE_SEED.length} exercises.`);
     } else {
-      console.log('Exercises table not empty — skipping exercise seed.');
+      console.log('Owner already has exercises — skipping exercise seed.');
     }
   } finally {
     await client.end();

@@ -1,6 +1,7 @@
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import { drizzle } from 'drizzle-orm/postgres-js';
+import { eq } from 'drizzle-orm';
 import postgres from 'postgres';
 import { exercises } from './schema';
 
@@ -33,6 +34,10 @@ async function main() {
   if (!url) {
     throw new Error('DATABASE_URL is not set. Check the root .env file.');
   }
+  const ownerId = process.env.SEED_OWNER_ID;
+  if (!ownerId) {
+    throw new Error('SEED_OWNER_ID is not set (Phase 12.4: owner_id NOT NULL).');
+  }
 
   const client = postgres(url, { max: 1, prepare: false, ssl: 'require' });
   const db = drizzle(client);
@@ -40,7 +45,8 @@ async function main() {
   try {
     const existing = await db
       .select({ name: exercises.name, sortOrder: exercises.sortOrder })
-      .from(exercises);
+      .from(exercises)
+      .where(eq(exercises.ownerId, ownerId));
     const existingNames = new Set(existing.map((r) => r.name));
     const maxSortOrder = existing.reduce(
       (max, r) => (r.sortOrder > max ? r.sortOrder : max),
@@ -56,6 +62,7 @@ async function main() {
 
     const rows = missing.map((r, i) => ({
       ...r,
+      ownerId,
       sortOrder: maxSortOrder + 1 + i,
     }));
     await db.insert(exercises).values(rows);
