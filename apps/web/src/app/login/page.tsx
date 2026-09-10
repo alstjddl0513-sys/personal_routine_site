@@ -1,8 +1,10 @@
 'use client';
 
 import { Suspense, useState, type FormEvent } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { LogIn, AlertCircle } from 'lucide-react';
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 
 export default function LoginPage() {
   return (
@@ -30,7 +32,7 @@ function LoginForm() {
       ? rawNext
       : '/jobs';
 
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -40,19 +42,20 @@ function LoginForm() {
     setError(null);
     setSubmitting(true);
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+      const supabase = createSupabaseBrowserClient();
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
-        setError(data.error ?? '로그인에 실패했습니다.');
+      if (signInError) {
+        setError(translateAuthError(signInError.message));
         setSubmitting(false);
         return;
       }
       // replace (not push) so back-nav can't return to /login.
+      // refresh so Server Components re-run with the new session cookie.
       router.replace(nextPath);
+      router.refresh();
     } catch {
       setError('네트워크 오류가 발생했습니다. 다시 시도해주세요.');
       setSubmitting(false);
@@ -78,18 +81,18 @@ function LoginForm() {
           <div className="space-y-4">
             <div>
               <label
-                htmlFor="username"
+                htmlFor="email"
                 className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400"
               >
-                아이디
+                이메일
               </label>
               <input
-                id="username"
-                type="text"
-                autoComplete="username"
+                id="email"
+                type="email"
+                autoComplete="email"
                 required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 disabled={submitting}
                 className="block min-h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-base text-zinc-900 outline-none transition-colors placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-200 disabled:opacity-60 md:min-h-0 md:text-sm dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:placeholder:text-zinc-500 dark:focus:border-zinc-500 dark:focus:ring-zinc-800"
               />
@@ -126,7 +129,7 @@ function LoginForm() {
 
             <button
               type="submit"
-              disabled={submitting || !username || !password}
+              disabled={submitting || !email || !password}
               className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 md:min-h-0 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
             >
               <LogIn className="h-4 w-4" aria-hidden />
@@ -135,10 +138,28 @@ function LoginForm() {
           </div>
         </form>
 
-        <p className="mt-6 text-center text-xs text-zinc-400 dark:text-zinc-600">
-          개인 전용 · 초대받은 사용자만 이용 가능합니다.
+        <p className="mt-6 text-center text-xs text-zinc-500 dark:text-zinc-500">
+          계정이 없다면{' '}
+          <Link
+            href="/signup"
+            className="font-medium text-zinc-900 underline-offset-4 hover:underline dark:text-zinc-100"
+          >
+            회원가입
+          </Link>
         </p>
       </div>
     </div>
   );
+}
+
+// Supabase의 영문 auth 에러를 한국어로. 매칭 안 되면 원문 그대로.
+function translateAuthError(message: string): string {
+  const m = message.toLowerCase();
+  if (m.includes('invalid login credentials')) {
+    return '이메일 또는 비밀번호가 올바르지 않습니다.';
+  }
+  if (m.includes('email not confirmed')) {
+    return '이메일 확인이 필요합니다. Console에서 Confirm email을 꺼두세요.';
+  }
+  return message;
 }

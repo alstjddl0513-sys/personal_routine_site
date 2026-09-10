@@ -220,3 +220,22 @@
 - 상황: 무게 입력 후 Tab하여 횟수 입력하는 순간 UI에서 방금 입력한 숫자가 사라짐. 무게 단독은 정상, 횟수만 씹힘
 - 원인: 무게 blur → `commit` → `router.refresh()` → 서버가 새 `existingSets` 반환 → `SetInputs`의 useEffect가 rows를 `initRows`로 재초기화 → 그 사이 사용자가 다음 필드에 typing한 값이 덮어쓰기됨
 - 해결: useEffect 시작에서 `rowsSignature(rows) !== lastSavedRef.current`이면 (사용자 미저장 편집 중) 재초기화 skip. 실제 서버 상태 변경(reorder, 다른 카드 save)에도 in-flight typing은 보존
+
+### Turbopack: "next/headers를 client 번들에 include" 빌드 실패
+- 상황: `pnpm --filter web build` 시 `Error: You're importing a module that depends on "next/headers". This API is only available in Server Components in the App Router, but you are using it in the Pages Router.` (App Router 프로젝트인데 Pages Router 언급은 오해 소지)
+- 원인: `lib/api.ts`(양쪽 사용)에서 `authHeaders()` 안에 `await import('./supabase/server')`로 dynamic import를 걸었지만 Turbopack은 dynamic import까지 모듈 그래프에 포함시켜 client 번들에 `next/headers`가 딸려옴. Client Components(예: `AddCompanyButton`)가 api.ts를 import한 순간 발생
+- 해결: `lib/supabase/auth-header.ts`에 `'use server'` 지시자를 붙여 Server Action으로 분리. api.ts는 Server Action reference만 import → Next가 client 번들에서 RPC 스텁으로 대체해 server-only 의존은 남지 않음. Server-side는 in-process 직접 호출로 hop 없음. Phase 12.2 참고
+
+### 삭제한 route가 `.next/dev/types/validator.ts`에 잔재로 남아 타입 에러
+- 상황: `apps/web/src/app/api/auth/login/route.ts` 파일을 지웠는데 `pnpm --filter web build` 첫 시도에서 `Cannot find module '../../../src/app/api/auth/login/route.js' or its corresponding type declarations`
+- 원인: Turbopack이 이전 dev 실행 때 만든 `.next/dev/types/validator.ts` 캐시가 삭제된 route를 참조 중. Next가 타입 검증 단계에서 이 파일을 읽음
+- 해결: `rm -rf apps/web/.next` 후 재빌드. 파일 삭제·이동 후 stale 타입 캐시 이슈는 같은 방법으로 해소
+
+---
+
+## Phase 12 인증
+
+### /signup에서 `/api/proxy/profiles/check-nickname` 401
+- 상황: /signup 닉네임 필드가 `HTTP 401`로 중복검사 실패. 백엔드 컨트롤러에 `@Public()`이 있어도.
+- 원인: 요청 경로는 브라우저 → Next `proxy.ts` middleware → `/api/proxy/[...path]` Route Handler → NestJS API. Middleware가 세션 없는 `/api/*` 요청을 401 JSON으로 차단해서 NestJS의 `@Public()`은 도달 못 함
+- 해결: `proxy.ts`의 `PUBLIC_PATHS`에 `/api/proxy/profiles/check-nickname` 추가. **인증 계층이 두 겹(Next middleware + NestJS Guard)이라 공용 엔드포인트는 양쪽 다 열어줘야 함**

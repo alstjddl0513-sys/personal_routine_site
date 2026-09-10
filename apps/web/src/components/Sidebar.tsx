@@ -12,8 +12,10 @@ import {
   Rss,
   Settings,
 } from 'lucide-react';
-import { useSyncExternalStore, type ComponentType, type SVGProps } from 'react';
+import { useEffect, useState, useSyncExternalStore, type ComponentType, type SVGProps } from 'react';
 import { ThemeToggle } from './ThemeToggle';
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
+import { getMyProfile } from '@/lib/api';
 
 interface NavChild {
   href: string;
@@ -121,12 +123,63 @@ function writeCollapsed(next: CollapsedMap) {
   collapsedListeners.forEach((fn) => fn());
 }
 
+function UserRow() {
+  const [label, setLabel] = useState<string | null>(null);
+
+  // Read the session on mount and whenever auth state flips (login/logout).
+  // Nickname is the display label; if the profile row hasn't been created
+  // yet (edge case) fall back to the email's local part.
+  useEffect(() => {
+    const supabase = createSupabaseBrowserClient();
+    let cancelled = false;
+
+    async function refresh() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        if (!cancelled) setLabel(null);
+        return;
+      }
+      try {
+        const profile = await getMyProfile();
+        if (cancelled) return;
+        if (profile) {
+          setLabel(profile.nickname);
+        } else {
+          setLabel(user.email?.split('@')[0] ?? '유저');
+        }
+      } catch {
+        if (!cancelled) setLabel(user.email?.split('@')[0] ?? '유저');
+      }
+    }
+
+    refresh();
+    const { data } = supabase.auth.onAuthStateChange(() => {
+      refresh();
+    });
+    return () => {
+      cancelled = true;
+      data.subscription.unsubscribe();
+    };
+  }, []);
+
+  if (!label) return null;
+  return (
+    <div className="border-t border-zinc-200 px-4 py-2 text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-500">
+      <span className="truncate" title={label}>{label}</span>
+    </div>
+  );
+}
+
 function LogoutButton() {
   const router = useRouter();
 
   async function handleLogout() {
-    await fetch('/api/auth/login', { method: 'DELETE' }).catch(() => {});
+    const supabase = createSupabaseBrowserClient();
+    await supabase.auth.signOut().catch(() => {});
     router.replace('/login');
+    router.refresh();
   }
 
   return (
@@ -248,7 +301,9 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="mt-2 flex items-center justify-between border-t border-zinc-200 px-3 py-2 dark:border-zinc-800">
+      <UserRow />
+
+      <div className="flex items-center justify-between border-t border-zinc-200 px-3 py-2 dark:border-zinc-800">
         <Link
           href="/settings"
           className={`inline-flex items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-colors ${
