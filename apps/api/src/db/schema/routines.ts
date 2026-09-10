@@ -15,6 +15,8 @@ import {
 // end_time must be > start_time when both present (enforced app-side).
 export const timeBlocks = pgTable('time_blocks', {
   id: uuid('id').defaultRandom().primaryKey(),
+  // Owner (Phase 12.4). See companies.ts for the auth.users FK note.
+  ownerId: uuid('owner_id'),
   label: text('label').notNull(),
   startTime: smallint('start_time'),
   endTime: smallint('end_time'),
@@ -37,6 +39,9 @@ export const routineChecks = pgTable(
   'routine_checks',
   {
     id: uuid('id').defaultRandom().primaryKey(),
+    // Owner (Phase 12.4). Denormalized copy of timeBlocks.ownerId — the app
+    // layer must set this to the parent block's owner on insert.
+    ownerId: uuid('owner_id'),
     blockId: uuid('block_id')
       .notNull()
       .references(() => timeBlocks.id, { onDelete: 'cascade' }),
@@ -50,6 +55,10 @@ export const routineChecks = pgTable(
 
 export const dayNotes = pgTable('day_notes', {
   id: uuid('id').defaultRandom().primaryKey(),
+  // Owner (Phase 12.4). See companies.ts for the auth.users FK note.
+  ownerId: uuid('owner_id'),
+  // UNIQUE(date) is relaxed to UNIQUE(owner_id, date) in Phase 12.4 commit D
+  // so different users can each note the same date.
   date: date('date').notNull().unique(),
   content: text('content').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true })

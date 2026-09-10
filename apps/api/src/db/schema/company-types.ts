@@ -8,6 +8,9 @@ import { boolean, integer, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg
 export const companyTypes = pgTable('company_types', {
   id: uuid('id').defaultRandom().primaryKey(),
 
+  // Owner (Phase 12.4). See companies.ts for the auth.users FK note.
+  ownerId: uuid('owner_id'),
+
   // Machine identifier, also the value stored in companies.type2.
   key: text('key').notNull().unique(),
   // Human label shown in the UI.
