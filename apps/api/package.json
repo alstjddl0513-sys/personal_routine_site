@@ -25,6 +25,7 @@
     "db:seed": "tsx src/db/seed.ts",
     "db:seed:exercises": "tsx src/db/seed-exercises.ts",
     "db:seed:blog-sources": "tsx src/db/seed-blog-sources.ts",
+    "db:seed:owner": "tsx src/db/seed-owner.ts",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
