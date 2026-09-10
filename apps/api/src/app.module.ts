@@ -3,7 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { resolve } from 'path';
-import { AccessTokenGuard } from './access-token.guard';
+import { SupabaseAuthGuard } from './supabase-auth.guard';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HealthController } from './health/health.controller';
@@ -41,7 +41,7 @@ import { BlogPostsModule } from './blog-posts/blog-posts.module';
   controllers: [AppController, HealthController],
   providers: [
     AppService,
-    { provide: APP_GUARD, useClass: AccessTokenGuard },
+    { provide: APP_GUARD, useClass: SupabaseAuthGuard },
   ],
 })
 export class AppModule {}
