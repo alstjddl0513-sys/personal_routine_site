@@ -18,6 +18,7 @@ import { WorkoutSetsModule } from './workout-sets/workout-sets.module';
 import { ExportModule } from './export/export.module';
 import { BlogSourcesModule } from './blog-sources/blog-sources.module';
 import { BlogPostsModule } from './blog-posts/blog-posts.module';
+import { ProfilesModule } from './profiles/profiles.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { BlogPostsModule } from './blog-posts/blog-posts.module';
     ExportModule,
     BlogSourcesModule,
     BlogPostsModule,
+    ProfilesModule,
   ],
   controllers: [AppController, HealthController],
   providers: [
