@@ -163,7 +163,7 @@ env 파일에 없는 프로젝트-레벨 설정. 로컬·prod 각 프로젝트�
 
 - Authentication → Providers → **Email**: 활성 (기본)
 - Authentication → Providers → Email → **"Confirm email"** 토글 OFF (로컬 SMTP 없이 개발 편의. 다인화하면 재검토)
-- Authentication → Policies → **"Prevent use of leaked passwords"** 토글 ON (HIBP k-anonymity로 유출 비번 서버 거절. 프론트 `translateAuthError`가 `pwned/leaked/compromised` 키워드 매칭해서 한국어 안내)
+- Authentication → Attack Protection → **"Prevent use of leaked passwords"**: **Pro Plan 전용** — Free tier에선 활성 불가. 프론트 `translateAuthError`는 미래 대비로 `pwned/leaked/compromised` 키워드 매칭 유지. 대안 필요해지면 backend에 HIBP k-anonymity API 직접 연동(약 50줄) or Pro 업그레이드($25/월). **현재는 미적용 감수** — 1인 사용 스코프에선 강한 비번을 본인이 선택하는 것으로 충분
 
 ## Google OAuth (12.3)
 
