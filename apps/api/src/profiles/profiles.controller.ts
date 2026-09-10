@@ -9,6 +9,7 @@ import {
   Req,
   UnauthorizedException,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { Public } from '../public.decorator';
 import type { AuthedRequest } from '../supabase-auth.guard';
 import { ProfilesService } from './profiles.service';
@@ -39,7 +40,12 @@ export class ProfilesController {
   // Public — checked before signup, when there's no session yet. Callers
   // that are already logged in should skip the check when the value equals
   // their current nickname (no server-side "exclude self" needed).
+  //
+  // Rate-limited harder than the global default because it's unauthenticated
+  // and enumerable — 10 req / 10s per IP is enough for typing feedback and
+  // way below what a scraper needs to be worthwhile.
   @Public()
+  @Throttle({ default: { limit: 10, ttl: 10_000 } })
   @Get('check-nickname')
   async check(@Query('nickname') nickname?: string) {
     if (!nickname || nickname.length < 2 || nickname.length > 20) {

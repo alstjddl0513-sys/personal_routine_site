@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { resolve } from 'path';
 import { SupabaseAuthGuard } from './supabase-auth.guard';
 import { AppController } from './app.controller';
@@ -27,6 +28,9 @@ import { ProfilesModule } from './profiles/profiles.module';
       envFilePath: [resolve(process.cwd(), '../../.env')],
     }),
     ScheduleModule.forRoot(),
+    // Default: 60 req/min per IP for all endpoints (generous). Individual
+    // endpoints (e.g. profiles/check-nickname) can tighten via @Throttle().
+    ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 60 }]),
     CompaniesModule,
     CompanyTypesModule,
     TimeBlocksModule,
@@ -44,6 +48,7 @@ import { ProfilesModule } from './profiles/profiles.module';
   providers: [
     AppService,
     { provide: APP_GUARD, useClass: SupabaseAuthGuard },
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
 })
 export class AppModule {}
