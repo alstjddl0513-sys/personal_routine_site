@@ -171,16 +171,16 @@ CREATE POLICY companies_owner_delete ON companies FOR DELETE
 
 ### 12.4 (스키마 마이그레이션)
 
-- **DB 백업**: 로컬/prod 각각 `pg_dump` 또는 Supabase Console SQL export. 스냅샷 파일 안전한 곳에 (커밋 X, `docs/design/` 밖 로컬 폴더).
+- **DB 백업**: 로컬/prod 각각 `pg_dump` 또는 Supabase Console SQL export. 스냅샷 파일 안전한 곳에 (커밋 X, 리포 밖 로컬 폴더).
 - **단계별 마이그레이션**: 컬럼 추가(nullable) → 백필 → NOT NULL → RLS. 각 단계가 별도 마이그레이션 파일. 문제 시 이전 스텝까지만 되돌리기.
-- **롤백 SQL**: 각 마이그레이션에 대응 down SQL을 `docs/design/phase-12-auth-rollback.sql`에 별도 보관 (Drizzle은 down auto 생성 안 함).
+- **롤백 SQL**: 각 마이그레이션에 대응 down SQL을 `docs/phase-12-auth-rollback.sql`에 별도 보관 (Drizzle은 down auto 생성 안 함).
 - **prod 적용 전 로컬 검증**: 로컬 DB에 마이그레이션 적용 → 앱 정상 작동 확인 → prod 적용.
 
 ## 오늘(12.0 + 12.1) 산출물 체크리스트
 
 ### 12.0
 
-- [x] `docs/design/phase-12-auth.md` 작성 (이 파일)
+- [x] `docs/phase-12-auth.md` 작성 (이 파일)
 - [ ] 사용자 리뷰 & 승인
 
 ### 12.1
