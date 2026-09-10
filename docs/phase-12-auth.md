@@ -27,6 +27,7 @@
 | **12.2** ✅ | 프론트 `/login`·`/signup` Supabase Auth SDK로 교체 + **profiles 테이블(닉네임 uniqueness)** + `proxy.ts`를 Supabase 세션 검증으로 재작성 + Guard AppModule 등록 + Basic Auth 잔재 전면 제거 + **rate limit + prod env hard-fail** | 중 | 롤백 커밋 (아래 §안전장치) |
 | 12.3 | Google OAuth provider 설정, `/auth/callback` 라우트, `/login`에 "Google로 로그인" 버튼 | 중 | 커밋 revert |
 | 12.4 | `owner_id` 컬럼 마이그레이션 (모든 도메인 테이블, 자식 포함) + 기존 데이터 백필 + NOT NULL + RLS 정책 + 서비스 필터. **profiles 테이블도 이 시점에 RLS 함께 활성** | **높음** | DB 백업 → drop column (아래 §안전장치) |
+| 12.4b | 계정 탈퇴 — `DELETE /profiles/me` (Supabase Admin API로 `auth.admin.deleteUser`) + `/settings`에 삭제 버튼. 12.4의 owner_id CASCADE 덕에 원샷 cascade 삭제. `SUPABASE_SECRET_KEY` env 필요 | 낮음 | 커밋 revert |
 | 12.5 | 어드민 페이지 (별도 세션) | 중 | — |
 
 ## 현재 상태 요약 (2026-09-10 기준)
