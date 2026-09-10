@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useSyncExternalStore, type ComponentType, type SVGProps } from 'react';
 import { ThemeToggle } from './ThemeToggle';
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 
 interface NavChild {
   href: string;
@@ -125,8 +126,10 @@ function LogoutButton() {
   const router = useRouter();
 
   async function handleLogout() {
-    await fetch('/api/auth/login', { method: 'DELETE' }).catch(() => {});
+    const supabase = createSupabaseBrowserClient();
+    await supabase.auth.signOut().catch(() => {});
     router.replace('/login');
+    router.refresh();
   }
 
   return (
