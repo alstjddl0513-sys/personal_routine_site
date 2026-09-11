@@ -5,15 +5,12 @@ import postgres from 'postgres';
 
 config({ path: resolve(__dirname, '../../../../.env') });
 
-// Ad-hoc: apply a single .sql file to $DATABASE_URL.
-// Written for Phase 12.4 prod recovery — Supabase SQL Editor was mangling
-// paste of the 0011 FK block, so we bypass the browser and stream the file
-// straight into Postgres. Reused whenever a single migration file needs
-// to be applied out-of-band.
+// Apply a single .sql file to $DATABASE_URL. Bypasses Drizzle's tracking
+// (no __drizzle_migrations INSERT). Use when a Drizzle migration needs to
+// be replayed out-of-band and you'll write the tracking row yourself.
 //
-// Usage:
-//   $env:DATABASE_URL = "<prod-pooler-url>"
-//   pnpm.cmd --filter api exec tsx src/db/apply-sql-file.ts drizzle/0011_easy_squirrel_girl.sql
+//   $env:DATABASE_URL = "<pooler-url>"
+//   pnpm --filter api exec tsx src/db/apply-sql-file.ts drizzle/<file>.sql
 
 async function main() {
   const url = process.env.DATABASE_URL;
@@ -28,12 +25,9 @@ async function main() {
 
   const absPath = resolve(__dirname, '../../', relPath);
   const raw = readFileSync(absPath, 'utf8');
-
-  // Drizzle uses `--> statement-breakpoint` as a splitter; strip it and
-  // then run the whole file as a single transaction.
   const sql = raw.replace(/-->\s*statement-breakpoint/g, '');
 
-  console.log(`Applying ${absPath} to prod DB...`);
+  console.log(`Applying ${absPath} to $DATABASE_URL...`);
   const client = postgres(url, { max: 1, prepare: false, ssl: 'require' });
   try {
     await client.unsafe(sql);

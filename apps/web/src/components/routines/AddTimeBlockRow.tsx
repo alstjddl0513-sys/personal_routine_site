@@ -16,9 +16,8 @@ export function AddTimeBlockRow({ nextSortOrder }: { nextSortOrder: number }) {
     if (editing) queueMicrotask(() => inputRef.current?.focus());
   }, [editing]);
 
-  // Enter로 저장 → setEditing(false) → input unmount → onBlur → submit() 재호출
-  // 순의 이중 저장을 막는 가드. useTransition의 `saving` 상태는 batching 타이밍상
-  // blur가 도착할 때 아직 false일 수 있어 별도 ref로 잠금 확인.
+  // Guard against Enter → setEditing(false) → onBlur → submit() double-call.
+  // useTransition's `saving` state can still read false during blur due to batching.
   const submittedRef = useRef(false);
 
   function submit() {

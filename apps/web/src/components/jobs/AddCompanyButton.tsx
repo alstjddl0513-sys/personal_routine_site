@@ -27,11 +27,6 @@ export function AddCompanyButton({ companyTypes }: { companyTypes: CompanyType[]
   const cardRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
 
-  // 모달 바깥(=검은 backdrop) 클릭 시 닫음. 예전 `useOutsideClick(cardRef)` 방식은
-  // Select가 portal로 body에 열어놓은 popover 클릭을 "바깥"으로 오판해 옵션 선택이
-  // 바로 모달을 닫아버렸음. backdrop 자체(mousedown target === currentTarget)만
-  // 감지하도록 로컬 처리.
-
   useEffect(() => {
     if (open) {
       setName('');
@@ -87,6 +82,8 @@ export function AddCompanyButton({ companyTypes }: { companyTypes: CompanyType[]
           role="dialog"
           aria-modal="true"
           aria-labelledby="add-company-title"
+          // Close only on real backdrop click. useOutsideClick would fire on
+          // the Select's portal popover (rendered to body, outside cardRef).
           onMouseDown={(e) => {
             if (e.target === e.currentTarget && !isPending) setOpen(false);
           }}

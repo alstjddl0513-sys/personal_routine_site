@@ -1,9 +1,5 @@
-// Onboarding defaults — inserted for the owner on first profile creation
-// (see profiles.service.upsertMe) and reused by the ad-hoc seed scripts.
-//
-// Kept together in one file so the "what does a new account start with?"
-// question has one answer. Rows here get stamped with the caller's owner_id
-// at insert time; nothing here embeds an owner.
+// Onboarding defaults — stamped with the caller's owner_id at insert time.
+// Consumed by profiles.service.upsertMe (new signup) and the seed scripts.
 
 export interface DefaultCompanyType {
   key: string;
@@ -49,8 +45,6 @@ export interface DefaultBlogSource {
   siteUrl?: string;
 }
 
-// refresh 시 실패하는 것은 UI에서 개별 수정/삭제. Atom 전용 피드 대응은
-// rss-fetcher.ts가 Accept 헤더로 처리.
 export const DEFAULT_BLOG_SOURCES: readonly DefaultBlogSource[] = [
   { name: '카카오 tech', rssUrl: 'https://tech.kakao.com/feed/', siteUrl: 'https://tech.kakao.com' },
   { name: '우아한형제들', rssUrl: 'https://techblog.woowahan.com/feed/', siteUrl: 'https://techblog.woowahan.com' },
