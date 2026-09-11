@@ -1,14 +1,16 @@
+import { Suspense } from 'react';
 import {
   getDayNotes,
   getRoutineChecks,
   getTimeBlocks,
 } from '../../lib/api';
-import { addDays, parseISODate, toISODate, weekOf } from '../../lib/routines-week';
+import { addDays, parseISODate, toISODate, weekOf, type WeekInfo } from '../../lib/routines-week';
 import { calcBestDailyStreak, calcDailyStreak } from '../../lib/streak';
 import { RoutineDayView } from '../../components/routines/RoutineDayView';
 import { RoutineRetro } from '../../components/routines/RoutineRetro';
 import { RoutineTable } from '../../components/routines/RoutineTable';
 import { RoutineWeekNav } from '../../components/routines/RoutineWeekNav';
+import { Skeleton } from '../../components/Skeleton';
 import { StreakBadge } from '../../components/StreakBadge';
 
 const STREAK_WINDOW_DAYS = 180;
@@ -26,6 +28,22 @@ export default async function RoutinesPage({
   const anchor = (weekParam ? parseISODate(weekParam) : null) ?? today;
   const week = weekOf(anchor);
 
+  return (
+    <div className="flex flex-col gap-4 p-6">
+      <header className="flex flex-col gap-2 md:flex-row md:items-baseline md:justify-between">
+        <h1 className="text-xl font-semibold">루틴 트래커</h1>
+        <RoutineWeekNav week={week} />
+      </header>
+
+      <Suspense fallback={<RoutinesSkeleton />}>
+        <RoutinesContent week={week} />
+      </Suspense>
+    </div>
+  );
+}
+
+async function RoutinesContent({ week }: { week: WeekInfo }) {
+  const today = new Date();
   const streakFrom = addDays(today, -(STREAK_WINDOW_DAYS - 1));
 
   // Retro is one note per week, stored in day_notes keyed by the week's Monday.
@@ -43,12 +61,7 @@ export default async function RoutinesPage({
   const bestStreak = calcBestDailyStreak(successDays, streakFrom, today);
 
   return (
-    <div className="flex flex-col gap-4 p-6">
-      <header className="flex flex-col gap-2 md:flex-row md:items-baseline md:justify-between">
-        <h1 className="text-xl font-semibold">루틴 트래커</h1>
-        <RoutineWeekNav week={week} />
-      </header>
-
+    <>
       <StreakBadge
         label="루틴 스트릭"
         current={currentStreak}
@@ -65,6 +78,17 @@ export default async function RoutinesPage({
         </h2>
         <RoutineRetro weekStart={week.from} initialContent={retroContent} />
       </section>
-    </div>
+    </>
+  );
+}
+
+function RoutinesSkeleton() {
+  return (
+    <>
+      <Skeleton className="h-16" />
+      <Skeleton className="h-72" />
+      <Skeleton className="h-40" />
+      <Skeleton className="h-28" />
+    </>
   );
 }

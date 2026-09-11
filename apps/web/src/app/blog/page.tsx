@@ -1,7 +1,9 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { Settings2 } from 'lucide-react';
 import { getBlogPosts, getBlogSources } from '../../lib/api';
 import { BlogList } from '../../components/blog/BlogList';
+import { Skeleton } from '../../components/Skeleton';
 
 export const metadata = {
   title: '기술 블로그 · Rally',
@@ -17,11 +19,6 @@ export default async function BlogPage({
   const sp = await searchParams;
   const sourceParam = first(sp.source);
   const activeSourceId = sourceParam ?? null;
-
-  const [posts, sources] = await Promise.all([
-    getBlogPosts({ sourceId: activeSourceId ?? undefined, limit: 50 }),
-    getBlogSources(true),
-  ]);
 
   return (
     <div className="flex flex-col gap-4 p-6">
@@ -41,7 +38,34 @@ export default async function BlogPage({
         </Link>
       </header>
 
-      <BlogList posts={posts} sources={sources} activeSourceId={activeSourceId} />
+      <Suspense fallback={<BlogSkeleton />}>
+        <BlogContent activeSourceId={activeSourceId} />
+      </Suspense>
     </div>
+  );
+}
+
+async function BlogContent({ activeSourceId }: { activeSourceId: string | null }) {
+  const [posts, sources] = await Promise.all([
+    getBlogPosts({ sourceId: activeSourceId ?? undefined, limit: 50 }),
+    getBlogSources(true),
+  ]);
+
+  return <BlogList posts={posts} sources={sources} activeSourceId={activeSourceId} />;
+}
+
+function BlogSkeleton() {
+  return (
+    <>
+      <div className="flex flex-wrap gap-2">
+        <Skeleton className="h-8 w-16" />
+        <Skeleton className="h-8 w-20" />
+        <Skeleton className="h-8 w-16" />
+        <Skeleton className="h-8 w-20" />
+      </div>
+      <Skeleton className="h-24" />
+      <Skeleton className="h-24" />
+      <Skeleton className="h-24" />
+    </>
   );
 }
