@@ -2,7 +2,9 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
   Patch,
   Put,
   Query,
@@ -34,6 +36,15 @@ export class ProfilesController {
   renameMe(@Req() req: AuthedRequest, @Body() dto: UpsertProfileDto) {
     const userId = requireUserId(req);
     return this.service.renameMe(userId, dto.nickname);
+  }
+
+  // 계정 탈퇴. auth.users 삭제 → profiles·도메인 데이터가 CASCADE로 정리.
+  // 응답 후 클라가 signOut + /login 이동.
+  @Delete('me')
+  @HttpCode(204)
+  async deleteMe(@Req() req: AuthedRequest): Promise<void> {
+    const userId = requireUserId(req);
+    await this.service.deleteMe(userId);
   }
 
   // Public — checked before signup, when there's no session yet. Callers
