@@ -239,3 +239,8 @@
 - 상황: /signup 닉네임 필드가 `HTTP 401`로 중복검사 실패. 백엔드 컨트롤러에 `@Public()`이 있어도.
 - 원인: 요청 경로는 브라우저 → Next `proxy.ts` middleware → `/api/proxy/[...path]` Route Handler → NestJS API. Middleware가 세션 없는 `/api/*` 요청을 401 JSON으로 차단해서 NestJS의 `@Public()`은 도달 못 함
 - 해결: `proxy.ts`의 `PUBLIC_PATHS`에 `/api/proxy/profiles/check-nickname` 추가. **인증 계층이 두 겹(Next middleware + NestJS Guard)이라 공용 엔드포인트는 양쪽 다 열어줘야 함**
+
+### `Manifest: Line: 1, column: 1, Syntax error.` + 첫 렌더 느림
+- 상황: 로그인 후 페이지에서 콘솔에 manifest.webmanifest Syntax error 두 번, 폰트 preload 미사용 경고. 로그인 직후 첫 렌더가 유독 느림
+- 원인: `proxy.ts`의 `matcher`가 excludes `_next/static|_next/image|favicon.ico|icon.svg|apple-icon.png`만 나열 → `/manifest.webmanifest`, `/flag-512.png`, `/icon-maskable.svg`가 미들웨어를 매번 통과. (a) 세션 없으면 `/login`으로 redirect돼 HTML이 돌아오고 브라우저가 이를 manifest로 파싱하려다 실패. (b) 세션 있어도 요청마다 `supabase.auth.getUser()` 서버 왕복이라 병렬 asset 요청 수만큼 지연 누적
+- 해결: matcher 정규식을 확장자 기반으로 넓혀서 정적 파일 통째로 제외: `/((?!_next/static|_next/image|.*\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest|txt|xml)$).*)`
