@@ -76,11 +76,11 @@ export function Select({
   const [mounted, setMounted] = useState(false);
   const [triggerWidth, setTriggerWidth] = useState(0);
   const [highlightIdx, setHighlightIdx] = useState(-1);
-  // After popover mounts we measure its actual width and clamp `left`
-  // against the anchor's real position — usePopoverPosition uses a fixed
-  // hint width which pushes the popover far from the anchor when actual
-  // content is narrower (e.g. Priority: `긴급/상/하`).
-  const [leftPx, setLeftPx] = useState<number | null>(null);
+  // usePopoverPosition uses estimated max-height/hint-width, so pos.top can
+  // land far above the anchor when the actual popover is shorter (e.g. 3
+  // options), and pos.left can be off when the actual popover is narrower.
+  // We re-measure after mount and override both.
+  const [pxPos, setPxPos] = useState<{ top: number; left: number } | null>(null);
   const anchorRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const optionRefs = useRef<Array<HTMLLIElement | null>>([]);
@@ -108,24 +108,41 @@ export function Select({
       const w = anchorRef.current.getBoundingClientRect().width;
       if (w > 0) setTriggerWidth(w);
     } else if (!open) {
-      setLeftPx(null);
+      setPxPos(null);
     }
   }, [open]);
 
-  // After the popover mounts, measure its actual width and reposition so
-  // it stays next to the anchor. If it would overflow the right edge,
-  // right-anchor (align popover's right with anchor's right).
+  // After the popover mounts, measure its actual size and re-anchor both
+  // top and left against the trigger. Also re-run on scroll/resize so the
+  // popover follows the anchor if the page moves while it's open.
   useLayoutEffect(() => {
-    if (!open || !pos || !popoverRef.current || !anchorRef.current) return;
-    const popRect = popoverRef.current.getBoundingClientRect();
-    const anchorRect = anchorRef.current.getBoundingClientRect();
-    const margin = 16;
-    let left = anchorRect.left;
-    if (left + popRect.width > window.innerWidth - margin) {
-      left = anchorRect.right - popRect.width;
+    if (!open || !pos) return;
+    function recompute() {
+      const popEl = popoverRef.current;
+      const anchorEl = anchorRef.current;
+      if (!popEl || !anchorEl) return;
+      const popRect = popEl.getBoundingClientRect();
+      const anchorRect = anchorEl.getBoundingClientRect();
+      const margin = 16;
+      const spaceBelow = window.innerHeight - anchorRect.bottom;
+      const top =
+        spaceBelow >= popRect.height + margin
+          ? anchorRect.bottom + 4
+          : Math.max(margin, anchorRect.top - popRect.height - 4);
+      let left = anchorRect.left;
+      if (left + popRect.width > window.innerWidth - margin) {
+        left = anchorRect.right - popRect.width;
+      }
+      if (left < margin) left = margin;
+      setPxPos({ top, left });
     }
-    if (left < margin) left = margin;
-    setLeftPx(left);
+    recompute();
+    window.addEventListener('scroll', recompute, true);
+    window.addEventListener('resize', recompute);
+    return () => {
+      window.removeEventListener('scroll', recompute, true);
+      window.removeEventListener('resize', recompute);
+    };
   }, [open, pos]);
 
   // Reset highlight to the current value (or first enabled) on open.
@@ -248,11 +265,14 @@ export function Select({
               ref={popoverRef}
               style={{
                 position: 'fixed',
-                top: pos.top,
-                left: leftPx ?? pos.left,
+                top: pxPos?.top ?? pos.top,
+                left: pxPos?.left ?? pos.left,
                 minWidth: triggerWidth || undefined,
                 maxWidth: '90vw',
                 zIndex: 50,
+                // Hide until we've re-measured with actual size to avoid a
+                // one-frame flash at the (usually wrong) estimated position.
+                visibility: pxPos ? 'visible' : 'hidden',
               }}
               className="thin-scrollbar max-h-72 w-max overflow-y-auto rounded-md border border-zinc-200 bg-white py-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
               role="listbox"
