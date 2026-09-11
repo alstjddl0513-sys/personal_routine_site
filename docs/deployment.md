@@ -41,6 +41,7 @@ Render 대시보드 → **Environment** → 추가:
 |---|---|---|
 | `DATABASE_URL` | `postgresql://postgres.<ref>:<pw>@<host>:5432/postgres` | Supabase Session Pooler(port 5432). Direct(6543)는 IPv6 전용이라 실패 |
 | `SUPABASE_URL` | `https://<project-ref>.supabase.co` | 슬래시 없이. JWKS fetch 대상. 미설정 시 `bootstrap-env.ts`가 부팅 거부 |
+| `SUPABASE_SECRET_KEY` | `sb_secret_...` | Phase 12.4b 계정 탈퇴에서 `auth.admin.deleteUser` 호출용. 미설정 시 `DELETE /profiles/me`만 500, 나머지 API는 동작. Console → Settings → API Keys → `sb_secret_*` 복사. **service_role 권한이라 서버 전용, 절대 커밋 X** |
 | `CORS_ALLOWED_ORIGIN` | `*` | 임시. §3에서 Vercel URL로 교체 |
 | `NODE_VERSION` | `22.11.0` | Node 20은 의존 트리 중 `node:sqlite`(22.5+) 요구 패키지로 실패. `22`만 넣지 말고 정확한 patch 버전으로 |
 
@@ -133,7 +134,7 @@ Env 저장만으론 자동 재배포 안 됨 — **Deployments → Redeploy** �
 
 무료 티어 Render는 15분 idle 시 슬립 + 자체 cron 없음. 구성:
 
-1. **콜드 스타트 방지** — 외부 cronjob.org에서 10분마다 `/health` (필수)
+1. **콜드 스타트 방지** — 외부 cronjob.org에서 5분마다 `/health/ping` (필수)
 2. **RSS 자동 수집** — 서버 프로세스 안에서 `@nestjs/schedule` `@Cron('0 11,23 * * *')` (하루 2회, 08:00/20:00 KST). 외부 훅 불필요
 
 ### 외부 훅 · Health ping (콜드 스타트 방지)
@@ -143,12 +144,12 @@ https://cronjob.org 가입 → **Cronjobs** → **Create cronjob**:
 | 필드 | 값 |
 |---|---|
 | Title | `rally health ping` |
-| URL | `https://<render-service>.onrender.com/health` |
+| URL | `https://<render-service>.onrender.com/health/ping` |
 | Method | GET |
-| Schedule | Every 10 minutes |
+| Schedule | Every 5 minutes |
 | Timeout | 30s |
 
-`/health`는 `AccessTokenGuard` 예외라 토큰 헤더 불필요.
+`/health/ping`은 `@Public()` 데코레이터로 `SupabaseAuthGuard`를 건너뛰므로 토큰 헤더 불필요. 응답은 순수 `{ok:true}` — DB ping이 붙은 `/health`(대시보드 진단용)와 달리 warmer용으로 부하를 최소화. 인터벌은 Render 무료 티어 유휴 슬립(15분)의 1/3 수준으로 5분을 권장.
 
 **주의**: cronjob.org는 연속 실패가 누적되면 job을 자동 disable함. Render 콜드 스타트가 30초 넘으면 timeout이 반복되고 결국 꺼진다. **History에서 disable 이유 확인 → 필요하면 timeout 상향 후 재활성**. Health ping이 죽어 있으면 아래 내부 RSS cron도 서버 슬립 창에 미스될 수 있음.
 
@@ -174,6 +175,36 @@ async scheduledRefresh() { ... }
 초기엔 cronjob.org에 RSS refresh 훅도 등록하려 했으나:
 - refresh 응답 JSON이 임계값을 초과해 cronjob.org가 "Failed (output too large)"로 표시 → 실패 이력 누적 → 자동 disable
 - 서버 프로세스가 어차피 살아있어야 하는(health ping) 조건에선 앱 내부 cron이 응답 크기·타임아웃 제약 없이 단순
+
+---
+
+## §5.5 Google OAuth (Phase 12.3)
+
+`/login`·`/signup`의 "Google로 계속하기" 버튼을 위한 Console 세팅. 코드 쪽은 `/auth/callback` route handler가 PKCE code exchange + 최초 로그인 시 랜덤 닉네임 profile 자동 생성까지 처리.
+
+### Google Cloud Console
+
+1. https://console.cloud.google.com/apis/credentials → 프로젝트 선택 (없으면 생성)
+2. **Create Credentials** → **OAuth client ID** → **Web application**
+3. **Authorized JavaScript origins**: (선택) 각 환경의 origin — `http://localhost:3000`, `https://<vercel-domain>.vercel.app`
+4. **Authorized redirect URIs** (필수): 각 Supabase 프로젝트의 콜백 URL
+   - 로컬 프로젝트: `https://<local-ref>.supabase.co/auth/v1/callback`
+   - Prod 프로젝트: `https://<prod-ref>.supabase.co/auth/v1/callback`
+5. 저장 후 **Client ID** · **Client Secret** 복사
+
+### Supabase Console (로컬·prod 각각)
+
+1. **Authentication** → **Providers** → **Google** 활성화
+2. 위 Client ID / Secret 붙여넣고 저장
+3. **URL Configuration** 탭에서 아래 확인
+   - **Site URL**: 앱의 배포 origin (로컬은 `http://localhost:3000`)
+   - **Redirect URLs**: `<origin>/auth/callback` 형태 등록 (로컬·prod 각각)
+
+### 확장 시 참고 (Apple / 네이버 / 카카오 / GitHub)
+
+- `signInWithOAuth({provider})`의 provider만 갈아 끼우면 동일한 `/auth/callback` 흐름을 재사용 가능
+- 각 provider별로 (1) Provider Console에서 OAuth 앱 등록 → (2) Supabase Providers 탭에서 활성화 → (3) `/login`·`/signup`에 버튼 추가만 반복
+- 네이버·카카오는 Supabase Auth 공식 provider가 아니므로 `signInWithIdToken` 또는 커스텀 SSO 경로가 필요 — 도입 시 재검토
 
 ---
 

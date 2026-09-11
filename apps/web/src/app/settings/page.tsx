@@ -7,6 +7,7 @@ import {
   Rss,
   Tag,
 } from 'lucide-react';
+import { AccountDeleteRow } from '../../components/settings/AccountDeleteRow';
 import { BackupButton } from '../../components/settings/BackupButton';
 import { LogoutRow } from '../../components/settings/LogoutRow';
 import { NicknameRow } from '../../components/settings/NicknameRow';
@@ -114,6 +115,10 @@ export default function SettingsPage() {
           </p>
         </div>
         <BackupButton />
+      </section>
+
+      <section className="rounded-md border border-red-200 bg-white dark:border-red-900/60 dark:bg-zinc-950">
+        <AccountDeleteRow />
       </section>
 
       <section className="flex items-center justify-between rounded-md border border-zinc-200 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-zinc-950">

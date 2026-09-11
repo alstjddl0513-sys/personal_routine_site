@@ -1,7 +1,9 @@
+import { Suspense } from 'react';
 import { getRoutineChecks, getTimeBlocks } from '../../../lib/api';
-import { monthOf, parseISOMonth } from '../../../lib/routines-week';
+import { monthOf, parseISOMonth, type MonthInfo } from '../../../lib/routines-week';
 import { CalendarGrid } from '../../../components/routines/CalendarGrid';
 import { CalendarMonthNav } from '../../../components/routines/CalendarMonthNav';
+import { Skeleton } from '../../../components/Skeleton';
 
 function first(raw: string | string[] | undefined): string | undefined {
   return Array.isArray(raw) ? raw[0] : raw;
@@ -15,6 +17,21 @@ export default async function RoutinesCalendarPage({
   const anchor = (monthParam ? parseISOMonth(monthParam) : null) ?? new Date();
   const month = monthOf(anchor);
 
+  return (
+    <div className="flex flex-col gap-4 p-6">
+      <header className="flex items-baseline justify-between">
+        <h1 className="text-xl font-semibold">루틴 캘린더</h1>
+        <CalendarMonthNav month={month} />
+      </header>
+
+      <Suspense fallback={<CalendarSkeleton />}>
+        <CalendarContent month={month} />
+      </Suspense>
+    </div>
+  );
+}
+
+async function CalendarContent({ month }: { month: MonthInfo }) {
   // Archived blocks are included so historical cells reflect the block set
   // that was actually live on that date (via createdAt / archivedAt).
   const [blocks, checks] = await Promise.all([
@@ -27,14 +44,9 @@ export default async function RoutinesCalendarPage({
     counts.set(c.date, (counts.get(c.date) ?? 0) + 1);
   }
 
-  return (
-    <div className="flex flex-col gap-4 p-6">
-      <header className="flex items-baseline justify-between">
-        <h1 className="text-xl font-semibold">루틴 캘린더</h1>
-        <CalendarMonthNav month={month} />
-      </header>
+  return <CalendarGrid month={month} blocks={blocks} checkCountsByDate={counts} />;
+}
 
-      <CalendarGrid month={month} blocks={blocks} checkCountsByDate={counts} />
-    </div>
-  );
+function CalendarSkeleton() {
+  return <Skeleton className="h-96" />;
 }
