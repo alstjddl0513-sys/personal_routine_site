@@ -133,7 +133,7 @@ Env 저장만으론 자동 재배포 안 됨 — **Deployments → Redeploy** �
 
 무료 티어 Render는 15분 idle 시 슬립 + 자체 cron 없음. 구성:
 
-1. **콜드 스타트 방지** — 외부 cronjob.org에서 10분마다 `/health` (필수)
+1. **콜드 스타트 방지** — 외부 cronjob.org에서 5분마다 `/health/ping` (필수)
 2. **RSS 자동 수집** — 서버 프로세스 안에서 `@nestjs/schedule` `@Cron('0 11,23 * * *')` (하루 2회, 08:00/20:00 KST). 외부 훅 불필요
 
 ### 외부 훅 · Health ping (콜드 스타트 방지)
@@ -143,12 +143,12 @@ https://cronjob.org 가입 → **Cronjobs** → **Create cronjob**:
 | 필드 | 값 |
 |---|---|
 | Title | `rally health ping` |
-| URL | `https://<render-service>.onrender.com/health` |
+| URL | `https://<render-service>.onrender.com/health/ping` |
 | Method | GET |
-| Schedule | Every 10 minutes |
+| Schedule | Every 5 minutes |
 | Timeout | 30s |
 
-`/health`는 `AccessTokenGuard` 예외라 토큰 헤더 불필요.
+`/health/ping`은 `@Public()` 데코레이터로 `SupabaseAuthGuard`를 건너뛰므로 토큰 헤더 불필요. 응답은 순수 `{ok:true}` — DB ping이 붙은 `/health`(대시보드 진단용)와 달리 warmer용으로 부하를 최소화. 인터벌은 Render 무료 티어 유휴 슬립(15분)의 1/3 수준으로 5분을 권장.
 
 **주의**: cronjob.org는 연속 실패가 누적되면 job을 자동 disable함. Render 콜드 스타트가 30초 넘으면 timeout이 반복되고 결국 꺼진다. **History에서 disable 이유 확인 → 필요하면 timeout 상향 후 재활성**. Health ping이 죽어 있으면 아래 내부 RSS cron도 서버 슬립 창에 미스될 수 있음.
 
