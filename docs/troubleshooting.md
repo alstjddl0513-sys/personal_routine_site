@@ -240,6 +240,19 @@
 - 원인: 요청 경로는 브라우저 → Next `proxy.ts` middleware → `/api/proxy/[...path]` Route Handler → NestJS API. Middleware가 세션 없는 `/api/*` 요청을 401 JSON으로 차단해서 NestJS의 `@Public()`은 도달 못 함
 - 해결: `proxy.ts`의 `PUBLIC_PATHS`에 `/api/proxy/profiles/check-nickname` 추가. **인증 계층이 두 겹(Next middleware + NestJS Guard)이라 공용 엔드포인트는 양쪽 다 열어줘야 함**
 
+### Prod 마이그레이션 실패 후 스키마-Drizzle 트래킹 불일치
+- 상황: `db:migrate`가 여러 미적용 마이그(0010~0013)를 한 번에 돌리다 0012 `SET NOT NULL`에서 (backfill 안 된) NULL owner_id 때문에 실패. Drizzle은 전체 루프를 `session.transaction`으로 감싸지만, 결과적으로 prod엔 0011 컬럼은 반영되고 FK/트래킹은 미반영된 상태로 남음 (postgres.js의 statement별 autocommit 개입 가능성). SQL Editor로 정정 SQL 붙여넣기도 특정 라인(`routine_checks_owner_id_auth_users_id_fk` 등 긴 identifier)에서 문자 스퀴즈로 mangling
+- 원인: (a) Drizzle 마이그레이터는 pending 마이그를 all-or-nothing으로 굴리는 게 이상적이지만 실제 postgres.js 상호작용에서 부분 반영이 가능. (b) 브라우저 붙여넣기가 긴 SQL의 특정 라인을 잘라내는 이슈
+- 해결 흐름:
+  1. 실제 스키마 상태를 `information_schema.columns` / `pg_constraint` / `drizzle.__drizzle_migrations`로 정밀 진단
+  2. 부족한 조각(FK, profiles 등)을 담은 one-off `prod-recovery-*.sql` 임시 파일 작성
+  3. `apps/api/src/db/apply-sql-file.ts`(신설 유틸)로 파일 통짜 전송 → 브라우저 우회
+  4. Drizzle 트래킹에도 수동 INSERT (`hash`는 라벨 텍스트, `created_at`는 `_journal.json`의 `when` 값)
+  5. NULL owner_id 데이터가 소량이면 backfill 대신 DELETE (prod가 사실상 비어있을 때만 안전)
+  6. `db:migrate` 재실행 → 미적용 마이그(0012, 0013 등) 순차 적용
+  7. 검증: 트래킹 개수 = 마이그 파일 개수, `is_nullable='NO'` 개수 = 예상치, `rowsecurity=true` 개수 = 예상치
+- 재발 방지: prod 마이그 실행 전 `db:generate`로 "No schema changes" 확인, 대규모 마이그는 **파일을 하나씩** 개별 실행하도록 배포 절차 개선 (deployment.md 업데이트 대상)
+
 ### RSS 수집에서 네이버 D2만 `status code 406`
 - 상황: `/blog` 새로고침하면 8개 중 D2 한 개만 406으로 실패. 다른 소스는 정상
 - 원인: `rss-parser` 기본이 `Accept: application/rss+xml` 헤더만 보내는데, D2 피드(`d2.atom`)는 순수 Atom이라 그 Accept로는 406 응답. Accept 헤더 아예 없거나 atom 포함하면 200
