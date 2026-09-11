@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { JobsCards } from '../../components/jobs/JobsCards';
 import { JobsFilters } from '../../components/jobs/JobsFilters';
 import { JobsTable } from '../../components/jobs/JobsTable';
+import { Skeleton } from '../../components/Skeleton';
 import { getCompanies, getCompanyTypes } from '../../lib/api';
 import {
   APPLICATION_STATUS_VALUES,
@@ -11,6 +12,8 @@ import {
   type CompanyType1,
   type Priority,
 } from '@repo/shared';
+
+type JobsSearchParams = Awaited<PageProps<'/jobs'>['searchParams']>;
 
 function first(raw: string | string[] | undefined): string | undefined {
   return Array.isArray(raw) ? raw[0] : raw;
@@ -32,6 +35,19 @@ function parseEnumMulti<T extends string>(
 
 export default async function JobsPage({ searchParams }: PageProps<'/jobs'>) {
   const sp = await searchParams;
+  return (
+    <div className="flex flex-col gap-6 p-6">
+      <header>
+        <h1 className="text-xl font-semibold">채용 리스트</h1>
+      </header>
+      <Suspense fallback={<JobsSkeleton />}>
+        <JobsContent sp={sp} />
+      </Suspense>
+    </div>
+  );
+}
+
+async function JobsContent({ sp }: { sp: JobsSearchParams }) {
   const type1 = parseEnumMulti<CompanyType1>(sp.type1, COMPANY_TYPE_1_VALUES);
   const priority = parseEnumMulti<Priority>(sp.priority, PRIORITY_VALUES);
   const applicationStatus = parseEnumMulti<ApplicationStatus>(
@@ -67,12 +83,10 @@ export default async function JobsPage({ searchParams }: PageProps<'/jobs'>) {
   ]);
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <header className="flex items-baseline justify-between">
-        <h1 className="text-xl font-semibold">채용 리스트</h1>
-        <span className="text-xs text-zinc-500">{rows.length}개</span>
-      </header>
-
+    <>
+      <div className="-mt-2 flex justify-end text-xs text-zinc-500">
+        {rows.length}개
+      </div>
       <Suspense fallback={null}>
         <JobsFilters companyTypes={companyTypes} />
       </Suspense>
@@ -87,6 +101,16 @@ export default async function JobsPage({ searchParams }: PageProps<'/jobs'>) {
           <JobsCards rows={rows} companyTypes={companyTypes} />
         </>
       )}
-    </div>
+    </>
+  );
+}
+
+function JobsSkeleton() {
+  return (
+    <>
+      <Skeleton className="h-11 max-w-sm" />
+      <Skeleton className="h-52" />
+      <Skeleton className="h-64" />
+    </>
   );
 }

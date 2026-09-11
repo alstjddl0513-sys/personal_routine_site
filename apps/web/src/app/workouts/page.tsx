@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { Settings2 } from 'lucide-react';
 import type { ExerciseStatsPR, PreviousWorkout, WorkoutSet } from '@repo/shared';
@@ -19,6 +20,7 @@ import { RestTimer } from '../../components/workouts/RestTimer';
 import { WorkoutBoard } from '../../components/workouts/WorkoutBoard';
 import { WorkoutDateNav } from '../../components/workouts/WorkoutDateNav';
 import { WorkoutGroupTabs } from '../../components/workouts/WorkoutGroupTabs';
+import { Skeleton } from '../../components/Skeleton';
 
 function first(raw: string | string[] | undefined): string | undefined {
   return Array.isArray(raw) ? raw[0] : raw;
@@ -34,6 +36,41 @@ export default async function WorkoutsPage({
   const groupFilter: MuscleGroupFilter = parseGroupFilter(first(sp.group));
   const sessionParam = first(sp.session);
 
+  return (
+    <div className="flex flex-col gap-4 p-6 pb-40 md:pb-24">
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl font-semibold">운동 기록</h1>
+          <AddExerciseButton />
+        </div>
+        <WorkoutDateNav date={displayDate} group={groupFilter} />
+      </header>
+
+      <Suspense fallback={<WorkoutsSkeleton />}>
+        <WorkoutsContent
+          dateIso={dateIso}
+          dateParam={dateParam}
+          groupFilter={groupFilter}
+          sessionParam={sessionParam}
+        />
+      </Suspense>
+
+      <RestTimer />
+    </div>
+  );
+}
+
+async function WorkoutsContent({
+  dateIso,
+  dateParam,
+  groupFilter,
+  sessionParam,
+}: {
+  dateIso: string;
+  dateParam: string | undefined;
+  groupFilter: MuscleGroupFilter;
+  sessionParam: string | undefined;
+}) {
   const [allExercises, sessions] = await Promise.all([
     getExercises(),
     getWorkoutSessionsByDate(dateIso),
@@ -88,15 +125,7 @@ export default async function WorkoutsPage({
   });
 
   return (
-    <div className="flex flex-col gap-4 p-6 pb-40 md:pb-24">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-semibold">운동 기록</h1>
-          <AddExerciseButton />
-        </div>
-        <WorkoutDateNav date={displayDate} group={groupFilter} />
-      </header>
-
+    <>
       <div className="flex items-end justify-between gap-2 border-b border-zinc-200 dark:border-zinc-800">
         <WorkoutGroupTabs
           active={groupFilter}
@@ -122,8 +151,15 @@ export default async function WorkoutsPage({
         previousByExercise={previousByExercise}
         prByExercise={prByExercise}
       />
+    </>
+  );
+}
 
-      <RestTimer />
-    </div>
+function WorkoutsSkeleton() {
+  return (
+    <>
+      <Skeleton className="h-10" />
+      <Skeleton className="h-64" />
+    </>
   );
 }

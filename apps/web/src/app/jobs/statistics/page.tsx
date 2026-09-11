@@ -1,9 +1,11 @@
+import { Suspense } from 'react';
 import {
   APPLICATION_STATUS_LABELS,
   COMPANY_TYPE_1_LABELS,
   COMPANY_TYPE_1_VALUES,
 } from '@repo/shared';
 import { getCompanies, getCompanyTypes } from '../../../lib/api';
+import { Skeleton } from '../../../components/Skeleton';
 import { StatCard } from '../../../components/jobs/StatCard';
 import { StatBar } from '../../../components/jobs/StatBar';
 import {
@@ -26,6 +28,23 @@ function formatDeadline(iso: string, daysLeft: number): string {
 }
 
 export default async function JobsStatisticsPage() {
+  return (
+    <div className="flex flex-col gap-6 p-6">
+      <header>
+        <h1 className="text-xl font-semibold">기업 통계</h1>
+        <p className="mt-1 text-sm text-zinc-500">
+          기업 리스트를 집계한 스냅샷입니다.
+        </p>
+      </header>
+
+      <Suspense fallback={<JobsStatisticsSkeleton />}>
+        <JobsStatisticsContent />
+      </Suspense>
+    </div>
+  );
+}
+
+async function JobsStatisticsContent() {
   const [rows, companyTypes] = await Promise.all([getCompanies(), getCompanyTypes()]);
   const kpi = computeKpi(rows);
   const pipeline = computePipeline(rows);
@@ -53,14 +72,7 @@ export default async function JobsStatisticsPage() {
     kpi.applied > 0 ? `${count} / ${kpi.applied}` : `${count} / 0`;
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <header>
-        <h1 className="text-xl font-semibold">기업 통계</h1>
-        <p className="mt-1 text-sm text-zinc-500">
-          기업 리스트를 집계한 스냅샷입니다.
-        </p>
-      </header>
-
+    <>
       <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <StatCard label="전체 회사" value={kpi.total} />
         <StatCard label="채용중" value={kpi.hiring} hint={`${hiringPct}%`} />
@@ -199,6 +211,31 @@ export default async function JobsStatisticsPage() {
           </ul>
         )}
       </section>
-    </div>
+    </>
+  );
+}
+
+function JobsStatisticsSkeleton() {
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <Skeleton className="h-20" />
+        <Skeleton className="h-20" />
+        <Skeleton className="h-20" />
+        <Skeleton className="h-20" />
+      </div>
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <Skeleton className="h-20" />
+        <Skeleton className="h-20" />
+        <Skeleton className="h-20" />
+        <Skeleton className="h-20" />
+      </div>
+      <Skeleton className="h-64" />
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <Skeleton className="h-40" />
+        <Skeleton className="h-40" />
+      </div>
+      <Skeleton className="h-32" />
+    </>
   );
 }
