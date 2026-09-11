@@ -4,10 +4,10 @@
 전체 기획은 `docs/개인_루틴_커리어_관리_웹사이트_기획서.pdf` 참고.
 
 ## 프로젝트 개요
-- **사용자**: 본인 1인 전용 (MVP는 로그인 없음)
-- **탭 2개**: 루틴 트래커, 채용 리스트
-- **스택**: Next.js(프론트) + NestJS + Drizzle ORM(백엔드) + Supabase(PostgreSQL)
-- **배포**: Vercel + Railway/Fly.io + Supabase (전부 무료 티어)
+- **사용자**: MVP는 본인 1인 전용이었으나 Phase 12(v0.4.0)부터 Supabase Auth로 다인화 인프라 도입
+- **탭**: 채용 리스트 / 루틴 트래커 / 운동 기록 / 기술 블로그 / 설정
+- **스택**: Next.js 16 App Router(프론트) + NestJS 11 + Drizzle ORM(백엔드) + Supabase(PostgreSQL, Auth) + `@repo/shared` 공용 타입
+- **배포**: Vercel(web) + Render(api) + Supabase(db) — 전부 무료 티어. 상세는 `docs/deployment.md`
 
 ## 1. 계획 우선 (가장 중요)
 - 코드 작성/수정 전에 변경 계획을 먼저 요약해 보여주고 확인받은 후 진행한다.
@@ -29,6 +29,7 @@
 - ERD 변경은 특히 계획을 먼저 공유하고 진행한다.
 - 스키마 변경 흐름: 스키마 편집 → `pnpm --filter api db:generate` → 생성된 SQL 사용자에게 보여주고 승인 → `pnpm --filter api db:migrate`. **자동 실행 금지**.
 - 로컬 dev는 Supabase **Session Pooler(port 5432)** 문자열 사용. Direct connection은 IPv6 전용이라 국내 환경에서 DNS 실패.
+- **Prod 마이그은 파일 하나씩**. `db:migrate`가 여러 개 미적용을 한 번에 돌리면 실패 시 부분 반영 상태에 빠질 수 있음(Phase 12.4에서 겪음). 파일별 실행이 필요하면 `apps/api/src/db/apply-sql-file.ts` 유틸 + 수동 트래킹 INSERT. deployment.md §6 · troubleshooting.md 참고.
 
 ## 5. 검증
 - 수정 후 빌드/테스트를 실행해 정상 동작을 확인한다.

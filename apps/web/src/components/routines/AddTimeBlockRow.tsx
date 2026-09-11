@@ -16,12 +16,18 @@ export function AddTimeBlockRow({ nextSortOrder }: { nextSortOrder: number }) {
     if (editing) queueMicrotask(() => inputRef.current?.focus());
   }, [editing]);
 
+  // Guard against Enter → setEditing(false) → onBlur → submit() double-call.
+  // useTransition's `saving` state can still read false during blur due to batching.
+  const submittedRef = useRef(false);
+
   function submit() {
+    if (submittedRef.current) return;
     const trimmed = value.trim();
     if (!trimmed) {
       setEditing(false);
       return;
     }
+    submittedRef.current = true;
     startSave(async () => {
       try {
         await createTimeBlock({ label: trimmed, sortOrder: nextSortOrder });
@@ -30,6 +36,8 @@ export function AddTimeBlockRow({ nextSortOrder }: { nextSortOrder: number }) {
         router.refresh();
       } catch (err) {
         console.error(err);
+      } finally {
+        submittedRef.current = false;
       }
     });
   }

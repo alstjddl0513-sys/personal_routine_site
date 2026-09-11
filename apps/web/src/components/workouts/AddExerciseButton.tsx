@@ -4,7 +4,6 @@ import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, X } from 'lucide-react';
 import { createExercise } from '../../lib/api';
-import { useOutsideClick } from '../../lib/useOutsideClick';
 import { TargetMuscleSelect } from './TargetMuscleSelect';
 
 const DEFAULT_SETS = 3;
@@ -23,8 +22,6 @@ export function AddExerciseButton() {
   const [isPending, startTransition] = useTransition();
   const cardRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
-
-  useOutsideClick(cardRef, () => !isPending && setOpen(false), open);
 
   useEffect(() => {
     if (open) {
@@ -110,6 +107,11 @@ export function AddExerciseButton() {
           role="dialog"
           aria-modal="true"
           aria-labelledby="add-exercise-title"
+          // Close only on real backdrop click. useOutsideClick would fire on
+          // the Select's portal popover (rendered to body, outside cardRef).
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget && !isPending) setOpen(false);
+          }}
         >
           <div
             ref={cardRef}

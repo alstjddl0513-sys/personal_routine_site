@@ -251,7 +251,7 @@
   5. NULL owner_id 데이터가 소량이면 backfill 대신 DELETE (prod가 사실상 비어있을 때만 안전)
   6. `db:migrate` 재실행 → 미적용 마이그(0012, 0013 등) 순차 적용
   7. 검증: 트래킹 개수 = 마이그 파일 개수, `is_nullable='NO'` 개수 = 예상치, `rowsecurity=true` 개수 = 예상치
-- 재발 방지: prod 마이그 실행 전 `db:generate`로 "No schema changes" 확인, 대규모 마이그는 **파일을 하나씩** 개별 실행하도록 배포 절차 개선 (deployment.md 업데이트 대상)
+- 재발 방지: prod 마이그 실행 전 `db:generate`로 "No schema changes" 확인, 대규모 마이그는 **파일을 하나씩** 개별 실행. deployment.md §6 참고
 
 ### RSS 수집에서 네이버 D2만 `status code 406`
 - 상황: `/blog` 새로고침하면 8개 중 D2 한 개만 406으로 실패. 다른 소스는 정상
@@ -262,3 +262,18 @@
 - 상황: 로그인 후 페이지에서 콘솔에 manifest.webmanifest Syntax error 두 번, 폰트 preload 미사용 경고. 로그인 직후 첫 렌더가 유독 느림
 - 원인: `proxy.ts`의 `matcher`가 excludes `_next/static|_next/image|favicon.ico|icon.svg|apple-icon.png`만 나열 → `/manifest.webmanifest`, `/flag-512.png`, `/icon-maskable.svg`가 미들웨어를 매번 통과. (a) 세션 없으면 `/login`으로 redirect돼 HTML이 돌아오고 브라우저가 이를 manifest로 파싱하려다 실패. (b) 세션 있어도 요청마다 `supabase.auth.getUser()` 서버 왕복이라 병렬 asset 요청 수만큼 지연 누적
 - 해결: matcher 정규식을 확장자 기반으로 넓혀서 정적 파일 통째로 제외: `/((?!_next/static|_next/image|.*\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest|txt|xml)$).*)`
+
+### Modal 안의 커스텀 Select가 옵션 선택 즉시 모달을 닫음
+- 상황: 회사 추가 / 운동 추가 모달에서 유형/부위 dropdown 옵션을 누르면 값 저장 없이 모달이 그대로 닫힘 → 등록 자체가 불가
+- 원인: 모달이 `useOutsideClick(cardRef, ...)`로 바깥 감지를 걸어놨는데, 프로젝트의 `Select` 컴포넌트는 popover를 `createPortal(document.body)`로 렌더링. cardRef의 DOM 자식이 아니라 클릭 target이 outside로 판정 → 모달 close 트리거
+- 해결: 모달 자체엔 outside 감지를 걸지 않고, dialog wrapper의 `onMouseDown`에서 `e.target === e.currentTarget`(=진짜 backdrop) 조건일 때만 닫음. Portal 안의 클릭은 currentTarget이 popover라 조건 미충족 → 모달 유지. `AddCompanyButton`, `AddExerciseButton` 참고
+
+### `AddTimeBlockRow` Enter로 저장 시 시간블록이 두 개 생성
+- 상황: `/routines`에서 "+ 블록 추가" → 이름 입력 → Enter → API 두 번 호출로 동일 label 블록 2개 등록
+- 원인: `onKeyDown(Enter)` → `submit()` → 내부에서 `setEditing(false)` → input unmount → **onBlur** trigger → `submit()` 재호출. `useTransition`의 `saving` state는 React batching으로 blur 도착 시점에 아직 false일 수 있어 판정 못 함
+- 해결: 별도 `submittedRef` in-flight guard. 첫 submit에서 true로 세팅해 재진입 차단, finally에서 false. useTransition state에 의존하지 않으니 batching 타이밍 무관
+
+### Prod에 `SUPABASE_URL` env 누락으로 API 부팅 실패
+- 상황: `chore(release)` 머지 → Render 재배포 즉시 `Error: SUPABASE_URL is required in production — refusing to boot with auth disabled.`로 exit 1
+- 원인: Phase 12.1에서 심어둔 `bootstrap-env.ts` fail-fast. `NODE_ENV=production && !SUPABASE_URL`이면 부팅 거부. 배포 파이프라인은 코드만 옮길 뿐 env는 Render 대시보드에 손으로 등록해야 함 — 12.2/12.4 릴리스 준비하면서 이 세팅을 안 해서 발생
+- 해결: Render Environment → `SUPABASE_URL = https://<ref>.supabase.co` 추가 → Manual Deploy. 동시에 Vercel도 `NEXT_PUBLIC_SUPABASE_URL` · `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` 세팅 필요. `.env.example`은 예시일 뿐 실제 클라우드 env는 분리 관리 — 릴리스 체크리스트에 env-diff 항목 필요. deployment.md §1/§2 참고
