@@ -220,3 +220,45 @@
 - 상황: 무게 입력 후 Tab하여 횟수 입력하는 순간 UI에서 방금 입력한 숫자가 사라짐. 무게 단독은 정상, 횟수만 씹힘
 - 원인: 무게 blur → `commit` → `router.refresh()` → 서버가 새 `existingSets` 반환 → `SetInputs`의 useEffect가 rows를 `initRows`로 재초기화 → 그 사이 사용자가 다음 필드에 typing한 값이 덮어쓰기됨
 - 해결: useEffect 시작에서 `rowsSignature(rows) !== lastSavedRef.current`이면 (사용자 미저장 편집 중) 재초기화 skip. 실제 서버 상태 변경(reorder, 다른 카드 save)에도 in-flight typing은 보존
+
+### Turbopack: "next/headers를 client 번들에 include" 빌드 실패
+- 상황: `pnpm --filter web build` 시 `Error: You're importing a module that depends on "next/headers". This API is only available in Server Components in the App Router, but you are using it in the Pages Router.` (App Router 프로젝트인데 Pages Router 언급은 오해 소지)
+- 원인: `lib/api.ts`(양쪽 사용)에서 `authHeaders()` 안에 `await import('./supabase/server')`로 dynamic import를 걸었지만 Turbopack은 dynamic import까지 모듈 그래프에 포함시켜 client 번들에 `next/headers`가 딸려옴. Client Components(예: `AddCompanyButton`)가 api.ts를 import한 순간 발생
+- 해결: `lib/supabase/auth-header.ts`에 `'use server'` 지시자를 붙여 Server Action으로 분리. api.ts는 Server Action reference만 import → Next가 client 번들에서 RPC 스텁으로 대체해 server-only 의존은 남지 않음. Server-side는 in-process 직접 호출로 hop 없음. Phase 12.2 참고
+
+### 삭제한 route가 `.next/dev/types/validator.ts`에 잔재로 남아 타입 에러
+- 상황: `apps/web/src/app/api/auth/login/route.ts` 파일을 지웠는데 `pnpm --filter web build` 첫 시도에서 `Cannot find module '../../../src/app/api/auth/login/route.js' or its corresponding type declarations`
+- 원인: Turbopack이 이전 dev 실행 때 만든 `.next/dev/types/validator.ts` 캐시가 삭제된 route를 참조 중. Next가 타입 검증 단계에서 이 파일을 읽음
+- 해결: `rm -rf apps/web/.next` 후 재빌드. 파일 삭제·이동 후 stale 타입 캐시 이슈는 같은 방법으로 해소
+
+---
+
+## Phase 12 인증
+
+### /signup에서 `/api/proxy/profiles/check-nickname` 401
+- 상황: /signup 닉네임 필드가 `HTTP 401`로 중복검사 실패. 백엔드 컨트롤러에 `@Public()`이 있어도.
+- 원인: 요청 경로는 브라우저 → Next `proxy.ts` middleware → `/api/proxy/[...path]` Route Handler → NestJS API. Middleware가 세션 없는 `/api/*` 요청을 401 JSON으로 차단해서 NestJS의 `@Public()`은 도달 못 함
+- 해결: `proxy.ts`의 `PUBLIC_PATHS`에 `/api/proxy/profiles/check-nickname` 추가. **인증 계층이 두 겹(Next middleware + NestJS Guard)이라 공용 엔드포인트는 양쪽 다 열어줘야 함**
+
+### Prod 마이그레이션 실패 후 스키마-Drizzle 트래킹 불일치
+- 상황: `db:migrate`가 여러 미적용 마이그(0010~0013)를 한 번에 돌리다 0012 `SET NOT NULL`에서 (backfill 안 된) NULL owner_id 때문에 실패. Drizzle은 전체 루프를 `session.transaction`으로 감싸지만, 결과적으로 prod엔 0011 컬럼은 반영되고 FK/트래킹은 미반영된 상태로 남음 (postgres.js의 statement별 autocommit 개입 가능성). SQL Editor로 정정 SQL 붙여넣기도 특정 라인(`routine_checks_owner_id_auth_users_id_fk` 등 긴 identifier)에서 문자 스퀴즈로 mangling
+- 원인: (a) Drizzle 마이그레이터는 pending 마이그를 all-or-nothing으로 굴리는 게 이상적이지만 실제 postgres.js 상호작용에서 부분 반영이 가능. (b) 브라우저 붙여넣기가 긴 SQL의 특정 라인을 잘라내는 이슈
+- 해결 흐름:
+  1. 실제 스키마 상태를 `information_schema.columns` / `pg_constraint` / `drizzle.__drizzle_migrations`로 정밀 진단
+  2. 부족한 조각(FK, profiles 등)을 담은 one-off `prod-recovery-*.sql` 임시 파일 작성
+  3. `apps/api/src/db/apply-sql-file.ts`(신설 유틸)로 파일 통짜 전송 → 브라우저 우회
+  4. Drizzle 트래킹에도 수동 INSERT (`hash`는 라벨 텍스트, `created_at`는 `_journal.json`의 `when` 값)
+  5. NULL owner_id 데이터가 소량이면 backfill 대신 DELETE (prod가 사실상 비어있을 때만 안전)
+  6. `db:migrate` 재실행 → 미적용 마이그(0012, 0013 등) 순차 적용
+  7. 검증: 트래킹 개수 = 마이그 파일 개수, `is_nullable='NO'` 개수 = 예상치, `rowsecurity=true` 개수 = 예상치
+- 재발 방지: prod 마이그 실행 전 `db:generate`로 "No schema changes" 확인, 대규모 마이그는 **파일을 하나씩** 개별 실행하도록 배포 절차 개선 (deployment.md 업데이트 대상)
+
+### RSS 수집에서 네이버 D2만 `status code 406`
+- 상황: `/blog` 새로고침하면 8개 중 D2 한 개만 406으로 실패. 다른 소스는 정상
+- 원인: `rss-parser` 기본이 `Accept: application/rss+xml` 헤더만 보내는데, D2 피드(`d2.atom`)는 순수 Atom이라 그 Accept로는 406 응답. Accept 헤더 아예 없거나 atom 포함하면 200
+- 해결: `rss-fetcher.ts`의 Parser headers에 `Accept: application/atom+xml, application/rss+xml, application/xml;q=0.9, */*;q=0.8` 명시. 다른 Atom 전용 피드 만나도 재사용
+
+### `Manifest: Line: 1, column: 1, Syntax error.` + 첫 렌더 느림
+- 상황: 로그인 후 페이지에서 콘솔에 manifest.webmanifest Syntax error 두 번, 폰트 preload 미사용 경고. 로그인 직후 첫 렌더가 유독 느림
+- 원인: `proxy.ts`의 `matcher`가 excludes `_next/static|_next/image|favicon.ico|icon.svg|apple-icon.png`만 나열 → `/manifest.webmanifest`, `/flag-512.png`, `/icon-maskable.svg`가 미들웨어를 매번 통과. (a) 세션 없으면 `/login`으로 redirect돼 HTML이 돌아오고 브라우저가 이를 manifest로 파싱하려다 실패. (b) 세션 있어도 요청마다 `supabase.auth.getUser()` 서버 왕복이라 병렬 asset 요청 수만큼 지연 누적
+- 해결: matcher 정규식을 확장자 기반으로 넓혀서 정적 파일 통째로 제외: `/((?!_next/static|_next/image|.*\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest|txt|xml)$).*)`

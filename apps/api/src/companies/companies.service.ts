@@ -8,8 +8,8 @@ import type { QueryCompaniesDto } from './dto/query-companies.dto';
 
 @Injectable()
 export class CompaniesService {
-  async findAll(query: QueryCompaniesDto) {
-    const conditions: SQL[] = [];
+  async findAll(ownerId: string, query: QueryCompaniesDto) {
+    const conditions: SQL[] = [eq(companies.ownerId, ownerId)];
 
     if (query.type1) {
       conditions.push(eq(companies.type1, query.type1));
@@ -34,15 +34,15 @@ export class CompaniesService {
     return db
       .select()
       .from(companies)
-      .where(conditions.length ? and(...conditions) : undefined)
+      .where(and(...conditions))
       .orderBy(priorityOrder, asc(companies.name));
   }
 
-  async findOne(id: string) {
+  async findOne(ownerId: string, id: string) {
     const [row] = await db
       .select()
       .from(companies)
-      .where(eq(companies.id, id))
+      .where(and(eq(companies.id, id), eq(companies.ownerId, ownerId)))
       .limit(1);
     if (!row) {
       throw new NotFoundException(`Company ${id} not found`);
@@ -50,16 +50,19 @@ export class CompaniesService {
     return row;
   }
 
-  async create(dto: CreateCompanyDto) {
-    const [row] = await db.insert(companies).values(dto).returning();
+  async create(ownerId: string, dto: CreateCompanyDto) {
+    const [row] = await db
+      .insert(companies)
+      .values({ ...dto, ownerId })
+      .returning();
     return row;
   }
 
-  async update(id: string, dto: UpdateCompanyDto) {
+  async update(ownerId: string, id: string, dto: UpdateCompanyDto) {
     const [row] = await db
       .update(companies)
       .set({ ...dto, updatedAt: new Date() })
-      .where(eq(companies.id, id))
+      .where(and(eq(companies.id, id), eq(companies.ownerId, ownerId)))
       .returning();
     if (!row) {
       throw new NotFoundException(`Company ${id} not found`);
@@ -67,10 +70,10 @@ export class CompaniesService {
     return row;
   }
 
-  async remove(id: string) {
+  async remove(ownerId: string, id: string) {
     const [row] = await db
       .delete(companies)
-      .where(eq(companies.id, id))
+      .where(and(eq(companies.id, id), eq(companies.ownerId, ownerId)))
       .returning({ id: companies.id });
     if (!row) {
       throw new NotFoundException(`Company ${id} not found`);

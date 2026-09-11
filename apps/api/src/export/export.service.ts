@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { eq } from 'drizzle-orm';
 import { db } from '../db/client';
 import {
   companies,
@@ -15,7 +16,7 @@ import {
 // only if the shape changes in a way a restore script would care about.
 @Injectable()
 export class ExportService {
-  async dumpAll() {
+  async dumpAll(ownerId: string) {
     const [
       companiesRows,
       timeBlocksRows,
@@ -25,13 +26,13 @@ export class ExportService {
       workoutSessionsRows,
       workoutSetsRows,
     ] = await Promise.all([
-      db.select().from(companies),
-      db.select().from(timeBlocks),
-      db.select().from(routineChecks),
-      db.select().from(dayNotes),
-      db.select().from(exercises),
-      db.select().from(workoutSessions),
-      db.select().from(workoutSets),
+      db.select().from(companies).where(eq(companies.ownerId, ownerId)),
+      db.select().from(timeBlocks).where(eq(timeBlocks.ownerId, ownerId)),
+      db.select().from(routineChecks).where(eq(routineChecks.ownerId, ownerId)),
+      db.select().from(dayNotes).where(eq(dayNotes.ownerId, ownerId)),
+      db.select().from(exercises).where(eq(exercises.ownerId, ownerId)),
+      db.select().from(workoutSessions).where(eq(workoutSessions.ownerId, ownerId)),
+      db.select().from(workoutSets).where(eq(workoutSets.ownerId, ownerId)),
     ]);
 
     return {

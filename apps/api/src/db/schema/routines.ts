@@ -15,6 +15,8 @@ import {
 // end_time must be > start_time when both present (enforced app-side).
 export const timeBlocks = pgTable('time_blocks', {
   id: uuid('id').defaultRandom().primaryKey(),
+  // Owner (Phase 12.4). See companies.ts for the auth.users FK note.
+  ownerId: uuid('owner_id').notNull(),
   label: text('label').notNull(),
   startTime: smallint('start_time'),
   endTime: smallint('end_time'),
@@ -37,6 +39,11 @@ export const routineChecks = pgTable(
   'routine_checks',
   {
     id: uuid('id').defaultRandom().primaryKey(),
+    // Owner (Phase 12.4). Denormalized copy of timeBlocks.ownerId — the app
+    // layer must set this to the parent block's owner on insert. The
+    // UNIQUE(block_id, date) already keeps ownership consistent transitively
+    // (block_id is per-owner), so no composite unique on owner_id needed.
+    ownerId: uuid('owner_id').notNull(),
     blockId: uuid('block_id')
       .notNull()
       .references(() => timeBlocks.id, { onDelete: 'cascade' }),
@@ -48,14 +55,21 @@ export const routineChecks = pgTable(
   (t) => [unique('routine_checks_block_date_uq').on(t.blockId, t.date)],
 );
 
-export const dayNotes = pgTable('day_notes', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  date: date('date').notNull().unique(),
-  content: text('content').notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
+export const dayNotes = pgTable(
+  'day_notes',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    // Owner (Phase 12.4). See companies.ts for the auth.users FK note.
+    ownerId: uuid('owner_id').notNull(),
+    // UNIQUE is per-owner so two users can each note the same date.
+    date: date('date').notNull(),
+    content: text('content').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [unique('day_notes_owner_date_uq').on(t.ownerId, t.date)],
+);

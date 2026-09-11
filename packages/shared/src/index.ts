@@ -231,3 +231,16 @@ export interface BlogRefreshResult {
   added: number;
   errors: { sourceId: string; name: string; message: string }[];
 }
+
+// --- profiles ---
+
+export interface Profile {
+  id: string;
+  nickname: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NicknameAvailability {
+  available: boolean;
+}

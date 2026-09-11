@@ -15,6 +15,11 @@ const parser = new Parser({
   headers: {
     // 일부 블로그는 User-Agent 없이 400 반환 (예: medium)
     'User-Agent': 'Rally/1.0 (RSS collector)',
+    // rss-parser 기본값은 `application/rss+xml`만 요청하는데, Atom 전용
+    // 피드(예: 네이버 D2 = d2.atom)는 그 헤더에 406으로 응답. Atom·RSS·
+    // 일반 XML 전부 수락하도록 명시.
+    Accept:
+      'application/atom+xml, application/rss+xml, application/xml;q=0.9, */*;q=0.8',
   },
 });
 

@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { asc, eq, max } from 'drizzle-orm';
+import { and, asc, eq, max } from 'drizzle-orm';
 import { db } from '../db/client';
 import { timeBlocks } from '../db/schema';
 import type { CreateTimeBlockDto } from './dto/create-time-block.dto';
@@ -8,25 +8,32 @@ import type { QueryTimeBlocksDto } from './dto/query-time-blocks.dto';
 
 @Injectable()
 export class TimeBlocksService {
-  async findAll(query: QueryTimeBlocksDto) {
-    const q = db.select().from(timeBlocks).orderBy(asc(timeBlocks.sortOrder));
+  async findAll(ownerId: string, query: QueryTimeBlocksDto) {
+    const q = db
+      .select()
+      .from(timeBlocks)
+      .orderBy(asc(timeBlocks.sortOrder));
     if (query.includeArchived) {
-      return q;
+      return q.where(eq(timeBlocks.ownerId, ownerId));
     }
-    return q.where(eq(timeBlocks.isArchived, false));
+    return q.where(
+      and(eq(timeBlocks.ownerId, ownerId), eq(timeBlocks.isArchived, false)),
+    );
   }
 
-  async create(dto: CreateTimeBlockDto) {
+  async create(ownerId: string, dto: CreateTimeBlockDto) {
     let sortOrder = dto.sortOrder;
     if (sortOrder === undefined) {
       const [{ maxOrder }] = await db
         .select({ maxOrder: max(timeBlocks.sortOrder) })
-        .from(timeBlocks);
+        .from(timeBlocks)
+        .where(eq(timeBlocks.ownerId, ownerId));
       sortOrder = (maxOrder ?? -1) + 1;
     }
     const [row] = await db
       .insert(timeBlocks)
       .values({
+        ownerId,
         label: dto.label,
         sortOrder,
         startTime: dto.startTime,
@@ -36,11 +43,11 @@ export class TimeBlocksService {
     return row;
   }
 
-  async update(id: string, dto: UpdateTimeBlockDto) {
+  async update(ownerId: string, id: string, dto: UpdateTimeBlockDto) {
     const [row] = await db
       .update(timeBlocks)
       .set({ ...dto, updatedAt: new Date() })
-      .where(eq(timeBlocks.id, id))
+      .where(and(eq(timeBlocks.id, id), eq(timeBlocks.ownerId, ownerId)))
       .returning();
     if (!row) {
       throw new NotFoundException(`TimeBlock ${id} not found`);
@@ -50,12 +57,12 @@ export class TimeBlocksService {
 
   // Soft delete: calendar view reconstructs past active-block counts from
   // createdAt/archivedAt, so the row must be preserved.
-  async remove(id: string) {
+  async remove(ownerId: string, id: string) {
     const now = new Date();
     const [row] = await db
       .update(timeBlocks)
       .set({ isArchived: true, archivedAt: now, updatedAt: now })
-      .where(eq(timeBlocks.id, id))
+      .where(and(eq(timeBlocks.id, id), eq(timeBlocks.ownerId, ownerId)))
       .returning({ id: timeBlocks.id });
     if (!row) {
       throw new NotFoundException(`TimeBlock ${id} not found`);

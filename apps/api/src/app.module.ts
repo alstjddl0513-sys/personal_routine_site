@@ -2,8 +2,9 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { resolve } from 'path';
-import { AccessTokenGuard } from './access-token.guard';
+import { SupabaseAuthGuard } from './supabase-auth.guard';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HealthController } from './health/health.controller';
@@ -18,6 +19,7 @@ import { WorkoutSetsModule } from './workout-sets/workout-sets.module';
 import { ExportModule } from './export/export.module';
 import { BlogSourcesModule } from './blog-sources/blog-sources.module';
 import { BlogPostsModule } from './blog-posts/blog-posts.module';
+import { ProfilesModule } from './profiles/profiles.module';
 
 @Module({
   imports: [
@@ -26,6 +28,9 @@ import { BlogPostsModule } from './blog-posts/blog-posts.module';
       envFilePath: [resolve(process.cwd(), '../../.env')],
     }),
     ScheduleModule.forRoot(),
+    // Default: 60 req/min per IP for all endpoints (generous). Individual
+    // endpoints (e.g. profiles/check-nickname) can tighten via @Throttle().
+    ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 60 }]),
     CompaniesModule,
     CompanyTypesModule,
     TimeBlocksModule,
@@ -37,11 +42,13 @@ import { BlogPostsModule } from './blog-posts/blog-posts.module';
     ExportModule,
     BlogSourcesModule,
     BlogPostsModule,
+    ProfilesModule,
   ],
   controllers: [AppController, HealthController],
   providers: [
     AppService,
-    { provide: APP_GUARD, useClass: AccessTokenGuard },
+    { provide: APP_GUARD, useClass: SupabaseAuthGuard },
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
 })
 export class AppModule {}

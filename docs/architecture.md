@@ -95,7 +95,10 @@ MVP는 순수 Postgres 호스팅으로만 사용. 나중에 다인 서비스로 
 | 콜드 스타트 완화 | **cronjob.org** | GitHub Actions, UptimeRobot | UI 간단, 완전 무료, 10분 주기로 `/health` 핑. GH Actions는 무료 분 소진 아까움 |
 | 모노레포 | **pnpm workspace** | npm workspace, Yarn, turbo | 심볼릭 링크 방식이 디스크 절약, `workspace:*` 프로토콜 안정. turbo는 앱 2개 규모엔 캐시 이득보다 세팅 부담 |
 | 패키지 매니저 | **pnpm 11** | npm, yarn | 위와 동일 이유. Windows에서 `.ps1` 실행 정책 이슈는 `pnpm.cmd`로 우회(troubleshooting.md) |
-| 인증 (MVP) | **자체 폼 + HttpOnly 쿠키** | Supabase Auth, NextAuth | 1인 전용이라 계정 시스템 오버킬. env 두 개(`BASIC_AUTH_USER/PASSWORD`)만으로 관리. 다인 확장 시 Supabase Auth로 이관 예정 |
+| 인증 (MVP → 이관 중) | **자체 폼 + HttpOnly 쿠키** → Phase 12에서 Supabase Auth로 이관 중 | Supabase Auth, NextAuth | 1인 전용 시기엔 계정 시스템 오버킬이라 env 두 개(`BASIC_AUTH_USER/PASSWORD`)만으로 시작. Phase 12에서 다인화 트리거로 아래 행의 Supabase Auth로 대체 |
+| 인증 (Phase 12) | **Supabase Auth (JWKS/ES256)** | NextAuth (self-host), Auth0/Clerk (managed) | DB가 이미 Supabase라 auth.users FK + RLS를 한 벤더 안에서. NextAuth는 세션 저장·소셜 provider 세팅 수제 부담. Auth0/Clerk는 무료 티어 MAU 제한이 취준용 규모엔 오버킬이고 vendor lock-in 큼. Supabase는 이 프로젝트에서 이미 vendor lock-in 감수 중이라 추가 락 없음 |
+| JWT verify | **jose** | jsonwebtoken (+jwks-rsa) | 프로젝트가 JWKS(ES256/ECC P-256)로 서명 → `createRemoteJWKSet`으로 공개키 자동 fetch·캐싱·회전 대응. jsonwebtoken은 HS256 콜백 API 시절 표준이지만 JWKS 쓰려면 별도 lib 조합 필요. jose는 zero-deps + native async + TS 우선 |
+| Rate limit | **@nestjs/throttler** | 수제 미들웨어, express-rate-limit, Redis 기반 | 공식 Nest 통합, 데코레이터로 엔드포인트별 세밀 제어(`@Throttle`). 인메모리라 무료 티어 재시작마다 초기화되지만 스크레이핑 방지 목적엔 충분. 다중 인스턴스 되면 Redis storage 어댑터로 교체 |
 | 배포 브랜치 전략 | **feat → develop → main** | trunk-based, GitFlow full | main은 배포 지점(자동 재배포), develop은 통합 줄기. 1인이라 무거운 GitFlow는 과함 |
 
 ## 관련 문서
