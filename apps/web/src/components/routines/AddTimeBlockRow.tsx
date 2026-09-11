@@ -16,12 +16,19 @@ export function AddTimeBlockRow({ nextSortOrder }: { nextSortOrder: number }) {
     if (editing) queueMicrotask(() => inputRef.current?.focus());
   }, [editing]);
 
+  // Enter로 저장 → setEditing(false) → input unmount → onBlur → submit() 재호출
+  // 순의 이중 저장을 막는 가드. useTransition의 `saving` 상태는 batching 타이밍상
+  // blur가 도착할 때 아직 false일 수 있어 별도 ref로 잠금 확인.
+  const submittedRef = useRef(false);
+
   function submit() {
+    if (submittedRef.current) return;
     const trimmed = value.trim();
     if (!trimmed) {
       setEditing(false);
       return;
     }
+    submittedRef.current = true;
     startSave(async () => {
       try {
         await createTimeBlock({ label: trimmed, sortOrder: nextSortOrder });
@@ -30,6 +37,8 @@ export function AddTimeBlockRow({ nextSortOrder }: { nextSortOrder: number }) {
         router.refresh();
       } catch (err) {
         console.error(err);
+      } finally {
+        submittedRef.current = false;
       }
     });
   }
