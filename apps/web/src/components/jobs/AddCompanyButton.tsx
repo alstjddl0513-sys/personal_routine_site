@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Plus, X } from 'lucide-react';
 import {
   COMPANY_TYPE_1_LABELS,
@@ -10,7 +11,6 @@ import {
   type CompanyType1,
 } from '@repo/shared';
 import { createCompany } from '../../lib/api';
-import { useOutsideClick } from '../../lib/useOutsideClick';
 import { Select } from '../ui/Select';
 
 const DEFAULT_TYPE1: CompanyType1 = 'sme';
@@ -27,7 +27,10 @@ export function AddCompanyButton({ companyTypes }: { companyTypes: CompanyType[]
   const cardRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
 
-  useOutsideClick(cardRef, () => !isPending && setOpen(false), open);
+  // 모달 바깥(=검은 backdrop) 클릭 시 닫음. 예전 `useOutsideClick(cardRef)` 방식은
+  // Select가 portal로 body에 열어놓은 popover 클릭을 "바깥"으로 오판해 옵션 선택이
+  // 바로 모달을 닫아버렸음. backdrop 자체(mousedown target === currentTarget)만
+  // 감지하도록 로컬 처리.
 
   useEffect(() => {
     if (open) {
@@ -84,6 +87,9 @@ export function AddCompanyButton({ companyTypes }: { companyTypes: CompanyType[]
           role="dialog"
           aria-modal="true"
           aria-labelledby="add-company-title"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget && !isPending) setOpen(false);
+          }}
         >
           <div
             ref={cardRef}
@@ -135,14 +141,23 @@ export function AddCompanyButton({ companyTypes }: { companyTypes: CompanyType[]
                   <label htmlFor="add-type2" className="text-xs text-zinc-500 dark:text-zinc-400">
                     유형
                   </label>
-                  <Select
-                    id="add-type2"
-                    value={type2}
-                    onChange={setType2}
-                    options={companyTypes.map((t) => ({ value: t.key, label: t.label }))}
-                    ariaLabel="유형"
-                    triggerClassName="min-h-11 justify-between rounded border border-zinc-300 bg-white px-2 py-1.5 text-base outline-none focus:border-zinc-500 md:min-h-0 md:text-sm dark:border-zinc-700 dark:bg-zinc-950"
-                  />
+                  {companyTypes.length === 0 ? (
+                    <Link
+                      href="/settings/company-types"
+                      className="inline-flex min-h-11 items-center rounded border border-dashed border-zinc-300 bg-zinc-50 px-2 py-1.5 text-xs text-zinc-500 hover:bg-zinc-100 md:min-h-0 md:text-[11px] dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900"
+                    >
+                      유형 먼저 추가 →
+                    </Link>
+                  ) : (
+                    <Select
+                      id="add-type2"
+                      value={type2}
+                      onChange={setType2}
+                      options={companyTypes.map((t) => ({ value: t.key, label: t.label }))}
+                      ariaLabel="유형"
+                      triggerClassName="min-h-11 justify-between rounded border border-zinc-300 bg-white px-2 py-1.5 text-base outline-none focus:border-zinc-500 md:min-h-0 md:text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                    />
+                  )}
                 </div>
                 <div className="flex flex-1 flex-col gap-1">
                   <label htmlFor="add-type1" className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -179,7 +194,8 @@ export function AddCompanyButton({ companyTypes }: { companyTypes: CompanyType[]
                 <button
                   type="button"
                   onClick={submit}
-                  disabled={isPending}
+                  disabled={isPending || companyTypes.length === 0}
+                  title={companyTypes.length === 0 ? '유형을 먼저 추가하세요' : undefined}
                   className="inline-flex min-h-11 items-center rounded bg-zinc-900 px-3 text-sm text-white hover:bg-zinc-800 disabled:opacity-50 md:min-h-0 md:py-1.5 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
                 >
                   {isPending ? '추가 중...' : '추가'}

@@ -4,7 +4,6 @@ import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, X } from 'lucide-react';
 import { createExercise } from '../../lib/api';
-import { useOutsideClick } from '../../lib/useOutsideClick';
 import { TargetMuscleSelect } from './TargetMuscleSelect';
 
 const DEFAULT_SETS = 3;
@@ -24,7 +23,9 @@ export function AddExerciseButton() {
   const cardRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
 
-  useOutsideClick(cardRef, () => !isPending && setOpen(false), open);
+  // 모달 backdrop 클릭만 닫기(=Select portal popover 클릭이 outside로 오판되던
+  // 문제 회피). `useOutsideClick(cardRef)` 방식은 portal-rendered Select와
+  // 충돌해 부위 옵션 클릭이 모달을 바로 닫아 등록 자체가 불가능했음.
 
   useEffect(() => {
     if (open) {
@@ -110,6 +111,9 @@ export function AddExerciseButton() {
           role="dialog"
           aria-modal="true"
           aria-labelledby="add-exercise-title"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget && !isPending) setOpen(false);
+          }}
         >
           <div
             ref={cardRef}
