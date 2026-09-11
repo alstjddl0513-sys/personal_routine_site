@@ -41,6 +41,7 @@ Render 대시보드 → **Environment** → 추가:
 |---|---|---|
 | `DATABASE_URL` | `postgresql://postgres.<ref>:<pw>@<host>:5432/postgres` | Supabase Session Pooler(port 5432). Direct(6543)는 IPv6 전용이라 실패 |
 | `SUPABASE_URL` | `https://<project-ref>.supabase.co` | 슬래시 없이. JWKS fetch 대상. 미설정 시 `bootstrap-env.ts`가 부팅 거부 |
+| `SUPABASE_SECRET_KEY` | `sb_secret_...` | Phase 12.4b 계정 탈퇴에서 `auth.admin.deleteUser` 호출용. 미설정 시 `DELETE /profiles/me`만 500, 나머지 API는 동작. Console → Settings → API Keys → `sb_secret_*` 복사. **service_role 권한이라 서버 전용, 절대 커밋 X** |
 | `CORS_ALLOWED_ORIGIN` | `*` | 임시. §3에서 Vercel URL로 교체 |
 | `NODE_VERSION` | `22.11.0` | Node 20은 의존 트리 중 `node:sqlite`(22.5+) 요구 패키지로 실패. `22`만 넣지 말고 정확한 patch 버전으로 |
 

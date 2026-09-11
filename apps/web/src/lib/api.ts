@@ -602,6 +602,18 @@ export async function renameMyNickname(nickname: string): Promise<Profile> {
   return (await res.json()) as Profile;
 }
 
+// 계정 탈퇴. 성공 시 서버는 auth.users를 지우고 profiles·도메인 데이터가
+// FK CASCADE로 함께 정리. 클라는 응답 후 signOut → /login으로 이동.
+export async function deleteMyAccount(): Promise<void> {
+  const res = await fetch(apiUrl('/profiles/me'), {
+    method: 'DELETE',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(`DELETE /profiles/me failed: HTTP ${res.status}`, res.status);
+  }
+}
+
 // Public endpoint — no auth header needed. Safe to call before signup.
 export async function checkNicknameAvailability(
   nickname: string,

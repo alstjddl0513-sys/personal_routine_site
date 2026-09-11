@@ -1,4 +1,9 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { eq, sql } from 'drizzle-orm';
 import { db } from '../db/client';
 import { blogSources, companyTypes, profiles } from '../db/schema';
@@ -6,6 +11,7 @@ import {
   DEFAULT_BLOG_SOURCES,
   DEFAULT_COMPANY_TYPES,
 } from '../db/defaults';
+import { getSupabaseAdmin } from '../supabase-admin';
 
 @Injectable()
 export class ProfilesService {
@@ -80,6 +86,19 @@ export class ProfilesService {
         throw new ConflictException('nickname already taken');
       }
       throw err;
+    }
+  }
+
+  // 계정 삭제 = auth.users(id) 삭제. profiles와 도메인 데이터는 각각의
+  // FK가 auth.users(id) ON DELETE CASCADE라 자동 정리(12.2·12.4에서 세팅).
+  // 앱은 tx 없이 admin API에만 위임 — Postgres 쪽 CASCADE가 원자적.
+  async deleteMe(userId: string): Promise<void> {
+    const admin = getSupabaseAdmin();
+    const { error } = await admin.auth.admin.deleteUser(userId);
+    if (error) {
+      throw new InternalServerErrorException(
+        `failed to delete auth user: ${error.message}`,
+      );
     }
   }
 
