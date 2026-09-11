@@ -16,6 +16,7 @@ description: NestJS + Drizzle + Supabase 스택에서 새 도메인의 스키마
 - **스키마 편집 후 `db:generate`로 SQL 생성한 다음, 그 SQL을 사용자에게 보여주고 승인 받은 뒤에만 `db:migrate` 실행**. 자동 실행 절대 금지 (CLAUDE.md #4)
 - 브랜치는 `feat/phase-<N>/<주제>-backend` 네이밍 (CLAUDE.md #13)
 - 계획을 먼저 요약해서 사용자 승인 받은 뒤 코드 작성 (CLAUDE.md #1)
+- **Phase 12 이후 신규 도메인은 owner_id + RLS 스코프 필수** (아래 §"Phase 12 이후" 섹션 참고)
 
 ## 진행 순서 (요약)
 
@@ -316,3 +317,113 @@ $r.Content
 - 행 존재 = 상태(toggle): `apps/api/src/routine-checks/*`
 - Upsert (natural key `:date`): `apps/api/src/day-notes/*`
 - 소프트 삭제(`is_archived`) + FK cascade: `apps/api/src/db/schema/routines.ts`
+
+---
+
+## Phase 12 이후 (다인화)
+
+Phase 12.4부터 모든 도메인 테이블은 `owner_id`로 스코프. 신규 도메인은 처음부터 다음을 지켜야 함:
+
+### 스키마
+
+```ts
+export const things = pgTable(
+  'things',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    // Owner. FK는 raw SQL로 (Drizzle이 auth 스키마 모름).
+    ownerId: uuid('owner_id').notNull(),
+    // ... 나머지 컬럼
+  },
+  // 도메인 unique는 owner_id를 첫 컬럼으로: (owner_id, key)
+  (t) => [unique('things_owner_key_uq').on(t.ownerId, t.key)],
+);
+```
+
+Child 테이블도 부모 owner_id를 denormalize:
+```ts
+export const thingParts = pgTable(
+  'thing_parts',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    ownerId: uuid('owner_id').notNull(),  // 부모의 owner_id 복사
+    thingId: uuid('thing_id').notNull().references(() => things.id, { onDelete: 'cascade' }),
+    // ...
+  },
+);
+```
+
+### 마이그레이션에 FK 추가
+
+`db:generate`가 만든 SQL 뒤에 raw SQL로 추가:
+```sql
+ALTER TABLE "things" ADD CONSTRAINT "things_owner_id_auth_users_id_fk"
+  FOREIGN KEY ("owner_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+```
+
+### RLS 정책도 함께
+
+`0013_rls_policies.sql`처럼 별도 파일(수동) 또는 같은 마이그에 raw SQL로:
+```sql
+ALTER TABLE "things" ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "things_owner_select" ON "things" FOR SELECT USING (owner_id = auth.uid());
+CREATE POLICY "things_owner_insert" ON "things" FOR INSERT WITH CHECK (owner_id = auth.uid());
+CREATE POLICY "things_owner_update" ON "things" FOR UPDATE USING (owner_id = auth.uid()) WITH CHECK (owner_id = auth.uid());
+CREATE POLICY "things_owner_delete" ON "things" FOR DELETE USING (owner_id = auth.uid());
+```
+
+### 컨트롤러
+
+```ts
+import { requireUserId, type AuthedRequest } from '../supabase-auth.guard';
+
+@Get()
+findAll(@Req() req: AuthedRequest, @Query() query: QueryThingsDto) {
+  return this.service.findAll(requireUserId(req), query);
+}
+```
+
+### 서비스
+
+모든 method가 `ownerId` 첫 인자:
+```ts
+async findAll(ownerId: string, query: QueryThingsDto) {
+  return db.select().from(things)
+    .where(and(eq(things.ownerId, ownerId), /* 나머지 조건 */));
+}
+
+async create(ownerId: string, dto: CreateThingDto) {
+  const [row] = await db.insert(things).values({ ...dto, ownerId }).returning();
+  return row;
+}
+
+async update(ownerId: string, id: string, dto: UpdateThingDto) {
+  const [row] = await db.update(things)
+    .set({ ...dto, updatedAt: new Date() })
+    .where(and(eq(things.id, id), eq(things.ownerId, ownerId)))  // owner 매칭
+    .returning();
+  if (!row) throw new NotFoundException(`Thing ${id} not found`);  // 남의 것도 404로 통일 (leak 방지)
+  return row;
+}
+```
+
+Child 테이블 write에는 트랜잭션 안에서 parent 소유권 검증:
+```ts
+async batchReplace(ownerId: string, dto: BatchDto) {
+  return db.transaction(async (tx) => {
+    const [parent] = await tx.select({ id: things.id }).from(things)
+      .where(and(eq(things.id, dto.thingId), eq(things.ownerId, ownerId)))
+      .limit(1);
+    if (!parent) throw new NotFoundException(`Thing ${dto.thingId} not found`);
+    // ...이후 write. child에도 ownerId stamp
+  });
+}
+```
+
+### 온보딩 default 시드
+
+새 유저가 처음 로그인할 때 default 데이터가 필요한 도메인이면 `apps/api/src/db/defaults.ts`에 상수 추가 + `profiles.service.upsertMe` 신규 profile 케이스에서 `values(...map(x => ({ ...x, ownerId: userId })))` 로 stamp. company_types · blog_sources가 예시.
+
+### Foreign resource 접근은 404로 통일
+
+owner 매칭 안 되면 `403 Forbidden` 대신 **`404 Not Found`**. 존재 여부 leak 방지.

@@ -40,11 +40,13 @@ Render 대시보드 → **Environment** → 추가:
 | Key | Value | 비고 |
 |---|---|---|
 | `DATABASE_URL` | `postgresql://postgres.<ref>:<pw>@<host>:5432/postgres` | Supabase Session Pooler(port 5432). Direct(6543)는 IPv6 전용이라 실패 |
-| `API_ACCESS_TOKEN` | `openssl rand -hex 32` 실행값 | 32바이트 랜덤. §2 Web env와 **반드시 동일값** |
+| `SUPABASE_URL` | `https://<project-ref>.supabase.co` | 슬래시 없이. JWKS fetch 대상. 미설정 시 `bootstrap-env.ts`가 부팅 거부 |
 | `CORS_ALLOWED_ORIGIN` | `*` | 임시. §3에서 Vercel URL로 교체 |
 | `NODE_VERSION` | `22.11.0` | Node 20은 의존 트리 중 `node:sqlite`(22.5+) 요구 패키지로 실패. `22`만 넣지 말고 정확한 patch 버전으로 |
 
 `PORT`는 Render가 자동 주입 — 설정하지 말 것.
+
+Phase 12 이전에 있던 `API_ACCESS_TOKEN`은 이제 사용 X (SupabaseAuthGuard가 JWT 검증). 남아있으면 삭제 가능.
 
 ### DB 마이그레이션 (수동)
 
@@ -78,19 +80,23 @@ Vercel 대시보드 → **Settings** → **Environment Variables** → 추가 (�
 
 | Key | Value | 비고 |
 |---|---|---|
-| `API_INTERNAL_URL` | `https://<render-service>.onrender.com` | §1의 Render URL. **말미 슬래시 없이** |
-| `API_ACCESS_TOKEN` | §1과 동일값 | 다르면 API가 401 반환 |
-| `BASIC_AUTH_USER` | 원하는 사용자명 | Basic Auth 활성화. 비워두면 스킵 |
-| `BASIC_AUTH_PASSWORD` | 강한 비밀번호 | 위와 짝. 둘 다 세팅돼야 활성화 |
+| `API_INTERNAL_URL` | `https://<render-service>.onrender.com` | §1의 Render URL. **말미 슬래시 없이**. Secret 타입 |
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://<project-ref>.supabase.co` | §1 `SUPABASE_URL`과 동일값. Config 타입(브라우저 노출됨) |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_...` | Supabase Console → Settings → API Keys. Config 타입(RLS가 최종 게이트) |
 
 `API_INTERNAL_URL`은 **`NEXT_PUBLIC_` 접두어 없음** — 서버에서만 읽히고 브라우저엔 노출 안 됨. 클라이언트 mutation은 same-origin `/api/proxy` 경유.
+
+Phase 12 이전에 있던 `API_ACCESS_TOKEN` · `BASIC_AUTH_USER` · `BASIC_AUTH_PASSWORD`는 이제 사용 X (Supabase Auth SDK가 세션 관리). 남아있으면 삭제 가능.
+
+Env 저장만으론 자동 재배포 안 됨 — **Deployments → Redeploy** 수동 트리거 (Use existing Build Cache 체크 해제 권장).
 
 ### 배포 확인
 
 1. **Deploy** 클릭 → 빌드 완료 대기
-2. Vercel URL 열기 → 브라우저가 Basic Auth 프롬프트 → 위 계정 입력
-3. `/jobs`, `/routines`, `/workouts` 로딩 확인
-4. Vercel URL 메모
+2. Vercel URL 열기 → `/login` 페이지로 리다이렉트
+3. 신규 계정이면 `/signup` → 이메일/닉네임/비번 → 자동 로그인
+4. `/jobs`, `/routines`, `/workouts` 로딩 확인
+5. Vercel URL 메모
 
 ---
 
@@ -110,14 +116,16 @@ Vercel 대시보드 → **Settings** → **Environment Variables** → 추가 (�
 
 배포 완료 후 하나씩 확인:
 
-- [ ] Vercel URL 방문 시 Basic Auth 프롬프트가 뜬다
-- [ ] 로그인 후 `/` 홈에서 `/health` 응답이 `ok`
-- [ ] `/jobs` 로딩 · 회사 추가/편집이 저장됨 (F5 후에도 남아있음)
-- [ ] `/routines` 시간블록 추가/체크 저장됨
+- [ ] Vercel URL 방문 시 `/login`으로 리다이렉트
+- [ ] 신규 계정: `/signup` → 자동 로그인 → `/jobs`
+- [ ] Sidebar 좌하단에 닉네임 표시 · Render `/health` 응답 `ok`
+- [ ] `/jobs` 필터에 default 유형 6개 chip 뜸 (온보딩 auto-seed 결과)
+- [ ] `/jobs` 회사 추가/편집이 저장됨 (F5 후에도 남아있음)
+- [ ] `/routines` 시간블록 Enter 저장 → 딱 하나만 생성 · 체크박스 유지
 - [ ] `/workouts` 세트 입력 후 blur → 저장 · 재로딩 후 유지
-- [ ] `/workouts/statistics` 그래프·히트맵 렌더
-- [ ] Render 대시보드 **Logs** 탭에 API 요청 남음
-- [ ] 브라우저 DevTools **Network** 탭에서 `/api/proxy/*` 호출이 200이고 X-Auth-Token 헤더는 노출되지 **않음**(서버측 첨부라 정상)
+- [ ] `/blog` default 소스 8개 뜸 · RSS 새로고침 통과
+- [ ] Render 대시보드 **Logs** 탭에 API 요청 남음 · 401 없음
+- [ ] 브라우저 DevTools **Network** 탭에서 `/api/proxy/*` 호출이 200 · Authorization Bearer는 서버측에서만 첨부돼 브라우저 응답엔 노출 X
 
 ---
 
@@ -232,6 +240,34 @@ ORDER BY id DESC LIMIT 5;
 ```
 
 방금 실행한 마이그 파일명 접두어(예: `0009`)의 hash가 뜨면 성공. 이후 API 재배포된 프로세스가 첫 요청부터 정상 동작해야 함.
+
+### 여러 개 미적용 마이그를 한 번에 돌릴 때 주의
+
+Drizzle 마이그레이터(`drizzle-orm@0.45+ postgres-js/dialect`)는 pending 마이그를 **모두 하나의 `session.transaction`으로 감싼다**. 한 파일이 실패하면 앞서 성공한 파일도 롤백되는 게 원칙 — 근데 실제로는 postgres.js 상호작용에 따라 컬럼만 반영되고 트래킹 row는 미갱신인 어중간한 상태에 빠진 사례가 있음 (Phase 12.4 prod 적용 때 발생).
+
+원칙:
+- **prod에는 미적용 마이그를 여러 개 쌓아두지 말 것.** 릴리스마다 한 개씩. 여러 개 쌓였다면 **파일 하나만 적용하고 검증** → 다음 파일 순으로.
+- 파일 하나만 개별 실행하는 표준 방법은 Drizzle에 없음. 우회로 `apps/api/src/db/apply-sql-file.ts` 사용:
+  ```powershell
+  # 특정 파일만 직접 적용 (Drizzle 트래킹 우회, 수동 INSERT 필요)
+  pnpm.cmd exec tsx src/db/apply-sql-file.ts drizzle/0011_easy_squirrel_girl.sql
+
+  # 이 경우 Drizzle 트래킹에 수동 INSERT 필요 (그래야 다음 db:migrate가 skip)
+  # created_at 값은 apps/api/drizzle/meta/_journal.json의 `when` 필드에서 확인
+  ```
+  SQL Editor에서:
+  ```sql
+  INSERT INTO drizzle.__drizzle_migrations (hash, created_at)
+  VALUES ('0011_manual_apply', 1789056982562);
+  ```
+
+### Prod 대시보드 vs DATABASE_URL 프로젝트 REF 크로스체크 (필수)
+
+Prod 마이그 실행 전 반드시 확인:
+- `$env:DATABASE_URL`의 `postgres.<REF>` 부분 (예: `postgres.ubdqvwmeblmdiloajbvn`)
+- 그 SQL Editor를 열어놓은 Supabase Console URL의 `dashboard/project/<REF>/` 부분
+
+두 REF가 **정확히 동일**해야 함. 국내 로컬 Supabase와 prod Supabase 모두 유사한 무작위 문자열이라 눈으로 `l`↔`il` 정도의 한 글자 차이를 쉽게 놓친다. 다르면 SQL Editor는 prod가 아닌 로컬(또는 다른 프로젝트)을 보고 있음.
 
 ### 롤백
 

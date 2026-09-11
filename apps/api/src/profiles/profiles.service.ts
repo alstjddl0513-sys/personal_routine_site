@@ -19,14 +19,9 @@ export class ProfilesService {
     return row;
   }
 
-  // Create-if-missing, else rename to the given nickname. Used by /signup to
-  // stamp the profile row right after Supabase signUp succeeds.
-  //
-  // Onboarding: if this call is what creates the profile (first-ever hit for
-  // this user), seed company_types and blog_sources in the same transaction
-  // so a brand-new account has usable filter chips and a starter feed list
-  // on first visit. Exercises are intentionally left empty — new users pick
-  // their own routine from scratch.
+  // Create-if-missing, else rename. When creating, seeds company_types and
+  // blog_sources so a fresh account isn't empty on first /jobs and /blog
+  // visit. Exercises are intentionally not seeded — new users pick their own.
   async upsertMe(userId: string, nickname: string) {
     try {
       return await db.transaction(async (tx) => {

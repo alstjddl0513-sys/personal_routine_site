@@ -23,10 +23,6 @@ export function AddExerciseButton() {
   const cardRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
 
-  // 모달 backdrop 클릭만 닫기(=Select portal popover 클릭이 outside로 오판되던
-  // 문제 회피). `useOutsideClick(cardRef)` 방식은 portal-rendered Select와
-  // 충돌해 부위 옵션 클릭이 모달을 바로 닫아 등록 자체가 불가능했음.
-
   useEffect(() => {
     if (open) {
       setName('');
@@ -111,6 +107,8 @@ export function AddExerciseButton() {
           role="dialog"
           aria-modal="true"
           aria-labelledby="add-exercise-title"
+          // Close only on real backdrop click. useOutsideClick would fire on
+          // the Select's portal popover (rendered to body, outside cardRef).
           onMouseDown={(e) => {
             if (e.target === e.currentTarget && !isPending) setOpen(false);
           }}
