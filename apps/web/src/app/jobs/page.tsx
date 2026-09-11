@@ -32,11 +32,6 @@ function parseEnumMulti<T extends string>(
 
 export default async function JobsPage({ searchParams }: PageProps<'/jobs'>) {
   const sp = await searchParams;
-  // Fetch types first so we can validate the type2 filter param against
-  // the current user-editable list instead of a hardcoded enum.
-  const companyTypes = await getCompanyTypes();
-  const type2Keys = companyTypes.map((t) => t.key);
-  const type2 = parseEnumMulti<string>(sp.type2, type2Keys);
   const type1 = parseEnumMulti<CompanyType1>(sp.type1, COMPANY_TYPE_1_VALUES);
   const priority = parseEnumMulti<Priority>(sp.priority, PRIORITY_VALUES);
   const applicationStatus = parseEnumMulti<ApplicationStatus>(
@@ -49,15 +44,27 @@ export default async function JobsPage({ searchParams }: PageProps<'/jobs'>) {
   const rawQ = first(sp.q);
   const search = rawQ && rawQ.trim() ? rawQ.trim() : undefined;
 
-  const rows = await getCompanies({
-    type2,
-    type1,
-    priority,
-    applicationStatus,
-    isFavorite: favorite ? true : undefined,
-    isHiring,
-    search,
-  });
+  // type2는 user-editable이라 예전엔 companyTypes 도착 후에 유효 key로 검증
+  // 했지만, getCompanies는 클라이언트 로컬 필터(lib/api.ts)라 무효 key를
+  // 넘겨도 filter 매칭 미스로 안전하게 걸러진다. 검증 의존을 끊고 두 fetch를
+  // 병렬로 돌려 홈 진입 지연을 절반으로.
+  const type2Raw = first(sp.type2);
+  const type2 = type2Raw
+    ? type2Raw.split(',').map((s) => s.trim()).filter(Boolean)
+    : undefined;
+
+  const [companyTypes, rows] = await Promise.all([
+    getCompanyTypes(),
+    getCompanies({
+      type2,
+      type1,
+      priority,
+      applicationStatus,
+      isFavorite: favorite ? true : undefined,
+      isHiring,
+      search,
+    }),
+  ]);
 
   return (
     <div className="flex flex-col gap-6 p-6">
