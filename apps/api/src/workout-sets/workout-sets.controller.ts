@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Put, Query } from '@nestjs/common';
+import { Body, Controller, Get, Put, Query, Req } from '@nestjs/common';
+import { requireUserId, type AuthedRequest } from '../supabase-auth.guard';
 import { WorkoutSetsService } from './workout-sets.service';
 import { BatchWorkoutSetsDto } from './dto/batch-workout-sets.dto';
 import { QueryHeatmapDto } from './dto/query-heatmap.dto';
@@ -11,27 +12,30 @@ export class WorkoutSetsController {
   constructor(private readonly service: WorkoutSetsService) {}
 
   @Get()
-  findAll(@Query() query: QueryWorkoutSetsDto) {
-    return this.service.findAll(query);
+  findAll(@Req() req: AuthedRequest, @Query() query: QueryWorkoutSetsDto) {
+    return this.service.findAll(requireUserId(req), query);
   }
 
   @Get('previous')
-  findPrevious(@Query() query: QueryPreviousDto) {
-    return this.service.findPrevious(query);
+  findPrevious(@Req() req: AuthedRequest, @Query() query: QueryPreviousDto) {
+    return this.service.findPrevious(requireUserId(req), query);
   }
 
   @Get('exercise-stats')
-  findExerciseStats(@Query() query: QueryExerciseStatsDto) {
-    return this.service.findExerciseStats(query);
+  findExerciseStats(
+    @Req() req: AuthedRequest,
+    @Query() query: QueryExerciseStatsDto,
+  ) {
+    return this.service.findExerciseStats(requireUserId(req), query);
   }
 
   @Get('heatmap')
-  findHeatmap(@Query() query: QueryHeatmapDto) {
-    return this.service.findHeatmap(query);
+  findHeatmap(@Req() req: AuthedRequest, @Query() query: QueryHeatmapDto) {
+    return this.service.findHeatmap(requireUserId(req), query);
   }
 
   @Put('batch')
-  batchReplace(@Body() dto: BatchWorkoutSetsDto) {
-    return this.service.batchReplace(dto);
+  batchReplace(@Req() req: AuthedRequest, @Body() dto: BatchWorkoutSetsDto) {
+    return this.service.batchReplace(requireUserId(req), dto);
   }
 }

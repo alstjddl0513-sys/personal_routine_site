@@ -239,3 +239,13 @@
 - 상황: /signup 닉네임 필드가 `HTTP 401`로 중복검사 실패. 백엔드 컨트롤러에 `@Public()`이 있어도.
 - 원인: 요청 경로는 브라우저 → Next `proxy.ts` middleware → `/api/proxy/[...path]` Route Handler → NestJS API. Middleware가 세션 없는 `/api/*` 요청을 401 JSON으로 차단해서 NestJS의 `@Public()`은 도달 못 함
 - 해결: `proxy.ts`의 `PUBLIC_PATHS`에 `/api/proxy/profiles/check-nickname` 추가. **인증 계층이 두 겹(Next middleware + NestJS Guard)이라 공용 엔드포인트는 양쪽 다 열어줘야 함**
+
+### RSS 수집에서 네이버 D2만 `status code 406`
+- 상황: `/blog` 새로고침하면 8개 중 D2 한 개만 406으로 실패. 다른 소스는 정상
+- 원인: `rss-parser` 기본이 `Accept: application/rss+xml` 헤더만 보내는데, D2 피드(`d2.atom`)는 순수 Atom이라 그 Accept로는 406 응답. Accept 헤더 아예 없거나 atom 포함하면 200
+- 해결: `rss-fetcher.ts`의 Parser headers에 `Accept: application/atom+xml, application/rss+xml, application/xml;q=0.9, */*;q=0.8` 명시. 다른 Atom 전용 피드 만나도 재사용
+
+### `Manifest: Line: 1, column: 1, Syntax error.` + 첫 렌더 느림
+- 상황: 로그인 후 페이지에서 콘솔에 manifest.webmanifest Syntax error 두 번, 폰트 preload 미사용 경고. 로그인 직후 첫 렌더가 유독 느림
+- 원인: `proxy.ts`의 `matcher`가 excludes `_next/static|_next/image|favicon.ico|icon.svg|apple-icon.png`만 나열 → `/manifest.webmanifest`, `/flag-512.png`, `/icon-maskable.svg`가 미들웨어를 매번 통과. (a) 세션 없으면 `/login`으로 redirect돼 HTML이 돌아오고 브라우저가 이를 manifest로 파싱하려다 실패. (b) 세션 있어도 요청마다 `supabase.auth.getUser()` 서버 왕복이라 병렬 asset 요청 수만큼 지연 누적
+- 해결: matcher 정규식을 확장자 기반으로 넓혀서 정적 파일 통째로 제외: `/((?!_next/static|_next/image|.*\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest|txt|xml)$).*)`

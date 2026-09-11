@@ -48,7 +48,16 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  // Skip Next.js internals and static assets so the guard only runs for
-  // real pages and API routes.
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|icon.svg|apple-icon.png).*)'],
+  // Skip Next.js internals and any URL that ends in a static-file extension
+  // (icons, images, /manifest.webmanifest, robots.txt, sitemap.xml, ...).
+  // Two reasons:
+  //   1) unauthenticated requests to these would otherwise redirect to /login
+  //      and hand the browser HTML — Chrome then chokes ("manifest.webmanifest
+  //      Line 1, column 1, Syntax error").
+  //   2) each match triggers a Supabase `getUser()` round-trip; letting
+  //      the browser fetch a dozen icons/manifest bytes without auth speeds
+  //      up first paint noticeably.
+  matcher: [
+    '/((?!_next/static|_next/image|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest|txt|xml)$).*)',
+  ],
 };

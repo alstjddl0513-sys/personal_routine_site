@@ -7,11 +7,10 @@ import {
   Put,
   Query,
   Req,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { Public } from '../public.decorator';
-import type { AuthedRequest } from '../supabase-auth.guard';
+import { requireUserId, type AuthedRequest } from '../supabase-auth.guard';
 import { ProfilesService } from './profiles.service';
 import { UpsertProfileDto } from './dto/upsert-profile.dto';
 
@@ -59,11 +58,3 @@ export class ProfilesController {
   }
 }
 
-// SupabaseAuthGuard sets req.user when SUPABASE_URL is configured; when it's
-// not, no user is attached and the request is effectively anonymous. All
-// profile endpoints that mutate are per-user so we require the id.
-function requireUserId(req: AuthedRequest): string {
-  const id = req.user?.id;
-  if (!id) throw new UnauthorizedException('authentication required');
-  return id;
-}

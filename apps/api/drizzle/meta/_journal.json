@@ -78,6 +78,27 @@
       "when": 1789053447014,
       "tag": "0010_strong_falcon",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1789056982562,
+      "tag": "0011_easy_squirrel_girl",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1789057786283,
+      "tag": "0012_yellow_strong_guy",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1789058000000,
+      "tag": "0013_rls_policies",
+      "breakpoints": true
     }
   ]
 }

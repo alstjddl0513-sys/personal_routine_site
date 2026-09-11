@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { asc, between, eq } from 'drizzle-orm';
+import { and, asc, between, eq } from 'drizzle-orm';
 import { db } from '../db/client';
 import { dayNotes } from '../db/schema';
 import type { QueryRangeDto } from './dto/query-range.dto';
@@ -9,7 +9,7 @@ const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 @Injectable()
 export class DayNotesService {
-  async findRange(query: QueryRangeDto) {
+  async findRange(ownerId: string, query: QueryRangeDto) {
     return db
       .select({
         date: dayNotes.date,
@@ -17,25 +17,32 @@ export class DayNotesService {
         updatedAt: dayNotes.updatedAt,
       })
       .from(dayNotes)
-      .where(between(dayNotes.date, query.from, query.to))
+      .where(
+        and(
+          eq(dayNotes.ownerId, ownerId),
+          between(dayNotes.date, query.from, query.to),
+        ),
+      )
       .orderBy(asc(dayNotes.date));
   }
 
-  async upsert(date: string, dto: UpsertDayNoteDto) {
+  async upsert(ownerId: string, date: string, dto: UpsertDayNoteDto) {
     if (!DATE_RE.test(date)) {
       throw new BadRequestException('date must be YYYY-MM-DD');
     }
     // Treat empty/whitespace as "clear the note".
     const content = dto.content.trim();
     if (content.length === 0) {
-      await db.delete(dayNotes).where(eq(dayNotes.date, date));
+      await db
+        .delete(dayNotes)
+        .where(and(eq(dayNotes.ownerId, ownerId), eq(dayNotes.date, date)));
       return { date, content: '' };
     }
     const [row] = await db
       .insert(dayNotes)
-      .values({ date, content })
+      .values({ ownerId, date, content })
       .onConflictDoUpdate({
-        target: dayNotes.date,
+        target: [dayNotes.ownerId, dayNotes.date],
         set: { content, updatedAt: new Date() },
       })
       .returning({

@@ -51,6 +51,10 @@ export const applicationStatusEnum = pgEnum('application_status', [
 export const companies = pgTable('companies', {
   id: uuid('id').defaultRandom().primaryKey(),
 
+  // Owner (Phase 12.4). FK to auth.users(id) ON DELETE CASCADE added via
+  // raw SQL in migration 0011 (Drizzle doesn't know Supabase's auth schema).
+  ownerId: uuid('owner_id').notNull(),
+
   name: text('name').notNull(),
   type1: companyType1Enum('type1').notNull(),
   type2: text('type2').notNull(),
