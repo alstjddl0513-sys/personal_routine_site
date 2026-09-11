@@ -277,3 +277,8 @@
 - 상황: `chore(release)` 머지 → Render 재배포 즉시 `Error: SUPABASE_URL is required in production — refusing to boot with auth disabled.`로 exit 1
 - 원인: Phase 12.1에서 심어둔 `bootstrap-env.ts` fail-fast. `NODE_ENV=production && !SUPABASE_URL`이면 부팅 거부. 배포 파이프라인은 코드만 옮길 뿐 env는 Render 대시보드에 손으로 등록해야 함 — 12.2/12.4 릴리스 준비하면서 이 세팅을 안 해서 발생
 - 해결: Render Environment → `SUPABASE_URL = https://<ref>.supabase.co` 추가 → Manual Deploy. 동시에 Vercel도 `NEXT_PUBLIC_SUPABASE_URL` · `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` 세팅 필요. `.env.example`은 예시일 뿐 실제 클라우드 env는 분리 관리 — 릴리스 체크리스트에 env-diff 항목 필요. deployment.md §1/§2 참고
+
+### 커스텀 Select 팝오버가 트리거에서 멀리 뜸 (prod-only)
+- 상황: 0.4.0 배포 후 `/jobs` 표 행의 PrioritySelect·SizeSelect, 회사 추가 모달의 규모/유형 Select 등을 열면 popover가 트리거에서 크게 벗어난 위치(주로 뷰포트 상단)에 렌더링. 로컬 dev에선 재현 안 됨
+- 원인 추정: `usePopoverPosition`이 `POPOVER_MAX_HEIGHT=288`을 추정 높이로 써서 `pos.top`을 계산 → 실제 popover가 훨씬 짧을 때(옵션 3~5개, 실제 높이 ~100px) "above" 배치 시 앵커 위로 큰 공백을 두고 위치. 기존 `useLayoutEffect`가 `leftPx`만 실측 보정하고 `top`은 방치. 로컬 dev 빌드에서는 timing/hydration 순서상 안 튀고 prod 빌드에서만 관측됨
+- 해결: `Select.tsx`에서 popover mount 후 `getBoundingClientRect()`로 실측한 높이·너비 기준으로 top·left 둘 다 재계산. 첫 렌더는 `visibility: hidden`으로 감춰 flash 방지. `scroll`/`resize`에서도 재추적
