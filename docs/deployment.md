@@ -177,6 +177,36 @@ async scheduledRefresh() { ... }
 
 ---
 
+## §5.5 Google OAuth (Phase 12.3)
+
+`/login`·`/signup`의 "Google로 계속하기" 버튼을 위한 Console 세팅. 코드 쪽은 `/auth/callback` route handler가 PKCE code exchange + 최초 로그인 시 랜덤 닉네임 profile 자동 생성까지 처리.
+
+### Google Cloud Console
+
+1. https://console.cloud.google.com/apis/credentials → 프로젝트 선택 (없으면 생성)
+2. **Create Credentials** → **OAuth client ID** → **Web application**
+3. **Authorized JavaScript origins**: (선택) 각 환경의 origin — `http://localhost:3000`, `https://<vercel-domain>.vercel.app`
+4. **Authorized redirect URIs** (필수): 각 Supabase 프로젝트의 콜백 URL
+   - 로컬 프로젝트: `https://<local-ref>.supabase.co/auth/v1/callback`
+   - Prod 프로젝트: `https://<prod-ref>.supabase.co/auth/v1/callback`
+5. 저장 후 **Client ID** · **Client Secret** 복사
+
+### Supabase Console (로컬·prod 각각)
+
+1. **Authentication** → **Providers** → **Google** 활성화
+2. 위 Client ID / Secret 붙여넣고 저장
+3. **URL Configuration** 탭에서 아래 확인
+   - **Site URL**: 앱의 배포 origin (로컬은 `http://localhost:3000`)
+   - **Redirect URLs**: `<origin>/auth/callback` 형태 등록 (로컬·prod 각각)
+
+### 확장 시 참고 (Apple / 네이버 / 카카오 / GitHub)
+
+- `signInWithOAuth({provider})`의 provider만 갈아 끼우면 동일한 `/auth/callback` 흐름을 재사용 가능
+- 각 provider별로 (1) Provider Console에서 OAuth 앱 등록 → (2) Supabase Providers 탭에서 활성화 → (3) `/login`·`/signup`에 버튼 추가만 반복
+- 네이버·카카오는 Supabase Auth 공식 provider가 아니므로 `signInWithIdToken` 또는 커스텀 SSO 경로가 필요 — 도입 시 재검토
+
+---
+
 ## §6. 릴리스 절차 (develop → main)
 
 ### 흐름 요약
