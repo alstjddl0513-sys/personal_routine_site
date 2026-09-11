@@ -206,15 +206,24 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
               </Link>
             }
           >
-            {companyTypes.map((t) => (
-              <Chip
-                key={t.key}
-                active={type2Set.has(t.key)}
-                onClick={() => toggleMulti('type2', type2Set, t.key)}
+            {companyTypes.length === 0 ? (
+              <Link
+                href="/settings/company-types"
+                className="text-xs text-zinc-400 underline-offset-2 hover:text-zinc-600 hover:underline dark:text-zinc-500 dark:hover:text-zinc-300"
               >
-                {t.label}
-              </Chip>
-            ))}
+                등록된 유형이 없습니다 — 유형 관리에서 추가하세요
+              </Link>
+            ) : (
+              companyTypes.map((t) => (
+                <Chip
+                  key={t.key}
+                  active={type2Set.has(t.key)}
+                  onClick={() => toggleMulti('type2', type2Set, t.key)}
+                >
+                  {t.label}
+                </Chip>
+              ))
+            )}
           </FilterRow>
           <FilterRow label="규모">
             {COMPANY_TYPE_1_VALUES.map((v) => (
