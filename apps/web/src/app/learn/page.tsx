@@ -32,7 +32,7 @@ export default async function LearnPage({
         <header className="flex flex-col gap-1">
           <h1 className="text-xl font-semibold">학습</h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            매일 랜덤 CS 질문 10개.
+            매일 랜덤 CS 질문 5개.
           </p>
         </header>
         <p className="rounded-md border border-zinc-200 bg-zinc-50 p-6 text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
@@ -52,7 +52,7 @@ export default async function LearnPage({
       <header className="flex flex-col gap-1">
         <h1 className="text-xl font-semibold">학습</h1>
         <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          매일 랜덤 CS 질문 10개. 답을 본 뒤 이해 여부를 체크.
+          매일 랜덤 CS 질문 5개. 답을 본 뒤 이해 여부를 체크.
         </p>
       </header>
       <LearnCard questions={daily} initialIndex={initialIndex} />
@@ -60,6 +60,10 @@ export default async function LearnPage({
   );
 }
 
+// If URL has ?q=<uuid> and it's in today's set, resume there. Else if any
+// unanswered, jump to first unanswered. Else auto-show completion card
+// (index === questions.length) so a user who already finished today's set
+// doesn't re-land on question 1.
 function pickInitialIndex(
   questions: RandomQuestion[],
   urlQ: string | undefined,
@@ -69,5 +73,5 @@ function pickInitialIndex(
     if (i >= 0) return i;
   }
   const unanswered = questions.findIndex((q) => !q.status);
-  return unanswered >= 0 ? unanswered : 0;
+  return unanswered >= 0 ? unanswered : questions.length;
 }

@@ -7,7 +7,7 @@ import type { QueryDailyDto } from './dto/query-daily.dto';
 import type { QueryRandomDto } from './dto/query-random.dto';
 import type { QueryStatsRangeDto } from './dto/query-stats-range.dto';
 
-const DAILY_LIMIT = 10;
+const DAILY_LIMIT = 5;
 
 @Injectable()
 export class QuestionsService {
