@@ -285,5 +285,4 @@ export interface QuestionStatsSummary {
   total: number;
   understood: number;
   reviewNeeded: number;
-  totalPool: number;
 }

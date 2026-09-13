@@ -14,6 +14,10 @@ export const metadata = {
 // beyond the 12 visible weeks.
 const STREAK_DAYS = 180;
 const HEATMAP_WEEKS = 12;
+// Mirrors DAILY_LIMIT in apps/api/src/questions/questions.service.ts —
+// server picks 5 questions/day and this UI shows today's progress against
+// that quota. Keep in sync (small coupling accepted for now).
+const DAILY_QUOTA = 5;
 
 export default async function LearnStatisticsPage() {
   return (
@@ -52,8 +56,8 @@ async function StatsContent() {
   return (
     <>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <Kpi label="오늘 학습" value={`${todayCount}문제`} />
-        <Kpi label="총 답변" value={`${summary.total}/${summary.totalPool}`} />
+        <Kpi label="오늘 학습" value={`${todayCount} / ${DAILY_QUOTA}`} />
+        <Kpi label="총 답변" value={`${summary.total}개`} />
         <Kpi label="이해완료" value={`${summary.understood}`} tone="emerald" />
         <Kpi label="복습필요" value={`${summary.reviewNeeded}`} tone="amber" />
       </div>

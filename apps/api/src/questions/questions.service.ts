@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { and, count, eq, gte, lte, ne, sql, type SQL } from 'drizzle-orm';
+import { and, eq, gte, lte, ne, sql, type SQL } from 'drizzle-orm';
 import { db } from '../db/client';
 import { questionLogs, questions } from '../db/schema';
 import type { LogQuestionDto } from './dto/log-question.dto';
@@ -125,7 +125,9 @@ export class QuestionsService {
   }
 
   // Aggregate counts. UNIQUE(owner, question) means one log per question,
-  // so total = understood + reviewNeeded.
+  // so total = understood + reviewNeeded. totalPool was removed — the ratio
+  // (answered / pool) loses meaning as the question pool grows; absolute
+  // count is more honest at scale.
   async getSummary(ownerId: string) {
     const [logAgg] = await db
       .select({
@@ -134,17 +136,12 @@ export class QuestionsService {
       })
       .from(questionLogs)
       .where(eq(questionLogs.ownerId, ownerId));
-    const [poolAgg] = await db
-      .select({ total: count() })
-      .from(questions)
-      .where(eq(questions.ownerId, ownerId));
     const understood = logAgg?.understood ?? 0;
     const reviewNeeded = logAgg?.reviewNeeded ?? 0;
     return {
       total: understood + reviewNeeded,
       understood,
       reviewNeeded,
-      totalPool: poolAgg?.total ?? 0,
     };
   }
 
