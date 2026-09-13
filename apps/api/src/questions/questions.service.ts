@@ -3,14 +3,41 @@ import { and, count, eq, gte, lte, ne, sql, type SQL } from 'drizzle-orm';
 import { db } from '../db/client';
 import { questionLogs, questions } from '../db/schema';
 import type { LogQuestionDto } from './dto/log-question.dto';
+import type { QueryDailyDto } from './dto/query-daily.dto';
 import type { QueryRandomDto } from './dto/query-random.dto';
 import type { QueryStatsRangeDto } from './dto/query-stats-range.dto';
 
+const DAILY_LIMIT = 10;
+
 @Injectable()
 export class QuestionsService {
-  // Random question WITHOUT the answer — the client fetches the answer via
-  // findOne when the user clicks "답 보기". Prev status is included so the
-  // client can hint "이미 봤음" without a second round trip.
+  // Today's 10-question set, deterministic by (owner_id, date). md5 of
+  // `question.id || date` gives a per-day pseudo-random ordering; the top 10
+  // are today's set. Same day → same 10 (refresh-safe). Different day → new
+  // 10. No storage; if we ever need "show me yesterday's set" this becomes
+  // a table lookup.
+  async findDaily(ownerId: string, query: QueryDailyDto) {
+    return db
+      .select({
+        id: questions.id,
+        content: questions.content,
+        status: questionLogs.status,
+      })
+      .from(questions)
+      .leftJoin(
+        questionLogs,
+        and(
+          eq(questionLogs.questionId, questions.id),
+          eq(questionLogs.ownerId, ownerId),
+        ),
+      )
+      .where(eq(questions.ownerId, ownerId))
+      .orderBy(sql`md5(${questions.id}::text || ${query.date})`)
+      .limit(DAILY_LIMIT);
+  }
+
+  // Random question WITHOUT the answer — kept for potential admin/debug use.
+  // The /learn UI uses findDaily instead as of Phase 13.1 daily-quota rework.
   async findRandom(ownerId: string, query: QueryRandomDto) {
     const conditions: SQL[] = [eq(questions.ownerId, ownerId)];
     if (query.exclude) conditions.push(ne(questions.id, query.exclude));
@@ -72,27 +99,28 @@ export class QuestionsService {
     };
   }
 
-  // Daily activity counts for the heatmap. Groups by updated_at::date so
-  // re-answering a question moves its activity to today's bucket (review
-  // also counts as learning). Empty days omitted; client fills with 0.
-  // AT TIME ZONE 'UTC' pins the date extraction to UTC regardless of
-  // server tz drift.
+  // Daily activity counts for the heatmap. Groups by updated_at date in
+  // Asia/Seoul (Rally is Korean-audience) so a KST-morning answer lands on
+  // today rather than yesterday-UTC. Re-answering moves activity to today's
+  // bucket (review also counts as learning). Empty days omitted; client
+  // fills with 0. Hardcoded Seoul is a known limitation — revisit if
+  // internationalizing.
   async getHeatmap(ownerId: string, query: QueryStatsRangeDto) {
     const rows = await db
       .select({
-        date: sql<string>`(${questionLogs.updatedAt} AT TIME ZONE 'UTC')::date::text`,
+        date: sql<string>`(${questionLogs.updatedAt} AT TIME ZONE 'Asia/Seoul')::date::text`,
         count: sql<number>`count(*)::int`,
       })
       .from(questionLogs)
       .where(
         and(
           eq(questionLogs.ownerId, ownerId),
-          gte(sql`(${questionLogs.updatedAt} AT TIME ZONE 'UTC')::date`, query.from),
-          lte(sql`(${questionLogs.updatedAt} AT TIME ZONE 'UTC')::date`, query.to),
+          gte(sql`(${questionLogs.updatedAt} AT TIME ZONE 'Asia/Seoul')::date`, query.from),
+          lte(sql`(${questionLogs.updatedAt} AT TIME ZONE 'Asia/Seoul')::date`, query.to),
         ),
       )
-      .groupBy(sql`(${questionLogs.updatedAt} AT TIME ZONE 'UTC')::date`)
-      .orderBy(sql`(${questionLogs.updatedAt} AT TIME ZONE 'UTC')::date`);
+      .groupBy(sql`(${questionLogs.updatedAt} AT TIME ZONE 'Asia/Seoul')::date`)
+      .orderBy(sql`(${questionLogs.updatedAt} AT TIME ZONE 'Asia/Seoul')::date`);
     return rows;
   }
 

@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { requireUserId, type AuthedRequest } from '../supabase-auth.guard';
 import { LogQuestionDto } from './dto/log-question.dto';
+import { QueryDailyDto } from './dto/query-daily.dto';
 import { QueryRandomDto } from './dto/query-random.dto';
 import { QueryStatsRangeDto } from './dto/query-stats-range.dto';
 import { QuestionsService } from './questions.service';
@@ -17,6 +18,13 @@ import { QuestionsService } from './questions.service';
 @Controller('questions')
 export class QuestionsController {
   constructor(private readonly service: QuestionsService) {}
+
+  // Today's 10-question set (deterministic per owner+date). Client passes
+  // its KST "today" as the seed.
+  @Get('daily')
+  findDaily(@Req() req: AuthedRequest, @Query() query: QueryDailyDto) {
+    return this.service.findDaily(requireUserId(req), query);
+  }
 
   @Get('random')
   findRandom(@Req() req: AuthedRequest, @Query() query: QueryRandomDto) {

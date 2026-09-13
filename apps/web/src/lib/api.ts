@@ -636,23 +636,22 @@ export async function checkNicknameAvailability(
 
 // --- learn (CS questions) ---
 
-export async function getRandomQuestion(
-  params: { exclude?: string } = {},
-): Promise<RandomQuestion> {
-  const qs = new URLSearchParams();
-  if (params.exclude) qs.set('exclude', params.exclude);
-  const s = qs.toString();
-  const res = await fetch(apiUrl(`/questions/random${s ? `?${s}` : ''}`), {
+// Today's 10-question set. Server picks deterministically by (owner, date)
+// so the same date always returns the same 10. Client passes its local KST
+// date as the seed.
+export async function getDailyQuestions(date: string): Promise<RandomQuestion[]> {
+  const qs = new URLSearchParams({ date });
+  const res = await fetch(apiUrl(`/questions/daily?${qs.toString()}`), {
     cache: 'no-store',
     headers: await authHeaders(),
   });
   if (!res.ok) {
     throw new HttpError(
-      `GET /questions/random failed: HTTP ${res.status}`,
+      `GET /questions/daily failed: HTTP ${res.status}`,
       res.status,
     );
   }
-  return (await res.json()) as RandomQuestion;
+  return (await res.json()) as RandomQuestion[];
 }
 
 export async function getQuestionDetail(id: string): Promise<QuestionDetail> {

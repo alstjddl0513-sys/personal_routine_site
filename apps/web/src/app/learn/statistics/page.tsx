@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { getQuestionHeatmap, getQuestionStatsSummary } from '../../../lib/api';
-import { addDays, toISODate } from '../../../lib/routines-week';
+import { addDays, todayInSeoul, toISODate } from '../../../lib/routines-week';
 import { calcBestDailyStreak, calcDailyStreak } from '../../../lib/streak';
 import { LearnHeatmapCard } from '../../../components/learn/LearnHeatmapCard';
 import { Skeleton } from '../../../components/Skeleton';
@@ -30,7 +30,7 @@ export default async function LearnStatisticsPage() {
 }
 
 async function StatsContent() {
-  const today = new Date();
+  const today = todayInSeoul();
   const streakFrom = toISODate(addDays(today, -(STREAK_DAYS - 1)));
   const to = toISODate(today);
 
