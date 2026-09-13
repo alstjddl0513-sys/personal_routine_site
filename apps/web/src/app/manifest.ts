@@ -30,7 +30,15 @@ export default function manifest(): MetadataRoute.Manifest {
         type: 'image/svg+xml',
         purpose: 'maskable',
       },
-      // PNG fallback for browsers that don't accept SVG in manifest.
+      // PNG fallbacks for browsers that don't accept SVG in manifest.
+      // 192 satisfies Chrome's install-prompt spec; 512 is the splash-screen
+      // source on Android.
+      {
+        src: '/flag-192.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'any',
+      },
       {
         src: '/flag-512.png',
         sizes: '512x512',

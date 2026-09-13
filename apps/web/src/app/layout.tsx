@@ -49,6 +49,27 @@ const THEME_INIT_SCRIPT = `
 })();
 `;
 
+// iOS "add to home screen" splash images (portrait only). CSS px + dpr must
+// match exactly for Safari to pick the file — keep entries in sync with
+// scripts/generate-icons.mjs. Light-mode only (dark falls back gracefully).
+const IOS_SPLASH: ReadonlyArray<{ name: string; w: number; h: number; dpr: number }> = [
+  { name: 'iphone-15-pro-max', w: 430, h: 932, dpr: 3 },
+  { name: 'iphone-15-pro', w: 393, h: 852, dpr: 3 },
+  { name: 'iphone-15-plus', w: 428, h: 926, dpr: 3 },
+  { name: 'iphone-15', w: 390, h: 844, dpr: 3 },
+  { name: 'iphone-13-mini', w: 375, h: 812, dpr: 3 },
+  { name: 'iphone-11-pro-max', w: 414, h: 896, dpr: 3 },
+  { name: 'iphone-11', w: 414, h: 896, dpr: 2 },
+  { name: 'iphone-8-plus', w: 414, h: 736, dpr: 3 },
+  { name: 'iphone-8', w: 375, h: 667, dpr: 2 },
+  { name: 'iphone-se', w: 320, h: 568, dpr: 2 },
+  { name: 'ipad-pro-12', w: 1024, h: 1366, dpr: 2 },
+  { name: 'ipad-pro-11', w: 834, h: 1194, dpr: 2 },
+  { name: 'ipad-air-10-5', w: 810, h: 1080, dpr: 2 },
+  { name: 'ipad-mini', w: 744, h: 1133, dpr: 2 },
+  { name: 'ipad-9-7', w: 768, h: 1024, dpr: 2 },
+];
+
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html
@@ -58,6 +79,14 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        {IOS_SPLASH.map(({ name, w, h, dpr }) => (
+          <link
+            key={name}
+            rel="apple-touch-startup-image"
+            href={`/splash/${name}.png`}
+            media={`screen and (device-width: ${w}px) and (device-height: ${h}px) and (-webkit-device-pixel-ratio: ${dpr}) and (orientation: portrait)`}
+          />
+        ))}
       </head>
       <body className="min-h-full">
         <div className="flex min-h-screen">
