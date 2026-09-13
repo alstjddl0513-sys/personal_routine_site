@@ -14,11 +14,15 @@ import type {
   Priority,
   Profile,
   QuestionDetail,
+  QuestionHeatmapEntry,
   QuestionLog,
+  QuestionStatsSummary,
   QuestionStatus,
+  MuscleVolumeEntry,
   RandomQuestion,
   RoutineCheck,
   TimeBlock,
+  WeeklyVolumeEntry,
   WorkoutHeatmapEntry,
   WorkoutSession,
   WorkoutSet,
@@ -445,6 +449,36 @@ export async function getWorkoutHeatmap(range: {
   return (await res.json()) as WorkoutHeatmapEntry[];
 }
 
+export async function getWeeklyVolume(range: {
+  from: string;
+  to: string;
+}): Promise<WeeklyVolumeEntry[]> {
+  const qs = new URLSearchParams({ from: range.from, to: range.to });
+  const res = await fetch(apiUrl(`/workout-sets/weekly-volume?${qs.toString()}`), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new Error(`GET /workout-sets/weekly-volume failed: HTTP ${res.status}`);
+  }
+  return (await res.json()) as WeeklyVolumeEntry[];
+}
+
+export async function getMuscleVolume(range: {
+  from: string;
+  to: string;
+}): Promise<MuscleVolumeEntry[]> {
+  const qs = new URLSearchParams({ from: range.from, to: range.to });
+  const res = await fetch(apiUrl(`/workout-sets/muscle-volume?${qs.toString()}`), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new Error(`GET /workout-sets/muscle-volume failed: HTTP ${res.status}`);
+  }
+  return (await res.json()) as MuscleVolumeEntry[];
+}
+
 export async function getExerciseStats(params: {
   exerciseId: string;
   limit?: number;
@@ -634,23 +668,22 @@ export async function checkNicknameAvailability(
 
 // --- learn (CS questions) ---
 
-export async function getRandomQuestion(
-  params: { exclude?: string } = {},
-): Promise<RandomQuestion> {
-  const qs = new URLSearchParams();
-  if (params.exclude) qs.set('exclude', params.exclude);
-  const s = qs.toString();
-  const res = await fetch(apiUrl(`/questions/random${s ? `?${s}` : ''}`), {
+// Today's 10-question set. Server picks deterministically by (owner, date)
+// so the same date always returns the same 10. Client passes its local KST
+// date as the seed.
+export async function getDailyQuestions(date: string): Promise<RandomQuestion[]> {
+  const qs = new URLSearchParams({ date });
+  const res = await fetch(apiUrl(`/questions/daily?${qs.toString()}`), {
     cache: 'no-store',
     headers: await authHeaders(),
   });
   if (!res.ok) {
     throw new HttpError(
-      `GET /questions/random failed: HTTP ${res.status}`,
+      `GET /questions/daily failed: HTTP ${res.status}`,
       res.status,
     );
   }
-  return (await res.json()) as RandomQuestion;
+  return (await res.json()) as RandomQuestion[];
 }
 
 export async function getQuestionDetail(id: string): Promise<QuestionDetail> {
@@ -680,4 +713,30 @@ export async function logQuestion(
     );
   }
   return (await res.json()) as QuestionLog;
+}
+
+export async function getQuestionHeatmap(range: {
+  from: string;
+  to: string;
+}): Promise<QuestionHeatmapEntry[]> {
+  const qs = new URLSearchParams({ from: range.from, to: range.to });
+  const res = await fetch(apiUrl(`/questions/stats/heatmap?${qs.toString()}`), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new Error(`GET /questions/stats/heatmap failed: HTTP ${res.status}`);
+  }
+  return (await res.json()) as QuestionHeatmapEntry[];
+}
+
+export async function getQuestionStatsSummary(): Promise<QuestionStatsSummary> {
+  const res = await fetch(apiUrl('/questions/stats/summary'), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new Error(`GET /questions/stats/summary failed: HTTP ${res.status}`);
+  }
+  return (await res.json()) as QuestionStatsSummary;
 }

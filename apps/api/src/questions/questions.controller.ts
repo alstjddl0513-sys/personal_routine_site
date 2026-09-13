@@ -10,16 +10,37 @@ import {
 } from '@nestjs/common';
 import { requireUserId, type AuthedRequest } from '../supabase-auth.guard';
 import { LogQuestionDto } from './dto/log-question.dto';
+import { QueryDailyDto } from './dto/query-daily.dto';
 import { QueryRandomDto } from './dto/query-random.dto';
+import { QueryStatsRangeDto } from './dto/query-stats-range.dto';
 import { QuestionsService } from './questions.service';
 
 @Controller('questions')
 export class QuestionsController {
   constructor(private readonly service: QuestionsService) {}
 
+  // Today's 10-question set (deterministic per owner+date). Client passes
+  // its KST "today" as the seed.
+  @Get('daily')
+  findDaily(@Req() req: AuthedRequest, @Query() query: QueryDailyDto) {
+    return this.service.findDaily(requireUserId(req), query);
+  }
+
   @Get('random')
   findRandom(@Req() req: AuthedRequest, @Query() query: QueryRandomDto) {
     return this.service.findRandom(requireUserId(req), query);
+  }
+
+  // Static /stats/* routes above :id so Nest doesn't try to parse 'stats'
+  // as a uuid via ParseUUIDPipe.
+  @Get('stats/heatmap')
+  getHeatmap(@Req() req: AuthedRequest, @Query() query: QueryStatsRangeDto) {
+    return this.service.getHeatmap(requireUserId(req), query);
+  }
+
+  @Get('stats/summary')
+  getSummary(@Req() req: AuthedRequest) {
+    return this.service.getSummary(requireUserId(req));
   }
 
   @Get(':id')

@@ -203,6 +203,19 @@ export interface WorkoutHeatmapEntry {
   completedExerciseCount: number;
 }
 
+export interface WeeklyVolumeEntry {
+  /** ISO date of Monday of that week. */
+  weekStart: string;
+  /** Sum of weight_kg × reps for "complete" sets in that week. */
+  volumeKg: number;
+}
+
+export interface MuscleVolumeEntry {
+  /** target_muscle from exercises; nullable when exercise has none. */
+  targetMuscle: string | null;
+  volumeKg: number;
+}
+
 // --- blog ---
 
 export interface BlogSource {
@@ -274,4 +287,15 @@ export interface QuestionDetail {
   content: string;
   answer: string;
   log: QuestionLog | null;
+}
+
+export interface QuestionHeatmapEntry {
+  date: string;
+  count: number;
+}
+
+export interface QuestionStatsSummary {
+  total: number;
+  understood: number;
+  reviewNeeded: number;
 }

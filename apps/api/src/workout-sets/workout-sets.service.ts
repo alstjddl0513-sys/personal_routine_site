@@ -8,6 +8,8 @@ import { db } from '../db/client';
 import { exercises, workoutSessions, workoutSets } from '../db/schema';
 import type { BatchWorkoutSetsDto } from './dto/batch-workout-sets.dto';
 import type { QueryHeatmapDto } from './dto/query-heatmap.dto';
+import type { QueryMuscleVolumeDto } from './dto/query-muscle-volume.dto';
+import type { QueryWeeklyVolumeDto } from './dto/query-weekly-volume.dto';
 import type { QueryWorkoutSetsDto } from './dto/query-workout-sets.dto';
 import type { QueryPreviousDto } from './dto/query-previous.dto';
 import type { QueryExerciseStatsDto } from './dto/query-exercise-stats.dto';
@@ -158,6 +160,56 @@ export class WorkoutSetsService {
         ),
       )
       .groupBy(workoutSessions.date);
+  }
+
+  // Weekly volume for the sparkline on /workouts/statistics. Volume = sum of
+  // (weight_kg × reps) across all "complete" sets (both weight and reps
+  // recorded). Grouped by ISO week (Monday-start via date_trunc('week')).
+  // Empty weeks omitted; client fills the missing weeks with 0.
+  async findWeeklyVolume(ownerId: string, query: QueryWeeklyVolumeDto) {
+    return db
+      .select({
+        weekStart: sql<string>`(date_trunc('week', ${workoutSessions.date}::timestamp)::date)::text`,
+        volumeKg: sql<number>`sum(${workoutSets.weightKg}::numeric * ${workoutSets.reps})::float`,
+      })
+      .from(workoutSessions)
+      .innerJoin(workoutSets, eq(workoutSets.sessionId, workoutSessions.id))
+      .where(
+        and(
+          eq(workoutSessions.ownerId, ownerId),
+          between(workoutSessions.date, query.from, query.to),
+          isNotNull(workoutSets.weightKg),
+          isNotNull(workoutSets.reps),
+        ),
+      )
+      .groupBy(sql`date_trunc('week', ${workoutSessions.date}::timestamp)`)
+      .orderBy(sql`date_trunc('week', ${workoutSessions.date}::timestamp)`);
+  }
+
+  // Per-muscle-group volume for the balance card. Joins sets → exercises
+  // to reach target_muscle. Client groups & labels via muscle-groups.ts.
+  // Only "complete" sets (weight + reps both recorded) contribute.
+  async findMuscleVolume(ownerId: string, query: QueryMuscleVolumeDto) {
+    return db
+      .select({
+        targetMuscle: exercises.targetMuscle,
+        volumeKg: sql<number>`sum(${workoutSets.weightKg}::numeric * ${workoutSets.reps})::float`,
+      })
+      .from(workoutSets)
+      .innerJoin(exercises, eq(exercises.id, workoutSets.exerciseId))
+      .innerJoin(
+        workoutSessions,
+        eq(workoutSessions.id, workoutSets.sessionId),
+      )
+      .where(
+        and(
+          eq(workoutSessions.ownerId, ownerId),
+          between(workoutSessions.date, query.from, query.to),
+          isNotNull(workoutSets.weightKg),
+          isNotNull(workoutSets.reps),
+        ),
+      )
+      .groupBy(exercises.targetMuscle);
   }
 
   // Sets from the most recent session (before `beforeDate`) that used this exercise.

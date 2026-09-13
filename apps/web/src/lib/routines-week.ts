@@ -9,6 +9,21 @@ export function toISODate(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
+// Returns a Date whose local Y/M/D match today's calendar date in Seoul,
+// regardless of the runtime's clock timezone. Needed for SSR (Vercel runs
+// UTC): raw `new Date()` + toISODate would give UTC date and skew the
+// heatmap/streak by a day between midnight–09:00 KST.
+export function todayInSeoul(): Date {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date());
+  const get = (t: string) => Number(parts.find((p) => p.type === t)!.value);
+  return new Date(get('year'), get('month') - 1, get('day'));
+}
+
 // Monday-of-week for a given date (local calendar).
 export function mondayOf(d: Date): Date {
   const dow = d.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat

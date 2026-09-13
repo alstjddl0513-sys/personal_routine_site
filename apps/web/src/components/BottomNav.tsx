@@ -23,8 +23,8 @@ const TABS: Tab[] = [
   { href: '/jobs', label: '채용', icon: Briefcase, matchPrefixes: ['/jobs'] },
   { href: '/routines', label: '루틴', icon: CalendarCheck2, matchPrefixes: ['/routines'] },
   { href: '/workouts', label: '운동', icon: Dumbbell, matchPrefixes: ['/workouts'] },
-  { href: '/blog', label: '블로그', icon: Rss, matchPrefixes: ['/blog'] },
   { href: '/learn', label: '학습', icon: BookOpen, matchPrefixes: ['/learn'] },
+  { href: '/blog', label: '블로그', icon: Rss, matchPrefixes: ['/blog'] },
   { href: '/settings', label: '설정', icon: Settings, matchPrefixes: ['/settings'] },
 ];
 
