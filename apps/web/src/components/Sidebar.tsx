@@ -64,12 +64,6 @@ const NAV: NavItem[] = [
     ],
   },
   {
-    href: '/blog',
-    label: '블로그',
-    icon: Rss,
-    matchPrefixes: ['/blog'],
-  },
-  {
     href: '/learn',
     label: '학습',
     icon: BookOpen,
@@ -78,6 +72,12 @@ const NAV: NavItem[] = [
       { href: '/learn', label: '질문' },
       { href: '/learn/statistics', label: '통계' },
     ],
+  },
+  {
+    href: '/blog',
+    label: '블로그',
+    icon: Rss,
+    matchPrefixes: ['/blog'],
   },
 ];
 
