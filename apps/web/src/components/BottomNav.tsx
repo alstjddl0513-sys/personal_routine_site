@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
+  BookOpen,
   Briefcase,
   CalendarCheck2,
   Dumbbell,
@@ -23,6 +24,7 @@ const TABS: Tab[] = [
   { href: '/routines', label: '루틴', icon: CalendarCheck2, matchPrefixes: ['/routines'] },
   { href: '/workouts', label: '운동', icon: Dumbbell, matchPrefixes: ['/workouts'] },
   { href: '/blog', label: '블로그', icon: Rss, matchPrefixes: ['/blog'] },
+  { href: '/learn', label: '학습', icon: BookOpen, matchPrefixes: ['/learn'] },
   { href: '/settings', label: '설정', icon: Settings, matchPrefixes: ['/settings'] },
 ];
 
@@ -37,7 +39,7 @@ export function BottomNav() {
       aria-label="주요 탐색"
       className="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-200 bg-white/95 backdrop-blur pb-[env(safe-area-inset-bottom)] dark:border-zinc-800 dark:bg-zinc-950/95 md:hidden"
     >
-      <ul className="grid grid-cols-5">
+      <ul className="grid grid-cols-6">
         {TABS.map((tab) => {
           const active = isActive(pathname, tab.matchPrefixes);
           const Icon = tab.icon;

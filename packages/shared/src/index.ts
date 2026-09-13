@@ -244,3 +244,34 @@ export interface Profile {
 export interface NicknameAvailability {
   available: boolean;
 }
+
+// --- learn (CS questions) ---
+
+export const QUESTION_STATUS_VALUES = ['understood', 'review_needed'] as const;
+export type QuestionStatus = (typeof QUESTION_STATUS_VALUES)[number];
+
+export const QUESTION_STATUS_LABELS: Record<QuestionStatus, string> = {
+  understood: '이해완료',
+  review_needed: '다시봐야함',
+};
+
+export interface QuestionLog {
+  status: QuestionStatus;
+  answeredAt: string;
+  updatedAt: string;
+}
+
+// Random-question response: content only + optional prior status.
+export interface RandomQuestion {
+  id: string;
+  content: string;
+  status: QuestionStatus | null;
+}
+
+// Full detail (fetched when the user asks to see the answer).
+export interface QuestionDetail {
+  id: string;
+  content: string;
+  answer: string;
+  log: QuestionLog | null;
+}

@@ -6,10 +6,11 @@ import {
 } from '@nestjs/common';
 import { eq, sql } from 'drizzle-orm';
 import { db } from '../db/client';
-import { blogSources, companyTypes, profiles } from '../db/schema';
+import { blogSources, companyTypes, profiles, questions } from '../db/schema';
 import {
   DEFAULT_BLOG_SOURCES,
   DEFAULT_COMPANY_TYPES,
+  DEFAULT_QUESTIONS,
 } from '../db/defaults';
 import { getSupabaseAdmin } from '../supabase-admin';
 
@@ -25,9 +26,10 @@ export class ProfilesService {
     return row;
   }
 
-  // Create-if-missing, else rename. When creating, seeds company_types and
-  // blog_sources so a fresh account isn't empty on first /jobs and /blog
-  // visit. Exercises are intentionally not seeded — new users pick their own.
+  // Create-if-missing, else rename. When creating, seeds company_types,
+  // blog_sources, and questions so a fresh account isn't empty on first
+  // /jobs, /blog, and /learn visits. Exercises are intentionally not seeded
+  // — new users pick their own.
   async upsertMe(userId: string, nickname: string) {
     try {
       return await db.transaction(async (tx) => {
@@ -60,6 +62,9 @@ export class ProfilesService {
                 sortOrder: i,
               })),
             );
+          await tx
+            .insert(questions)
+            .values(DEFAULT_QUESTIONS.map((q) => ({ ...q, ownerId: userId })));
         }
 
         return row;
