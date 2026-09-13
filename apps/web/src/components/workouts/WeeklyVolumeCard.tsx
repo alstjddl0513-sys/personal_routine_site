@@ -13,6 +13,26 @@ function fmtKg(n: number): string {
   return Math.round(n).toLocaleString('en-US');
 }
 
+// 'YYYY-MM-DD' → 'M/D'. Compact for the x-axis anchor labels.
+function fmtMD(iso: string): string {
+  const [, m, d] = iso.split('-').map(Number);
+  return `${m}/${d}`;
+}
+
+// Pick 4 evenly-spaced anchor indices — first, ~1/3, ~2/3, last.
+// Dedupes for tiny series (weeks < 4).
+function anchorIndices(count: number): number[] {
+  if (count <= 1) return [0];
+  if (count <= 4) return Array.from({ length: count }, (_, i) => i);
+  const raw = [
+    0,
+    Math.round((count - 1) / 3),
+    Math.round(((count - 1) * 2) / 3),
+    count - 1,
+  ];
+  return Array.from(new Set(raw)).sort((a, b) => a - b);
+}
+
 export function WeeklyVolumeCard({ entries, today, weeks = 12 }: Props) {
   // Build the chronological weeks the chart will render. Filling missing
   // weeks with 0 keeps valleys visible instead of the line jumping over
@@ -72,7 +92,20 @@ export function WeeklyVolumeCard({ entries, today, weeks = 12 }: Props) {
         ariaLabel={`최근 ${weeks}주 주간 볼륨 추이`}
         unit="kg"
       />
-      <div className="mt-1 text-[10px] text-zinc-500">최근 {weeks}주</div>
+      {/* Anchor date labels (월요일 기준). Absolute-positioned to align with
+          approximate dot x-positions. Chart has ~6px inner padding but this
+          is close enough visually; hover tooltip covers exact matching. */}
+      <div className="relative mt-1 h-4">
+        {anchorIndices(points.length).map((i) => (
+          <span
+            key={i}
+            className="absolute -translate-x-1/2 text-[10px] text-zinc-500 dark:text-zinc-500"
+            style={{ left: `${(i / (points.length - 1)) * 100}%` }}
+          >
+            {fmtMD(points[i].date)}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }
