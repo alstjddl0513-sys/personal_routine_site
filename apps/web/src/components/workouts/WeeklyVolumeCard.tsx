@@ -67,7 +67,9 @@ export function WeeklyVolumeCard({ entries, today, weeks = 12 }: Props) {
       </div>
       <MiniLineChart
         points={points}
-        height={80}
+        height={96}
+        strokeWidth={2}
+        showDots={false}
         ariaLabel={`최근 ${weeks}주 주간 볼륨 추이`}
         unit="kg"
       />

@@ -13,6 +13,11 @@ interface Props {
   /** Suffix appended to the tooltip value (e.g. 'kg'). Defaults to 'kg' for
    *  back-compat with the original per-exercise top-weight usage. */
   unit?: string;
+  /** Hide the per-point dots. Set false for wide sparkline usage where the
+   *  stretched `<circle>` renders as an oval (SVG fills can't opt out of
+   *  non-uniform scaling like strokes can). Default true. */
+  showDots?: boolean;
+  strokeWidth?: number;
 }
 
 // Pure SVG line chart. Renders line + dots; no axes, no interactivity.
@@ -26,6 +31,8 @@ export function MiniLineChart({
   fillClass = 'fill-emerald-500',
   ariaLabel,
   unit = 'kg',
+  showDots = true,
+  strokeWidth = 1.5,
 }: Props) {
   if (points.length === 0) return null;
 
@@ -68,22 +75,28 @@ export function MiniLineChart({
           d={path}
           className={strokeClass}
           fill="none"
-          strokeWidth={1.5}
+          strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeLinejoin="round"
+          // Non-scaling-stroke keeps the line the same visual thickness
+          // whether the SVG is stretched wide (weekly volume card) or held
+          // at natural aspect (per-exercise cards).
+          vectorEffect="non-scaling-stroke"
         />
       ) : null}
-      {points.map((p, i) => (
-        <circle
-          key={`${p.date}-${i}`}
-          cx={x(i)}
-          cy={y(p.value)}
-          r={2.2}
-          className={fillClass}
-        >
-          <title>{`${p.date}: ${p.value}${unit}`}</title>
-        </circle>
-      ))}
+      {showDots
+        ? points.map((p, i) => (
+            <circle
+              key={`${p.date}-${i}`}
+              cx={x(i)}
+              cy={y(p.value)}
+              r={2.2}
+              className={fillClass}
+            >
+              <title>{`${p.date}: ${p.value}${unit}`}</title>
+            </circle>
+          ))
+        : null}
     </svg>
   );
 }
