@@ -18,6 +18,7 @@ import type {
   QuestionLog,
   QuestionStatsSummary,
   QuestionStatus,
+  MuscleVolumeEntry,
   RandomQuestion,
   RoutineCheck,
   TimeBlock,
@@ -461,6 +462,21 @@ export async function getWeeklyVolume(range: {
     throw new Error(`GET /workout-sets/weekly-volume failed: HTTP ${res.status}`);
   }
   return (await res.json()) as WeeklyVolumeEntry[];
+}
+
+export async function getMuscleVolume(range: {
+  from: string;
+  to: string;
+}): Promise<MuscleVolumeEntry[]> {
+  const qs = new URLSearchParams({ from: range.from, to: range.to });
+  const res = await fetch(apiUrl(`/workout-sets/muscle-volume?${qs.toString()}`), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new Error(`GET /workout-sets/muscle-volume failed: HTTP ${res.status}`);
+  }
+  return (await res.json()) as MuscleVolumeEntry[];
 }
 
 export async function getExerciseStats(params: {

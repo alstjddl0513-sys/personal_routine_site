@@ -2,17 +2,20 @@ import { Suspense } from 'react';
 import {
   getExerciseStats,
   getExercises,
+  getMuscleVolume,
   getWeeklyVolume,
   getWorkoutSessionsRange,
 } from '../../../lib/api';
 import { addDays, mondayOf, toISODate } from '../../../lib/routines-week';
 import { calcBestWeeklyStreak, calcWeeklyStreak } from '../../../lib/streak';
 import { ExerciseStatsCard } from '../../../components/workouts/ExerciseStatsCard';
+import { MuscleBalanceCard } from '../../../components/workouts/MuscleBalanceCard';
 import { WeeklyVolumeCard } from '../../../components/workouts/WeeklyVolumeCard';
 import { Skeleton } from '../../../components/Skeleton';
 import { StreakBadge } from '../../../components/StreakBadge';
 
 const VOLUME_WEEKS = 12;
+const MUSCLE_WEEKS = 4;
 const HISTORY_LIMIT = 12;
 const STREAK_WEEKS = 26; // ~6 months for best-streak lookback
 const WEEKLY_THRESHOLD = 3;
@@ -37,11 +40,13 @@ async function WorkoutsStatisticsContent() {
   const streakFrom = toISODate(addDays(currentMon, -(STREAK_WEEKS - 1) * 7));
   const rangeTo = toISODate(addDays(currentMon, 6));
   const volumeFrom = toISODate(addDays(currentMon, -(VOLUME_WEEKS - 1) * 7));
+  const muscleFrom = toISODate(addDays(currentMon, -(MUSCLE_WEEKS - 1) * 7));
 
-  const [exercises, sessions, volumeEntries] = await Promise.all([
+  const [exercises, sessions, volumeEntries, muscleEntries] = await Promise.all([
     getExercises(),
     getWorkoutSessionsRange({ from: streakFrom, to: rangeTo }),
     getWeeklyVolume({ from: volumeFrom, to: rangeTo }),
+    getMuscleVolume({ from: muscleFrom, to: rangeTo }),
   ]);
 
   const statsList = await Promise.all(
@@ -71,6 +76,11 @@ async function WorkoutsStatisticsContent() {
         entries={volumeEntries}
         today={today}
         weeks={VOLUME_WEEKS}
+      />
+
+      <MuscleBalanceCard
+        entries={muscleEntries}
+        rangeLabel={`최근 ${MUSCLE_WEEKS}주`}
       />
 
       {exercises.length === 0 ? (

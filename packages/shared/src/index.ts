@@ -210,6 +210,12 @@ export interface WeeklyVolumeEntry {
   volumeKg: number;
 }
 
+export interface MuscleVolumeEntry {
+  /** target_muscle from exercises; nullable when exercise has none. */
+  targetMuscle: string | null;
+  volumeKg: number;
+}
+
 // --- blog ---
 
 export interface BlogSource {
