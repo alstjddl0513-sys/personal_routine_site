@@ -252,7 +252,7 @@ export type QuestionStatus = (typeof QUESTION_STATUS_VALUES)[number];
 
 export const QUESTION_STATUS_LABELS: Record<QuestionStatus, string> = {
   understood: '이해완료',
-  review_needed: '다시봐야함',
+  review_needed: '복습필요',
 };
 
 export interface QuestionLog {
