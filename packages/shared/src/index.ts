@@ -275,3 +275,15 @@ export interface QuestionDetail {
   answer: string;
   log: QuestionLog | null;
 }
+
+export interface QuestionHeatmapEntry {
+  date: string;
+  count: number;
+}
+
+export interface QuestionStatsSummary {
+  total: number;
+  understood: number;
+  reviewNeeded: number;
+  totalPool: number;
+}

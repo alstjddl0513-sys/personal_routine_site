@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { and, eq, ne, sql, type SQL } from 'drizzle-orm';
+import { and, count, eq, gte, lte, ne, sql, type SQL } from 'drizzle-orm';
 import { db } from '../db/client';
 import { questionLogs, questions } from '../db/schema';
 import type { LogQuestionDto } from './dto/log-question.dto';
 import type { QueryRandomDto } from './dto/query-random.dto';
+import type { QueryStatsRangeDto } from './dto/query-stats-range.dto';
 
 @Injectable()
 export class QuestionsService {
@@ -68,6 +69,54 @@ export class QuestionsService {
               updatedAt: row.updatedAt,
             }
           : null,
+    };
+  }
+
+  // Daily activity counts for the heatmap. Groups by updated_at::date so
+  // re-answering a question moves its activity to today's bucket (review
+  // also counts as learning). Empty days omitted; client fills with 0.
+  // AT TIME ZONE 'UTC' pins the date extraction to UTC regardless of
+  // server tz drift.
+  async getHeatmap(ownerId: string, query: QueryStatsRangeDto) {
+    const rows = await db
+      .select({
+        date: sql<string>`(${questionLogs.updatedAt} AT TIME ZONE 'UTC')::date::text`,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(questionLogs)
+      .where(
+        and(
+          eq(questionLogs.ownerId, ownerId),
+          gte(sql`(${questionLogs.updatedAt} AT TIME ZONE 'UTC')::date`, query.from),
+          lte(sql`(${questionLogs.updatedAt} AT TIME ZONE 'UTC')::date`, query.to),
+        ),
+      )
+      .groupBy(sql`(${questionLogs.updatedAt} AT TIME ZONE 'UTC')::date`)
+      .orderBy(sql`(${questionLogs.updatedAt} AT TIME ZONE 'UTC')::date`);
+    return rows;
+  }
+
+  // Aggregate counts. UNIQUE(owner, question) means one log per question,
+  // so total = understood + reviewNeeded.
+  async getSummary(ownerId: string) {
+    const [logAgg] = await db
+      .select({
+        understood: sql<number>`sum(case when ${questionLogs.status} = 'understood' then 1 else 0 end)::int`,
+        reviewNeeded: sql<number>`sum(case when ${questionLogs.status} = 'review_needed' then 1 else 0 end)::int`,
+      })
+      .from(questionLogs)
+      .where(eq(questionLogs.ownerId, ownerId));
+    const [poolAgg] = await db
+      .select({ total: count() })
+      .from(questions)
+      .where(eq(questions.ownerId, ownerId));
+    const understood = logAgg?.understood ?? 0;
+    const reviewNeeded = logAgg?.reviewNeeded ?? 0;
+    return {
+      total: understood + reviewNeeded,
+      understood,
+      reviewNeeded,
+      totalPool: poolAgg?.total ?? 0,
     };
   }
 

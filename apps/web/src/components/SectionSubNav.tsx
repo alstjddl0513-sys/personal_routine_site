@@ -30,6 +30,13 @@ const SECTION_TABS: Array<{ prefix: string; tabs: SubTab[] }> = [
       { href: '/workouts/statistics', label: '통계' },
     ],
   },
+  {
+    prefix: '/learn',
+    tabs: [
+      { href: '/learn', label: '질문' },
+      { href: '/learn/statistics', label: '통계' },
+    ],
+  },
 ];
 
 export function SectionSubNav() {

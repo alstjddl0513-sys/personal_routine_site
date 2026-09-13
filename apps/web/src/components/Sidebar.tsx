@@ -74,6 +74,10 @@ const NAV: NavItem[] = [
     label: '학습',
     icon: BookOpen,
     matchPrefixes: ['/learn'],
+    children: [
+      { href: '/learn', label: '질문' },
+      { href: '/learn/statistics', label: '통계' },
+    ],
   },
 ];
 
@@ -204,7 +208,12 @@ function LogoutButton() {
 function isActive(pathname: string, href: string) {
   // Parents whose href doubles as a child link need exact match, otherwise
   // both parent and sub-route link highlight simultaneously.
-  if (href === '/jobs' || href === '/workouts' || href === '/routines') {
+  if (
+    href === '/jobs' ||
+    href === '/workouts' ||
+    href === '/routines' ||
+    href === '/learn'
+  ) {
     return pathname === href;
   }
   return pathname === href || pathname.startsWith(`${href}/`);

@@ -14,7 +14,9 @@ import type {
   Priority,
   Profile,
   QuestionDetail,
+  QuestionHeatmapEntry,
   QuestionLog,
+  QuestionStatsSummary,
   QuestionStatus,
   RandomQuestion,
   RoutineCheck,
@@ -680,4 +682,30 @@ export async function logQuestion(
     );
   }
   return (await res.json()) as QuestionLog;
+}
+
+export async function getQuestionHeatmap(range: {
+  from: string;
+  to: string;
+}): Promise<QuestionHeatmapEntry[]> {
+  const qs = new URLSearchParams({ from: range.from, to: range.to });
+  const res = await fetch(apiUrl(`/questions/stats/heatmap?${qs.toString()}`), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new Error(`GET /questions/stats/heatmap failed: HTTP ${res.status}`);
+  }
+  return (await res.json()) as QuestionHeatmapEntry[];
+}
+
+export async function getQuestionStatsSummary(): Promise<QuestionStatsSummary> {
+  const res = await fetch(apiUrl('/questions/stats/summary'), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new Error(`GET /questions/stats/summary failed: HTTP ${res.status}`);
+  }
+  return (await res.json()) as QuestionStatsSummary;
 }
