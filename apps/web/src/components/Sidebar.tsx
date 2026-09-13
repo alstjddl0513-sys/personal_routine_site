@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
+  BookOpen,
   Briefcase,
   CalendarCheck2,
   ChevronDown,
@@ -67,6 +68,12 @@ const NAV: NavItem[] = [
     label: '블로그',
     icon: Rss,
     matchPrefixes: ['/blog'],
+  },
+  {
+    href: '/learn',
+    label: '학습',
+    icon: BookOpen,
+    matchPrefixes: ['/learn'],
   },
 ];
 

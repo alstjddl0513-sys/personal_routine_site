@@ -20,6 +20,7 @@ import { ExportModule } from './export/export.module';
 import { BlogSourcesModule } from './blog-sources/blog-sources.module';
 import { BlogPostsModule } from './blog-posts/blog-posts.module';
 import { ProfilesModule } from './profiles/profiles.module';
+import { QuestionsModule } from './questions/questions.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { ProfilesModule } from './profiles/profiles.module';
     BlogSourcesModule,
     BlogPostsModule,
     ProfilesModule,
+    QuestionsModule,
   ],
   controllers: [AppController, HealthController],
   providers: [

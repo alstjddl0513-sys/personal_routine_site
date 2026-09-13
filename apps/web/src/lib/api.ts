@@ -13,6 +13,10 @@ import type {
   PreviousWorkout,
   Priority,
   Profile,
+  QuestionDetail,
+  QuestionLog,
+  QuestionStatus,
+  RandomQuestion,
   RoutineCheck,
   TimeBlock,
   WorkoutHeatmapEntry,
@@ -626,4 +630,54 @@ export async function checkNicknameAvailability(
     throw new Error(`GET /profiles/check-nickname failed: HTTP ${res.status}`);
   }
   return (await res.json()) as NicknameAvailability;
+}
+
+// --- learn (CS questions) ---
+
+export async function getRandomQuestion(
+  params: { exclude?: string } = {},
+): Promise<RandomQuestion> {
+  const qs = new URLSearchParams();
+  if (params.exclude) qs.set('exclude', params.exclude);
+  const s = qs.toString();
+  const res = await fetch(apiUrl(`/questions/random${s ? `?${s}` : ''}`), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `GET /questions/random failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as RandomQuestion;
+}
+
+export async function getQuestionDetail(id: string): Promise<QuestionDetail> {
+  const res = await fetch(apiUrl(`/questions/${id}`), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(`GET /questions/${id} failed: HTTP ${res.status}`, res.status);
+  }
+  return (await res.json()) as QuestionDetail;
+}
+
+export async function logQuestion(
+  id: string,
+  status: QuestionStatus,
+): Promise<QuestionLog> {
+  const res = await fetch(apiUrl(`/questions/${id}/log`), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify({ status }),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `PUT /questions/${id}/log failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as QuestionLog;
 }
