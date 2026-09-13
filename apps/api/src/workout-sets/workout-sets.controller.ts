@@ -3,6 +3,7 @@ import { requireUserId, type AuthedRequest } from '../supabase-auth.guard';
 import { WorkoutSetsService } from './workout-sets.service';
 import { BatchWorkoutSetsDto } from './dto/batch-workout-sets.dto';
 import { QueryHeatmapDto } from './dto/query-heatmap.dto';
+import { QueryWeeklyVolumeDto } from './dto/query-weekly-volume.dto';
 import { QueryWorkoutSetsDto } from './dto/query-workout-sets.dto';
 import { QueryPreviousDto } from './dto/query-previous.dto';
 import { QueryExerciseStatsDto } from './dto/query-exercise-stats.dto';
@@ -32,6 +33,14 @@ export class WorkoutSetsController {
   @Get('heatmap')
   findHeatmap(@Req() req: AuthedRequest, @Query() query: QueryHeatmapDto) {
     return this.service.findHeatmap(requireUserId(req), query);
+  }
+
+  @Get('weekly-volume')
+  findWeeklyVolume(
+    @Req() req: AuthedRequest,
+    @Query() query: QueryWeeklyVolumeDto,
+  ) {
+    return this.service.findWeeklyVolume(requireUserId(req), query);
   }
 
   @Put('batch')

@@ -9,6 +9,10 @@ interface Props {
   height?: number;
   strokeClass?: string;
   fillClass?: string;
+  ariaLabel?: string;
+  /** Suffix appended to the tooltip value (e.g. 'kg'). Defaults to 'kg' for
+   *  back-compat with the original per-exercise top-weight usage. */
+  unit?: string;
 }
 
 // Pure SVG line chart. Renders line + dots; no axes, no interactivity.
@@ -20,6 +24,8 @@ export function MiniLineChart({
   height = 72,
   strokeClass = 'stroke-emerald-500',
   fillClass = 'fill-emerald-500',
+  ariaLabel,
+  unit = 'kg',
 }: Props) {
   if (points.length === 0) return null;
 
@@ -55,7 +61,7 @@ export function MiniLineChart({
       height={height}
       preserveAspectRatio="none"
       role="img"
-      aria-label={`최근 ${points.length}회 top set 무게 추이`}
+      aria-label={ariaLabel ?? `최근 ${points.length}회 top set 무게 추이`}
     >
       {path ? (
         <path
@@ -75,7 +81,7 @@ export function MiniLineChart({
           r={2.2}
           className={fillClass}
         >
-          <title>{`${p.date}: ${p.value}kg`}</title>
+          <title>{`${p.date}: ${p.value}${unit}`}</title>
         </circle>
       ))}
     </svg>

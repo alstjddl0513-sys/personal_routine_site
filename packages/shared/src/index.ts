@@ -203,6 +203,13 @@ export interface WorkoutHeatmapEntry {
   completedExerciseCount: number;
 }
 
+export interface WeeklyVolumeEntry {
+  /** ISO date of Monday of that week. */
+  weekStart: string;
+  /** Sum of weight_kg × reps for "complete" sets in that week. */
+  volumeKg: number;
+}
+
 // --- blog ---
 
 export interface BlogSource {

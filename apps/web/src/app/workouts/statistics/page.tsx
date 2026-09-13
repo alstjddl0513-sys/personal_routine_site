@@ -2,17 +2,17 @@ import { Suspense } from 'react';
 import {
   getExerciseStats,
   getExercises,
-  getWorkoutHeatmap,
+  getWeeklyVolume,
   getWorkoutSessionsRange,
 } from '../../../lib/api';
 import { addDays, mondayOf, toISODate } from '../../../lib/routines-week';
 import { calcBestWeeklyStreak, calcWeeklyStreak } from '../../../lib/streak';
 import { ExerciseStatsCard } from '../../../components/workouts/ExerciseStatsCard';
-import { HeatmapCard } from '../../../components/workouts/HeatmapCard';
+import { WeeklyVolumeCard } from '../../../components/workouts/WeeklyVolumeCard';
 import { Skeleton } from '../../../components/Skeleton';
 import { StreakBadge } from '../../../components/StreakBadge';
 
-const HEATMAP_WEEKS = 12;
+const VOLUME_WEEKS = 12;
 const HISTORY_LIMIT = 12;
 const STREAK_WEEKS = 26; // ~6 months for best-streak lookback
 const WEEKLY_THRESHOLD = 3;
@@ -36,12 +36,12 @@ async function WorkoutsStatisticsContent() {
   const currentMon = mondayOf(today);
   const streakFrom = toISODate(addDays(currentMon, -(STREAK_WEEKS - 1) * 7));
   const rangeTo = toISODate(addDays(currentMon, 6));
-  const heatmapFrom = toISODate(addDays(currentMon, -(HEATMAP_WEEKS - 1) * 7));
+  const volumeFrom = toISODate(addDays(currentMon, -(VOLUME_WEEKS - 1) * 7));
 
-  const [exercises, sessions, heatmapEntries] = await Promise.all([
+  const [exercises, sessions, volumeEntries] = await Promise.all([
     getExercises(),
     getWorkoutSessionsRange({ from: streakFrom, to: rangeTo }),
-    getWorkoutHeatmap({ from: heatmapFrom, to: rangeTo }),
+    getWeeklyVolume({ from: volumeFrom, to: rangeTo }),
   ]);
 
   const statsList = await Promise.all(
@@ -67,11 +67,10 @@ async function WorkoutsStatisticsContent() {
         caption={`주 ${WEEKLY_THRESHOLD}회+`}
       />
 
-      <HeatmapCard
-        entries={heatmapEntries}
-        totalExercises={exercises.length}
+      <WeeklyVolumeCard
+        entries={volumeEntries}
         today={today}
-        weeks={HEATMAP_WEEKS}
+        weeks={VOLUME_WEEKS}
       />
 
       {exercises.length === 0 ? (

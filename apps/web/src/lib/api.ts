@@ -21,6 +21,7 @@ import type {
   RandomQuestion,
   RoutineCheck,
   TimeBlock,
+  WeeklyVolumeEntry,
   WorkoutHeatmapEntry,
   WorkoutSession,
   WorkoutSet,
@@ -445,6 +446,21 @@ export async function getWorkoutHeatmap(range: {
   });
   if (!res.ok) throw new Error(`GET /workout-sets/heatmap failed: HTTP ${res.status}`);
   return (await res.json()) as WorkoutHeatmapEntry[];
+}
+
+export async function getWeeklyVolume(range: {
+  from: string;
+  to: string;
+}): Promise<WeeklyVolumeEntry[]> {
+  const qs = new URLSearchParams({ from: range.from, to: range.to });
+  const res = await fetch(apiUrl(`/workout-sets/weekly-volume?${qs.toString()}`), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new Error(`GET /workout-sets/weekly-volume failed: HTTP ${res.status}`);
+  }
+  return (await res.json()) as WeeklyVolumeEntry[];
 }
 
 export async function getExerciseStats(params: {
