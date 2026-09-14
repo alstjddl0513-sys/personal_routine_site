@@ -22,8 +22,8 @@ export default async function BlogSourcesSettingsPage() {
         </Link>
         <h1 className="text-xl font-semibold">블로그 소스 관리</h1>
         <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          기술 블로그 페이지에 나오는 RSS 소스를 추가·편집·일시중지·삭제합니다.
-          삭제하면 이 소스에서 수집된 글도 함께 정리됩니다.
+          구독할 기술 블로그를 골라두면 새 글이 자동으로 모여요.
+          잠시 안 볼 소스는 &lsquo;일시중지&rsquo;로 쉬게 하고, 지우면 그 소스에서 모은 글도 같이 사라져요.
         </p>
       </header>
 

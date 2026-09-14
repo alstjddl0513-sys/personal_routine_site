@@ -88,7 +88,7 @@ async function WorkoutsStatisticsContent() {
 
       {exercises.length === 0 ? (
         <div className="rounded-md border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500 dark:border-zinc-700">
-          등록된 운동이 없습니다.
+          아직 등록한 운동이 없어요. 설정에서 운동 종목을 추가해보세요.
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">

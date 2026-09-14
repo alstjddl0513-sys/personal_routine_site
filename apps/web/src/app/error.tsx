@@ -28,10 +28,10 @@ export default function GlobalRouteError({
           <AlertTriangle className="h-6 w-6" aria-hidden />
         </div>
         <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-          예상치 못한 오류가 발생했습니다
+          어라, 뭔가 잘못됐어요
         </h1>
         <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-          잠시 후 다시 시도하거나 홈으로 돌아가세요.
+          잠시 후 다시 시도해보세요. 안 되면 홈으로 돌아가주세요.
         </p>
         {error.digest ? (
           <p className="mt-3 font-mono text-[10px] text-zinc-400 dark:text-zinc-600">

@@ -93,7 +93,7 @@ async function JobsContent({ sp }: { sp: JobsSearchParams }) {
 
       {rows.length === 0 ? (
         <div className="rounded-md border border-dashed border-zinc-300 p-10 text-center text-sm text-zinc-500 dark:border-zinc-700">
-          조건에 맞는 회사가 없습니다.
+          조건에 맞는 회사가 없어요. 필터를 조금 풀어보세요.
         </div>
       ) : (
         <>

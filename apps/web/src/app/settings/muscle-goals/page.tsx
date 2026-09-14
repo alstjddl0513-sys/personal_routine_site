@@ -22,8 +22,8 @@ export default async function MuscleGoalsSettingsPage() {
         </Link>
         <h1 className="text-xl font-semibold">부위별 주간 목표</h1>
         <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          부위별로 한 주에 몇 세트를 채울지 목표를 정합니다. 운동 통계 페이지의
-          달성률 카드가 이 값을 기준으로 표시됩니다. 완전 세트(무게·횟수 둘 다 기록)만 카운트.
+          한 주에 부위별로 몇 세트를 채울지 목표를 정해두세요.
+          운동 통계의 달성률 카드가 이 목표를 기준으로 채워져요. 무게·횟수를 모두 채운 세트만 세요.
         </p>
       </header>
 

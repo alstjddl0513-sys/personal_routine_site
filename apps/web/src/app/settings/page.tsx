@@ -34,7 +34,7 @@ export default function SettingsPage() {
               기업 유형 관리
             </div>
             <p className="mt-0.5 break-keep text-xs text-zinc-500 dark:text-zinc-400">
-              채용 리스트의 &quot;유형&quot; 필터/선택에 나오는 항목을 추가·편집·삭제.
+              회사에 붙일 유형을 내 취향대로 정리해요.
             </p>
           </div>
           <ChevronRight className="h-4 w-4 text-zinc-400" aria-hidden />
@@ -49,7 +49,7 @@ export default function SettingsPage() {
               시간블록 관리
             </div>
             <p className="mt-0.5 break-keep text-xs text-zinc-500 dark:text-zinc-400">
-              루틴 트래커의 시간블록을 추가·편집·재정렬·삭제.
+              하루 루틴의 시간블록을 원하는 순서로 배치해요.
             </p>
           </div>
           <ChevronRight className="h-4 w-4 text-zinc-400" aria-hidden />
@@ -64,7 +64,7 @@ export default function SettingsPage() {
               운동 종목 관리
             </div>
             <p className="mt-0.5 break-keep text-xs text-zinc-500 dark:text-zinc-400">
-              운동 기록 페이지의 종목을 추가·편집·숨김·삭제.
+              자주 하는 운동을 등록하고, 안 하는 종목은 잠시 숨겨두세요.
             </p>
           </div>
           <ChevronRight className="h-4 w-4 text-zinc-400" aria-hidden />
@@ -79,7 +79,7 @@ export default function SettingsPage() {
               블로그 소스 관리
             </div>
             <p className="mt-0.5 break-keep text-xs text-zinc-500 dark:text-zinc-400">
-              기술 블로그 페이지의 RSS 소스를 추가·편집·일시중지·삭제.
+              구독할 기술 블로그를 골라두면 새 글이 자동으로 모여요.
             </p>
           </div>
           <ChevronRight className="h-4 w-4 text-zinc-400" aria-hidden />
@@ -94,7 +94,7 @@ export default function SettingsPage() {
               부위별 주간 목표
             </div>
             <p className="mt-0.5 break-keep text-xs text-zinc-500 dark:text-zinc-400">
-              운동 통계 페이지 달성률 카드의 목표 세트 수(부위별)를 조정.
+              한 주에 부위별로 몇 세트를 채울지 목표를 정해두세요.
             </p>
           </div>
           <ChevronRight className="h-4 w-4 text-zinc-400" aria-hidden />
@@ -109,7 +109,7 @@ export default function SettingsPage() {
               테마
             </div>
             <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-              라이트/다크 모드 전환.
+              라이트·다크 모드를 취향대로 골라보세요.
             </p>
           </div>
           <ThemeToggle />
@@ -125,9 +125,8 @@ export default function SettingsPage() {
             데이터 내보내기
           </h2>
           <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-            모든 도메인(회사·시간블록·체크·회고·운동·세션·세트) 스냅샷을
-            단일 JSON 파일로 다운로드합니다. 배포 후 정기적으로 로컬에 저장해
-            두는 걸 권장.
+            지금까지 쌓아둔 모든 기록을 JSON 파일 하나로 내려받아 보관해두세요.
+            혹시 모를 상황에 대비해 가끔씩 백업해두면 안심이에요.
           </p>
         </div>
         <BackupButton />

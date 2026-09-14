@@ -26,7 +26,7 @@ export default async function BlogPage({
         <div className="flex flex-col gap-1">
           <h1 className="text-xl font-semibold">기술 블로그</h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            등록된 소스의 RSS를 주기적으로 수집.
+            즐겨찾는 기술 블로그의 새 글을 모아봅니다.
           </p>
         </div>
         <Link

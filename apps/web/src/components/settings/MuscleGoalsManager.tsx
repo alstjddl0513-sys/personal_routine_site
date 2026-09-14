@@ -146,8 +146,8 @@ export function MuscleGoalsManager({ initial }: { initial: MuscleGoal[] }) {
       </div>
 
       <p className="text-xs text-zinc-500 dark:text-zinc-400">
-        초기값은 등 10 · 가슴 10 · 어깨 10 · 팔 8 · 다리 12로, 초보~중급 기준의 최소 유효 볼륨(MEV) 근사.
-        본인 훈련 강도에 맞게 조정하세요.
+        기본값은 등 10 · 가슴 10 · 어깨 10 · 팔 8 · 다리 12세트예요. 초·중급자에게 무리 없는 기준이니
+        본인 훈련 강도에 맞게 조금씩 조정해보세요.
       </p>
     </div>
   );

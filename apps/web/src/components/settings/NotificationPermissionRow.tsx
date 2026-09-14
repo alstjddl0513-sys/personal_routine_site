@@ -44,10 +44,10 @@ export function NotificationPermissionRow() {
   // denied/unsupported get their own message with an actionable hint.
   const description =
     state === 'unsupported'
-      ? '이 브라우저는 알림 미지원.'
+      ? '이 브라우저에서는 알림을 켤 수 없어요.'
       : state === 'denied'
-        ? '자물쇠 아이콘 → 사이트 설정 → 알림에서 변경.'
-        : '휴식 타이머 종료 등에 사용합니다.';
+        ? '주소창 자물쇠 → 사이트 설정 → 알림에서 다시 열어주세요.'
+        : '휴식 타이머가 끝날 때 알려드릴게요.';
 
   return (
     <div className="flex items-start gap-3 border-b border-zinc-100 px-4 py-3 dark:border-zinc-800">

@@ -33,7 +33,7 @@ export default async function JobsStatisticsPage() {
       <header>
         <h1 className="text-xl font-semibold">기업 통계</h1>
         <p className="mt-1 text-sm text-zinc-500">
-          기업 리스트를 집계한 스냅샷입니다.
+          지금까지 담아둔 기업들을 한눈에 살펴봐요.
         </p>
       </header>
 
@@ -161,7 +161,7 @@ async function JobsStatisticsContent() {
         </div>
         {upcoming.length === 0 ? (
           <div className="rounded-md border border-dashed border-zinc-300 p-6 text-center text-xs text-zinc-500 dark:border-zinc-700">
-            7일 이내 마감 예정 공고가 없습니다.
+            일주일 안에 마감되는 공고가 없어요. 여유롭게 준비하세요.
           </div>
         ) : (
           <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">

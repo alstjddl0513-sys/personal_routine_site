@@ -72,7 +72,7 @@ export function AccountDeleteRow() {
             계정 삭제
           </div>
           <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-            계정과 모든 데이터를 영구히 삭제. 복구 불가.
+            계정과 모든 기록을 지워요. 한 번 삭제하면 되돌릴 수 없어요.
           </p>
         </div>
       </button>

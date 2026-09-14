@@ -168,8 +168,8 @@ export function CompanyTypesManager({ initial }: { initial: CompanyType[] }) {
       </div>
 
       <p className="text-xs text-zinc-500 dark:text-zinc-400">
-        <strong>key</strong>는 회사 데이터에 저장되는 값이라 편집 불가. 라벨만 자유롭게 바꿀 수 있음.
-        새 key는 소문자/숫자/언더스코어(<code>_</code>)만 허용.
+        회사 데이터와 연결되는 <strong>key</strong>는 만든 뒤에는 바꿀 수 없어요. 라벨은 언제든 다시 지어도 괜찮아요.
+        새 key는 소문자·숫자·언더스코어(<code>_</code>)만 써주세요.
       </p>
 
       <ConfirmDialog
@@ -180,7 +180,7 @@ export function CompanyTypesManager({ initial }: { initial: CompanyType[] }) {
             <span className="font-medium text-zinc-900 dark:text-zinc-100">
               {deleteTarget?.label}
             </span>
-            {' '}유형을 삭제할까요? 기존 회사에 저장된 값은 그대로 유지됩니다.
+            {' '}유형을 삭제할까요? 이미 이 유형을 쓰던 회사에는 그대로 남고, 목록에서만 사라져요.
           </p>
         }
         confirmLabel={isPending ? '삭제 중…' : '삭제'}
