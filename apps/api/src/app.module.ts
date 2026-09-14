@@ -21,6 +21,7 @@ import { ExportModule } from './export/export.module';
 import { BlogSourcesModule } from './blog-sources/blog-sources.module';
 import { BlogPostsModule } from './blog-posts/blog-posts.module';
 import { ProfilesModule } from './profiles/profiles.module';
+import { QuestionCategoriesModule } from './question-categories/question-categories.module';
 import { QuestionsModule } from './questions/questions.module';
 
 @Module({
@@ -46,6 +47,7 @@ import { QuestionsModule } from './questions/questions.module';
     BlogSourcesModule,
     BlogPostsModule,
     ProfilesModule,
+    QuestionCategoriesModule,
     QuestionsModule,
   ],
   controllers: [AppController, HealthController],

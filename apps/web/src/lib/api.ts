@@ -13,6 +13,7 @@ import type {
   PreviousWorkout,
   Priority,
   Profile,
+  QuestionCategory,
   QuestionDetail,
   QuestionHeatmapEntry,
   QuestionLog,
@@ -693,11 +694,15 @@ export async function checkNicknameAvailability(
 
 // --- learn (CS questions) ---
 
-// Today's 10-question set. Server picks deterministically by (owner, date)
-// so the same date always returns the same 10. Client passes its local KST
-// date as the seed.
-export async function getDailyQuestions(date: string): Promise<RandomQuestion[]> {
+// Today's 5-question set. Server picks deterministically by (owner, date)
+// so the same date always returns the same 5. Client passes its local KST
+// date as the seed. `categories`가 있으면 해당 카테고리로 스코프를 좁힘.
+export async function getDailyQuestions(
+  date: string,
+  categories?: readonly string[],
+): Promise<RandomQuestion[]> {
   const qs = new URLSearchParams({ date });
+  if (categories && categories.length > 0) qs.set('categories', categories.join(','));
   const res = await fetch(apiUrl(`/questions/daily?${qs.toString()}`), {
     cache: 'no-store',
     headers: await authHeaders(),
@@ -714,8 +719,15 @@ export async function getDailyQuestions(date: string): Promise<RandomQuestion[]>
 // '복습필요'로 마킹된 질문들. 오래된(updated_at ASC) 순서라 spaced-repetition
 // 직관을 따라감. 재답변으로 status가 'understood'로 바뀌어도 리스트가 실시간
 // 갱신되진 않고 다음 페이지 진입 시에 반영됨.
-export async function getReviewQuestions(): Promise<RandomQuestion[]> {
-  const res = await fetch(apiUrl('/questions/review'), {
+export async function getReviewQuestions(
+  categories?: readonly string[],
+): Promise<RandomQuestion[]> {
+  const qs = new URLSearchParams();
+  if (categories && categories.length > 0) qs.set('categories', categories.join(','));
+  const url = qs.toString()
+    ? apiUrl(`/questions/review?${qs.toString()}`)
+    : apiUrl('/questions/review');
+  const res = await fetch(url, {
     cache: 'no-store',
     headers: await authHeaders(),
   });
@@ -781,4 +793,52 @@ export async function getQuestionStatsSummary(): Promise<QuestionStatsSummary> {
     throw new Error(`GET /questions/stats/summary failed: HTTP ${res.status}`);
   }
   return (await res.json()) as QuestionStatsSummary;
+}
+
+// --- question-categories (user-editable list backing questions.category_key) ---
+
+export async function getQuestionCategories(): Promise<QuestionCategory[]> {
+  const res = await fetch(apiUrl('/question-categories'), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) throw new Error(`GET /question-categories failed: HTTP ${res.status}`);
+  return (await res.json()) as QuestionCategory[];
+}
+
+export async function createQuestionCategory(input: {
+  key: string;
+  label: string;
+  sortOrder?: number;
+}): Promise<QuestionCategory> {
+  const res = await fetch(apiUrl('/question-categories'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(`POST /question-categories failed: HTTP ${res.status}`);
+  return (await res.json()) as QuestionCategory;
+}
+
+export async function patchQuestionCategory(
+  id: string,
+  patch: { label?: string; sortOrder?: number },
+): Promise<QuestionCategory> {
+  const res = await fetch(apiUrl(`/question-categories/${id}`), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok)
+    throw new Error(`PATCH /question-categories/${id} failed: HTTP ${res.status}`);
+  return (await res.json()) as QuestionCategory;
+}
+
+export async function deleteQuestionCategory(id: string): Promise<void> {
+  const res = await fetch(apiUrl(`/question-categories/${id}`), {
+    method: 'DELETE',
+    headers: await authHeaders(),
+  });
+  if (!res.ok)
+    throw new Error(`DELETE /question-categories/${id} failed: HTTP ${res.status}`);
 }

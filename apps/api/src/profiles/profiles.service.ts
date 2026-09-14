@@ -11,12 +11,14 @@ import {
   companyTypes,
   muscleGoals,
   profiles,
+  questionCategories,
   questions,
 } from '../db/schema';
 import {
   DEFAULT_BLOG_SOURCES,
   DEFAULT_COMPANY_TYPES,
   DEFAULT_MUSCLE_GOALS,
+  DEFAULT_QUESTION_CATEGORIES,
   DEFAULT_QUESTIONS,
 } from '../db/defaults';
 import { getSupabaseAdmin } from '../supabase-admin';
@@ -67,6 +69,14 @@ export class ProfilesService {
                 ...s,
                 ownerId: userId,
                 sortOrder: i,
+              })),
+            );
+          await tx
+            .insert(questionCategories)
+            .values(
+              DEFAULT_QUESTION_CATEGORIES.map((c) => ({
+                ...c,
+                ownerId: userId,
               })),
             );
           await tx

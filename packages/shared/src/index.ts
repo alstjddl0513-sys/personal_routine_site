@@ -301,6 +301,8 @@ export interface QuestionLog {
 export interface RandomQuestion {
   id: string;
   content: string;
+  /** question_categories.key. 카테고리 미지정/삭제됨 케이스는 null. */
+  categoryKey: string | null;
   status: QuestionStatus | null;
 }
 
@@ -311,7 +313,20 @@ export interface QuestionDetail {
   answer: string;
   /** 답을 열어본 뒤 이어질 만한 꼬리 질문 1~2개 (선택). 없으면 null. */
   tip: string | null;
+  categoryKey: string | null;
   log: QuestionLog | null;
+}
+
+// 학습 질문 카테고리 (사용자 커스터마이징 가능). 프론트는 API에서 목록을 가져와
+// chip 필터와 설정 매니저에 사용.
+export interface QuestionCategory {
+  id: string;
+  key: string;
+  label: string;
+  sortOrder: number;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface QuestionHeatmapEntry {

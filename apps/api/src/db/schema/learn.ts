@@ -1,4 +1,6 @@
 import {
+  boolean,
+  integer,
   pgEnum,
   pgTable,
   text,
@@ -12,6 +14,29 @@ export const questionStatusEnum = pgEnum('question_status', [
   'review_needed',
 ]);
 
+// User-editable list of question categories (CS 기초/네트워크/…). Mirrors the
+// company_types pattern: owner-scoped, key stored on questions.category_key
+// as plain text (no FK) so deleting a category preserves existing question
+// data — it just disappears from the chip filter.
+export const questionCategories = pgTable(
+  'question_categories',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    ownerId: uuid('owner_id').notNull(),
+    key: text('key').notNull(),
+    label: text('label').notNull(),
+    sortOrder: integer('sort_order').notNull().default(0),
+    isDefault: boolean('is_default').notNull().default(false),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [unique('question_categories_owner_key_uq').on(t.ownerId, t.key)],
+);
+
 // Owner-scoped question pool. Each user gets their own copy of the curated
 // seed on onboarding (see profiles.service.upsertMe) — mirrors the
 // company_types / blog_sources pattern. Custom user-added questions land in
@@ -24,6 +49,9 @@ export const questions = pgTable('questions', {
   // 답을 열어본 뒤 이어서 나올 만한 꼬리 질문 1~2개. 면접 flow 훈련 용도.
   // 서식 자유 (줄바꿈으로 구분 권장). 기존 질문은 null이었다가 시드 갱신으로 채워짐.
   tip: text('tip'),
+  // question_categories.key와 매칭. FK 없음(company_types와 동일 이유):
+  // 카테고리 삭제 시 questions 데이터는 유지되고 chip에서만 사라짐.
+  categoryKey: text('category_key'),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
     .defaultNow(),
