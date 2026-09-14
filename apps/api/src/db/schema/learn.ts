@@ -21,6 +21,9 @@ export const questions = pgTable('questions', {
   ownerId: uuid('owner_id').notNull(),
   content: text('content').notNull(),
   answer: text('answer').notNull(),
+  // 답을 열어본 뒤 이어서 나올 만한 꼬리 질문 1~2개. 면접 flow 훈련 용도.
+  // 서식 자유 (줄바꿈으로 구분 권장). 기존 질문은 null이었다가 시드 갱신으로 채워짐.
+  tip: text('tip'),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
     .defaultNow(),

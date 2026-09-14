@@ -1,7 +1,7 @@
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import { drizzle } from 'drizzle-orm/postgres-js';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import postgres from 'postgres';
 import { questions } from './schema';
 import { DEFAULT_QUESTIONS } from './defaults';
@@ -28,23 +28,47 @@ async function main() {
     // stands in. If a seed question's wording ever changes it'll insert a new
     // row alongside the old one; that's the trade-off for content-based dedupe.
     const existing = await db
-      .select({ content: questions.content })
+      .select({
+        id: questions.id,
+        content: questions.content,
+        answer: questions.answer,
+        tip: questions.tip,
+      })
       .from(questions)
       .where(eq(questions.ownerId, ownerId));
-    const existingContent = new Set(existing.map((r) => r.content));
+    const existingByContent = new Map(existing.map((r) => [r.content, r]));
 
-    const missing = SEED.filter((q) => !existingContent.has(q.content));
-    if (missing.length === 0) {
-      console.log(
-        `All ${SEED.length} seed questions already present. Nothing to do.`,
-      );
-      return;
+    // Insert missing rows first.
+    const missing = SEED.filter((q) => !existingByContent.has(q.content));
+    if (missing.length > 0) {
+      const rows = missing.map((q) => ({ ...q, ownerId }));
+      await db.insert(questions).values(rows);
+      console.log(`Inserted ${rows.length} new questions:`);
+      for (const r of rows) console.log(`  + ${r.content}`);
     }
 
-    const rows = missing.map((q) => ({ ...q, ownerId }));
-    await db.insert(questions).values(rows);
-    console.log(`Inserted ${rows.length} new questions:`);
-    for (const r of rows) console.log(`  + ${r.content}`);
+    // Then sync answer/tip on already-present rows if they drift from the
+    // curated defaults. Content is the join key so wording changes create a
+    // new row (see above) rather than mutating in place.
+    let updatedCount = 0;
+    for (const q of SEED) {
+      const row = existingByContent.get(q.content);
+      if (!row) continue;
+      const nextTip = q.tip ?? null;
+      if (row.answer === q.answer && row.tip === nextTip) continue;
+      await db
+        .update(questions)
+        .set({ answer: q.answer, tip: nextTip, updatedAt: new Date() })
+        .where(and(eq(questions.id, row.id), eq(questions.ownerId, ownerId)));
+      updatedCount += 1;
+    }
+    if (updatedCount > 0) {
+      console.log(`Updated ${updatedCount} existing questions (answer/tip sync).`);
+    } else if (missing.length === 0) {
+      console.log(
+        `All ${SEED.length} seed questions already up to date. Nothing to do.`,
+      );
+    }
   } finally {
     await client.end();
   }
