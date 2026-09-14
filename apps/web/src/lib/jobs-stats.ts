@@ -127,7 +127,9 @@ export function computeUpcomingDeadlines(
   const items: UpcomingDeadline[] = [];
   for (const c of rows) {
     if (!c.applicationDeadline) continue;
-    if (!c.isHiring) continue;
+    // isHiring은 필터 대상 아님 — 사용자가 마감일을 설정했다는 것 자체가
+    // "지원 예정" 시그널. 채용중 토글을 깜빡 잊어도 D-7 리스트/D-1 알림에서
+    // 놓치지 않도록. 이미 최종 상태(합격/탈락/철회)는 ACTIVE_STATUSES에서 걸러짐.
     if (!ACTIVE_STATUSES.includes(c.applicationStatus)) continue;
     const daysLeft = daysUntil(c.applicationDeadline, now);
     if (daysLeft < 0 || daysLeft > windowDays) continue;

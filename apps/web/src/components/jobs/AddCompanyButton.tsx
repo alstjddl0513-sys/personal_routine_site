@@ -55,7 +55,10 @@ export function AddCompanyButton({ companyTypes }: { companyTypes: CompanyType[]
     }
     startTransition(async () => {
       try {
-        await createCompany({ name: trimmed, type1, type2 });
+        // 새로 추가하는 회사는 대체로 지금 채용중이라 기본값을 true로.
+        // 채용 마감 시점에 사용자가 수동으로 off. 이 기본값 덕에 D-7 리스트/
+        // D-1 알림에서 놓치지 않음.
+        await createCompany({ name: trimmed, type1, type2, isHiring: true });
         router.refresh();
         setOpen(false);
       } catch (err) {
