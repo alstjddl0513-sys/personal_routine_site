@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import {
+  BookOpen,
   CalendarClock,
   ChevronRight,
   Dumbbell,
@@ -80,6 +81,21 @@ export default function SettingsPage() {
             </div>
             <p className="mt-0.5 break-keep text-xs text-zinc-500 dark:text-zinc-400">
               구독할 기술 블로그를 골라두면 새 글이 자동으로 모여요.
+            </p>
+          </div>
+          <ChevronRight className="h-4 w-4 text-zinc-400" aria-hidden />
+        </Link>
+        <Link
+          href="/settings/question-categories"
+          className="flex items-center gap-3 border-b border-zinc-100 px-4 py-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900"
+        >
+          <BookOpen className="h-4 w-4 text-zinc-500" aria-hidden />
+          <div className="flex-1">
+            <div className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+              학습 카테고리 관리
+            </div>
+            <p className="mt-0.5 break-keep text-xs text-zinc-500 dark:text-zinc-400">
+              학습 질문을 주제별로 묶어두면 관심 영역만 골라 볼 수 있어요.
             </p>
           </div>
           <ChevronRight className="h-4 w-4 text-zinc-400" aria-hidden />

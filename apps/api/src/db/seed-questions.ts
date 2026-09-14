@@ -3,12 +3,13 @@ import { resolve } from 'path';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { and, eq } from 'drizzle-orm';
 import postgres from 'postgres';
-import { questions } from './schema';
-import { DEFAULT_QUESTIONS } from './defaults';
+import { questionCategories, questions } from './schema';
+import { DEFAULT_QUESTION_CATEGORIES, DEFAULT_QUESTIONS } from './defaults';
 
 config({ path: resolve(__dirname, '../../../../.env') });
 
 const SEED = DEFAULT_QUESTIONS;
+const CATEGORIES = DEFAULT_QUESTION_CATEGORIES;
 
 async function main() {
   const url = process.env.DATABASE_URL;
@@ -24,6 +25,17 @@ async function main() {
   const db = drizzle(client);
 
   try {
+    // Categories first — questions.category_key references these keys, but
+    // there's no FK, so missing categories don't block the question sync.
+    // Use ON CONFLICT DO NOTHING (owner_id, key) so existing users get
+    // the initial 5 without wiping any labels they've renamed since.
+    await db
+      .insert(questionCategories)
+      .values(CATEGORIES.map((c) => ({ ...c, ownerId })))
+      .onConflictDoNothing({
+        target: [questionCategories.ownerId, questionCategories.key],
+      });
+
     // Dedupe by question content — no natural key column, so text match
     // stands in. If a seed question's wording ever changes it'll insert a new
     // row alongside the old one; that's the trade-off for content-based dedupe.
@@ -33,6 +45,7 @@ async function main() {
         content: questions.content,
         answer: questions.answer,
         tip: questions.tip,
+        categoryKey: questions.categoryKey,
       })
       .from(questions)
       .where(eq(questions.ownerId, ownerId));
@@ -47,23 +60,36 @@ async function main() {
       for (const r of rows) console.log(`  + ${r.content}`);
     }
 
-    // Then sync answer/tip on already-present rows if they drift from the
-    // curated defaults. Content is the join key so wording changes create a
-    // new row (see above) rather than mutating in place.
+    // Then sync answer/tip/categoryKey on already-present rows if they drift
+    // from the curated defaults. Content is the join key so wording changes
+    // create a new row (see above) rather than mutating in place.
     let updatedCount = 0;
     for (const q of SEED) {
       const row = existingByContent.get(q.content);
       if (!row) continue;
       const nextTip = q.tip ?? null;
-      if (row.answer === q.answer && row.tip === nextTip) continue;
+      if (
+        row.answer === q.answer &&
+        row.tip === nextTip &&
+        row.categoryKey === q.categoryKey
+      ) {
+        continue;
+      }
       await db
         .update(questions)
-        .set({ answer: q.answer, tip: nextTip, updatedAt: new Date() })
+        .set({
+          answer: q.answer,
+          tip: nextTip,
+          categoryKey: q.categoryKey,
+          updatedAt: new Date(),
+        })
         .where(and(eq(questions.id, row.id), eq(questions.ownerId, ownerId)));
       updatedCount += 1;
     }
     if (updatedCount > 0) {
-      console.log(`Updated ${updatedCount} existing questions (answer/tip sync).`);
+      console.log(
+        `Updated ${updatedCount} existing questions (answer/tip/category sync).`,
+      );
     } else if (missing.length === 0) {
       console.log(
         `All ${SEED.length} seed questions already up to date. Nothing to do.`,

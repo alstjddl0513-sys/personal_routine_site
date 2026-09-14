@@ -1,10 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { and, asc, eq, gte, lte, ne, sql, type SQL } from 'drizzle-orm';
+import { and, asc, eq, gte, inArray, lte, ne, sql, type SQL } from 'drizzle-orm';
 import { db } from '../db/client';
 import { questionLogs, questions } from '../db/schema';
 import type { LogQuestionDto } from './dto/log-question.dto';
 import type { QueryDailyDto } from './dto/query-daily.dto';
 import type { QueryRandomDto } from './dto/query-random.dto';
+import type { QueryReviewDto } from './dto/query-review.dto';
 import type { QueryStatsRangeDto } from './dto/query-stats-range.dto';
 
 const DAILY_LIMIT = 5;
@@ -17,10 +18,15 @@ export class QuestionsService {
   // 10. No storage; if we ever need "show me yesterday's set" this becomes
   // a table lookup.
   async findDaily(ownerId: string, query: QueryDailyDto) {
+    const conditions: SQL[] = [eq(questions.ownerId, ownerId)];
+    if (query.categories && query.categories.length > 0) {
+      conditions.push(inArray(questions.categoryKey, query.categories));
+    }
     return db
       .select({
         id: questions.id,
         content: questions.content,
+        categoryKey: questions.categoryKey,
         status: questionLogs.status,
       })
       .from(questions)
@@ -31,7 +37,7 @@ export class QuestionsService {
           eq(questionLogs.ownerId, ownerId),
         ),
       )
-      .where(eq(questions.ownerId, ownerId))
+      .where(and(...conditions))
       .orderBy(sql`md5(${questions.id}::text || ${query.date})`)
       .limit(DAILY_LIMIT);
   }
@@ -40,11 +46,19 @@ export class QuestionsService {
   // 잊혀질 위험이 크다는 spaced-repetition 직관. 재답변으로 updated_at이 갱신되면
   // 자연스럽게 리스트 뒤로 밀림. Response shape는 findDaily와 동일하게 유지해
   // LearnCard가 그대로 재사용됨.
-  async findReview(ownerId: string) {
+  async findReview(ownerId: string, query: QueryReviewDto) {
+    const conditions: SQL[] = [
+      eq(questions.ownerId, ownerId),
+      eq(questionLogs.status, 'review_needed'),
+    ];
+    if (query.categories && query.categories.length > 0) {
+      conditions.push(inArray(questions.categoryKey, query.categories));
+    }
     return db
       .select({
         id: questions.id,
         content: questions.content,
+        categoryKey: questions.categoryKey,
         status: questionLogs.status,
       })
       .from(questions)
@@ -55,12 +69,7 @@ export class QuestionsService {
           eq(questionLogs.ownerId, ownerId),
         ),
       )
-      .where(
-        and(
-          eq(questions.ownerId, ownerId),
-          eq(questionLogs.status, 'review_needed'),
-        ),
-      )
+      .where(and(...conditions))
       .orderBy(asc(questionLogs.updatedAt));
   }
 
@@ -73,6 +82,7 @@ export class QuestionsService {
       .select({
         id: questions.id,
         content: questions.content,
+        categoryKey: questions.categoryKey,
         status: questionLogs.status,
       })
       .from(questions)
@@ -98,6 +108,7 @@ export class QuestionsService {
         content: questions.content,
         answer: questions.answer,
         tip: questions.tip,
+        categoryKey: questions.categoryKey,
         status: questionLogs.status,
         answeredAt: questionLogs.answeredAt,
         updatedAt: questionLogs.updatedAt,
@@ -118,6 +129,7 @@ export class QuestionsService {
       content: row.content,
       answer: row.answer,
       tip: row.tip,
+      categoryKey: row.categoryKey,
       log:
         row.status && row.answeredAt && row.updatedAt
           ? {

@@ -12,6 +12,7 @@ import { requireUserId, type AuthedRequest } from '../supabase-auth.guard';
 import { LogQuestionDto } from './dto/log-question.dto';
 import { QueryDailyDto } from './dto/query-daily.dto';
 import { QueryRandomDto } from './dto/query-random.dto';
+import { QueryReviewDto } from './dto/query-review.dto';
 import { QueryStatsRangeDto } from './dto/query-stats-range.dto';
 import { QuestionsService } from './questions.service';
 
@@ -33,8 +34,8 @@ export class QuestionsController {
 
   // '복습필요'로 마킹한 질문 모음. Static path so it lands above :id.
   @Get('review')
-  findReview(@Req() req: AuthedRequest) {
-    return this.service.findReview(requireUserId(req));
+  findReview(@Req() req: AuthedRequest, @Query() query: QueryReviewDto) {
+    return this.service.findReview(requireUserId(req), query);
   }
 
   // Static /stats/* routes above :id so Nest doesn't try to parse 'stats'
