@@ -210,11 +210,34 @@ export interface WeeklyVolumeEntry {
   volumeKg: number;
 }
 
-export interface MuscleVolumeEntry {
-  /** target_muscle from exercises; nullable when exercise has none. */
-  targetMuscle: string | null;
-  volumeKg: number;
+// 부위별 주간 세트 목표 (Phase workouts/muscle-goals).
+// muscleKey는 MUSCLE_OPTIONS.key와 매치 (등/가슴/어깨/팔/다리).
+export interface MuscleGoal {
+  id: string;
+  muscleKey: string;
+  weeklySetTarget: number;
+  createdAt: string;
+  updatedAt: string;
 }
+
+// 부위별 완전 세트(weightKg AND reps 둘 다 있는) 카운트.
+export interface MuscleSetCountEntry {
+  /** target_muscle from exercises; nullable when exercise has none. */
+  muscleKey: string | null;
+  setCount: number;
+}
+
+// 온보딩 시드 & UI 목표 편집 default. (owner_id는 서버에서 스탬프)
+export const DEFAULT_MUSCLE_GOALS: readonly {
+  muscleKey: string;
+  weeklySetTarget: number;
+}[] = [
+  { muscleKey: 'back', weeklySetTarget: 10 },
+  { muscleKey: 'chest', weeklySetTarget: 10 },
+  { muscleKey: 'shoulder', weeklySetTarget: 10 },
+  { muscleKey: 'arm', weeklySetTarget: 8 },
+  { muscleKey: 'leg', weeklySetTarget: 12 },
+];
 
 // --- blog ---
 

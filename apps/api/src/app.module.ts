@@ -14,6 +14,7 @@ import { TimeBlocksModule } from './time-blocks/time-blocks.module';
 import { RoutineChecksModule } from './routine-checks/routine-checks.module';
 import { DayNotesModule } from './day-notes/day-notes.module';
 import { ExercisesModule } from './exercises/exercises.module';
+import { MuscleGoalsModule } from './muscle-goals/muscle-goals.module';
 import { WorkoutSessionsModule } from './workout-sessions/workout-sessions.module';
 import { WorkoutSetsModule } from './workout-sets/workout-sets.module';
 import { ExportModule } from './export/export.module';
@@ -38,6 +39,7 @@ import { QuestionsModule } from './questions/questions.module';
     RoutineChecksModule,
     DayNotesModule,
     ExercisesModule,
+    MuscleGoalsModule,
     WorkoutSessionsModule,
     WorkoutSetsModule,
     ExportModule,
