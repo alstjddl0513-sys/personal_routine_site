@@ -49,6 +49,27 @@ export const workoutSessions = pgTable('workout_sessions', {
     .defaultNow(),
 });
 
+// 부위별 주간 세트 목표. muscle_key는 MUSCLE_OPTIONS.key와 매치 (등/가슴/…).
+// exercises.target_muscle과 마찬가지로 FK 없이 text — 나중에 부위 추가/삭제해도
+// 기존 goal row에 영향 없음. (owner, key) unique로 upsert.
+export const muscleGoals = pgTable(
+  'muscle_goals',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    // Owner (Phase 12.4). See companies.ts for the auth.users FK note.
+    ownerId: uuid('owner_id').notNull(),
+    muscleKey: text('muscle_key').notNull(),
+    weeklySetTarget: smallint('weekly_set_target').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [unique('muscle_goals_owner_muscle_uq').on(t.ownerId, t.muscleKey)],
+);
+
 // 세트 단위 기록. weight_kg는 numeric(6,2) — Postgres에서 string으로 반환되므로
 // 프론트에서 parseFloat 필요. 이력 보존 위해 exercise FK는 restrict.
 export const workoutSets = pgTable(

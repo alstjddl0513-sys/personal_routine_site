@@ -17,6 +17,22 @@ export const DEFAULT_COMPANY_TYPES: readonly DefaultCompanyType[] = [
   { key: 'freelance', label: '프리랜서', sortOrder: 5, isDefault: true },
 ] as const;
 
+export interface DefaultMuscleGoal {
+  muscleKey: string;
+  weeklySetTarget: number;
+}
+
+// 부위별 주간 세트 목표 초기값. MUSCLE_OPTIONS 순서 (등/가슴/어깨/팔/다리).
+// 초심자 MEV 근사 (Schoenfeld 등 볼륨 문헌 참고). 사용자가 /settings/muscle-goals
+// 에서 자유롭게 조정 가능.
+export const DEFAULT_MUSCLE_GOALS: readonly DefaultMuscleGoal[] = [
+  { muscleKey: 'back', weeklySetTarget: 10 },
+  { muscleKey: 'chest', weeklySetTarget: 10 },
+  { muscleKey: 'shoulder', weeklySetTarget: 10 },
+  { muscleKey: 'arm', weeklySetTarget: 8 },
+  { muscleKey: 'leg', weeklySetTarget: 12 },
+] as const;
+
 export interface DefaultExercise {
   name: string;
   targetMuscle: string;

@@ -6,6 +6,7 @@ import {
   Palette,
   Rss,
   Tag,
+  Target,
 } from 'lucide-react';
 import { AccountDeleteRow } from '../../components/settings/AccountDeleteRow';
 import { BackupButton } from '../../components/settings/BackupButton';
@@ -70,7 +71,7 @@ export default function SettingsPage() {
         </Link>
         <Link
           href="/settings/blog-sources"
-          className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
+          className="flex items-center gap-3 border-b border-zinc-100 px-4 py-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900"
         >
           <Rss className="h-4 w-4 text-zinc-500" aria-hidden />
           <div className="flex-1">
@@ -79,6 +80,21 @@ export default function SettingsPage() {
             </div>
             <p className="mt-0.5 break-keep text-xs text-zinc-500 dark:text-zinc-400">
               기술 블로그 페이지의 RSS 소스를 추가·편집·일시중지·삭제.
+            </p>
+          </div>
+          <ChevronRight className="h-4 w-4 text-zinc-400" aria-hidden />
+        </Link>
+        <Link
+          href="/settings/muscle-goals"
+          className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
+        >
+          <Target className="h-4 w-4 text-zinc-500" aria-hidden />
+          <div className="flex-1">
+            <div className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+              부위별 주간 목표
+            </div>
+            <p className="mt-0.5 break-keep text-xs text-zinc-500 dark:text-zinc-400">
+              운동 통계 페이지 달성률 카드의 목표 세트 수(부위별)를 조정.
             </p>
           </div>
           <ChevronRight className="h-4 w-4 text-zinc-400" aria-hidden />

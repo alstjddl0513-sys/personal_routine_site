@@ -6,10 +6,17 @@ import {
 } from '@nestjs/common';
 import { eq, sql } from 'drizzle-orm';
 import { db } from '../db/client';
-import { blogSources, companyTypes, profiles, questions } from '../db/schema';
+import {
+  blogSources,
+  companyTypes,
+  muscleGoals,
+  profiles,
+  questions,
+} from '../db/schema';
 import {
   DEFAULT_BLOG_SOURCES,
   DEFAULT_COMPANY_TYPES,
+  DEFAULT_MUSCLE_GOALS,
   DEFAULT_QUESTIONS,
 } from '../db/defaults';
 import { getSupabaseAdmin } from '../supabase-admin';
@@ -27,9 +34,9 @@ export class ProfilesService {
   }
 
   // Create-if-missing, else rename. When creating, seeds company_types,
-  // blog_sources, and questions so a fresh account isn't empty on first
-  // /jobs, /blog, and /learn visits. Exercises are intentionally not seeded
-  // — new users pick their own.
+  // blog_sources, questions, and muscle_goals so a fresh account isn't empty
+  // on first /jobs, /blog, /learn, and /workouts/statistics visits. Exercises
+  // are intentionally not seeded — new users pick their own.
   async upsertMe(userId: string, nickname: string) {
     try {
       return await db.transaction(async (tx) => {
@@ -65,6 +72,11 @@ export class ProfilesService {
           await tx
             .insert(questions)
             .values(DEFAULT_QUESTIONS.map((q) => ({ ...q, ownerId: userId })));
+          await tx
+            .insert(muscleGoals)
+            .values(
+              DEFAULT_MUSCLE_GOALS.map((g) => ({ ...g, ownerId: userId })),
+            );
         }
 
         return row;

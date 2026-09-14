@@ -18,7 +18,8 @@ import type {
   QuestionLog,
   QuestionStatsSummary,
   QuestionStatus,
-  MuscleVolumeEntry,
+  MuscleGoal,
+  MuscleSetCountEntry,
   RandomQuestion,
   RoutineCheck,
   TimeBlock,
@@ -464,19 +465,43 @@ export async function getWeeklyVolume(range: {
   return (await res.json()) as WeeklyVolumeEntry[];
 }
 
-export async function getMuscleVolume(range: {
+export async function getMuscleSets(range: {
   from: string;
   to: string;
-}): Promise<MuscleVolumeEntry[]> {
+}): Promise<MuscleSetCountEntry[]> {
   const qs = new URLSearchParams({ from: range.from, to: range.to });
-  const res = await fetch(apiUrl(`/workout-sets/muscle-volume?${qs.toString()}`), {
+  const res = await fetch(apiUrl(`/workout-sets/muscle-sets?${qs.toString()}`), {
     cache: 'no-store',
     headers: await authHeaders(),
   });
   if (!res.ok) {
-    throw new Error(`GET /workout-sets/muscle-volume failed: HTTP ${res.status}`);
+    throw new Error(`GET /workout-sets/muscle-sets failed: HTTP ${res.status}`);
   }
-  return (await res.json()) as MuscleVolumeEntry[];
+  return (await res.json()) as MuscleSetCountEntry[];
+}
+
+export async function getMuscleGoals(): Promise<MuscleGoal[]> {
+  const res = await fetch(apiUrl('/muscle-goals'), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) throw new Error(`GET /muscle-goals failed: HTTP ${res.status}`);
+  return (await res.json()) as MuscleGoal[];
+}
+
+export async function putMuscleGoal(
+  muscleKey: string,
+  weeklySetTarget: number,
+): Promise<MuscleGoal> {
+  const res = await fetch(apiUrl(`/muscle-goals/${encodeURIComponent(muscleKey)}`), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify({ weeklySetTarget }),
+  });
+  if (!res.ok) {
+    throw new Error(`PUT /muscle-goals/${muscleKey} failed: HTTP ${res.status}`);
+  }
+  return (await res.json()) as MuscleGoal;
 }
 
 export async function getExerciseStats(params: {
