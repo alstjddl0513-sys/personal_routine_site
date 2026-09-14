@@ -81,7 +81,13 @@ export class ProfilesService {
             );
           await tx
             .insert(questions)
-            .values(DEFAULT_QUESTIONS.map((q) => ({ ...q, ownerId: userId })));
+            .values(
+              DEFAULT_QUESTIONS.map((q) => ({
+                ...q,
+                ownerId: userId,
+                isSeed: true,
+              })),
+            );
           await tx
             .insert(muscleGoals)
             .values(
