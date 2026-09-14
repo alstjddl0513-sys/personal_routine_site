@@ -90,13 +90,14 @@ export class QuestionsService {
     return row;
   }
 
-  // Full detail (answer + user's log). Ownership check via the same WHERE.
+  // Full detail (answer + tip + user's log). Ownership check via the same WHERE.
   async findOne(ownerId: string, id: string) {
     const [row] = await db
       .select({
         id: questions.id,
         content: questions.content,
         answer: questions.answer,
+        tip: questions.tip,
         status: questionLogs.status,
         answeredAt: questionLogs.answeredAt,
         updatedAt: questionLogs.updatedAt,
@@ -116,6 +117,7 @@ export class QuestionsService {
       id: row.id,
       content: row.content,
       answer: row.answer,
+      tip: row.tip,
       log:
         row.status && row.answeredAt && row.updatedAt
           ? {

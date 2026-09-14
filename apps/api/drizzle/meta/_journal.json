@@ -113,6 +113,13 @@
       "when": 1789367878066,
       "tag": "0015_bumpy_shooting_star",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1789374492786,
+      "tag": "0016_spicy_proudstar",
+      "breakpoints": true
     }
   ]
 }

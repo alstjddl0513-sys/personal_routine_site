@@ -309,6 +309,8 @@ export interface QuestionDetail {
   id: string;
   content: string;
   answer: string;
+  /** 답을 열어본 뒤 이어질 만한 꼬리 질문 1~2개 (선택). 없으면 null. */
+  tip: string | null;
   log: QuestionLog | null;
 }
 

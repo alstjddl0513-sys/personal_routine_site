@@ -1,6 +1,12 @@
 'use client';
 
-import { ChevronLeft, ChevronRight, Loader2, PartyPopper } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Lightbulb,
+  Loader2,
+  PartyPopper,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import {
   QUESTION_STATUS_LABELS,
@@ -248,6 +254,7 @@ function QuestionBody({
               {detail?.answer}
             </p>
           </div>
+          {detail?.tip ? <TipBlock tip={detail.tip} /> : null}
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
@@ -325,6 +332,22 @@ function CompletionBody({
           </span>
         ) : null}
       </div>
+    </div>
+  );
+}
+
+// 답을 열어본 뒤 이어질 만한 꼬리 질문 1~2개를 amber 톤으로 노출.
+// 답변 카드보다 한 톤 약하게 — 시선은 답변에 먼저 가고, 꼬리는 곁들이는 정도.
+function TipBlock({ tip }: { tip: string }) {
+  return (
+    <div className="rounded-xl border border-amber-200 bg-amber-50 p-5 dark:border-amber-900/50 dark:bg-amber-950/30">
+      <div className="mb-2 flex items-center gap-2 text-xs font-medium text-amber-700 dark:text-amber-400">
+        <Lightbulb className="h-3.5 w-3.5" aria-hidden />
+        면접관이 이어서 물어볼 만한 질문
+      </div>
+      <p className="whitespace-pre-wrap text-[14px] leading-relaxed text-amber-900/90 dark:text-amber-100/80">
+        {tip}
+      </p>
     </div>
   );
 }
