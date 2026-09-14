@@ -122,7 +122,7 @@ export function NicknameRow() {
         <div className="flex-1">
           <div className="text-sm font-medium text-zinc-800 dark:text-zinc-200">닉네임</div>
           <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-            사이드바·앞으로 공유되는 컨텐츠에 표시.
+            사이드바와 공유 화면에 표시돼요.
           </p>
         </div>
       </div>
@@ -200,10 +200,10 @@ function StatusMessage({
     return <p className="text-xs text-red-600 dark:text-red-400">{status.message}</p>;
   }
   if (status.kind === 'taken') {
-    return <p className="text-xs text-red-600 dark:text-red-400">이미 사용 중.</p>;
+    return <p className="text-xs text-red-600 dark:text-red-400">이미 사용중인 닉네임이에요.</p>;
   }
   if (status.kind === 'available') {
-    return <p className="text-xs text-emerald-600 dark:text-emerald-400">사용 가능.</p>;
+    return <p className="text-xs text-emerald-600 dark:text-emerald-400">사용가능한 닉네임이에요.</p>;
   }
   if (status.kind === 'error') {
     return <p className="text-xs text-red-600 dark:text-red-400">{status.message}</p>;

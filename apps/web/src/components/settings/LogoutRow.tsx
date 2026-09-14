@@ -26,7 +26,7 @@ export function LogoutRow() {
           로그아웃
         </div>
         <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-          현재 세션 종료 후 로그인 화면으로 이동.
+          다시 들어올때 재로그인이 필요해요.
         </p>
       </div>
     </button>
