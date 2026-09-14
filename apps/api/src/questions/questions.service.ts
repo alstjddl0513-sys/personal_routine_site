@@ -1,12 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { and, asc, eq, gte, inArray, lte, ne, sql, type SQL } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, inArray, lte, ne, sql, type SQL } from 'drizzle-orm';
 import { db } from '../db/client';
 import { questionLogs, questions } from '../db/schema';
+import type { CreateQuestionDto } from './dto/create-question.dto';
 import type { LogQuestionDto } from './dto/log-question.dto';
 import type { QueryDailyDto } from './dto/query-daily.dto';
+import type { QueryQuestionsDto } from './dto/query-questions.dto';
 import type { QueryRandomDto } from './dto/query-random.dto';
 import type { QueryReviewDto } from './dto/query-review.dto';
 import type { QueryStatsRangeDto } from './dto/query-stats-range.dto';
+import type { UpdateQuestionDto } from './dto/update-question.dto';
 
 const DAILY_LIMIT = 5;
 
@@ -185,6 +188,103 @@ export class QuestionsService {
       understood,
       reviewNeeded,
     };
+  }
+
+  // 관리 페이지용 list. 사용자가 직접 추가한 커스텀 질문(is_seed=false)만.
+  // 시드 풀은 프로덕션에서 커질 수 있어 관리 화면에는 노출하지 않음. daily/review
+  // pool은 여전히 시드+커스텀 전부 사용.
+  async findAllForOwner(ownerId: string, query: QueryQuestionsDto) {
+    const conditions: SQL[] = [
+      eq(questions.ownerId, ownerId),
+      eq(questions.isSeed, false),
+    ];
+    if (query.categories && query.categories.length > 0) {
+      conditions.push(inArray(questions.categoryKey, query.categories));
+    }
+    return db
+      .select({
+        id: questions.id,
+        content: questions.content,
+        answer: questions.answer,
+        tip: questions.tip,
+        categoryKey: questions.categoryKey,
+        createdAt: questions.createdAt,
+        updatedAt: questions.updatedAt,
+      })
+      .from(questions)
+      .where(and(...conditions))
+      .orderBy(desc(questions.createdAt));
+  }
+
+  async create(ownerId: string, dto: CreateQuestionDto) {
+    const [row] = await db
+      .insert(questions)
+      .values({
+        ownerId,
+        content: dto.content,
+        answer: dto.answer,
+        tip: dto.tip ?? null,
+        categoryKey: dto.categoryKey ?? null,
+      })
+      .returning({
+        id: questions.id,
+        content: questions.content,
+        answer: questions.answer,
+        tip: questions.tip,
+        categoryKey: questions.categoryKey,
+        createdAt: questions.createdAt,
+        updatedAt: questions.updatedAt,
+      });
+    return row;
+  }
+
+  async update(ownerId: string, id: string, dto: UpdateQuestionDto) {
+    // is_seed=true 는 관리 UI에서 노출도 안 되고 수정도 못함(시드 drift 방지).
+    // 클라이언트가 임의 id로 PATCH해도 404로 응답.
+    const patch: Record<string, unknown> = { updatedAt: new Date() };
+    if (dto.content !== undefined) patch.content = dto.content;
+    if (dto.answer !== undefined) patch.answer = dto.answer;
+    if (dto.tip !== undefined) patch.tip = dto.tip ?? null;
+    if (dto.categoryKey !== undefined) patch.categoryKey = dto.categoryKey ?? null;
+
+    const [row] = await db
+      .update(questions)
+      .set(patch)
+      .where(
+        and(
+          eq(questions.id, id),
+          eq(questions.ownerId, ownerId),
+          eq(questions.isSeed, false),
+        ),
+      )
+      .returning({
+        id: questions.id,
+        content: questions.content,
+        answer: questions.answer,
+        tip: questions.tip,
+        categoryKey: questions.categoryKey,
+        createdAt: questions.createdAt,
+        updatedAt: questions.updatedAt,
+      });
+    if (!row) throw new NotFoundException(`Question ${id} not found`);
+    return row;
+  }
+
+  async remove(ownerId: string, id: string) {
+    // is_seed=true 는 삭제 불가 (update와 동일 정책). question_logs FK CASCADE로
+    // 관련 log는 자동 정리.
+    const [row] = await db
+      .delete(questions)
+      .where(
+        and(
+          eq(questions.id, id),
+          eq(questions.ownerId, ownerId),
+          eq(questions.isSeed, false),
+        ),
+      )
+      .returning({ id: questions.id });
+    if (!row) throw new NotFoundException(`Question ${id} not found`);
+    return { id: row.id };
   }
 
   // Upsert on UNIQUE(owner_id, question_id). Ownership of the question is

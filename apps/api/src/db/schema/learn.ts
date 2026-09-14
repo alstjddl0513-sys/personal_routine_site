@@ -52,6 +52,10 @@ export const questions = pgTable('questions', {
   // question_categories.key와 매칭. FK 없음(company_types와 동일 이유):
   // 카테고리 삭제 시 questions 데이터는 유지되고 chip에서만 사라짐.
   categoryKey: text('category_key'),
+  // profiles.upsertMe 온보딩 시드나 seed-questions.ts로 넣은 큐레이션 문항이면 true.
+  // 사용자가 POST /questions로 직접 추가한 커스텀은 false. /settings/questions는
+  // false만 노출(시드 노이즈 회피). daily/review pool은 무관하게 전체 사용.
+  isSeed: boolean('is_seed').notNull().default(false),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
     .defaultNow(),

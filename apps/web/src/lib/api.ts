@@ -13,6 +13,7 @@ import type {
   PreviousWorkout,
   Priority,
   Profile,
+  Question,
   QuestionCategory,
   QuestionDetail,
   QuestionHeatmapEntry,
@@ -793,6 +794,65 @@ export async function getQuestionStatsSummary(): Promise<QuestionStatsSummary> {
     throw new Error(`GET /questions/stats/summary failed: HTTP ${res.status}`);
   }
   return (await res.json()) as QuestionStatsSummary;
+}
+
+// --- questions (관리 페이지 CRUD) ---
+
+export async function getAllQuestions(
+  categories?: readonly string[],
+): Promise<Question[]> {
+  const qs = new URLSearchParams();
+  if (categories && categories.length > 0) qs.set('categories', categories.join(','));
+  const url = qs.toString()
+    ? apiUrl(`/questions?${qs.toString()}`)
+    : apiUrl('/questions');
+  const res = await fetch(url, {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) throw new Error(`GET /questions failed: HTTP ${res.status}`);
+  return (await res.json()) as Question[];
+}
+
+export async function createQuestion(input: {
+  content: string;
+  answer: string;
+  tip?: string | null;
+  categoryKey?: string | null;
+}): Promise<Question> {
+  const res = await fetch(apiUrl('/questions'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(`POST /questions failed: HTTP ${res.status}`);
+  return (await res.json()) as Question;
+}
+
+export async function patchQuestion(
+  id: string,
+  patch: {
+    content?: string;
+    answer?: string;
+    tip?: string | null;
+    categoryKey?: string | null;
+  },
+): Promise<Question> {
+  const res = await fetch(apiUrl(`/questions/${id}`), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok) throw new Error(`PATCH /questions/${id} failed: HTTP ${res.status}`);
+  return (await res.json()) as Question;
+}
+
+export async function deleteQuestion(id: string): Promise<void> {
+  const res = await fetch(apiUrl(`/questions/${id}`), {
+    method: 'DELETE',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) throw new Error(`DELETE /questions/${id} failed: HTTP ${res.status}`);
 }
 
 // --- question-categories (user-editable list backing questions.category_key) ---

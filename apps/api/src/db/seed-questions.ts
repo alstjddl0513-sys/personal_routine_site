@@ -46,23 +46,26 @@ async function main() {
         answer: questions.answer,
         tip: questions.tip,
         categoryKey: questions.categoryKey,
+        isSeed: questions.isSeed,
       })
       .from(questions)
       .where(eq(questions.ownerId, ownerId));
     const existingByContent = new Map(existing.map((r) => [r.content, r]));
 
-    // Insert missing rows first.
+    // Insert missing rows first. is_seed=true so /settings/questions filters
+    // them out (seed pool grows with curation; users only manage own additions).
     const missing = SEED.filter((q) => !existingByContent.has(q.content));
     if (missing.length > 0) {
-      const rows = missing.map((q) => ({ ...q, ownerId }));
+      const rows = missing.map((q) => ({ ...q, ownerId, isSeed: true }));
       await db.insert(questions).values(rows);
       console.log(`Inserted ${rows.length} new questions:`);
       for (const r of rows) console.log(`  + ${r.content}`);
     }
 
-    // Then sync answer/tip/categoryKey on already-present rows if they drift
-    // from the curated defaults. Content is the join key so wording changes
-    // create a new row (see above) rather than mutating in place.
+    // Then sync answer/tip/categoryKey/isSeed on already-present rows if they
+    // drift from the curated defaults. Content is the join key so wording
+    // changes create a new row (see above) rather than mutating in place.
+    // isSeed sync backfills existing users installed before the flag existed.
     let updatedCount = 0;
     for (const q of SEED) {
       const row = existingByContent.get(q.content);
@@ -71,7 +74,8 @@ async function main() {
       if (
         row.answer === q.answer &&
         row.tip === nextTip &&
-        row.categoryKey === q.categoryKey
+        row.categoryKey === q.categoryKey &&
+        row.isSeed === true
       ) {
         continue;
       }
@@ -81,6 +85,7 @@ async function main() {
           answer: q.answer,
           tip: nextTip,
           categoryKey: q.categoryKey,
+          isSeed: true,
           updatedAt: new Date(),
         })
         .where(and(eq(questions.id, row.id), eq(questions.ownerId, ownerId)));
@@ -88,7 +93,7 @@ async function main() {
     }
     if (updatedCount > 0) {
       console.log(
-        `Updated ${updatedCount} existing questions (answer/tip/category sync).`,
+        `Updated ${updatedCount} existing questions (answer/tip/category/is_seed sync).`,
       );
     } else if (missing.length === 0) {
       console.log(

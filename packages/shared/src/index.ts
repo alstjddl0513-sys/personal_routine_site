@@ -317,6 +317,19 @@ export interface QuestionDetail {
   log: QuestionLog | null;
 }
 
+// 관리 페이지에서 사용하는 full-shape 질문. daily/review에서 쓰는
+// RandomQuestion(경량)과 별개로, /settings/questions 리스트/편집이 필요로 하는
+// answer/tip까지 함께 반환.
+export interface Question {
+  id: string;
+  content: string;
+  answer: string;
+  tip: string | null;
+  categoryKey: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // 학습 질문 카테고리 (사용자 커스터마이징 가능). 프론트는 API에서 목록을 가져와
 // chip 필터와 설정 매니저에 사용.
 export interface QuestionCategory {
