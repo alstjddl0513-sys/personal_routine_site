@@ -77,7 +77,7 @@ export function RoutineTable({ blocks, checks, days }: Props) {
                 colSpan={days.length + 4}
                 className="px-4 py-8 text-center text-sm text-zinc-500"
               >
-                아직 등록된 시간블록이 없습니다. 아래에서 추가하세요.
+                아직 만든 시간블록이 없어요. 아래에서 하나 추가해보세요.
               </td>
             </tr>
           ) : (
@@ -340,7 +340,7 @@ function DeleteBlockButton({ block }: { block: TimeBlock }) {
               <span className="font-medium text-zinc-900 dark:text-zinc-100">
                 {block.label}
               </span>
-              을(를) 삭제할까요? 관련된 모든 체크 이력도 함께 삭제됩니다.
+              을(를) 삭제할까요? 이 블록의 체크 이력도 같이 사라져요.
             </p>
             <div className="flex items-center justify-end gap-2">
               <button

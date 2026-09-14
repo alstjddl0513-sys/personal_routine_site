@@ -31,6 +31,12 @@ export class QuestionsController {
     return this.service.findRandom(requireUserId(req), query);
   }
 
+  // '복습필요'로 마킹한 질문 모음. Static path so it lands above :id.
+  @Get('review')
+  findReview(@Req() req: AuthedRequest) {
+    return this.service.findReview(requireUserId(req));
+  }
+
   // Static /stats/* routes above :id so Nest doesn't try to parse 'stats'
   // as a uuid via ParseUUIDPipe.
   @Get('stats/heatmap')

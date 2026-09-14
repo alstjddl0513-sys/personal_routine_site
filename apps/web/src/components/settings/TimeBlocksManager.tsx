@@ -155,7 +155,7 @@ export function TimeBlocksManager({ initial }: { initial: TimeBlock[] }) {
       <div className="rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
         {rows.length === 0 ? (
           <div className="px-3 py-6 text-center text-xs text-zinc-500">
-            아직 등록된 시간블록이 없습니다.
+            아직 만든 시간블록이 없어요.
           </div>
         ) : (
           <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -285,8 +285,8 @@ export function TimeBlocksManager({ initial }: { initial: TimeBlock[] }) {
       </div>
 
       <p className="text-xs text-zinc-500 dark:text-zinc-400">
-        시간은 30분 단위. 시작만 입력하면 단일 시각(예: <code>7:00</code>),
-        범위는 <code>8:30~11:30</code> 형식. 빈 값은 &quot;시간 없음&quot;.
+        시간은 30분 단위로 입력해요. 시작 시각만 넣으면 <code>7:00</code>처럼 한 시점으로,
+        <code>8:30~11:30</code>처럼 쓰면 구간으로 표시돼요. 비워두면 &lsquo;시간 없음&rsquo;.
       </p>
 
       <ConfirmDialog
@@ -297,7 +297,7 @@ export function TimeBlocksManager({ initial }: { initial: TimeBlock[] }) {
             <span className="font-medium text-zinc-900 dark:text-zinc-100">
               {deleteTarget?.label}
             </span>
-            을(를) 삭제할까요? 이 블록의 모든 체크 이력이 함께 삭제됩니다.
+            을(를) 삭제할까요? 이 블록의 체크 이력도 같이 사라져요.
           </p>
         }
         confirmLabel={isPending ? '삭제 중…' : '삭제'}

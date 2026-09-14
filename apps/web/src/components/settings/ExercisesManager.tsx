@@ -274,8 +274,8 @@ export function ExercisesManager({ initial }: { initial: Exercise[] }) {
             <span className="font-medium text-zinc-900 dark:text-zinc-100">
               {confirm?.kind === 'delete' ? confirm.row.name : ''}
             </span>
-            을(를) 삭제할까요? 세트 이력이 있으면 삭제할 수 없고,
-            대신 &quot;숨김&quot; 처리로 안내됩니다.
+            을(를) 삭제할까요? 이미 기록한 세트가 있다면 지울 수 없고
+            &lsquo;숨김&rsquo;으로만 감출 수 있어요.
           </p>
         }
         confirmLabel={isPending ? '삭제 중…' : '삭제'}
@@ -294,9 +294,8 @@ export function ExercisesManager({ initial }: { initial: Exercise[] }) {
             <span className="font-medium text-zinc-900 dark:text-zinc-100">
               {confirm?.kind === 'archive-fallback' ? confirm.row.name : ''}
             </span>
-            에 세트 이력이 있어서 삭제할 수 없습니다.
-            대신 <strong>숨김</strong> (리스트에서 감춤, 이력은 보존)
-            처리할까요?
+            에는 이미 기록한 세트가 있어서 지울 수 없어요.
+            대신 <strong>숨김</strong>으로 목록에서만 감춰볼까요? 이력은 그대로 남아요.
           </p>
         }
         confirmLabel={isPending ? '숨기는 중…' : '숨김 처리'}

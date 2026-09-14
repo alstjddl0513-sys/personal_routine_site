@@ -33,7 +33,8 @@ const SECTION_TABS: Array<{ prefix: string; tabs: SubTab[] }> = [
   {
     prefix: '/learn',
     tabs: [
-      { href: '/learn', label: '질문' },
+      { href: '/learn', label: '오늘의 학습' },
+      { href: '/learn/review', label: '복습' },
       { href: '/learn/statistics', label: '통계' },
     ],
   },

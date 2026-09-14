@@ -22,8 +22,8 @@ export default async function TimeBlocksSettingsPage() {
         </Link>
         <h1 className="text-xl font-semibold">시간블록 관리</h1>
         <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          루틴 트래커의 시간블록을 추가·편집·재정렬·삭제합니다. 삭제 시
-          해당 블록의 체크 이력도 모두 함께 삭제됩니다.
+          하루 루틴의 시간블록을 원하는 순서로 배치해요.
+          블록을 지우면 그 블록의 체크 이력도 같이 사라지니 신중히 눌러주세요.
         </p>
       </header>
 

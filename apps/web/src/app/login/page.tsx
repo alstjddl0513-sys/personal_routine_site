@@ -40,7 +40,7 @@ function LoginForm() {
   // OAuth 콜백에서 실패해서 되돌아오는 경우 배너로 표시.
   useEffect(() => {
     if (searchParams.get('error') === 'oauth') {
-      setError('소셜 로그인에 실패했습니다. 다시 시도해주세요.');
+      setError('소셜 로그인이 잘 안 됐어요. 다시 시도해주세요.');
     }
   }, [searchParams]);
 
@@ -82,7 +82,7 @@ function LoginForm() {
         options: { redirectTo: callback.toString() },
       });
       if (oauthError) {
-        setError('Google 로그인 시작에 실패했습니다.');
+        setError('Google 로그인을 시작하지 못했어요. 잠시 후 다시 시도해주세요.');
         setSubmitting(false);
       }
       // 성공 시 브라우저가 Google로 redirect됨.

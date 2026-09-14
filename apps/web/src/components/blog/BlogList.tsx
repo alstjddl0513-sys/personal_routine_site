@@ -75,8 +75,8 @@ export function BlogList({ posts, sources, activeSourceId }: Props) {
       {posts.length === 0 ? (
         <div className="rounded-md border border-dashed border-zinc-300 p-8 text-center text-sm text-zinc-500 dark:border-zinc-700">
           {activeSourceId
-            ? '이 소스에는 아직 수집된 글이 없습니다.'
-            : '아직 수집된 글이 없습니다. "RSS 새로고침"으로 첫 수집을 시작해 보세요.'}
+            ? '이 블로그에서 새 글을 아직 못 찾았어요.'
+            : '아직 모아둔 글이 없어요. 위의 “RSS 새로고침”을 눌러 새 글을 가져와보세요.'}
         </div>
       ) : (
         <ul className="flex flex-col gap-2">

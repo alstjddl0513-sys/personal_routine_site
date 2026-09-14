@@ -211,7 +211,7 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
                 href="/settings/company-types"
                 className="text-xs text-zinc-400 underline-offset-2 hover:text-zinc-600 hover:underline dark:text-zinc-500 dark:hover:text-zinc-300"
               >
-                등록된 유형이 없습니다 — 유형 관리에서 추가하세요
+                아직 만든 유형이 없어요 — 유형 관리에서 추가해보세요
               </Link>
             ) : (
               companyTypes.map((t) => (

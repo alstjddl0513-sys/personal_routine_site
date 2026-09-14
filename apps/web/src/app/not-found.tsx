@@ -15,10 +15,10 @@ export default function NotFound() {
           <FileQuestion className="h-6 w-6" aria-hidden />
         </div>
         <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-          페이지를 찾을 수 없습니다
+          페이지를 찾을 수 없어요
         </h1>
         <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-          주소가 잘못됐거나 삭제된 페이지입니다.
+          주소가 잘못됐거나 사라진 페이지예요.
         </p>
 
         <div className="mt-8">

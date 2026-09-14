@@ -10,15 +10,19 @@ import {
 } from '@repo/shared';
 import { getQuestionDetail, logQuestion } from '../../lib/api';
 
+export type LearnMode = 'daily' | 'review';
+
 interface Props {
   questions: RandomQuestion[];
   initialIndex: number;
+  /** 'daily'는 오늘 quota, 'review'는 복습필요 모아보기. 완료 카드 문구만 분기. */
+  mode?: LearnMode;
 }
 
 // Positions: 0..questions.length-1 = normal question cards, questions.length
 // = the "오늘 학습 완료" card. Prev from completion goes back to the last
 // question; user can revisit anything via prev/next.
-export function LearnCard({ questions, initialIndex }: Props) {
+export function LearnCard({ questions, initialIndex, mode = 'daily' }: Props) {
   const total = questions.length;
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   // Local shadow of `status` per question so answering updates the header
@@ -121,7 +125,7 @@ export function LearnCard({ questions, initialIndex }: Props) {
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-baseline gap-2">
             <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-emerald-600 dark:text-emerald-400">
-              {onCompletion ? '완료' : '오늘의 질문'}
+              {onCompletion ? '완료' : 'CS 질문'}
             </span>
             {onCompletion ? null : (
               <span className="text-[11px] tabular-nums text-zinc-500 dark:text-zinc-500">
@@ -166,6 +170,7 @@ export function LearnCard({ questions, initialIndex }: Props) {
 
         {onCompletion ? (
           <CompletionBody
+            mode={mode}
             total={total}
             understood={statuses.filter((s) => s === 'understood').length}
             reviewNeeded={statuses.filter((s) => s === 'review_needed').length}
@@ -281,10 +286,12 @@ function QuestionBody({
 }
 
 function CompletionBody({
+  mode,
   total,
   understood,
   reviewNeeded,
 }: {
+  mode: LearnMode;
   total: number;
   understood: number;
   reviewNeeded: number;
@@ -297,10 +304,12 @@ function CompletionBody({
       </div>
       <div className="flex flex-col gap-1">
         <h2 className="text-xl font-semibold text-zinc-900 md:text-2xl dark:text-zinc-100">
-          오늘 학습 완료!
+          {mode === 'review' ? '복습 완료!' : '오늘의 학습 완료!'}
         </h2>
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          내일 새로운 {total}문제로 만나요.
+          {mode === 'review'
+            ? '수고했어요. ‘이해완료’로 넘어간 질문은 이 목록에서 빠져요.'
+            : `내일 새로운 ${total}문제로 만나요.`}
         </p>
       </div>
       <div className="mt-2 flex flex-wrap items-center justify-center gap-2 text-xs">

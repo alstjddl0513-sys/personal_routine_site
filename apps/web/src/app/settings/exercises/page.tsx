@@ -22,9 +22,8 @@ export default async function ExercisesSettingsPage() {
         </Link>
         <h1 className="text-xl font-semibold">운동 종목 관리</h1>
         <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          운동 기록 페이지에 나오는 종목을 추가·편집·숨김·삭제합니다.
-          세트 이력이 있는 종목은 삭제할 수 없고, 대신 리스트에서만 숨김
-          처리할 수 있습니다 (이력은 보존).
+          자주 하는 운동을 등록해두고, 요즘 안 하는 종목은 잠시 숨겨두세요.
+          이미 기록한 이력이 있는 종목은 지울 수 없어요. &lsquo;숨김&rsquo;으로 감춰두면 이력은 그대로 남아요.
         </p>
       </header>
 

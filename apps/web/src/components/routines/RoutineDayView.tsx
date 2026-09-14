@@ -108,7 +108,7 @@ export function RoutineDayView({ blocks, checks, days }: Props) {
 
       {blocks.length === 0 ? (
         <div className="rounded-md border border-dashed border-zinc-300 p-6 text-center text-xs text-zinc-500 dark:border-zinc-700">
-          아직 등록된 시간블록이 없습니다.
+          아직 만든 시간블록이 없어요.
         </div>
       ) : (
         <ul className="divide-y divide-zinc-100 rounded-md border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-950">
