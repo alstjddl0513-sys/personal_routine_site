@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { and, eq, gte, lte, ne, sql, type SQL } from 'drizzle-orm';
+import { and, asc, eq, gte, lte, ne, sql, type SQL } from 'drizzle-orm';
 import { db } from '../db/client';
 import { questionLogs, questions } from '../db/schema';
 import type { LogQuestionDto } from './dto/log-question.dto';
@@ -34,6 +34,34 @@ export class QuestionsService {
       .where(eq(questions.ownerId, ownerId))
       .orderBy(sql`md5(${questions.id}::text || ${query.date})`)
       .limit(DAILY_LIMIT);
+  }
+
+  // '복습필요'로 마킹된 질문들. 정렬은 updated_at ASC — 오래 표시된 질문일수록
+  // 잊혀질 위험이 크다는 spaced-repetition 직관. 재답변으로 updated_at이 갱신되면
+  // 자연스럽게 리스트 뒤로 밀림. Response shape는 findDaily와 동일하게 유지해
+  // LearnCard가 그대로 재사용됨.
+  async findReview(ownerId: string) {
+    return db
+      .select({
+        id: questions.id,
+        content: questions.content,
+        status: questionLogs.status,
+      })
+      .from(questions)
+      .innerJoin(
+        questionLogs,
+        and(
+          eq(questionLogs.questionId, questions.id),
+          eq(questionLogs.ownerId, ownerId),
+        ),
+      )
+      .where(
+        and(
+          eq(questions.ownerId, ownerId),
+          eq(questionLogs.status, 'review_needed'),
+        ),
+      )
+      .orderBy(asc(questionLogs.updatedAt));
   }
 
   // Random question WITHOUT the answer — kept for potential admin/debug use.

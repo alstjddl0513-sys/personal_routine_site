@@ -711,6 +711,23 @@ export async function getDailyQuestions(date: string): Promise<RandomQuestion[]>
   return (await res.json()) as RandomQuestion[];
 }
 
+// '복습필요'로 마킹된 질문들. 오래된(updated_at ASC) 순서라 spaced-repetition
+// 직관을 따라감. 재답변으로 status가 'understood'로 바뀌어도 리스트가 실시간
+// 갱신되진 않고 다음 페이지 진입 시에 반영됨.
+export async function getReviewQuestions(): Promise<RandomQuestion[]> {
+  const res = await fetch(apiUrl('/questions/review'), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `GET /questions/review failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as RandomQuestion[];
+}
+
 export async function getQuestionDetail(id: string): Promise<QuestionDetail> {
   const res = await fetch(apiUrl(`/questions/${id}`), {
     cache: 'no-store',

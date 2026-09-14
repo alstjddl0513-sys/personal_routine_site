@@ -69,7 +69,8 @@ const NAV: NavItem[] = [
     icon: BookOpen,
     matchPrefixes: ['/learn'],
     children: [
-      { href: '/learn', label: '질문' },
+      { href: '/learn', label: '오늘의 학습' },
+      { href: '/learn/review', label: '복습' },
       { href: '/learn/statistics', label: '통계' },
     ],
   },
