@@ -162,6 +162,7 @@ export default function SettingsPage() {
         <SectionHeader>계정</SectionHeader>
         <NicknameRow />
         <LogoutRow />
+        <AccountDeleteRow />
       </section>
 
       <section className="flex flex-col gap-3 rounded-md border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
@@ -175,10 +176,6 @@ export default function SettingsPage() {
           </p>
         </div>
         <BackupButton />
-      </section>
-
-      <section className="rounded-md border border-red-200 bg-white dark:border-red-900/60 dark:bg-zinc-950">
-        <AccountDeleteRow />
       </section>
 
       <section className="flex items-center justify-between rounded-md border border-zinc-200 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-zinc-950">
