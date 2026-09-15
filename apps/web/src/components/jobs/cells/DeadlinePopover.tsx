@@ -69,10 +69,12 @@ export function DeadlinePopover({
   const pos = usePopoverPosition(anchorRef, open, POPOVER_HEIGHT, POPOVER_WIDTH);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- portal SSR mount guard: setMounted(true) is a one-shot flip after hydration
     setMounted(true);
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- popover: sync value from parent on server confirm; ref-compare here is more code than the guard
     setCurrent(value);
   }, [value]);
 
@@ -80,6 +82,7 @@ export function DeadlinePopover({
 
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- popover: reset draft to current when opening + auto-focus input
       setDraft(isoToLocalInput(current));
       queueMicrotask(() => inputRef.current?.focus());
     }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { Bell, BellOff, Check } from 'lucide-react';
 
 type PermissionState = 'unsupported' | 'default' | 'granted' | 'denied';
@@ -13,28 +13,38 @@ function readPermission(): PermissionState {
   return 'default';
 }
 
-export function NotificationPermissionRow() {
-  // Initial `null` on both server and client renders the placeholder so
-  // hydration matches; the effect below reads the real permission and
-  // triggers a re-render with the actual state.
-  const [state, setState] = useState<PermissionState | null>(null);
-  const [requesting, setRequesting] = useState(false);
+// requestPermission 성공 후 자기 컴포넌트가 재렌더되도록 broadcast.
+// 브라우저 permission API에 표준 change 이벤트가 없어 대체.
+const PERMISSION_CHANGE_EVENT = 'rally.notif.permission-changed';
 
-  useEffect(() => {
-    setState(readPermission());
-  }, []);
+function subscribePermission(cb: () => void): () => void {
+  if (typeof window === 'undefined') return () => {};
+  window.addEventListener(PERMISSION_CHANGE_EVENT, cb);
+  return () => window.removeEventListener(PERMISSION_CHANGE_EVENT, cb);
+}
+
+export function NotificationPermissionRow() {
+  // 서버 render는 null(placeholder), hydration 후 실제 permission으로 재렌더.
+  const state = useSyncExternalStore<PermissionState | null>(
+    subscribePermission,
+    () => readPermission(),
+    () => null,
+  );
+  const [requesting, setRequesting] = useState(false);
 
   async function request() {
     if (state !== 'default') return;
     setRequesting(true);
     try {
-      const result = await Notification.requestPermission();
-      setState(result === 'granted' ? 'granted' : result === 'denied' ? 'denied' : 'default');
+      await Notification.requestPermission();
     } catch {
-      // Some browsers throw on requestPermission (e.g. insecure origin);
-      // treat as denied so the UI doesn't get stuck on default.
-      setState('denied');
+      // Some browsers throw on requestPermission (e.g. insecure origin).
+      // Notification.permission이 'denied'로 세팅되어 있을 가능성이 크므로
+      // 별도 처리 없이 event만 발화해 재렌더.
     } finally {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event(PERMISSION_CHANGE_EVENT));
+      }
       setRequesting(false);
     }
   }

@@ -11,6 +11,8 @@ interface Props {
   initialContent: string;
 }
 
+// 주 이동 시 부모(app/routines/page.tsx)에서 key={week.from} 로 remount 시켜
+// 폼 state를 fresh useState initial value로 리셋. 별도 sync useEffect 불필요.
 export function RoutineRetro({ weekStart, initialContent }: Props) {
   const router = useRouter();
   const [value, setValue] = useState(initialContent);
@@ -19,13 +21,6 @@ export function RoutineRetro({ weekStart, initialContent }: Props) {
   const [deleting, startDelete] = useTransition();
   const [flash, setFlash] = useState<'saved' | null>(null);
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Reset when the week changes (weekStart change also brings new initialContent).
-  useEffect(() => {
-    setValue(initialContent);
-    setSavedContent(initialContent);
-    setFlash(null);
-  }, [initialContent, weekStart]);
 
   useEffect(() => {
     return () => {

@@ -32,10 +32,12 @@ export function UrlPopover({
   const pos = usePopoverPosition(anchorRef, open, POPOVER_HEIGHT, POPOVER_WIDTH);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- portal SSR mount guard: setMounted(true) is a one-shot flip after hydration
     setMounted(true);
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- popover: sync value from parent on server confirm
     setCurrent(value);
   }, [value]);
 
@@ -43,6 +45,7 @@ export function UrlPopover({
 
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- popover: reset draft/error/copied to fresh state when opening + auto-focus
       setDraft(current ?? '');
       setError(null);
       setCopied(false);

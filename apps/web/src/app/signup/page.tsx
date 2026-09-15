@@ -45,6 +45,7 @@ export default function SignupPage() {
   // client-side error is already shown and the server would just 400.
   useEffect(() => {
     if (!nickname) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- debounced async check: early-return sync setState is the reset path; refactor would split status/async concerns unhelpfully
       setNicknameStatus({ kind: 'idle' });
       return;
     }

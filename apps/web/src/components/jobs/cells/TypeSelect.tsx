@@ -20,6 +20,7 @@ export function TypeSelect({
   const [current, setCurrent] = useState(value);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- select: sync local optimistic value from parent on server confirm
     setCurrent(value);
   }, [value]);
 

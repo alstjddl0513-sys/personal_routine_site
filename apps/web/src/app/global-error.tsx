@@ -28,6 +28,7 @@ export default function GlobalError({
             <button type="button" onClick={reset} style={primaryButtonStyle}>
               다시 시도
             </button>
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- root error boundary is outside RootLayout, next/link is unavailable */}
             <a href="/" style={linkButtonStyle}>
               홈으로
             </a>

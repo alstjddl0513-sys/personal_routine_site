@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useTransition } from 'react';
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronDown, ChevronUp, Trash2, X } from 'lucide-react';
 import type { RoutineCheck, TimeBlock } from '@repo/shared';
@@ -24,30 +24,41 @@ export function checkKey(blockId: string, date: string): string {
   return `${blockId}|${date}`;
 }
 
+// 서버 확정 상태 + 낙관 overlay. useEffect로 sync하면 새 룰 위반이라
+// React 공식 "store info from previous renders" 관용구(render-time setState +
+// identity compare)로 checks reference 변경 시 overlay 통째로 clear.
 export function RoutineTable({ blocks, checks, days }: Props) {
   const router = useRouter();
 
-  const [checkedSet, setCheckedSet] = useState<Set<string>>(
+  const serverCheckedSet = useMemo(
     () => new Set(checks.map((c) => checkKey(c.blockId, c.date))),
+    [checks],
   );
-  // Re-sync when server data changes (after router.refresh, week nav, etc.)
-  useEffect(() => {
-    setCheckedSet(new Set(checks.map((c) => checkKey(c.blockId, c.date))));
-  }, [checks]);
+  const [overlayFor, setOverlayFor] = useState(checks);
+  const [overlay, setOverlay] = useState<Map<string, boolean>>(() => new Map());
+  if (overlayFor !== checks) {
+    setOverlayFor(checks);
+    setOverlay(new Map());
+  }
+  const isChecked = (key: string) => overlay.get(key) ?? serverCheckedSet.has(key);
 
   async function onToggle(blockId: string, date: string) {
     const key = checkKey(blockId, date);
-    const wasChecked = checkedSet.has(key);
-    const next = new Set(checkedSet);
-    if (wasChecked) next.delete(key);
-    else next.add(key);
-    setCheckedSet(next);
+    const prev = isChecked(key);
+    setOverlay((m) => new Map(m).set(key, !prev));
     try {
-      await toggleRoutineCheck({ blockId, date, checked: !wasChecked });
+      await toggleRoutineCheck({ blockId, date, checked: !prev });
+      // 형제로 렌더되는 RoutineDayView(모바일)와 상태 sync — refresh하면 checks
+      // prop이 새 array로 도착 → identity 변경 → 양쪽 overlay 자동 clear.
+      router.refresh();
     } catch (err) {
       console.error(err);
-      // Revert on failure
-      setCheckedSet(checkedSet);
+      // rollback: overlay entry 제거 → serverCheckedSet 원본 값이 다시 보임.
+      setOverlay((m) => {
+        const c = new Map(m);
+        c.delete(key);
+        return c;
+      });
     }
   }
 
@@ -86,7 +97,7 @@ export function RoutineTable({ blocks, checks, days }: Props) {
                 key={block.id}
                 block={block}
                 days={days}
-                checkedSet={checkedSet}
+                isChecked={isChecked}
                 onToggle={onToggle}
                 canMoveUp={idx > 0}
                 canMoveDown={idx < blocks.length - 1}
@@ -119,7 +130,7 @@ export function RoutineTable({ blocks, checks, days }: Props) {
 function BlockRow({
   block,
   days,
-  checkedSet,
+  isChecked,
   onToggle,
   canMoveUp,
   canMoveDown,
@@ -127,7 +138,7 @@ function BlockRow({
 }: {
   block: TimeBlock;
   days: Date[];
-  checkedSet: Set<string>;
+  isChecked: (key: string) => boolean;
   onToggle: (blockId: string, date: string) => void;
   canMoveUp: boolean;
   canMoveDown: boolean;
@@ -145,7 +156,7 @@ function BlockRow({
       {days.map((d) => {
         const iso = toISODate(d);
         const key = checkKey(block.id, iso);
-        const checked = checkedSet.has(key);
+        const checked = isChecked(key);
         return (
           <td key={iso} className="px-2 py-2 text-center align-middle">
             <input
@@ -161,7 +172,7 @@ function BlockRow({
       <td className="w-32 px-3 py-2 align-middle">
         <ProgressBar
           checkedCount={days.reduce(
-            (n, d) => n + (checkedSet.has(checkKey(block.id, toISODate(d))) ? 1 : 0),
+            (n, d) => n + (isChecked(checkKey(block.id, toISODate(d))) ? 1 : 0),
             0,
           )}
           total={days.length}
@@ -218,12 +229,14 @@ function LabelCell({ block }: { block: TimeBlock }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(block.label);
+  // 서버 label 변경 시 로컬 value sync. identity compare로 render-time.
+  const [labelFor, setLabelFor] = useState(block.label);
+  if (labelFor !== block.label) {
+    setLabelFor(block.label);
+    setValue(block.label);
+  }
   const [saving, startSave] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    setValue(block.label);
-  }, [block.label]);
 
   useEffect(() => {
     if (editing) queueMicrotask(() => inputRef.current?.select());

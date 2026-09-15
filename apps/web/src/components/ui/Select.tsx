@@ -97,6 +97,7 @@ export function Select({
   );
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- portal SSR mount guard: setMounted(true) is a one-shot flip after hydration
     setMounted(true);
   }, []);
 
@@ -150,6 +151,7 @@ export function Select({
     if (!open) return;
     const idx = flatOptions.findIndex((o) => o.value === value);
     if (idx >= 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- popover open transition: seed keyboard highlight to current value
       setHighlightIdx(idx);
       return;
     }
