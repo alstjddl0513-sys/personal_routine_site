@@ -80,7 +80,9 @@ export function RestTimer() {
   const [lastPreset, setLastPreset] = useState<number>(DEFAULT_PRESET);
   // Mobile-only: collapse to a FAB when idle so the full preset bar
   // doesn't block content. Desktop always shows the full card (md:).
-  const [mobileExpanded, setMobileExpanded] = useState(false);
+  // 사용자가 FAB 탭으로 명시적으로 펼친 여부만 저장 — 실제 노출은
+  // status !== 'idle'로도 파생되어 non-idle 상태에서는 항상 보임.
+  const [mobileUserExpanded, setMobileUserExpanded] = useState(false);
   // 실제 종료 시각(ms since epoch). setInterval은 백그라운드에서 스로틀되므로,
   // deadline 기준으로 남은 시간을 계산해 스로틀에 무관하게 정확도 유지.
   const deadlineRef = useRef<number | null>(null);
@@ -163,6 +165,8 @@ export function RestTimer() {
     pausedRemainingRef.current = null;
     setRemainingMs(totalSec * 1000);
     setStatus('idle');
+    // idle로 복귀하면 다시 FAB만 노출.
+    setMobileUserExpanded(false);
   }, [totalSec]);
 
   const close = useCallback(() => {
@@ -171,19 +175,15 @@ export function RestTimer() {
     setStatus('idle');
     setRemainingMs(lastPreset * 1000);
     setTotalSec(lastPreset);
+    setMobileUserExpanded(false);
   }, [lastPreset]);
-
-  // Auto-expand card on mobile whenever timer is not idle so the running/
-  // done state is always visible. Collapse back to FAB when returning to
-  // idle (via reset/close).
-  useEffect(() => {
-    setMobileExpanded(status !== 'idle');
-  }, [status]);
 
   const progress =
     totalSec > 0 ? 1 - Math.max(0, Math.min(1, remainingMs / (totalSec * 1000))) : 0;
   const isDone = status === 'done';
-  const showMobileFab = status === 'idle' && !mobileExpanded;
+  // non-idle이거나 사용자가 명시 확장한 경우 카드 노출, 아니면 FAB.
+  const mobileExpanded = status !== 'idle' || mobileUserExpanded;
+  const showMobileFab = !mobileExpanded;
 
   return (
     <>
@@ -192,7 +192,7 @@ export function RestTimer() {
       {showMobileFab ? (
         <button
           type="button"
-          onClick={() => setMobileExpanded(true)}
+          onClick={() => setMobileUserExpanded(true)}
           aria-label="휴식 타이머"
           className="fixed bottom-24 left-4 z-40 flex h-14 w-14 items-center justify-center rounded-full border border-zinc-200 bg-white/95 text-zinc-600 shadow-lg backdrop-blur md:hidden dark:border-zinc-800 dark:bg-zinc-950/95 dark:text-zinc-400"
         >
@@ -217,7 +217,7 @@ export function RestTimer() {
               presets={PRESETS}
               lastPreset={lastPreset}
               onStart={start}
-              onCollapseMobile={() => setMobileExpanded(false)}
+              onCollapseMobile={() => setMobileUserExpanded(false)}
             />
           ) : (
             <ActiveBar

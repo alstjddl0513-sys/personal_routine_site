@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState, type FormEvent } from 'react';
+import { Suspense, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { LogIn, AlertCircle } from 'lucide-react';
@@ -37,12 +37,14 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // OAuth 콜백에서 실패해서 되돌아오는 경우 배너로 표시.
-  useEffect(() => {
-    if (searchParams.get('error') === 'oauth') {
-      setError('소셜 로그인이 잘 안 됐어요. 다시 시도해주세요.');
-    }
-  }, [searchParams]);
+  // OAuth 콜백에서 실패해서 되돌아오는 경우 URL에 ?error=oauth 로 표시.
+  // render 시점 파생 — 별도 상태 없이 배너 노출. 사용자가 password 로그인을
+  // 시도해 error가 세팅되면 그쪽이 우선.
+  const oauthError =
+    searchParams.get('error') === 'oauth'
+      ? '소셜 로그인이 잘 안 됐어요. 다시 시도해주세요.'
+      : null;
+  const displayError = error ?? oauthError;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -149,13 +151,13 @@ function LoginForm() {
               />
             </div>
 
-            {error ? (
+            {displayError ? (
               <div
                 role="alert"
                 className="flex items-start gap-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700 dark:bg-red-950/40 dark:text-red-300"
               >
                 <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
-                <span>{error}</span>
+                <span>{displayError}</span>
               </div>
             ) : null}
 

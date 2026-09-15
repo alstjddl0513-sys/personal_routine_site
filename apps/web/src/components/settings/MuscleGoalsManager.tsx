@@ -1,26 +1,36 @@
 'use client';
 
-import { useMemo, useState, useTransition } from 'react';
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, Check } from 'lucide-react';
 import { DEFAULT_MUSCLE_GOALS, type MuscleGoal } from '@repo/shared';
 import { MUSCLE_OPTIONS } from '../../lib/muscle-groups';
 import { putMuscleGoal } from '../../lib/api';
 
-// Row state: each muscle key gets its own dirty/pending/saved indicator.
-// Values are always kept in sync with what's rendered — the "저장" button
-// is only enabled when the input differs from the last-known server value.
+// Row state: each muscle key gets its own dirty/pending indicator. "저장됨"
+// 표시는 별도 savedKey + setTimeout으로 관리해 render phase에서 Date.now
+// 같은 impure 호출을 피함.
 type RowState = {
   value: number;
   serverValue: number;
-  savedAt: number; // 0 when never saved this session; used to show "저장됨"
 };
+
+const SAVED_FLASH_MS = 2000;
 
 export function MuscleGoalsManager({ initial }: { initial: MuscleGoal[] }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pendingKey, setPendingKey] = useState<string | null>(null);
+  const [savedKey, setSavedKey] = useState<string | null>(null);
   const [, startTransition] = useTransition();
+  const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+    },
+    [],
+  );
 
   // Merge server rows over DEFAULT_MUSCLE_GOALS so all MUSCLE_OPTIONS are
   // always rendered — new users (no rows yet) still get 5 editable rows.
@@ -35,7 +45,7 @@ export function MuscleGoalsManager({ initial }: { initial: MuscleGoal[] }) {
     const out: Record<string, RowState> = {};
     for (const opt of MUSCLE_OPTIONS) {
       const seed = initialByKey.get(opt.key) ?? defaultsByKey.get(opt.key) ?? 10;
-      out[opt.key] = { value: seed, serverValue: seed, savedAt: 0 };
+      out[opt.key] = { value: seed, serverValue: seed };
     }
     return out;
   });
@@ -66,9 +76,14 @@ export function MuscleGoalsManager({ initial }: { initial: MuscleGoal[] }) {
           [key]: {
             value: saved.weeklySetTarget,
             serverValue: saved.weeklySetTarget,
-            savedAt: Date.now(),
           },
         }));
+        setSavedKey(key);
+        if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+        savedTimerRef.current = setTimeout(() => {
+          // 같은 key만 정리 — 다른 row가 그 사이 저장되면 새 timeout이 이겼을 것.
+          setSavedKey((cur) => (cur === key ? null : cur));
+        }, SAVED_FLASH_MS);
         router.refresh();
       } catch (err) {
         console.error(err);
@@ -98,7 +113,7 @@ export function MuscleGoalsManager({ initial }: { initial: MuscleGoal[] }) {
             if (!row) return null;
             const dirty = row.value !== row.serverValue;
             const isPending = pendingKey === opt.key;
-            const justSaved = row.savedAt > 0 && Date.now() - row.savedAt < 2000 && !dirty;
+            const justSaved = savedKey === opt.key && !dirty;
             return (
               <li
                 key={opt.key}
