@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Settings2 } from 'lucide-react';
 import type { RoutineCheck, TimeBlock } from '@repo/shared';
 import { toggleRoutineCheck } from '../../lib/api';
@@ -24,6 +25,7 @@ function pickInitialDate(days: Date[]): string {
 }
 
 export function RoutineDayView({ blocks, checks, days }: Props) {
+  const router = useRouter();
   // 서버 확정 + 낙관 overlay (RoutineTable과 동일 패턴).
   const serverCheckedSet = useMemo(
     () => new Set(checks.map((c) => checkKey(c.blockId, c.date))),
@@ -52,6 +54,9 @@ export function RoutineDayView({ blocks, checks, days }: Props) {
     setOverlay((m) => new Map(m).set(key, !prev));
     try {
       await toggleRoutineCheck({ blockId, date, checked: !prev });
+      // 형제로 렌더되는 RoutineTable(데스크톱)과 상태 sync — refresh하면 checks
+      // prop이 새 array로 도착 → identity 변경 → 양쪽 overlay 자동 clear.
+      router.refresh();
     } catch (err) {
       console.error(err);
       setOverlay((m) => {

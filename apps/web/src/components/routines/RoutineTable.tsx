@@ -48,6 +48,9 @@ export function RoutineTable({ blocks, checks, days }: Props) {
     setOverlay((m) => new Map(m).set(key, !prev));
     try {
       await toggleRoutineCheck({ blockId, date, checked: !prev });
+      // 형제로 렌더되는 RoutineDayView(모바일)와 상태 sync — refresh하면 checks
+      // prop이 새 array로 도착 → identity 변경 → 양쪽 overlay 자동 clear.
+      router.refresh();
     } catch (err) {
       console.error(err);
       // rollback: overlay entry 제거 → serverCheckedSet 원본 값이 다시 보임.
