@@ -12,6 +12,7 @@ import {
   subscribeEnabled,
   subscribeHour,
 } from '../../lib/routine-reminder';
+import { Select } from '../ui/Select';
 
 type PermissionState = 'unsupported' | 'default' | 'granted' | 'denied';
 
@@ -51,9 +52,14 @@ export function RoutineReminderRow() {
     setEnabled(!enabled);
   }
 
-  function onHourChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    setHour(Number(e.target.value));
+  function onHourChange(next: string) {
+    setHour(Number(next));
   }
+
+  const hourOptions = AVAILABLE_HOURS.map((h) => ({
+    value: String(h),
+    label: `${h}시`,
+  }));
 
   const description = !isGranted
     ? '먼저 위의 알림 권한을 허용해주세요.'
@@ -74,19 +80,14 @@ export function RoutineReminderRow() {
       </div>
       {showControls ? (
         <div className="flex shrink-0 items-center gap-2 self-center">
-          <select
-            value={hour}
+          <Select
+            value={String(hour)}
             onChange={onHourChange}
+            options={hourOptions}
             disabled={!enabled}
-            aria-label="알림 시각"
-            className="min-h-11 rounded border border-zinc-300 bg-white px-2 py-1 text-xs text-zinc-700 outline-none focus:border-zinc-500 disabled:opacity-40 md:min-h-0 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
-          >
-            {AVAILABLE_HOURS.map((h) => (
-              <option key={h} value={h}>
-                {h}시
-              </option>
-            ))}
-          </select>
+            ariaLabel="알림 시각"
+            triggerClassName="min-h-11 justify-between gap-1 rounded border border-zinc-300 bg-white px-2 py-1 text-xs text-zinc-700 outline-none focus:border-zinc-500 md:min-h-0 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
+          />
           <button
             type="button"
             role="switch"
