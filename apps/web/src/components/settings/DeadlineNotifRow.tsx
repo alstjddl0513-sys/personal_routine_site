@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import { CalendarClock } from 'lucide-react';
-import { getEnabled, setEnabled } from '../../lib/deadline-notifier';
+import { getEnabled, setEnabled, subscribeEnabled } from '../../lib/deadline-notifier';
 
 type PermissionState = 'unsupported' | 'default' | 'granted' | 'denied';
 
@@ -14,27 +14,34 @@ function readPermission(): PermissionState {
   return 'default';
 }
 
-export function DeadlineNotifRow() {
-  const [enabled, setEnabledState] = useState<boolean | null>(null);
-  const [permission, setPermission] = useState<PermissionState | null>(null);
+// permission은 브라우저 API라 표준 change 이벤트가 없음. 세션 중 바뀔 일도
+// 거의 없으니 subscribe는 no-op — 초기 hydration 후 한 번 읽는 걸로 충분.
+function subscribeNoop(): () => void {
+  return () => {};
+}
 
-  useEffect(() => {
-    setEnabledState(getEnabled());
-    setPermission(readPermission());
-  }, []);
+export function DeadlineNotifRow() {
+  const enabled = useSyncExternalStore<boolean | null>(
+    subscribeEnabled,
+    () => getEnabled(),
+    () => null,
+  );
+  const permission = useSyncExternalStore<PermissionState | null>(
+    subscribeNoop,
+    () => readPermission(),
+    () => null,
+  );
 
   const isGranted = permission === 'granted';
 
   function toggle() {
     if (enabled === null) return;
-    const next = !enabled;
-    setEnabled(next);
-    setEnabledState(next);
+    setEnabled(!enabled);
   }
 
   const description = !isGranted
     ? '먼저 위의 알림 권한을 허용해주세요.'
-    : '앱을 열어둔 날 아침에 내일 마감 회사가 있으면 한 번 알려드릴게요.';
+    : '앱을 열어둔 날 아침에 3일 뒤 또는 내일 마감인 회사가 있으면 각각 알려드릴게요.';
 
   const showToggle = enabled !== null && isGranted;
 
