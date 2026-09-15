@@ -16,6 +16,7 @@ import { DeadlineNotifRow } from '../../components/settings/DeadlineNotifRow';
 import { LogoutRow } from '../../components/settings/LogoutRow';
 import { NicknameRow } from '../../components/settings/NicknameRow';
 import { NotificationPermissionRow } from '../../components/settings/NotificationPermissionRow';
+import { RoutineReminderRow } from '../../components/settings/RoutineReminderRow';
 import { ThemeToggle } from '../../components/ThemeToggle';
 import { APP_VERSION } from '../../lib/version';
 
@@ -135,7 +136,8 @@ export default function SettingsPage() {
       </section>
 
       <section className="rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-        <div className="flex items-center gap-3 border-b border-zinc-100 px-4 py-3 dark:border-zinc-800">
+        <SectionHeader>표시</SectionHeader>
+        <div className="flex items-center gap-3 px-4 py-3">
           <Palette className="h-4 w-4 text-zinc-500" aria-hidden />
           <div className="flex-1">
             <div className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
@@ -147,8 +149,17 @@ export default function SettingsPage() {
           </div>
           <ThemeToggle />
         </div>
+      </section>
+
+      <section className="rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+        <SectionHeader>알림</SectionHeader>
         <NotificationPermissionRow />
         <DeadlineNotifRow />
+        <RoutineReminderRow />
+      </section>
+
+      <section className="rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+        <SectionHeader>계정</SectionHeader>
         <NicknameRow />
         <LogoutRow />
       </section>
@@ -178,6 +189,14 @@ export default function SettingsPage() {
           Rally v{APP_VERSION}
         </span>
       </section>
+    </div>
+  );
+}
+
+function SectionHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="border-b border-zinc-100 px-4 py-2 text-xs font-medium uppercase tracking-wider text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+      {children}
     </div>
   );
 }
