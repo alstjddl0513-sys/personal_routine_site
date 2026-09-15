@@ -66,6 +66,7 @@ export function NicknameRow() {
   // Debounced availability check — skip when unchanged.
   useEffect(() => {
     if (!draft || draft === current) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- debounced async check: early-return sync setState is the reset path; refactor would split status/async concerns unhelpfully
       setStatus({ kind: 'idle' });
       return;
     }

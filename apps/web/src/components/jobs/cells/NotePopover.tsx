@@ -30,10 +30,12 @@ export function NotePopover({
   const pos = usePopoverPosition(anchorRef, open, POPOVER_HEIGHT, POPOVER_WIDTH);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- portal SSR mount guard: setMounted(true) is a one-shot flip after hydration
     setMounted(true);
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- popover: sync value from parent on server confirm
     setCurrent(value);
   }, [value]);
 
@@ -41,6 +43,7 @@ export function NotePopover({
 
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- popover: reset draft to current when opening + auto-focus textarea
       setDraft(current ?? '');
       queueMicrotask(() => textareaRef.current?.focus());
     }

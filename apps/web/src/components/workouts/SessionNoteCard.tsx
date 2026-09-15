@@ -19,6 +19,7 @@ export function SessionNoteCard(props: Props) {
   // or reorder-triggered refresh). Do NOT depend on sessionId — it flips
   // null→id during the same save that also sends the user's typed value.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sync from server-refreshed initialNote while keeping the same sessionId key (see comment above about why we can't key on sessionId)
     setValue(props.initialNote);
     setSaved(props.initialNote);
     setFlash(null);

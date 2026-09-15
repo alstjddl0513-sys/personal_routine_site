@@ -20,6 +20,7 @@ export function usePopoverPosition(
 
   useLayoutEffect(() => {
     if (!open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- layout measurement: setState is inherent to popover positioning after DOM measure
       setPos(null);
       return;
     }
