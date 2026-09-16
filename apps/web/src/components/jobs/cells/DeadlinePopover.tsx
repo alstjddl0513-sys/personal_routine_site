@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useTransition } from 'react';
+import { useEffect, useOptimistic, useRef, useState, useTransition } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { Calendar, X } from 'lucide-react';
@@ -59,7 +59,7 @@ export function DeadlinePopover({
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [current, setCurrent] = useState<string | null>(value);
+  const [current, setCurrent] = useOptimistic(value);
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [draft, setDraft] = useState(isoToLocalInput(value));
@@ -72,11 +72,6 @@ export function DeadlinePopover({
     // eslint-disable-next-line react-hooks/set-state-in-effect -- portal SSR mount guard: setMounted(true) is a one-shot flip after hydration
     setMounted(true);
   }, []);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- popover: sync value from parent on server confirm; ref-compare here is more code than the guard
-    setCurrent(value);
-  }, [value]);
 
   useOutsideClick([anchorRef, popoverRef], () => setOpen(false), open);
 
@@ -102,16 +97,14 @@ export function DeadlinePopover({
       setOpen(false);
       return;
     }
-    const prev = current;
-    setCurrent(nextIso);
     setOpen(false);
     startTransition(async () => {
+      setCurrent(nextIso);
       try {
         await patchCompany(id, { applicationDeadline: nextIso });
         router.refresh();
       } catch (err) {
         console.error(err);
-        setCurrent(prev);
       }
     });
   }
