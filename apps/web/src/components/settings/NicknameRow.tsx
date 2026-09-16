@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AlertCircle, Check, Dices, User, X } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import {
@@ -36,6 +36,7 @@ export function NicknameRow() {
   const [status, setStatus] = useState<Status>({ kind: 'idle' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Fetch initial nickname. Re-fetch on auth change (unlikely on this
   // page but keeps state honest).
@@ -63,22 +64,32 @@ export function NicknameRow() {
     };
   }, []);
 
-  // Debounced availability check — skip when unchanged.
-  useEffect(() => {
-    if (!draft || draft === current) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- debounced async check: early-return sync setState is the reset path; refactor would split status/async concerns unhelpfully
+  useEffect(
+    () => () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    },
+    [],
+  );
+
+  // Debounced availability check driven by the input event, not an effect
+  // (react-hooks/set-state-in-effect used to flag the sync 'idle' reset).
+  function updateDraft(next: string) {
+    setDraft(next);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    if (!next || next === current) {
       setStatus({ kind: 'idle' });
       return;
     }
-    const shapeErr = shapeError(draft);
+    const shapeErr = shapeError(next);
     if (shapeErr) {
       setStatus(shapeErr);
       return;
     }
     setStatus({ kind: 'checking' });
-    const t = setTimeout(async () => {
+    debounceRef.current = setTimeout(async () => {
       try {
-        const { available } = await checkNicknameAvailability(draft);
+        const { available } = await checkNicknameAvailability(next);
         setStatus({ kind: available ? 'available' : 'taken' });
       } catch (err) {
         setStatus({
@@ -87,8 +98,7 @@ export function NicknameRow() {
         });
       }
     }, 400);
-    return () => clearTimeout(t);
-  }, [draft, current]);
+  }
 
   async function handleSave() {
     setError(null);
@@ -133,7 +143,7 @@ export function NicknameRow() {
             <input
               type="text"
               value={draft}
-              onChange={(e) => setDraft(e.target.value)}
+              onChange={(e) => updateDraft(e.target.value)}
               disabled={saving}
               className="block min-h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 pr-20 text-base text-zinc-900 outline-none transition-colors focus:border-zinc-400 focus:ring-2 focus:ring-zinc-200 disabled:opacity-60 md:min-h-0 md:text-sm dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:focus:border-zinc-500 dark:focus:ring-zinc-800"
             />
@@ -141,7 +151,7 @@ export function NicknameRow() {
               <StatusIcon status={status} />
               <button
                 type="button"
-                onClick={() => setDraft(randomNickname())}
+                onClick={() => updateDraft(randomNickname())}
                 disabled={saving}
                 aria-label="랜덤 닉네임 생성"
                 className="inline-flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-40 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
