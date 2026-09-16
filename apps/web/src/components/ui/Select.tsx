@@ -8,9 +8,9 @@ import {
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react';
-import { createPortal } from 'react-dom';
 import { useOutsideClick } from '../../lib/useOutsideClick';
 import { usePopoverPosition } from '../../lib/usePopoverPosition';
+import { Portal } from './Portal';
 
 export interface SelectOption {
   value: string;
@@ -73,7 +73,6 @@ export function Select({
   highlightStyle = 'bg',
 }: Props) {
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const [triggerWidth, setTriggerWidth] = useState(0);
   const [highlightIdx, setHighlightIdx] = useState(-1);
   // usePopoverPosition uses estimated max-height/hint-width, so pos.top can
@@ -95,11 +94,6 @@ export function Select({
     POPOVER_MAX_HEIGHT,
     POSITION_HINT_WIDTH,
   );
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- portal SSR mount guard: setMounted(true) is a one-shot flip after hydration
-    setMounted(true);
-  }, []);
 
   useOutsideClick([anchorRef, popoverRef], () => setOpen(false), open);
 
@@ -261,53 +255,52 @@ export function Select({
         </span>
       </button>
 
-      {mounted && open && pos
-        ? createPortal(
-            <div
-              ref={popoverRef}
-              style={{
-                position: 'fixed',
-                top: pxPos?.top ?? pos.top,
-                left: pxPos?.left ?? pos.left,
-                minWidth: triggerWidth || undefined,
-                maxWidth: '90vw',
-                zIndex: 50,
-                // Hide until we've re-measured with actual size to avoid a
-                // one-frame flash at the (usually wrong) estimated position.
-                visibility: pxPos ? 'visible' : 'hidden',
-              }}
-              className="thin-scrollbar max-h-72 w-max overflow-y-auto rounded-md border border-zinc-200 bg-white py-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
-              role="listbox"
-              aria-label={ariaLabel}
-              aria-activedescendant={
-                flatOptions[highlightIdx]
-                  ? `${id ?? 'select'}-opt-${flatOptions[highlightIdx].value}`
-                  : undefined
-              }
-              tabIndex={-1}
-            >
-              {grouped
-                ? (options as SelectGroup[]).map((group) => (
-                    <div key={group.label} role="group" aria-label={group.label}>
-                      <div className="px-3 pt-2 pb-1 text-[10px] font-medium tracking-wide text-zinc-400 uppercase">
-                        {group.label}
-                      </div>
-                      <ul className="mb-1">
-                        {group.options.map((opt) => {
-                          flatIdx++;
-                          return renderOption(opt, flatIdx);
-                        })}
-                      </ul>
+      {open && pos ? (
+        <Portal>
+          <div
+            ref={popoverRef}
+            style={{
+              position: 'fixed',
+              top: pxPos?.top ?? pos.top,
+              left: pxPos?.left ?? pos.left,
+              minWidth: triggerWidth || undefined,
+              maxWidth: '90vw',
+              zIndex: 50,
+              // Hide until we've re-measured with actual size to avoid a
+              // one-frame flash at the (usually wrong) estimated position.
+              visibility: pxPos ? 'visible' : 'hidden',
+            }}
+            className="thin-scrollbar max-h-72 w-max overflow-y-auto rounded-md border border-zinc-200 bg-white py-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
+            role="listbox"
+            aria-label={ariaLabel}
+            aria-activedescendant={
+              flatOptions[highlightIdx]
+                ? `${id ?? 'select'}-opt-${flatOptions[highlightIdx].value}`
+                : undefined
+            }
+            tabIndex={-1}
+          >
+            {grouped
+              ? (options as SelectGroup[]).map((group) => (
+                  <div key={group.label} role="group" aria-label={group.label}>
+                    <div className="px-3 pt-2 pb-1 text-[10px] font-medium tracking-wide text-zinc-400 uppercase">
+                      {group.label}
                     </div>
-                  ))
-                : (options as SelectOption[]).map((opt) => {
-                    flatIdx++;
-                    return renderOption(opt, flatIdx);
-                  })}
-            </div>,
-            document.body,
-          )
-        : null}
+                    <ul className="mb-1">
+                      {group.options.map((opt) => {
+                        flatIdx++;
+                        return renderOption(opt, flatIdx);
+                      })}
+                    </ul>
+                  </div>
+                ))
+              : (options as SelectOption[]).map((opt) => {
+                  flatIdx++;
+                  return renderOption(opt, flatIdx);
+                })}
+          </div>
+        </Portal>
+      ) : null}
     </>
   );
 
