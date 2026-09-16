@@ -111,6 +111,16 @@
 - 원인: ValidationPipe에 `transformOptions: { enableImplicitConversion: true }` 켜면 class-transformer가 declared type(`boolean`)에 맞춰 `Boolean(value)`를 적용. `Boolean('false') === true`라 `@Transform` 결과를 덮어씀
 - 해결: `enableImplicitConversion` 제거. 숫자 쿼리 파라미터가 필요해지면 그때 필드별로 `@Type(() => Number)`로 명시. Boolean은 `@Transform`으로 직접 다룸
 
+### `@IsUrl`이 한글 쿼리스트링 채용 URL을 400으로 거부
+- 상황: `/jobs` UrlPopover에서 공고 링크 저장 시 `PATCH /companies/:id` → 400 `{"message":["postingUrl must be a URL address"]}`
+- 원인: class-validator `@IsUrl`이 내부적으로 validator.js `isURL()`을 그대로 씀. 옵션 기본값이 IDN을 거부해서, 잡코리아·사람인 등 쿼리스트링에 한글 파라미터가 들어간 URL이 통과 못 함
+- 해결: `@Matches(/^https?:\/\/.+/i)` + `@MaxLength()`로 대체. 프론트가 이미 `new URL()` 파싱 + 프로토콜 체크로 검증하므로 서버는 프리픽스만 얕게 확인. 같은 이유로 `applicationDocUrl`, blog-sources의 `rssUrl`/`siteUrl`도 함께 완화
+
+### PATCH 400/500 에러가 body 없이 status만 던져지면 원인 파악이 오래 걸림
+- 상황: 클라이언트 콘솔에 `PATCH /companies/xxx failed: HTTP 400` 만 나오고 실제 어떤 필드가 왜 거부됐는지 안 보임 → 위 IDN 이슈 재현이 오래 걸렸음
+- 원인: `patchCompany` 등 mutation 헬퍼가 `res.status`만 붙여서 throw. Nest가 응답 body에 `{"message":[...]}` 형태로 상세 메시지를 담고 있지만 안 읽음
+- 해결: `!res.ok` 분기에서 `await res.text()`를 붙여 `HttpError` 메시지에 포함. dev 툴 콘솔에 서버 message 배열이 그대로 노출되어 해당 필드/규칙까지 즉시 파악 가능
+
 ---
 
 ## Windows 개발환경

@@ -3,11 +3,13 @@ import {
   IsInt,
   IsOptional,
   IsString,
-  IsUrl,
+  Matches,
   MaxLength,
   Min,
   MinLength,
 } from 'class-validator';
+
+const HTTP_URL_REGEX = /^https?:\/\/.+/i;
 
 export class UpdateBlogSourceDto {
   @IsOptional()
@@ -17,12 +19,14 @@ export class UpdateBlogSourceDto {
   name?: string;
 
   @IsOptional()
-  @IsUrl({ require_protocol: true })
+  @IsString()
+  @Matches(HTTP_URL_REGEX, { message: 'rssUrl must start with http:// or https://' })
   @MaxLength(500)
   rssUrl?: string;
 
   @IsOptional()
-  @IsUrl({ require_protocol: true })
+  @IsString()
+  @Matches(HTTP_URL_REGEX, { message: 'siteUrl must start with http:// or https://' })
   @MaxLength(500)
   siteUrl?: string | null;
 
