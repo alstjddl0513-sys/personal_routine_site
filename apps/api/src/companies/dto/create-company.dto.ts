@@ -4,10 +4,17 @@ import {
   IsEnum,
   IsOptional,
   IsString,
-  IsUrl,
+  Matches,
   MaxLength,
   MinLength,
 } from 'class-validator';
+
+// class-validator @IsUrl은 validator.js isURL을 그대로 쓰는데, 한글이
+// 들어간 채용 공고 URL(잡코리아·사람인·라이너 등 쿼리스트링에 한글
+// 파라미터 포함)이 IDN을 거부해서 400이 됨. 프론트에서 이미 new URL()
+// 로 파싱 + http(s):// 프리픽스를 강제하므로 서버는 프리픽스 + 길이만
+// 얕게 검증한다.
+const HTTP_URL_REGEX = /^https?:\/\/.+/i;
 import {
   ApplicationStatus,
   CompanyType1,
@@ -49,7 +56,8 @@ export class CreateCompanyDto {
   note?: string;
 
   @IsOptional()
-  @IsUrl({ require_protocol: true })
+  @IsString()
+  @Matches(HTTP_URL_REGEX, { message: 'postingUrl must start with http:// or https://' })
   @MaxLength(1000)
   postingUrl?: string;
 
@@ -70,7 +78,8 @@ export class CreateCompanyDto {
   appliedAt?: string;
 
   @IsOptional()
-  @IsUrl({ require_protocol: true })
+  @IsString()
+  @Matches(HTTP_URL_REGEX, { message: 'applicationDocUrl must start with http:// or https://' })
   @MaxLength(1000)
   applicationDocUrl?: string;
 

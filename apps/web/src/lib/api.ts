@@ -194,7 +194,11 @@ export async function patchCompany(id: string, patch: CompanyPatch): Promise<Com
     body: JSON.stringify(patch),
   });
   if (!res.ok) {
-    throw new Error(`PATCH /companies/${id} failed: HTTP ${res.status}`);
+    const body = await res.text().catch(() => '');
+    throw new HttpError(
+      `PATCH /companies/${id} failed: HTTP ${res.status}${body ? ` — ${body}` : ''}`,
+      res.status,
+    );
   }
   return (await res.json()) as Company;
 }
