@@ -87,3 +87,25 @@ body {
   animation: card-flip-in-left 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
   transform-origin: right center;
 }
+
+/* 통계 → /jobs?highlight=id 이동 시 해당 row/카드에 잠깐 노란 강조.
+   HighlightScroller가 2.5초 뒤 URL에서 highlight 파라미터를 제거하므로
+   애니메이션 duration도 동일. peak 색을 CSS variable로 두어 다크모드에서
+   더 어두운 톤으로 자동 교체. */
+:root {
+  --highlight-flash-peak: rgba(254, 240, 138, 0.6); /* yellow-200 60% */
+}
+.dark {
+  --highlight-flash-peak: rgba(133, 77, 14, 0.4); /* yellow-800 40% */
+}
+@keyframes highlight-flash {
+  0% {
+    background-color: transparent;
+  }
+  15% {
+    background-color: var(--highlight-flash-peak);
+  }
+  100% {
+    background-color: transparent;
+  }
+}

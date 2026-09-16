@@ -145,3 +145,39 @@ export function computeUpcomingDeadlines(
   items.sort((a, b) => a.daysLeft - b.daysLeft);
   return items;
 }
+
+export interface MissedPosting {
+  id: string;
+  name: string;
+  deadline: string;
+  daysLeft: number; // negative — how many days ago the deadline passed
+  postingUrl: string | null;
+}
+
+// 지원 기회를 놓친 공고: not_applied면서 마감이 이미 지난 것.
+// 지원 진행 중인 회사(applied/document_passed 등)는 applicationDeadline이
+// 후속 단계 일정으로 재활용되기 때문에 포함하지 않는다. windowDays 기본
+// 30 — 오래된 건 자동 숨김.
+export function computeMissedPostings(
+  rows: Company[],
+  now: Date = new Date(),
+  windowDays = 30,
+): MissedPosting[] {
+  const items: MissedPosting[] = [];
+  for (const c of rows) {
+    if (!c.applicationDeadline) continue;
+    if (c.applicationStatus !== 'not_applied') continue;
+    const daysLeft = daysUntil(c.applicationDeadline, now);
+    if (daysLeft >= 0 || daysLeft < -windowDays) continue;
+    items.push({
+      id: c.id,
+      name: c.name,
+      deadline: c.applicationDeadline,
+      daysLeft,
+      postingUrl: c.postingUrl,
+    });
+  }
+  // Most recently missed first (daysLeft -1 before -30).
+  items.sort((a, b) => b.daysLeft - a.daysLeft);
+  return items;
+}
