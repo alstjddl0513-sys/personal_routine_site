@@ -140,25 +140,24 @@ export function Select({
     };
   }, [open, pos]);
 
-  // Reset highlight to the current value (or first enabled) on open.
-  useEffect(() => {
-    if (!open) return;
-    const idx = flatOptions.findIndex((o) => o.value === value);
-    if (idx >= 0) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- popover open transition: seed keyboard highlight to current value
-      setHighlightIdx(idx);
-      return;
-    }
-    const firstEnabled = flatOptions.findIndex((o) => !o.disabled);
-    setHighlightIdx(firstEnabled);
-  }, [open, value, flatOptions]);
-
   // Scroll highlighted option into view.
   useEffect(() => {
     if (!open) return;
     const el = optionRefs.current[highlightIdx];
     el?.scrollIntoView({ block: 'nearest' });
   }, [open, highlightIdx]);
+
+  function computeInitialHighlight(): number {
+    const idx = flatOptions.findIndex((o) => o.value === value);
+    if (idx >= 0) return idx;
+    return flatOptions.findIndex((o) => !o.disabled);
+  }
+
+  function openPopover() {
+    if (disabled) return;
+    setHighlightIdx(computeInitialHighlight());
+    setOpen(true);
+  }
 
   function commitAndClose(next: string) {
     if (next !== value) onChange(next);
@@ -182,7 +181,7 @@ export function Select({
     if (disabled) return;
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      setOpen(true);
+      openPopover();
     }
   }
 
@@ -242,7 +241,7 @@ export function Select({
         ref={anchorRef}
         id={id}
         type="button"
-        onClick={() => !disabled && setOpen((o) => !o)}
+        onClick={() => (open ? setOpen(false) : openPopover())}
         onKeyDown={onTriggerKeyDown}
         disabled={disabled}
         aria-label={ariaLabel}
