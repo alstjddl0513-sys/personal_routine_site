@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, Check, Dices, UserPlus, X } from 'lucide-react';
@@ -135,8 +136,7 @@ export default function SignupPage() {
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <h1 className="inline-flex items-center gap-2 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/icon.svg" alt="" aria-hidden className="h-9 w-9" />
+            <Image src="/icon.svg" alt="" aria-hidden width={36} height={36} className="h-9 w-9" priority />
             Rally
           </h1>
           <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">회원가입</p>

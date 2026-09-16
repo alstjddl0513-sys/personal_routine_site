@@ -165,18 +165,6 @@ export function Select({
     anchorRef.current?.focus();
   }
 
-  function moveHighlight(delta: number) {
-    if (flatOptions.length === 0) return;
-    let i = highlightIdx;
-    for (let step = 0; step < flatOptions.length; step++) {
-      i = (i + delta + flatOptions.length) % flatOptions.length;
-      if (!flatOptions[i].disabled) {
-        setHighlightIdx(i);
-        return;
-      }
-    }
-  }
-
   function onTriggerKeyDown(e: ReactKeyboardEvent<HTMLButtonElement>) {
     if (disabled) return;
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
@@ -185,45 +173,55 @@ export function Select({
     }
   }
 
-  function onPopoverKeyDown(e: KeyboardEvent) {
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      setOpen(false);
-      anchorRef.current?.focus();
-    } else if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      moveHighlight(1);
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      moveHighlight(-1);
-    } else if (e.key === 'Home') {
-      e.preventDefault();
-      const first = flatOptions.findIndex((o) => !o.disabled);
-      if (first >= 0) setHighlightIdx(first);
-    } else if (e.key === 'End') {
-      e.preventDefault();
-      for (let i = flatOptions.length - 1; i >= 0; i--) {
-        if (!flatOptions[i].disabled) {
-          setHighlightIdx(i);
-          return;
-        }
-      }
-    } else if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      const opt = flatOptions[highlightIdx];
-      if (opt && !opt.disabled) commitAndClose(opt.value);
-    } else if (e.key === 'Tab') {
-      setOpen(false);
-    }
-  }
-
   useEffect(() => {
     if (!open) return;
-    const listener = (e: KeyboardEvent) => onPopoverKeyDown(e);
+    // Handler is defined inside the effect so eslint can see all deps
+    // directly (previously it was extracted and `exhaustive-deps` couldn't
+    // trace through the function call).
+    function listener(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setOpen(false);
+        anchorRef.current?.focus();
+      } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (flatOptions.length === 0) return;
+        const delta = e.key === 'ArrowDown' ? 1 : -1;
+        let i = highlightIdx;
+        for (let step = 0; step < flatOptions.length; step++) {
+          i = (i + delta + flatOptions.length) % flatOptions.length;
+          if (!flatOptions[i].disabled) {
+            setHighlightIdx(i);
+            return;
+          }
+        }
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        const first = flatOptions.findIndex((o) => !o.disabled);
+        if (first >= 0) setHighlightIdx(first);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        for (let i = flatOptions.length - 1; i >= 0; i--) {
+          if (!flatOptions[i].disabled) {
+            setHighlightIdx(i);
+            return;
+          }
+        }
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        const opt = flatOptions[highlightIdx];
+        if (opt && !opt.disabled) {
+          if (opt.value !== value) onChange(opt.value);
+          setOpen(false);
+          anchorRef.current?.focus();
+        }
+      } else if (e.key === 'Tab') {
+        setOpen(false);
+      }
+    }
     document.addEventListener('keydown', listener);
     return () => document.removeEventListener('keydown', listener);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, highlightIdx, flatOptions]);
+  }, [open, highlightIdx, flatOptions, value, onChange]);
 
   const triggerClass = [
     'inline-flex items-center justify-center gap-1',

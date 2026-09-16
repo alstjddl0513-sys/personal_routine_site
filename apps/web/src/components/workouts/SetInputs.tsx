@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { WorkoutSet } from '@repo/shared';
 import { batchWorkoutSets, type WorkoutSetInput } from '../../lib/api';
@@ -43,26 +43,37 @@ function rowsSignature(rows: Row[]): string {
 export function SetInputs(props: Props) {
   const router = useRouter();
   const [rows, setRows] = useState<Row[]>(() => initRows(props.defaultSets, props.existingSets));
-  const lastSavedRef = useRef<string>(rowsSignature(rows));
+  const [lastSavedSig, setLastSavedSig] = useState(() =>
+    rowsSignature(initRows(props.defaultSets, props.existingSets)),
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Resync when server props change (reorder / another card's save →
   // router.refresh re-fetches everything). Guard against wiping in-flight
-  // typing: if the local sig differs from lastSaved, the user is mid-edit and
-  // we'd otherwise erase what they just typed in the next field.
-  // Date/session change is handled by the parent's `key` remount, not here.
-  useEffect(() => {
-    const currentSig = rowsSignature(rows);
-    if (currentSig !== lastSavedRef.current) return;
-    const next = initRows(props.defaultSets, props.existingSets);
-    setRows(next);
-    lastSavedRef.current = rowsSignature(next);
-    setError(null);
-    // rows intentionally excluded — this effect responds to server prop
-    // changes; we peek at rows via closure only to decide whether to apply.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.defaultSets, props.existingSets]);
+  // typing: if the local sig differs from lastSaved, the user is mid-edit
+  // and we'd otherwise erase what they just typed. Date/session change is
+  // handled by the parent's `key` remount, not here.
+  //
+  // React 19 "adjust state during render" pattern instead of useEffect —
+  // avoids the exhaustive-deps trap where `rows` is used only as a peek but
+  // would otherwise force resync on every keystroke.
+  const [prevDefaults, setPrevDefaults] = useState(props.defaultSets);
+  const [prevExisting, setPrevExisting] = useState(props.existingSets);
+  if (
+    props.defaultSets !== prevDefaults ||
+    props.existingSets !== prevExisting
+  ) {
+    setPrevDefaults(props.defaultSets);
+    setPrevExisting(props.existingSets);
+    if (rowsSignature(rows) === lastSavedSig) {
+      const next = initRows(props.defaultSets, props.existingSets);
+      const nextSig = rowsSignature(next);
+      setRows(next);
+      setLastSavedSig(nextSig);
+      setError(null);
+    }
+  }
 
   function update(idx: number, field: 'weight' | 'reps' | 'rir', value: string) {
     setRows((prev) => prev.map((r, i) => (i === idx ? { ...r, [field]: value } : r)));
@@ -70,7 +81,7 @@ export function SetInputs(props: Props) {
 
   async function commit() {
     const sig = rowsSignature(rows);
-    if (sig === lastSavedRef.current) return;
+    if (sig === lastSavedSig) return;
     setError(null);
     setSaving(true);
     try {
@@ -101,7 +112,7 @@ export function SetInputs(props: Props) {
         exerciseId: props.exerciseId,
         sets: payload,
       });
-      lastSavedRef.current = sig;
+      setLastSavedSig(sig);
       // Backend may auto-delete the session when it ends up empty (no sets, no
       // note). Refresh so the parent re-fetches — otherwise UI still points to
       // a session id that no longer exists.
