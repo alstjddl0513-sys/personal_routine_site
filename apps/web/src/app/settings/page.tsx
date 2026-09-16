@@ -14,6 +14,7 @@ import { AccountDeleteRow } from '../../components/settings/AccountDeleteRow';
 import { BackupButton } from '../../components/settings/BackupButton';
 import { DeadlineNotifRow } from '../../components/settings/DeadlineNotifRow';
 import { LogoutRow } from '../../components/settings/LogoutRow';
+import { MorningSummaryRow } from '../../components/settings/MorningSummaryRow';
 import { NicknameRow } from '../../components/settings/NicknameRow';
 import { NotificationPermissionRow } from '../../components/settings/NotificationPermissionRow';
 import { RoutineReminderRow } from '../../components/settings/RoutineReminderRow';
@@ -155,6 +156,7 @@ export default function SettingsPage() {
         <SectionHeader>알림</SectionHeader>
         <NotificationPermissionRow />
         <DeadlineNotifRow />
+        <MorningSummaryRow />
         <RoutineReminderRow />
       </section>
 

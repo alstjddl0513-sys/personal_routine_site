@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { BottomNav } from '../components/BottomNav';
 import { DeadlineNotifier } from '../components/DeadlineNotifier';
+import { MorningSummary } from '../components/MorningSummary';
 import { RoutineReminder } from '../components/RoutineReminder';
 import { SectionSubNav } from '../components/SectionSubNav';
 import { Sidebar } from '../components/Sidebar';
@@ -100,6 +101,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
         </div>
         <BottomNav />
         <DeadlineNotifier />
+        <MorningSummary />
         <RoutineReminder />
       </body>
     </html>
