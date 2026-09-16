@@ -100,7 +100,7 @@ export interface DefaultQuestion {
   tip?: string;
 }
 
-// CS interview 기초. 분포: CS기초 20 · 네트워크 12 · DB 10 · 백엔드 32 · 프론트 23.
+// CS interview 기초. 분포: CS기초 20 · 네트워크 12 · DB 10 · 백엔드 32 · 프론트 26.
 export const DEFAULT_QUESTIONS: readonly DefaultQuestion[] = [
   {
     content: 'Stack과 Queue의 차이는?',
@@ -877,5 +877,29 @@ export const DEFAULT_QUESTIONS: readonly DefaultQuestion[] = [
       'Partial<T>(모든 필드 optional), Required<T>(모두 필수), Pick<T,K>(선택 필드만), Omit<T,K>(제외), Record<K,V>(맵), Readonly<T>(불변), ReturnType<F>·Parameters<F>(함수에서 추출). 도메인 타입 하나에서 파생 타입을 안전하게 만들어 중복을 줄인다.',
     tip:
       'Partial과 DeepPartial은 뭐가 다른가요?\ntemplate literal types로 뭘 할 수 있나요?',
+  },
+  {
+    content: 'JS 프로토타입 체인과 상속은 어떻게 동작하나?',
+    categoryKey: 'frontend',
+    answer:
+      '모든 객체는 내부 [[Prototype]] 링크를 갖고, 프로퍼티 조회 시 자기 자신에 없으면 이 링크를 따라 위로 올라간다. Object.create·class 문법 모두 결국 이 체인을 구성 — class는 문법 설탕이지 새 상속 모델이 아니다. 최상위는 Object.prototype이고 그 위는 null.',
+    tip:
+      'Object.create(null)은 어떤 상황에 쓰이나요?\nclass 문법의 super 호출은 내부적으로 뭘 하나요?',
+  },
+  {
+    content: 'Reflow와 Repaint의 차이는? 성능 관점에서 왜 중요한가?',
+    categoryKey: 'frontend',
+    answer:
+      'Reflow(layout)는 요소의 크기·위치가 바뀌어 레이아웃을 다시 계산하는 것 — 자식·이후 형제에게 전파돼 비싸다. Repaint는 색·배경 등 시각 속성만 바뀌어 픽셀만 다시 그리는 것 — 상대적으로 저렴. width·height·top 등 변경은 reflow를 일으키므로 transform·opacity로 compositor-only 애니메이션을 유도하는 게 정석.',
+    tip:
+      'will-change 프로퍼티는 어떤 상황에 유효하고 남용하면 왜 안 좋나요?\nFLIP 애니메이션 기법은 reflow를 어떻게 피하나요?',
+  },
+  {
+    content: 'LocalStorage · SessionStorage · IndexedDB의 차이는?',
+    categoryKey: 'frontend',
+    answer:
+      'LocalStorage는 문자열 KV(용량 5~10MB), 탭·세션과 무관하게 영구. SessionStorage는 같은 스펙이지만 탭 단위로 격리·탭 닫으면 소멸. IndexedDB는 구조화된 객체·인덱스·트랜잭션을 지원하는 비동기 NoSQL(수백 MB+) — 이미지·큰 캐시·오프라인 데이터에 적합. 모두 same-origin으로 격리된다.',
+    tip:
+      '왜 LocalStorage 접근이 동기라서 성능 문제가 되나요?\nCache Storage API와 IndexedDB는 각각 어디에 쓰나요?',
   },
 ] as const;
