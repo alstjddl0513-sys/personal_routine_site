@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, Check, Dices, UserPlus, X } from 'lucide-react';
@@ -40,24 +40,34 @@ export default function SignupPage() {
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Debounced availability check. Skip when the shape is invalid — the
-  // client-side error is already shown and the server would just 400.
-  useEffect(() => {
-    if (!nickname) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- debounced async check: early-return sync setState is the reset path; refactor would split status/async concerns unhelpfully
+  useEffect(
+    () => () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    },
+    [],
+  );
+
+  // Debounced availability check driven by input event, not an effect
+  // (react-hooks/set-state-in-effect used to flag the sync 'idle' reset).
+  function updateNickname(next: string) {
+    setNickname(next);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    if (!next) {
       setNicknameStatus({ kind: 'idle' });
       return;
     }
-    const shapeErr = validateNicknameShape(nickname);
+    const shapeErr = validateNicknameShape(next);
     if (shapeErr) {
       setNicknameStatus(shapeErr);
       return;
     }
     setNicknameStatus({ kind: 'checking' });
-    const t = setTimeout(async () => {
+    debounceRef.current = setTimeout(async () => {
       try {
-        const { available } = await checkNicknameAvailability(nickname);
+        const { available } = await checkNicknameAvailability(next);
         setNicknameStatus({ kind: available ? 'available' : 'taken' });
       } catch (err) {
         setNicknameStatus({
@@ -66,8 +76,7 @@ export default function SignupPage() {
         });
       }
     }, 400);
-    return () => clearTimeout(t);
-  }, [nickname]);
+  }
 
   const passwordsMatch = password.length > 0 && password === passwordConfirm;
   const canSubmit =
@@ -163,7 +172,7 @@ export default function SignupPage() {
                   autoComplete="off"
                   required
                   value={nickname}
-                  onChange={(e) => setNickname(e.target.value)}
+                  onChange={(e) => updateNickname(e.target.value)}
                   disabled={submitting}
                   className={`${inputCls} pr-20`}
                 />
@@ -171,7 +180,7 @@ export default function SignupPage() {
                   <NicknameStatusIcon status={nicknameStatus} />
                   <button
                     type="button"
-                    onClick={() => setNickname(randomNickname())}
+                    onClick={() => updateNickname(randomNickname())}
                     disabled={submitting}
                     aria-label="랜덤 닉네임 생성"
                     className="inline-flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-40 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
