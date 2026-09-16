@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useOptimistic, useRef, useState, useTransition } from 'react';
+import { useEffect, useOptimistic, useRef, useState, useTransition, type RefObject } from 'react';
 import { useRouter } from 'next/navigation';
 import { StickyNote, X } from 'lucide-react';
 import { patchCompany } from '../../../lib/api';
@@ -22,21 +22,11 @@ export function NotePopover({
   const [isPending, startTransition] = useTransition();
   const [current, setCurrent] = useOptimistic(value);
   const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState(value ?? '');
   const anchorRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const pos = usePopoverPosition(anchorRef, open, POPOVER_HEIGHT, POPOVER_WIDTH);
 
   useOutsideClick([anchorRef, popoverRef], () => setOpen(false), open);
-
-  useEffect(() => {
-    if (open) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- popover: reset draft to current when opening + auto-focus textarea
-      setDraft(current ?? '');
-      queueMicrotask(() => textareaRef.current?.focus());
-    }
-  }, [open, current]);
 
   useEffect(() => {
     if (!open) return;
@@ -64,14 +54,6 @@ export function NotePopover({
     });
   }
 
-  function save() {
-    commit(draft.trim() === '' ? null : draft);
-  }
-
-  function clear() {
-    commit(null);
-  }
-
   const preview = current ?? '';
   const truncated = preview.length > 18 ? preview.slice(0, 18) + '…' : preview;
 
@@ -91,56 +73,99 @@ export function NotePopover({
       </button>
       {open && pos ? (
         <Portal>
-          <div
-            ref={popoverRef}
-            style={{
-              position: 'fixed',
-              top: pos.top,
-              left: pos.left,
-              width: POPOVER_WIDTH,
-              zIndex: 50,
-            }}
-            className="rounded-md border border-zinc-200 bg-white p-2 text-left shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
-          >
-            <textarea
-              ref={textareaRef}
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              rows={4}
-              maxLength={2000}
-              placeholder="메모"
-              className="w-full resize-none rounded border border-zinc-200 bg-white p-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
-            />
-            <div className="mt-2 flex items-center justify-between gap-1">
-              <button
-                type="button"
-                onClick={clear}
-                disabled={!current}
-                className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-rose-600 hover:bg-rose-50 disabled:opacity-40 dark:text-rose-400 dark:hover:bg-rose-950/40"
-              >
-                <X className="h-3 w-3" aria-hidden />
-                삭제
-              </button>
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  className="rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                >
-                  취소
-                </button>
-                <button
-                  type="button"
-                  onClick={save}
-                  className="rounded bg-zinc-900 px-2 py-1 text-xs text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-                >
-                  저장
-                </button>
-              </div>
-            </div>
-          </div>
+          <NotePopoverBody
+            initialNote={current}
+            hasCurrent={current !== null}
+            top={pos.top}
+            left={pos.left}
+            popoverRef={popoverRef}
+            onCommit={commit}
+            onCancel={() => setOpen(false)}
+          />
         </Portal>
       ) : null}
     </>
+  );
+}
+
+interface BodyProps {
+  initialNote: string | null;
+  hasCurrent: boolean;
+  top: number;
+  left: number;
+  popoverRef: RefObject<HTMLDivElement | null>;
+  onCommit: (next: string | null) => void;
+  onCancel: () => void;
+}
+
+function NotePopoverBody({
+  initialNote,
+  hasCurrent,
+  top,
+  left,
+  popoverRef,
+  onCommit,
+  onCancel,
+}: BodyProps) {
+  const [draft, setDraft] = useState(initialNote ?? '');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    queueMicrotask(() => textareaRef.current?.focus());
+  }, []);
+
+  function save() {
+    onCommit(draft.trim() === '' ? null : draft);
+  }
+
+  return (
+    <div
+      ref={popoverRef}
+      style={{
+        position: 'fixed',
+        top,
+        left,
+        width: POPOVER_WIDTH,
+        zIndex: 50,
+      }}
+      className="rounded-md border border-zinc-200 bg-white p-2 text-left shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
+    >
+      <textarea
+        ref={textareaRef}
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        rows={4}
+        maxLength={2000}
+        placeholder="메모"
+        className="w-full resize-none rounded border border-zinc-200 bg-white p-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
+      />
+      <div className="mt-2 flex items-center justify-between gap-1">
+        <button
+          type="button"
+          onClick={() => onCommit(null)}
+          disabled={!hasCurrent}
+          className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-rose-600 hover:bg-rose-50 disabled:opacity-40 dark:text-rose-400 dark:hover:bg-rose-950/40"
+        >
+          <X className="h-3 w-3" aria-hidden />
+          삭제
+        </button>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+          >
+            취소
+          </button>
+          <button
+            type="button"
+            onClick={save}
+            className="rounded bg-zinc-900 px-2 py-1 text-xs text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+          >
+            저장
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
