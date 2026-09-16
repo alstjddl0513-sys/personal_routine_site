@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import Link from 'next/link';
 import {
   APPLICATION_STATUS_LABELS,
   COMPANY_TYPE_1_LABELS,
@@ -11,6 +12,7 @@ import { StatBar } from '../../../components/jobs/StatBar';
 import {
   PIPELINE_STAGES,
   computeKpi,
+  computeMissedPostings,
   computePipeline,
   computeType1Distribution,
   computeType2Distribution,
@@ -23,7 +25,16 @@ function formatDeadline(iso: string, daysLeft: number): string {
   const dd = String(d.getDate()).padStart(2, '0');
   const hh = String(d.getHours()).padStart(2, '0');
   const mi = String(d.getMinutes()).padStart(2, '0');
-  const dayLabel = daysLeft === 0 ? '오늘' : daysLeft === 1 ? '내일' : `D-${daysLeft}`;
+  const dayLabel =
+    daysLeft === 0
+      ? '오늘'
+      : daysLeft === 1
+        ? '내일'
+        : daysLeft === -1
+          ? '어제'
+          : daysLeft > 0
+            ? `D-${daysLeft}`
+            : `${-daysLeft}일 전`;
   return `${dayLabel} · ${mm}/${dd} ${hh}:${mi}`;
 }
 
@@ -55,6 +66,7 @@ async function JobsStatisticsContent() {
     companyTypes.map((t) => [t.key, t.label]),
   );
   const upcoming = computeUpcomingDeadlines(rows);
+  const missed = computeMissedPostings(rows);
 
   const appliedPct =
     kpi.total > 0 ? Math.round((kpi.applied / kpi.total) * 100) : 0;
@@ -182,7 +194,12 @@ async function JobsStatisticsContent() {
                   >
                     {formatDeadline(u.deadline, u.daysLeft).split(' · ')[0]}
                   </span>
-                  <span className="font-medium">{u.name}</span>
+                  <Link
+                    href={`/jobs?highlight=${u.id}`}
+                    className="font-medium underline-offset-2 hover:underline"
+                  >
+                    {u.name}
+                  </Link>
                   <span
                     className={`rounded px-1.5 py-0.5 text-[10px] ${
                       u.applicationStatus === 'not_applied'
@@ -202,6 +219,54 @@ async function JobsStatisticsContent() {
                     target="_blank"
                     rel="noreferrer"
                     className="text-xs text-blue-600 hover:underline dark:text-blue-400"
+                  >
+                    공고 →
+                  </a>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="rounded-md border border-zinc-200 p-4 dark:border-zinc-800">
+        <div className="mb-3 flex items-baseline justify-between">
+          <h2 className="text-sm font-medium">놓친 공고</h2>
+          <span className="text-xs text-zinc-500">
+            미지원 · 최근 30일 · {missed.length}건
+          </span>
+        </div>
+        {missed.length === 0 ? (
+          <div className="rounded-md border border-dashed border-zinc-300 p-6 text-center text-xs text-zinc-500 dark:border-zinc-700">
+            최근 30일간 놓친 공고가 없어요.
+          </div>
+        ) : (
+          <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
+            {missed.map((m) => (
+              <li
+                key={m.id}
+                className="flex items-center justify-between py-2 text-sm"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="min-w-14 rounded bg-zinc-100 px-1.5 py-0.5 text-center text-xs tabular-nums text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                    {formatDeadline(m.deadline, m.daysLeft).split(' · ')[0]}
+                  </span>
+                  <Link
+                    href={`/jobs?highlight=${m.id}`}
+                    className="font-medium text-zinc-600 underline-offset-2 hover:underline dark:text-zinc-300"
+                  >
+                    {m.name}
+                  </Link>
+                  <span className="text-sm tabular-nums text-zinc-500 dark:text-zinc-400">
+                    {formatDeadline(m.deadline, m.daysLeft).split(' · ')[1]}
+                  </span>
+                </div>
+                {m.postingUrl ? (
+                  <a
+                    href={m.postingUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs text-zinc-500 hover:text-zinc-700 hover:underline dark:text-zinc-400 dark:hover:text-zinc-200"
                   >
                     공고 →
                   </a>
@@ -235,6 +300,7 @@ function JobsStatisticsSkeleton() {
         <Skeleton className="h-40" />
         <Skeleton className="h-40" />
       </div>
+      <Skeleton className="h-32" />
       <Skeleton className="h-32" />
     </>
   );
