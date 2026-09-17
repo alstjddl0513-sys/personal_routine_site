@@ -18,6 +18,7 @@ import { MorningSummaryRow } from '../../components/settings/MorningSummaryRow';
 import { NicknameRow } from '../../components/settings/NicknameRow';
 import { NotificationPermissionRow } from '../../components/settings/NotificationPermissionRow';
 import { RoutineReminderRow } from '../../components/settings/RoutineReminderRow';
+import { WorkoutSkipRow } from '../../components/settings/WorkoutSkipRow';
 import { ThemeToggle } from '../../components/ThemeToggle';
 import { APP_VERSION } from '../../lib/version';
 
@@ -158,6 +159,7 @@ export default function SettingsPage() {
         <MorningSummaryRow />
         <DeadlineNotifRow />
         <RoutineReminderRow />
+        <WorkoutSkipRow />
       </section>
 
       <section className="rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
