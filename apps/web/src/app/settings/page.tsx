@@ -12,13 +12,9 @@ import {
 } from 'lucide-react';
 import { AccountDeleteRow } from '../../components/settings/AccountDeleteRow';
 import { BackupButton } from '../../components/settings/BackupButton';
-import { DeadlineNotifRow } from '../../components/settings/DeadlineNotifRow';
 import { LogoutRow } from '../../components/settings/LogoutRow';
-import { MorningSummaryRow } from '../../components/settings/MorningSummaryRow';
 import { NicknameRow } from '../../components/settings/NicknameRow';
-import { NotificationPermissionRow } from '../../components/settings/NotificationPermissionRow';
-import { RoutineReminderRow } from '../../components/settings/RoutineReminderRow';
-import { WorkoutSkipRow } from '../../components/settings/WorkoutSkipRow';
+import { NotifSettingsRow } from '../../components/settings/NotifSettingsRow';
 import { ThemeToggle } from '../../components/ThemeToggle';
 import { APP_VERSION } from '../../lib/version';
 
@@ -155,11 +151,7 @@ export default function SettingsPage() {
 
       <section className="rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
         <SectionHeader>알림</SectionHeader>
-        <NotificationPermissionRow />
-        <MorningSummaryRow />
-        <DeadlineNotifRow />
-        <RoutineReminderRow />
-        <WorkoutSkipRow />
+        <NotifSettingsRow />
       </section>
 
       <section className="rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
