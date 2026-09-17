@@ -4,15 +4,15 @@ import { toISODate } from './routines-week';
 
 // 아침 요약 브라우저 알림 유틸. routine-reminder 패턴 미러. localStorage
 // 키/이벤트 도메인만 `morning-summary.*`로 분리.
+//
+// 알림 시각은 고정. 사용자 커스텀 대신 감성적으로 자연스러운 시간 하나로
+// 통일해 설정 UI를 심플하게 유지. 필요해지면 다시 유연화 가능.
 
-export const DEFAULT_HOUR = 8;
-export const AVAILABLE_HOURS = [7, 8, 9, 10] as const;
+export const NOTIF_HOUR = 8;
 
 const KEY_ENABLED = 'rally.notif.morning-summary.enabled';
-const KEY_HOUR = 'rally.notif.morning-summary.hour';
 const KEY_LAST_FIRED = 'rally.notif.morning-summary.last-fired';
 const ENABLED_CHANGE_EVENT = 'rally.notif.morning-summary.enabled-changed';
-const HOUR_CHANGE_EVENT = 'rally.notif.morning-summary.hour-changed';
 
 function storage(): Storage | null {
   if (typeof window === 'undefined') return null;
@@ -50,35 +50,6 @@ export function subscribeEnabled(cb: () => void): () => void {
   };
 }
 
-export function getHour(): number {
-  const s = storage();
-  if (!s) return DEFAULT_HOUR;
-  const raw = s.getItem(KEY_HOUR);
-  if (raw === null) return DEFAULT_HOUR;
-  const n = Number(raw);
-  return (AVAILABLE_HOURS as readonly number[]).includes(n) ? n : DEFAULT_HOUR;
-}
-
-export function setHour(h: number): void {
-  const s = storage();
-  if (!s) return;
-  if (!(AVAILABLE_HOURS as readonly number[]).includes(h)) return;
-  s.setItem(KEY_HOUR, String(h));
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new Event(HOUR_CHANGE_EVENT));
-  }
-}
-
-export function subscribeHour(cb: () => void): () => void {
-  if (typeof window === 'undefined') return () => {};
-  window.addEventListener(HOUR_CHANGE_EVENT, cb);
-  window.addEventListener('storage', cb);
-  return () => {
-    window.removeEventListener(HOUR_CHANGE_EVENT, cb);
-    window.removeEventListener('storage', cb);
-  };
-}
-
 // 로컬 시각 기준 오늘 ISO. routine-reminder와 동일 (로컬 자정 기준).
 function todayLocalIso(): string {
   return toISODate(new Date());
@@ -98,6 +69,7 @@ export function markFiredToday(): void {
 
 export interface MorningSummaryCounts {
   todayDeadlines: number;
+  todayDeadlineNames: string[];
   uncheckedRoutines: number;
 }
 
@@ -120,13 +92,22 @@ function isSameLocalDay(a: Date, b: Date): boolean {
 }
 
 export function countTodayDeadlines(rows: Company[], now: Date = new Date()): number {
-  let n = 0;
+  return pickTodayDeadlineNames(rows, now).length;
+}
+
+// 오늘 마감인 ACTIVE 상태 회사 이름 목록. formatMorningMessage가 1건일 때
+// 회사명을 문구에 넣기 위해 사용. 2건 이상은 카운트만 노출(문구 폭발 방지).
+export function pickTodayDeadlineNames(
+  rows: Company[],
+  now: Date = new Date(),
+): string[] {
+  const names: string[] = [];
   for (const c of rows) {
     if (!c.applicationDeadline) continue;
     if (!ACTIVE_STATUSES.has(c.applicationStatus)) continue;
-    if (isSameLocalDay(new Date(c.applicationDeadline), now)) n += 1;
+    if (isSameLocalDay(new Date(c.applicationDeadline), now)) names.push(c.name);
   }
-  return n;
+  return names;
 }
 
 export function computeMorningSummary(
@@ -136,8 +117,10 @@ export function computeMorningSummary(
   now: Date = new Date(),
 ): MorningSummaryCounts {
   const todayIso = toISODate(now);
+  const names = pickTodayDeadlineNames(rows, now);
   return {
-    todayDeadlines: countTodayDeadlines(rows, now),
+    todayDeadlines: names.length,
+    todayDeadlineNames: names,
     uncheckedRoutines: countUncheckedToday(blocks, checks, todayIso),
   };
 }
@@ -147,11 +130,23 @@ export interface NotificationCopy {
   body: string;
 }
 
+// 마감 표기 규칙: D-1/D-3와 동일 패턴.
+//   1건 → "<A> 마감"
+//   2건 → "<A>, <B> 마감"
+//   3건+ → "<A>, <B> 외 N개 마감"
+function formatDeadlinePart(names: string[]): string | null {
+  if (names.length === 0) return null;
+  if (names.length === 1) return `${names[0]} 마감`;
+  if (names.length === 2) return `${names[0]}, ${names[1]} 마감`;
+  return `${names[0]}, ${names[1]} 외 ${names.length - 2}개 마감`;
+}
+
 export function formatMorningMessage(
   summary: MorningSummaryCounts,
 ): NotificationCopy {
   const parts: string[] = [];
-  if (summary.todayDeadlines > 0) parts.push(`오늘 마감 ${summary.todayDeadlines}건`);
+  const deadlinePart = formatDeadlinePart(summary.todayDeadlineNames);
+  if (deadlinePart) parts.push(deadlinePart);
   if (summary.uncheckedRoutines > 0)
     parts.push(`미체크 루틴 ${summary.uncheckedRoutines}개`);
   return {

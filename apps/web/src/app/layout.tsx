@@ -6,6 +6,7 @@ import { MorningSummary } from '../components/MorningSummary';
 import { RoutineReminder } from '../components/RoutineReminder';
 import { SectionSubNav } from '../components/SectionSubNav';
 import { Sidebar } from '../components/Sidebar';
+import { WorkoutSkipReminder } from '../components/WorkoutSkipReminder';
 import './globals.css';
 
 const geistSans = Geist({
@@ -103,6 +104,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
         <DeadlineNotifier />
         <MorningSummary />
         <RoutineReminder />
+        <WorkoutSkipReminder />
       </body>
     </html>
   );

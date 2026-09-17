@@ -14,6 +14,7 @@ import {
   Settings,
 } from 'lucide-react';
 import { useEffect, useState, useSyncExternalStore, type ComponentType, type SVGProps } from 'react';
+import { NotifBell } from './NotifBell';
 import { ThemeToggle } from './ThemeToggle';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { getMyProfile } from '@/lib/api';
@@ -333,6 +334,7 @@ export function Sidebar() {
           <span>설정</span>
         </Link>
         <div className="flex items-center gap-1">
+          <NotifBell />
           <LogoutButton />
           <ThemeToggle />
         </div>

@@ -1,16 +1,15 @@
 'use client';
 
-import { useEffect, useRef, useSyncExternalStore } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { getRoutineChecks, getTimeBlocks } from '../lib/api';
+import { logNotification } from '../lib/notif-log';
 import {
   countUncheckedToday,
-  DEFAULT_HOUR,
   formatReminderMessage,
   getEnabled,
-  getHour,
   markFiredToday,
-  subscribeHour,
+  NOTIF_HOUR,
   wasFiredToday,
 } from '../lib/routine-reminder';
 import { toISODate } from '../lib/routines-week';
@@ -29,11 +28,6 @@ import { toISODate } from '../lib/routines-week';
 // 기존 setTimeout cancel + 재예약.
 export function RoutineReminder(): null {
   const router = useRouter();
-  const hour = useSyncExternalStore<number>(
-    subscribeHour,
-    () => getHour(),
-    () => DEFAULT_HOUR,
-  );
   const timeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -77,6 +71,12 @@ export function RoutineReminder(): null {
           router.push('/routines');
         };
         markFiredToday();
+        logNotification({
+          type: 'routine-reminder',
+          title,
+          body,
+          href: '/routines',
+        });
       } catch {
         // 일부 브라우저(iOS Safari 등) 지원 제한.
       }
@@ -90,7 +90,7 @@ export function RoutineReminder(): null {
 
       const now = new Date();
       const target = new Date(now);
-      target.setHours(hour, 0, 0, 0);
+      target.setHours(NOTIF_HOUR, 0, 0, 0);
       const delay = target.getTime() - now.getTime();
 
       if (delay <= 0) {
@@ -111,7 +111,7 @@ export function RoutineReminder(): null {
         timeoutRef.current = null;
       }
     };
-  }, [hour, router]);
+  }, [router]);
 
   return null;
 }
