@@ -292,3 +292,8 @@
 - 상황: 0.4.0 배포 후 `/jobs` 표 행의 PrioritySelect·SizeSelect, 회사 추가 모달의 규모/유형 Select 등을 열면 popover가 트리거에서 크게 벗어난 위치(주로 뷰포트 상단)에 렌더링. 로컬 dev에선 재현 안 됨
 - 원인 추정: `usePopoverPosition`이 `POPOVER_MAX_HEIGHT=288`을 추정 높이로 써서 `pos.top`을 계산 → 실제 popover가 훨씬 짧을 때(옵션 3~5개, 실제 높이 ~100px) "above" 배치 시 앵커 위로 큰 공백을 두고 위치. 기존 `useLayoutEffect`가 `leftPx`만 실측 보정하고 `top`은 방치. 로컬 dev 빌드에서는 timing/hydration 순서상 안 튀고 prod 빌드에서만 관측됨
 - 해결: `Select.tsx`에서 popover mount 후 `getBoundingClientRect()`로 실측한 높이·너비 기준으로 top·left 둘 다 재계산. 첫 렌더는 `visibility: hidden`으로 감춰 flash 방지. `scroll`/`resize`에서도 재추적
+
+### 커스텀 Select 열린 상태에서 화살표 키가 1칸만 내려가고 다시 올라감
+- 상황: 어떤 Select든 열어놓고 ArrowDown을 연타하면 첫 press는 다음 항목으로 이동하는데 두 번째 press부터 원래 선택 위치로 되돌아옴. 그 아래로 진행이 안 됨
+- 원인: 팝오버가 열려도 focus는 여전히 트리거 버튼에 남아있어 키가 눌리면 (a) `onTriggerKeyDown` — `openPopover()` → `setHighlightIdx(computeInitialHighlight())`로 리셋, (b) 같은 이벤트가 document로 bubble → 문서 keydown 리스너가 `setHighlightIdx(prev + 1)`. 같은 이벤트 배치에서 두 개의 `setHighlightIdx`가 큐잉되고 마지막 값이 이긴다는 가정이 렌더 사이 클로저 캡처 타이밍과 얽히며 실제로는 초기값 리셋이 우세해지는 케이스가 반복 발생 — 사용자 눈엔 하이라이트가 진동
+- 해결: `Select.tsx`의 `onTriggerKeyDown`이 popover가 **닫혀 있을 때만** `openPopover()`를 호출하도록 조건 추가. 열려있으면 preventDefault만 하고 실제 이동/커밋은 document 리스너에 위임

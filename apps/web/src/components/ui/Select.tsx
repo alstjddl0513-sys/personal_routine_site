@@ -169,7 +169,11 @@ export function Select({
     if (disabled) return;
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      openPopover();
+      // 팝오버가 이미 열려 있을 땐 아무것도 하지 않는다 — document keydown
+      // 리스너가 하이라이트 이동/커밋을 처리. 여기서 openPopover를 다시
+      // 부르면 setHighlightIdx(initial)가 매 press마다 발화하며 리스너의
+      // setHighlightIdx(prev + 1)와 같은 batch에 섞여 진동/멈춤을 만듦.
+      if (!open) openPopover();
     }
   }
 
