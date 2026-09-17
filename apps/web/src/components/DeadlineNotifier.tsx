@@ -11,6 +11,7 @@ import {
   pickByDaysLeft,
   wasFiredToday,
 } from '../lib/deadline-notifier';
+import { logNotification } from '../lib/notif-log';
 
 // 앱 진입 시 한 번 실행되는 클라이언트 훅. D-3과 D-1을 각각 검사·발송.
 // 여러 가드를 통과해야 발동:
@@ -47,6 +48,12 @@ function fireForDay(
     // 실제 발송에 성공한 경우에만 mark. items 없을 때 mark 해두면
     // 하루 중 나중에 회사를 추가해도 알림이 안 뜨는 버그가 생김.
     markFiredToday(daysLeft);
+    logNotification({
+      type: daysLeft === 1 ? 'deadline-d1' : 'deadline-d3',
+      title,
+      body,
+      href: '/jobs',
+    });
   } catch {
     // 일부 브라우저(iOS Safari 등)는 지원 제한. 안전하게 무시.
   }

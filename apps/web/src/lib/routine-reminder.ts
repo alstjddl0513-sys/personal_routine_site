@@ -4,15 +4,14 @@ import { toISODate } from './routines-week';
 // 저녁 루틴 리마인더 유틸. 서버 push 없이 앱 진입 시 로컬 계산 + setTimeout
 // 예약 방식. deadline-notifier 패턴 미러. localStorage 키를 별도 도메인으로
 // 분리(rally.notif.routine-evening.*).
+//
+// 알림 시각은 고정. 사용자 커스텀 대신 자연스러운 저녁 시간으로 통일.
 
-export const DEFAULT_HOUR = 21;
-export const AVAILABLE_HOURS = [19, 20, 21, 22, 23] as const;
+export const NOTIF_HOUR = 21;
 
 const KEY_ENABLED = 'rally.notif.routine-evening.enabled';
-const KEY_HOUR = 'rally.notif.routine-evening.hour';
 const KEY_LAST_FIRED = 'rally.notif.routine-evening.last-fired';
 const ENABLED_CHANGE_EVENT = 'rally.notif.routine-evening.enabled-changed';
-const HOUR_CHANGE_EVENT = 'rally.notif.routine-evening.hour-changed';
 
 function storage(): Storage | null {
   if (typeof window === 'undefined') return null;
@@ -46,35 +45,6 @@ export function subscribeEnabled(cb: () => void): () => void {
   window.addEventListener('storage', cb);
   return () => {
     window.removeEventListener(ENABLED_CHANGE_EVENT, cb);
-    window.removeEventListener('storage', cb);
-  };
-}
-
-export function getHour(): number {
-  const s = storage();
-  if (!s) return DEFAULT_HOUR;
-  const raw = s.getItem(KEY_HOUR);
-  if (raw === null) return DEFAULT_HOUR;
-  const n = Number(raw);
-  return (AVAILABLE_HOURS as readonly number[]).includes(n) ? n : DEFAULT_HOUR;
-}
-
-export function setHour(h: number): void {
-  const s = storage();
-  if (!s) return;
-  if (!(AVAILABLE_HOURS as readonly number[]).includes(h)) return;
-  s.setItem(KEY_HOUR, String(h));
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new Event(HOUR_CHANGE_EVENT));
-  }
-}
-
-export function subscribeHour(cb: () => void): () => void {
-  if (typeof window === 'undefined') return () => {};
-  window.addEventListener(HOUR_CHANGE_EVENT, cb);
-  window.addEventListener('storage', cb);
-  return () => {
-    window.removeEventListener(HOUR_CHANGE_EVENT, cb);
     window.removeEventListener('storage', cb);
   };
 }

@@ -1,18 +1,17 @@
 'use client';
 
-import { useEffect, useRef, useSyncExternalStore } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCompanies, getRoutineChecks, getTimeBlocks } from '../lib/api';
 import {
   computeMorningSummary,
-  DEFAULT_HOUR,
   formatMorningMessage,
   getEnabled,
-  getHour,
   markFiredToday,
-  subscribeHour,
+  NOTIF_HOUR,
   wasFiredToday,
 } from '../lib/morning-summary';
+import { logNotification } from '../lib/notif-log';
 import { toISODate } from '../lib/routines-week';
 
 // 앱 진입 시 마운트되어 아침 예약 시각에 오늘 마감/미체크 요약 알림.
@@ -20,11 +19,6 @@ import { toISODate } from '../lib/routines-week';
 // 알림 클릭 시 마감이 우선, 없으면 루틴으로 이동.
 export function MorningSummary(): null {
   const router = useRouter();
-  const hour = useSyncExternalStore<number>(
-    subscribeHour,
-    () => getHour(),
-    () => DEFAULT_HOUR,
-  );
   const timeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -61,13 +55,20 @@ export function MorningSummary(): null {
           tag: 'rally-morning-summary',
           icon: '/flag-192.png',
         });
+        const href = summary.todayDeadlines > 0 ? '/jobs' : '/routines';
         notif.onclick = () => {
           try {
             window.focus();
           } catch {}
-          router.push(summary.todayDeadlines > 0 ? '/jobs' : '/routines');
+          router.push(href);
         };
         markFiredToday();
+        logNotification({
+          type: 'morning-summary',
+          title,
+          body,
+          href,
+        });
       } catch {
         // 일부 브라우저(iOS Safari 등) 지원 제한.
       }
@@ -81,7 +82,7 @@ export function MorningSummary(): null {
 
       const now = new Date();
       const target = new Date(now);
-      target.setHours(hour, 0, 0, 0);
+      target.setHours(NOTIF_HOUR, 0, 0, 0);
       const delay = target.getTime() - now.getTime();
 
       if (delay <= 0) {
@@ -102,7 +103,7 @@ export function MorningSummary(): null {
         timeoutRef.current = null;
       }
     };
-  }, [hour, router]);
+  }, [router]);
 
   return null;
 }

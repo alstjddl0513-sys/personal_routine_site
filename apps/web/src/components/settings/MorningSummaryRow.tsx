@@ -3,16 +3,10 @@
 import { useSyncExternalStore } from 'react';
 import { Sunrise } from 'lucide-react';
 import {
-  AVAILABLE_HOURS,
-  DEFAULT_HOUR,
   getEnabled,
-  getHour,
   setEnabled,
-  setHour,
   subscribeEnabled,
-  subscribeHour,
 } from '../../lib/morning-summary';
-import { Select } from '../ui/Select';
 
 type PermissionState = 'unsupported' | 'default' | 'granted' | 'denied';
 
@@ -34,11 +28,6 @@ export function MorningSummaryRow() {
     () => getEnabled(),
     () => null,
   );
-  const hour = useSyncExternalStore<number>(
-    subscribeHour,
-    () => getHour(),
-    () => DEFAULT_HOUR,
-  );
   const permission = useSyncExternalStore<PermissionState | null>(
     subscribeNoop,
     () => readPermission(),
@@ -51,15 +40,6 @@ export function MorningSummaryRow() {
     if (enabled === null) return;
     setEnabled(!enabled);
   }
-
-  function onHourChange(next: string) {
-    setHour(Number(next));
-  }
-
-  const hourOptions = AVAILABLE_HOURS.map((h) => ({
-    value: String(h),
-    label: `${h}시`,
-  }));
 
   const description = !isGranted
     ? '먼저 위의 알림 권한을 허용해주세요.'
@@ -80,14 +60,6 @@ export function MorningSummaryRow() {
       </div>
       {showControls ? (
         <div className="flex shrink-0 items-center gap-2 self-center">
-          <Select
-            value={String(hour)}
-            onChange={onHourChange}
-            options={hourOptions}
-            disabled={!enabled}
-            ariaLabel="알림 시각"
-            triggerClassName="min-h-11 justify-between gap-1 rounded border border-zinc-300 bg-white px-2 py-1 text-xs text-zinc-700 outline-none focus:border-zinc-500 md:min-h-0 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
-          />
           <button
             type="button"
             role="switch"

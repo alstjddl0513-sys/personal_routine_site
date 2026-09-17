@@ -155,8 +155,8 @@ export default function SettingsPage() {
       <section className="rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
         <SectionHeader>알림</SectionHeader>
         <NotificationPermissionRow />
-        <DeadlineNotifRow />
         <MorningSummaryRow />
+        <DeadlineNotifRow />
         <RoutineReminderRow />
       </section>
 
