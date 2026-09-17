@@ -4,6 +4,7 @@ import { useEffect, useRef, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import { getWorkoutHeatmap } from '../lib/api';
 import { logNotification } from '../lib/notif-log';
+import { getMasterEnabled } from '../lib/notif-master';
 import { toISODate } from '../lib/routines-week';
 import {
   computeDaysSinceLastWorkout,
@@ -36,6 +37,7 @@ export function WorkoutSkipReminder(): null {
       if (cancelled) return;
       if (typeof window === 'undefined' || !('Notification' in window)) return;
       if (Notification.permission !== 'granted') return;
+      if (!getMasterEnabled()) return;
       if (!getEnabled()) return;
       if (wasFiredToday()) return;
 
@@ -87,6 +89,7 @@ export function WorkoutSkipReminder(): null {
     function scheduleOrFireNow() {
       if (typeof window === 'undefined' || !('Notification' in window)) return;
       if (Notification.permission !== 'granted') return;
+      if (!getMasterEnabled()) return;
       if (!getEnabled()) return;
       if (wasFiredToday()) return;
 

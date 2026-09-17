@@ -1,7 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import { Bell, X } from 'lucide-react';
+import {
+  getMasterEnabled,
+  setMasterEnabled,
+  subscribeMasterEnabled,
+} from '../../lib/notif-master';
 import { Portal } from '../ui/Portal';
 import { DeadlineNotifRow } from './DeadlineNotifRow';
 import { MorningSummaryRow } from './MorningSummaryRow';
@@ -21,6 +26,12 @@ interface Props {
 // NotifLogDrawer의 Esc + backdrop click + body 스크롤 잠금 패턴 미러.
 // 우측 슬라이드 대신 중앙 배치.
 export function NotifSettingsModal({ open, onClose }: Props) {
+  const master = useSyncExternalStore<boolean | null>(
+    subscribeMasterEnabled,
+    () => getMasterEnabled(),
+    () => null,
+  );
+
   useEffect(() => {
     if (!open) return;
     function onKey(e: KeyboardEvent) {
@@ -80,14 +91,71 @@ export function NotifSettingsModal({ open, onClose }: Props) {
           </header>
 
           <div className="flex-1 overflow-y-auto">
-            <NotificationPermissionRow />
-            <MorningSummaryRow />
-            <DeadlineNotifRow />
-            <RoutineReminderRow />
-            <WorkoutSkipRow />
+            <MasterBanner
+              enabled={master}
+              onToggle={() => {
+                if (master === null) return;
+                setMasterEnabled(!master);
+              }}
+            />
+            <div
+              className={
+                master === false
+                  ? 'pointer-events-auto opacity-50 transition-opacity'
+                  : 'transition-opacity'
+              }
+            >
+              <NotificationPermissionRow />
+              <MorningSummaryRow />
+              <DeadlineNotifRow />
+              <RoutineReminderRow />
+              <WorkoutSkipRow />
+            </div>
           </div>
         </div>
       </div>
     </Portal>
+  );
+}
+
+interface MasterBannerProps {
+  enabled: boolean | null;
+  onToggle: () => void;
+}
+
+function MasterBanner({ enabled, onToggle }: MasterBannerProps) {
+  return (
+    <div className="flex items-start gap-3 border-b border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+      <Bell
+        className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500"
+        aria-hidden
+      />
+      <div className="min-w-0 flex-1">
+        <div className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+          알림 전체
+        </div>
+        <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+          모든 알림을 한번에 껐다 켜요.
+        </p>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={enabled ?? false}
+        onClick={onToggle}
+        disabled={enabled === null}
+        className={`relative inline-flex h-6 w-11 shrink-0 items-center self-center rounded-full border transition-colors ${
+          enabled
+            ? 'border-emerald-500 bg-emerald-500'
+            : 'border-zinc-300 bg-zinc-200 dark:border-zinc-700 dark:bg-zinc-800'
+        }`}
+      >
+        <span
+          className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${
+            enabled ? 'translate-x-6' : 'translate-x-1'
+          }`}
+        />
+      </button>
+    </div>
   );
 }
