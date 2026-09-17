@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { getRoutineChecks, getTimeBlocks } from '../lib/api';
 import { logNotification } from '../lib/notif-log';
+import { getMasterEnabled } from '../lib/notif-master';
 import {
   countUncheckedToday,
   formatReminderMessage,
@@ -37,6 +38,7 @@ export function RoutineReminder(): null {
       if (cancelled) return;
       if (typeof window === 'undefined' || !('Notification' in window)) return;
       if (Notification.permission !== 'granted') return;
+      if (!getMasterEnabled()) return;
       if (!getEnabled()) return;
       if (wasFiredToday()) return;
 
@@ -85,6 +87,7 @@ export function RoutineReminder(): null {
     function scheduleOrFireNow() {
       if (typeof window === 'undefined' || !('Notification' in window)) return;
       if (Notification.permission !== 'granted') return;
+      if (!getMasterEnabled()) return;
       if (!getEnabled()) return;
       if (wasFiredToday()) return;
 

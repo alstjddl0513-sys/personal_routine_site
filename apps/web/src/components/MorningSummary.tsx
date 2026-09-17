@@ -12,6 +12,7 @@ import {
   wasFiredToday,
 } from '../lib/morning-summary';
 import { logNotification } from '../lib/notif-log';
+import { getMasterEnabled } from '../lib/notif-master';
 import { toISODate } from '../lib/routines-week';
 
 // 앱 진입 시 마운트되어 아침 예약 시각에 오늘 마감/미체크 요약 알림.
@@ -28,6 +29,7 @@ export function MorningSummary(): null {
       if (cancelled) return;
       if (typeof window === 'undefined' || !('Notification' in window)) return;
       if (Notification.permission !== 'granted') return;
+      if (!getMasterEnabled()) return;
       if (!getEnabled()) return;
       if (wasFiredToday()) return;
 
@@ -77,6 +79,7 @@ export function MorningSummary(): null {
     function scheduleOrFireNow() {
       if (typeof window === 'undefined' || !('Notification' in window)) return;
       if (Notification.permission !== 'granted') return;
+      if (!getMasterEnabled()) return;
       if (!getEnabled()) return;
       if (wasFiredToday()) return;
 

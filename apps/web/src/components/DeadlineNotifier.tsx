@@ -12,6 +12,7 @@ import {
   wasFiredToday,
 } from '../lib/deadline-notifier';
 import { logNotification } from '../lib/notif-log';
+import { getMasterEnabled } from '../lib/notif-master';
 
 // 앱 진입 시 한 번 실행되는 클라이언트 훅. D-3과 D-1을 각각 검사·발송.
 // 여러 가드를 통과해야 발동:
@@ -68,6 +69,7 @@ export function DeadlineNotifier(): null {
     async function run() {
       if (typeof window === 'undefined' || !('Notification' in window)) return;
       if (Notification.permission !== 'granted') return;
+      if (!getMasterEnabled()) return;
       if (!getEnabled()) return;
       // 오늘 이미 D-1/D-3 모두 발송됐다면 fetch도 스킵.
       if (DAYS_LEFT_TARGETS.every((d) => wasFiredToday(d))) return;
