@@ -9,7 +9,7 @@ import { usePopoverPosition } from '../../../lib/usePopoverPosition';
 import { Portal } from '../../ui/Portal';
 
 const POPOVER_WIDTH = 280;
-const POPOVER_HEIGHT = 170;
+const POPOVER_HEIGHT = 205;
 const WEEKDAY_KO = ['일', '월', '화', '수', '목', '금', '토'];
 
 // Postgres timestamptz comes back as `2026-08-25 09:00:00+00`, which some engines
@@ -53,13 +53,16 @@ function formatDisplay(iso: string | null): string {
 export function DeadlinePopover({
   id,
   value,
+  isRolling,
 }: {
   id: string;
   value: string | null;
+  isRolling: boolean;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [current, setCurrent] = useOptimistic(value);
+  const [currentIso, setCurrentIso] = useOptimistic(value);
+  const [currentRolling, setCurrentRolling] = useOptimistic(isRolling);
   const [open, setOpen] = useState(false);
   const anchorRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -76,24 +79,28 @@ export function DeadlinePopover({
     return () => document.removeEventListener('keydown', onKey);
   }, [open]);
 
-  function commit(nextIso: string | null) {
-    if (nextIso === current) {
+  function commit(nextIso: string | null, nextRolling: boolean) {
+    // 상시채용이면 마감일은 서버에서 강제 null이 되므로 optimistic도 미리 맞춤.
+    const effectiveIso = nextRolling ? null : nextIso;
+    if (effectiveIso === currentIso && nextRolling === currentRolling) {
       setOpen(false);
       return;
     }
     setOpen(false);
     startTransition(async () => {
-      setCurrent(nextIso);
+      setCurrentIso(effectiveIso);
+      setCurrentRolling(nextRolling);
       try {
-        await patchCompany(id, { applicationDeadline: nextIso });
+        await patchCompany(id, {
+          applicationDeadline: effectiveIso,
+          isRolling: nextRolling,
+        });
         router.refresh();
       } catch (err) {
         console.error(err);
       }
     });
   }
-
-  const display = formatDisplay(current);
 
   return (
     <>
@@ -103,19 +110,28 @@ export function DeadlinePopover({
         onClick={() => setOpen((v) => !v)}
         disabled={isPending}
         className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
-        aria-label={current ? '마감일 편집' : '마감일 추가'}
+        aria-label={currentRolling || currentIso ? '마감일 편집' : '마감일 추가'}
         aria-expanded={open}
       >
-        {current ? (
-          <Calendar className="h-3.5 w-3.5 shrink-0" aria-hidden />
-        ) : null}
-        <span className="whitespace-nowrap">{display}</span>
+        {currentRolling ? (
+          <span className="inline-flex items-center rounded bg-blue-100 px-1.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
+            상시
+          </span>
+        ) : currentIso ? (
+          <>
+            <Calendar className="h-3.5 w-3.5 shrink-0" aria-hidden />
+            <span className="whitespace-nowrap">{formatDisplay(currentIso)}</span>
+          </>
+        ) : (
+          <span className="whitespace-nowrap">—</span>
+        )}
       </button>
       {open && pos ? (
         <Portal>
           <DeadlinePopoverBody
-            initialIso={current}
-            hasCurrent={current !== null}
+            initialIso={currentIso}
+            initialRolling={currentRolling}
+            hasCurrent={currentIso !== null || currentRolling}
             top={pos.top}
             left={pos.left}
             popoverRef={popoverRef}
@@ -130,16 +146,18 @@ export function DeadlinePopover({
 
 interface BodyProps {
   initialIso: string | null;
+  initialRolling: boolean;
   hasCurrent: boolean;
   top: number;
   left: number;
   popoverRef: RefObject<HTMLDivElement | null>;
-  onCommit: (nextIso: string | null) => void;
+  onCommit: (nextIso: string | null, nextRolling: boolean) => void;
   onCancel: () => void;
 }
 
 function DeadlinePopoverBody({
   initialIso,
+  initialRolling,
   hasCurrent,
   top,
   left,
@@ -148,6 +166,7 @@ function DeadlinePopoverBody({
   onCancel,
 }: BodyProps) {
   const [draft, setDraft] = useState(() => isoToLocalInput(initialIso));
+  const [draftRolling, setDraftRolling] = useState(initialRolling);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -155,11 +174,13 @@ function DeadlinePopoverBody({
   }, []);
 
   function save() {
-    onCommit(localInputToIso(draft));
+    onCommit(localInputToIso(draft), draftRolling);
   }
 
   const draftIso = localInputToIso(draft);
-  const draftWeekday = draftIso ? WEEKDAY_KO[new Date(draftIso).getDay()] : null;
+  const draftWeekday = draftIso && !draftRolling
+    ? WEEKDAY_KO[new Date(draftIso).getDay()]
+    : null;
 
   return (
     <div
@@ -173,12 +194,22 @@ function DeadlinePopoverBody({
       }}
       className="rounded-md border border-zinc-200 bg-white p-2 text-left shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
     >
+      <label className="mb-2 flex cursor-pointer items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400">
+        <input
+          type="checkbox"
+          checked={draftRolling}
+          onChange={(e) => setDraftRolling(e.target.checked)}
+          className="h-3.5 w-3.5 accent-blue-600"
+        />
+        상시채용 (마감일 없음)
+      </label>
       <label className="flex flex-col gap-1 text-xs text-zinc-500 dark:text-zinc-400">
         날짜 · 시간
         <input
           ref={inputRef}
           type="datetime-local"
-          value={draft}
+          value={draftRolling ? '' : draft}
+          disabled={draftRolling}
           min="2020-01-01T00:00"
           max="2099-12-31T23:59"
           onChange={(e) => setDraft(e.target.value)}
@@ -188,7 +219,7 @@ function DeadlinePopoverBody({
               save();
             }
           }}
-          className="rounded border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-800 outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200"
+          className="rounded border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-800 outline-none focus:border-zinc-500 disabled:bg-zinc-100 disabled:text-zinc-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200 dark:disabled:bg-zinc-900"
         />
       </label>
       {draftWeekday ? (
@@ -199,7 +230,7 @@ function DeadlinePopoverBody({
       <div className="mt-2 flex items-center justify-between gap-1">
         <button
           type="button"
-          onClick={() => onCommit(null)}
+          onClick={() => onCommit(null, false)}
           disabled={!hasCurrent}
           className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-rose-600 hover:bg-rose-50 disabled:opacity-40 dark:text-rose-400 dark:hover:bg-rose-950/40"
         >
