@@ -14,8 +14,17 @@ export const AVAILABLE_SKIP_DAYS = [3, 5, 7, 14] as const;
 const KEY_ENABLED = 'rally.notif.workout-skip.enabled';
 const KEY_SKIP_DAYS = 'rally.notif.workout-skip.skip-days';
 const KEY_LAST_FIRED = 'rally.notif.workout-skip.last-fired';
-const ENABLED_CHANGE_EVENT = 'rally.notif.workout-skip.enabled-changed';
-const SKIP_DAYS_CHANGE_EVENT = 'rally.notif.workout-skip.skip-days-changed';
+export const ENABLED_CHANGE_EVENT_NAME = 'rally.notif.workout-skip.enabled-changed';
+export const SKIP_DAYS_CHANGE_EVENT_NAME = 'rally.notif.workout-skip.skip-days-changed';
+const ENABLED_CHANGE_EVENT = ENABLED_CHANGE_EVENT_NAME;
+const SKIP_DAYS_CHANGE_EVENT = SKIP_DAYS_CHANGE_EVENT_NAME;
+
+// PreferencesSyncClient가 자기 dispatch를 재소비해 upload를 다시 트리거하는
+// 루프 방지용. setEnabledSilent / setSkipDaysSilent 중일 때만 true.
+let applyingRemote = false;
+export function isApplyingRemote(): boolean {
+  return applyingRemote;
+}
 
 function storage(): Storage | null {
   if (typeof window === 'undefined') return null;
@@ -82,6 +91,35 @@ export function subscribeSkipDays(cb: () => void): () => void {
     window.removeEventListener(SKIP_DAYS_CHANGE_EVENT, cb);
     window.removeEventListener('storage', cb);
   };
+}
+
+export function setEnabledSilent(enabled: boolean): void {
+  const s = storage();
+  if (!s) return;
+  applyingRemote = true;
+  try {
+    s.setItem(KEY_ENABLED, enabled ? 'true' : 'false');
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event(ENABLED_CHANGE_EVENT));
+    }
+  } finally {
+    applyingRemote = false;
+  }
+}
+
+export function setSkipDaysSilent(d: number): void {
+  const s = storage();
+  if (!s) return;
+  if (!(AVAILABLE_SKIP_DAYS as readonly number[]).includes(d)) return;
+  applyingRemote = true;
+  try {
+    s.setItem(KEY_SKIP_DAYS, String(d));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event(SKIP_DAYS_CHANGE_EVENT));
+    }
+  } finally {
+    applyingRemote = false;
+  }
 }
 
 // 로컬 시각 기준 오늘 ISO. routine-reminder / morning-summary와 동일.

@@ -32,7 +32,15 @@ export function getEnabled(): boolean {
 
 // useSyncExternalStore 구독을 위한 동일 탭 변경 브로드캐스트. storage 이벤트는
 // 다른 탭에서만 발화되므로 자기 탭의 토글 클릭도 반영되도록 이벤트를 쏨.
-const CHANGE_EVENT = 'rally.notif.deadline-enabled-changed';
+export const CHANGE_EVENT_NAME = 'rally.notif.deadline-enabled-changed';
+const CHANGE_EVENT = CHANGE_EVENT_NAME;
+
+// PreferencesSyncClient가 자기 dispatch를 재소비해 upload를 다시 트리거하는
+// 루프 방지용. setEnabledSilent 중일 때만 true.
+let applyingRemote = false;
+export function isApplyingRemote(): boolean {
+  return applyingRemote;
+}
 
 export function setEnabled(enabled: boolean): void {
   const s = storage();
@@ -51,6 +59,20 @@ export function subscribeEnabled(cb: () => void): () => void {
     window.removeEventListener(CHANGE_EVENT, cb);
     window.removeEventListener('storage', cb);
   };
+}
+
+export function setEnabledSilent(enabled: boolean): void {
+  const s = storage();
+  if (!s) return;
+  applyingRemote = true;
+  try {
+    s.setItem(KEY_ENABLED, enabled ? 'true' : 'false');
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event(CHANGE_EVENT));
+    }
+  } finally {
+    applyingRemote = false;
+  }
 }
 
 // KST 기준 오늘 이미 발송했는지. tab/디바이스 별로 관리됨(같은 유저라도 다른

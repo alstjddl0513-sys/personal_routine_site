@@ -11,7 +11,15 @@ export const NOTIF_HOUR = 21;
 
 const KEY_ENABLED = 'rally.notif.routine-evening.enabled';
 const KEY_LAST_FIRED = 'rally.notif.routine-evening.last-fired';
-const ENABLED_CHANGE_EVENT = 'rally.notif.routine-evening.enabled-changed';
+export const CHANGE_EVENT_NAME = 'rally.notif.routine-evening.enabled-changed';
+const ENABLED_CHANGE_EVENT = CHANGE_EVENT_NAME;
+
+// PreferencesSyncClient가 자기 dispatch를 재소비해 upload를 다시 트리거하는
+// 루프 방지용. setEnabledSilent 중일 때만 true.
+let applyingRemote = false;
+export function isApplyingRemote(): boolean {
+  return applyingRemote;
+}
 
 function storage(): Storage | null {
   if (typeof window === 'undefined') return null;
@@ -47,6 +55,20 @@ export function subscribeEnabled(cb: () => void): () => void {
     window.removeEventListener(ENABLED_CHANGE_EVENT, cb);
     window.removeEventListener('storage', cb);
   };
+}
+
+export function setEnabledSilent(enabled: boolean): void {
+  const s = storage();
+  if (!s) return;
+  applyingRemote = true;
+  try {
+    s.setItem(KEY_ENABLED, enabled ? 'true' : 'false');
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event(ENABLED_CHANGE_EVENT));
+    }
+  } finally {
+    applyingRemote = false;
+  }
 }
 
 // 로컬 시각 기준 오늘 ISO. 리마인더는 사용자 로컬 시각 21시 개념이라
