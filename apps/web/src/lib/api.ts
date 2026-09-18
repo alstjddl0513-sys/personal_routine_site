@@ -10,6 +10,7 @@ import type {
   Exercise,
   ExerciseStats,
   NicknameAvailability,
+  Preferences,
   PreviousWorkout,
   Priority,
   Profile,
@@ -667,6 +668,36 @@ export async function renameMyNickname(nickname: string): Promise<Profile> {
   });
   if (!res.ok) {
     throw new HttpError(`PATCH /profiles/me/nickname failed: HTTP ${res.status}`, res.status);
+  }
+  return (await res.json()) as Profile;
+}
+
+// 부분 patch — 서버가 deep merge. shape는 Preferences와 동일하되 모든
+// 필드가 optional. 서버는 whitelist ValidationPipe로 unknown 키를 400 처리.
+export type PreferencesPatch = {
+  notif?: {
+    master?: boolean;
+    morningSummary?: boolean;
+    deadline?: boolean;
+    routineEvening?: boolean;
+    workoutSkip?: {
+      enabled?: boolean;
+      skipDays?: number;
+    };
+  };
+};
+
+export async function patchMyPreferences(patch: PreferencesPatch): Promise<Profile> {
+  const res = await fetch(apiUrl('/profiles/me/preferences'), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `PATCH /profiles/me/preferences failed: HTTP ${res.status}`,
+      res.status,
+    );
   }
   return (await res.json()) as Profile;
 }

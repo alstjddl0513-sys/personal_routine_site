@@ -270,9 +270,42 @@ export interface BlogRefreshResult {
 
 // --- profiles ---
 
+// 사용자 알림 설정. localStorage와 profiles.preferences JSONB 양쪽에
+// 동일 shape로 저장. workoutSkip.skipDays는 3/5/7/14 중 하나(운동 없이
+// N일 지나면 알림).
+export interface WorkoutSkipPreferences {
+  enabled: boolean;
+  skipDays: number;
+}
+
+export interface NotifPreferences {
+  master: boolean;
+  morningSummary: boolean;
+  deadline: boolean;
+  routineEvening: boolean;
+  workoutSkip: WorkoutSkipPreferences;
+}
+
+export interface Preferences {
+  notif: NotifPreferences;
+}
+
+// 신규 계정/미마이그 사용자를 위한 시드값. 클라 localStorage 기본값과
+// 반드시 일치시켜야 sync 로직이 성립.
+export const DEFAULT_PREFERENCES: Preferences = {
+  notif: {
+    master: true,
+    morningSummary: true,
+    deadline: true,
+    routineEvening: true,
+    workoutSkip: { enabled: true, skipDays: 3 },
+  },
+};
+
 export interface Profile {
   id: string;
   nickname: string;
+  preferences: Preferences;
   createdAt: string;
   updatedAt: string;
 }
