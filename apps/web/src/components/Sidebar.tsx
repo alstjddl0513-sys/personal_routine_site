@@ -334,9 +334,9 @@ export function Sidebar() {
           <span>설정</span>
         </Link>
         <div className="flex items-center gap-1">
+          <ThemeToggle />
           <NotifBell />
           <LogoutButton />
-          <ThemeToggle />
         </div>
       </div>
     </aside>
