@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import {
   ChevronDown,
   Heart,
+  Printer,
   Search,
   Settings2,
   SlidersHorizontal,
@@ -147,6 +148,14 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
           />
         </div>
         <AddCompanyButton companyTypes={companyTypes} />
+        <Link
+          href={`/jobs/report${searchParams.size ? `?${searchParams.toString()}` : ''}`}
+          className="inline-flex min-h-11 items-center gap-2 rounded-md border border-zinc-300 bg-white px-3 text-sm text-zinc-600 hover:bg-zinc-50 md:min-h-0 md:py-2 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
+          title="현재 필터 그대로 취업활동 표로 이동"
+        >
+          <Printer className="h-4 w-4" aria-hidden />
+          인쇄
+        </Link>
         <button
           type="button"
           onClick={() => pushPatch({ favorite: currentFavorite ? null : '1' })}
