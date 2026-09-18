@@ -55,7 +55,10 @@ export function SectionSubNav() {
   );
 
   return (
-    <div className="flex items-center justify-between border-b border-zinc-200 md:hidden dark:border-zinc-800">
+    <div
+      data-app-subnav
+      className="flex items-center justify-between border-b border-zinc-200 md:hidden dark:border-zinc-800"
+    >
       <nav
         aria-label="하위 탭"
         className="flex min-w-0 flex-1 gap-1 overflow-x-auto px-3"

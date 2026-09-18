@@ -36,6 +36,7 @@ export function BottomNav() {
   const pathname = usePathname();
   return (
     <nav
+      data-app-bottom-nav
       aria-label="주요 탐색"
       className="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-200 bg-white/95 backdrop-blur pb-[env(safe-area-inset-bottom)] dark:border-zinc-800 dark:bg-zinc-950/95 md:hidden"
     >
