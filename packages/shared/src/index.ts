@@ -386,3 +386,54 @@ export interface QuestionStatsSummary {
   understood: number;
   reviewNeeded: number;
 }
+
+// --- documents (이력서·포폴·외부 링크) ---
+
+export const DOCUMENT_KIND_VALUES = ['resume', 'portfolio', 'link'] as const;
+export type DocumentKind = (typeof DOCUMENT_KIND_VALUES)[number];
+
+export const DOCUMENT_KIND_LABELS: Record<DocumentKind, string> = {
+  resume: '이력서',
+  portfolio: '포폴',
+  link: '외부 링크',
+};
+
+export interface Document {
+  id: string;
+  kind: DocumentKind;
+  title: string;
+  storagePath: string | null;
+  url: string | null;
+  fileSize: number | null;
+  fileMime: string | null;
+  isActive: boolean;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// 파일 업로드 2단계 흐름: (1) InitDocumentInput POST → 서버가 Supabase Storage
+// signed upload URL 발급 + DB row insert (2) 클라가 반환된 uploadUrl에 PUT.
+// 링크는 이 흐름 안 씀 (createLinkDocument 별도 호출).
+export interface InitDocumentInput {
+  kind: 'resume' | 'portfolio';
+  title: string;
+  fileName: string;
+  fileSize: number;
+  fileMime: string;
+}
+
+export interface InitDocumentResult {
+  document: Document;
+  uploadUrl: string;
+  token: string;
+  path: string;
+}
+
+// UI/DTO 검증에 재사용. Storage 버킷은 50MB 통일, 앱 레벨에서 kind별 분리.
+export const DOCUMENT_MAX_BYTES: Record<'resume' | 'portfolio', number> = {
+  resume: 10 * 1024 * 1024,
+  portfolio: 50 * 1024 * 1024,
+};
+
+export const DOCUMENT_ALLOWED_MIME = ['application/pdf'] as const;

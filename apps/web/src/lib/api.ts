@@ -7,8 +7,12 @@ import type {
   CompanyType,
   CompanyType1,
   DayNote,
+  Document,
+  DocumentKind,
   Exercise,
   ExerciseStats,
+  InitDocumentInput,
+  InitDocumentResult,
   NicknameAvailability,
   Preferences,
   PreviousWorkout,
@@ -937,4 +941,131 @@ export async function deleteQuestionCategory(id: string): Promise<void> {
   });
   if (!res.ok)
     throw new Error(`DELETE /question-categories/${id} failed: HTTP ${res.status}`);
+}
+
+// --- documents (이력서·포폴·외부 링크) ---
+
+export async function listDocuments(kind?: DocumentKind): Promise<Document[]> {
+  const qs = new URLSearchParams();
+  if (kind) qs.set('kind', kind);
+  const url = apiUrl(`/documents${qs.size ? `?${qs.toString()}` : ''}`);
+  const res = await fetch(url, {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) throw new Error(`GET /documents failed: HTTP ${res.status}`);
+  return (await res.json()) as Document[];
+}
+
+// 2단계 업로드 1단계. 서버가 row insert + Supabase Storage signed upload URL
+// 발급. 다음 단계로 반환 uploadUrl에 PUT 하면 됨(`uploadDocumentFile`).
+export async function initDocumentUpload(
+  input: InitDocumentInput,
+): Promise<InitDocumentResult> {
+  const res = await fetch(apiUrl('/documents/init'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    // 서버가 상세 에러 메시지 담아 보냄(크기 초과 등).
+    const text = await res.text().catch(() => '');
+    throw new HttpError(
+      `POST /documents/init failed: HTTP ${res.status} ${text}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as InitDocumentResult;
+}
+
+// 2단계 업로드 2단계. Supabase Storage로 직접 PUT.
+// createSignedUploadUrl이 반환하는 uploadUrl은 이미 인증 토큰 포함(x-upsert
+// 없이 단일 use). Content-Type은 실제 파일 mime.
+export async function uploadDocumentFile(
+  uploadUrl: string,
+  file: File,
+): Promise<void> {
+  const res = await fetch(uploadUrl, {
+    method: 'PUT',
+    headers: { 'Content-Type': file.type || 'application/octet-stream' },
+    body: file,
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Storage upload failed: HTTP ${res.status} ${text}`);
+  }
+}
+
+export async function createLinkDocument(input: {
+  title: string;
+  url: string;
+  notes?: string;
+}): Promise<Document> {
+  const res = await fetch(apiUrl('/documents/link'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `POST /documents/link failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as Document;
+}
+
+export type DocumentPatch = {
+  title?: string;
+  notes?: string;
+  isActive?: boolean;
+  url?: string;
+};
+
+export async function patchDocument(
+  id: string,
+  patch: DocumentPatch,
+): Promise<Document> {
+  const res = await fetch(apiUrl(`/documents/${id}`), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `PATCH /documents/${id} failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as Document;
+}
+
+export async function deleteDocument(id: string): Promise<void> {
+  const res = await fetch(apiUrl(`/documents/${id}`), {
+    method: 'DELETE',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `DELETE /documents/${id} failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+}
+
+// 60분 만료 signed URL. 링크 kind는 400 (클라가 url 필드를 직접 열도록).
+export async function getDocumentDownloadUrl(
+  id: string,
+): Promise<{ url: string; expiresAt: string }> {
+  const res = await fetch(apiUrl(`/documents/${id}/download`), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `GET /documents/${id}/download failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as { url: string; expiresAt: string };
 }
