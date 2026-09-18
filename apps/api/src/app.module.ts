@@ -23,6 +23,7 @@ import { BlogPostsModule } from './blog-posts/blog-posts.module';
 import { ProfilesModule } from './profiles/profiles.module';
 import { QuestionCategoriesModule } from './question-categories/question-categories.module';
 import { QuestionsModule } from './questions/questions.module';
+import { DocumentsModule } from './documents/documents.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { QuestionsModule } from './questions/questions.module';
     ProfilesModule,
     QuestionCategoriesModule,
     QuestionsModule,
+    DocumentsModule,
   ],
   controllers: [AppController, HealthController],
   providers: [
