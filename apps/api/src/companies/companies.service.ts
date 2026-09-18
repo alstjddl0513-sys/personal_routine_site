@@ -59,9 +59,29 @@ export class CompaniesService {
   }
 
   async update(ownerId: string, id: string, dto: UpdateCompanyDto) {
+    // 자동 기록 판정을 위해 현재 row 로드. RLS/소유자 검증도 겸함.
+    const current = await this.findOne(ownerId, id);
+
+    const patch: Record<string, unknown> = { ...dto, updatedAt: new Date() };
+
+    // Auto-fill appliedAt: 클라가 명시 X + 현재 null + 지원 후 status 진입 시.
+    // 시드나 backfill로 status만 뒤늦게 바뀌는 케이스도 커버(null && !=
+    // not_applied면 fill). withdrawn은 not_applied가 아니라 걸리는데 실제로는
+    // 이미 appliedAt이 있는 상태에서 오므로 자연스럽게 skip.
+    if (
+      dto.appliedAt === undefined &&
+      current.appliedAt === null &&
+      dto.applicationStatus !== undefined &&
+      dto.applicationStatus !== 'not_applied'
+    ) {
+      const now = new Date();
+      const pad = (n: number) => String(n).padStart(2, '0');
+      patch.appliedAt = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    }
+
     const [row] = await db
       .update(companies)
-      .set({ ...dto, updatedAt: new Date() })
+      .set(patch)
       .where(and(eq(companies.id, id), eq(companies.ownerId, ownerId)))
       .returning();
     if (!row) {
