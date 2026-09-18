@@ -1,0 +1,212 @@
+'use client';
+
+import {
+  useEffect,
+  useOptimistic,
+  useRef,
+  useState,
+  useTransition,
+  type RefObject,
+} from 'react';
+import { useRouter } from 'next/navigation';
+import { Calendar, X } from 'lucide-react';
+import { patchCompany } from '../../../lib/api';
+import { useOutsideClick } from '../../../lib/useOutsideClick';
+import { usePopoverPosition } from '../../../lib/usePopoverPosition';
+import { Portal } from '../../ui/Portal';
+
+// DeadlinePopover 미러. 다른 점:
+// - 값이 date(YYYY-MM-DD) 문자열 그대로 (timestamptz 파싱 불필요)
+// - input type="date" (시간 없음, 로컬 자정 개념)
+// - 요일 힌트만 표시. 저장 시 문자열 그대로 API 전달.
+
+const POPOVER_WIDTH = 240;
+const POPOVER_HEIGHT = 150;
+const WEEKDAY_KO = ['일', '월', '화', '수', '목', '금', '토'];
+
+function parseDate(raw: string | null): Date | null {
+  if (!raw) return null;
+  // YYYY-MM-DD를 로컬 자정으로 파싱. `new Date('YYYY-MM-DD')`는 UTC 파싱이
+  // 되어 표시 시각이 밀리는 문제가 있어 수동 파싱.
+  const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return null;
+  const [, y, mo, d] = m;
+  return new Date(Number(y), Number(mo) - 1, Number(d));
+}
+
+function formatDisplay(raw: string | null): string {
+  const d = parseDate(raw);
+  if (!d) return '—';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} (${WEEKDAY_KO[d.getDay()]})`;
+}
+
+export function AppliedAtPopover({
+  id,
+  value,
+}: {
+  id: string;
+  value: string | null;
+}) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [current, setCurrent] = useOptimistic(value);
+  const [open, setOpen] = useState(false);
+  const anchorRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const pos = usePopoverPosition(anchorRef, open, POPOVER_HEIGHT, POPOVER_WIDTH);
+
+  useOutsideClick([anchorRef, popoverRef], () => setOpen(false), open);
+
+  useEffect(() => {
+    if (!open) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false);
+    }
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open]);
+
+  function commit(next: string | null) {
+    if (next === current) {
+      setOpen(false);
+      return;
+    }
+    setOpen(false);
+    startTransition(async () => {
+      setCurrent(next);
+      try {
+        await patchCompany(id, { appliedAt: next });
+        router.refresh();
+      } catch (err) {
+        console.error(err);
+      }
+    });
+  }
+
+  const display = formatDisplay(current);
+
+  return (
+    <>
+      <button
+        ref={anchorRef}
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        disabled={isPending}
+        className="-mx-1 inline-flex items-center gap-1 rounded px-1 py-0.5 text-xs text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
+        aria-label={current ? '지원일 편집' : '지원일 추가'}
+        aria-expanded={open}
+      >
+        {current ? <Calendar className="h-3.5 w-3.5 shrink-0" aria-hidden /> : null}
+        <span className="whitespace-nowrap">{display}</span>
+      </button>
+      {open && pos ? (
+        <Portal>
+          <AppliedAtPopoverBody
+            initialValue={current ?? ''}
+            hasCurrent={current !== null}
+            top={pos.top}
+            left={pos.left}
+            popoverRef={popoverRef}
+            onCommit={commit}
+            onCancel={() => setOpen(false)}
+          />
+        </Portal>
+      ) : null}
+    </>
+  );
+}
+
+interface BodyProps {
+  initialValue: string;
+  hasCurrent: boolean;
+  top: number;
+  left: number;
+  popoverRef: RefObject<HTMLDivElement | null>;
+  onCommit: (next: string | null) => void;
+  onCancel: () => void;
+}
+
+function AppliedAtPopoverBody({
+  initialValue,
+  hasCurrent,
+  top,
+  left,
+  popoverRef,
+  onCommit,
+  onCancel,
+}: BodyProps) {
+  const [draft, setDraft] = useState(initialValue);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    queueMicrotask(() => inputRef.current?.focus());
+  }, []);
+
+  function save() {
+    onCommit(draft ? draft : null);
+  }
+
+  const draftWeekday = draft
+    ? WEEKDAY_KO[parseDate(draft)?.getDay() ?? 0]
+    : null;
+
+  return (
+    <div
+      ref={popoverRef}
+      style={{ position: 'fixed', top, left, width: POPOVER_WIDTH, zIndex: 50 }}
+      className="rounded-md border border-zinc-200 bg-white p-2 text-left shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
+    >
+      <label className="flex flex-col gap-1 text-xs text-zinc-500 dark:text-zinc-400">
+        지원일
+        <input
+          ref={inputRef}
+          type="date"
+          value={draft}
+          min="2020-01-01"
+          max="2099-12-31"
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              save();
+            }
+          }}
+          className="rounded border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-800 outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200"
+        />
+      </label>
+      {draftWeekday && draft ? (
+        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+          요일: <span className="font-medium">{draftWeekday}</span>
+        </p>
+      ) : null}
+      <div className="mt-2 flex items-center justify-between gap-1">
+        <button
+          type="button"
+          onClick={() => onCommit(null)}
+          disabled={!hasCurrent}
+          className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-rose-600 hover:bg-rose-50 disabled:opacity-40 dark:text-rose-400 dark:hover:bg-rose-950/40"
+        >
+          <X className="h-3 w-3" aria-hidden />
+          삭제
+        </button>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+          >
+            취소
+          </button>
+          <button
+            type="button"
+            onClick={save}
+            className="rounded bg-zinc-900 px-2 py-1 text-xs text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+          >
+            저장
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
