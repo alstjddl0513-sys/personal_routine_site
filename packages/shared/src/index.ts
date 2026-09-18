@@ -64,6 +64,7 @@ export interface Company {
   postingUrl: string | null;
   employmentType: EmploymentType | null;
   applicationDeadline: string | null;
+  isRolling: boolean;
   applicationStatus: ApplicationStatus;
   appliedAt: string | null;
   applicationDocUrl: string | null;
