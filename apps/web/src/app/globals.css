@@ -109,3 +109,59 @@ body {
     background-color: transparent;
   }
 }
+
+/* 인쇄 전용 스타일 — /jobs/report에서 window.print() 호출 시 활성.
+   앱 chrome(사이드바/서브내브/바텀내브)과 인쇄 무관 UI(.print:hidden)를
+   숨기고 표는 얇은 검정 테두리 + 링크는 URL 각주로. */
+@media print {
+  aside[data-app-sidebar],
+  nav[data-app-bottom-nav],
+  div[data-app-subnav],
+  .print\:hidden {
+    display: none !important;
+  }
+  html,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  main,
+  [data-report-root] {
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  [data-report-table] {
+    border: 1px solid #000;
+    border-collapse: collapse;
+    font-size: 10pt;
+    width: 100%;
+  }
+  [data-report-table] th,
+  [data-report-table] td {
+    border: 1px solid #000;
+    padding: 4px 6px;
+    background: transparent !important;
+    color: #000 !important;
+  }
+  tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  thead {
+    display: table-header-group;
+  }
+  a {
+    color: #000 !important;
+    text-decoration: none;
+  }
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 8pt;
+    color: #444;
+  }
+}
+@page {
+  size: A4 landscape;
+  margin: 12mm;
+}
