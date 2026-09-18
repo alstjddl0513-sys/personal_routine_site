@@ -22,6 +22,8 @@ import {
   DEFAULT_QUESTIONS,
 } from '../db/defaults';
 import { getSupabaseAdmin } from '../supabase-admin';
+import { deepMerge } from './preferences.util';
+import type { PatchPreferencesDto } from './dto/patch-preferences.dto';
 
 @Injectable()
 export class ProfilesService {
@@ -120,6 +122,34 @@ export class ProfilesService {
       }
       throw err;
     }
+  }
+
+  // preferences JSONB에 partial deep merge. Postgres `||` 대신 앱 레이어에서
+  // 병합한 뒤 통째 UPDATE — nested 필드(workoutSkip 등)가 shallow overwrite
+  // 되는 걸 막기 위함. FOR UPDATE row lock으로 동시 조작 시 lost-update 방지.
+  async patchPreferences(userId: string, patch: PatchPreferencesDto) {
+    return db.transaction(async (tx) => {
+      const [cur] = await tx
+        .select()
+        .from(profiles)
+        .where(eq(profiles.id, userId))
+        .for('update')
+        .limit(1);
+      if (!cur) throw new NotFoundException('profile not found');
+      const merged = deepMerge(
+        (cur.preferences ?? {}) as unknown as Record<string, unknown>,
+        patch as unknown as Record<string, unknown>,
+      );
+      const [row] = await tx
+        .update(profiles)
+        .set({
+          preferences: merged as unknown as typeof cur.preferences,
+          updatedAt: new Date(),
+        })
+        .where(eq(profiles.id, userId))
+        .returning();
+      return row;
+    });
   }
 
   // 계정 삭제 = auth.users(id) 삭제. profiles와 도메인 데이터는 각각의

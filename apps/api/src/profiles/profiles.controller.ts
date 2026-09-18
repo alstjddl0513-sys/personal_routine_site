@@ -15,6 +15,7 @@ import { Public } from '../public.decorator';
 import { requireUserId, type AuthedRequest } from '../supabase-auth.guard';
 import { ProfilesService } from './profiles.service';
 import { UpsertProfileDto } from './dto/upsert-profile.dto';
+import { PatchPreferencesDto } from './dto/patch-preferences.dto';
 
 @Controller('profiles')
 export class ProfilesController {
@@ -36,6 +37,15 @@ export class ProfilesController {
   renameMe(@Req() req: AuthedRequest, @Body() dto: UpsertProfileDto) {
     const userId = requireUserId(req);
     return this.service.renameMe(userId, dto.nickname);
+  }
+
+  // 알림 설정 서버 sync. shape는 packages/shared의 Preferences. 부분 patch
+  // 지원 — 예: `{ notif: { workoutSkip: { skipDays: 5 } } }`만 보내면
+  // 나머지 필드는 그대로 유지.
+  @Patch('me/preferences')
+  patchPrefs(@Req() req: AuthedRequest, @Body() dto: PatchPreferencesDto) {
+    const userId = requireUserId(req);
+    return this.service.patchPreferences(userId, dto);
   }
 
   // 계정 탈퇴. auth.users 삭제 → profiles·도메인 데이터가 CASCADE로 정리.
