@@ -49,6 +49,7 @@ function AddCompanyModal({
   const [name, setName] = useState('');
   const [type2, setType2] = useState<string>(defaultType2);
   const [type1, setType1] = useState<CompanyType1>(DEFAULT_TYPE1);
+  const [isRolling, setIsRolling] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const nameRef = useRef<HTMLInputElement>(null);
@@ -80,7 +81,7 @@ function AddCompanyModal({
         // 새로 추가하는 회사는 대체로 지금 채용중이라 기본값을 true로.
         // 채용 마감 시점에 사용자가 수동으로 off. 이 기본값 덕에 D-7 리스트/
         // D-1 알림에서 놓치지 않음.
-        await createCompany({ name: trimmed, type1, type2, isHiring: true });
+        await createCompany({ name: trimmed, type1, type2, isHiring: true, isRolling });
         router.refresh();
         onRequestClose();
       } catch (err) {
@@ -181,6 +182,16 @@ function AddCompanyModal({
               />
             </div>
           </div>
+
+          <label className="flex cursor-pointer items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400">
+            <input
+              type="checkbox"
+              checked={isRolling}
+              onChange={(e) => setIsRolling(e.target.checked)}
+              className="h-3.5 w-3.5 accent-blue-600"
+            />
+            상시채용 (마감일 없음)
+          </label>
 
           {error ? (
             <p className="text-xs text-rose-600 dark:text-rose-400">{error}</p>

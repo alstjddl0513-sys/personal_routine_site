@@ -126,6 +126,8 @@ export function pickTodayDeadlineNames(
   const names: string[] = [];
   for (const c of rows) {
     if (!c.applicationDeadline) continue;
+    // 상시채용은 고정 마감이 없어 오늘 마감 개념 불가.
+    if (c.isRolling) continue;
     if (!ACTIVE_STATUSES.has(c.applicationStatus)) continue;
     if (isSameLocalDay(new Date(c.applicationDeadline), now)) names.push(c.name);
   }

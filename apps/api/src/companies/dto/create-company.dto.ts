@@ -70,6 +70,10 @@ export class CreateCompanyDto {
   applicationDeadline?: string;
 
   @IsOptional()
+  @IsBoolean()
+  isRolling?: boolean;
+
+  @IsOptional()
   @IsEnum(ApplicationStatus)
   applicationStatus?: ApplicationStatus;
 

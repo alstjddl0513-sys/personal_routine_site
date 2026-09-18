@@ -51,9 +51,15 @@ export class CompaniesService {
   }
 
   async create(ownerId: string, dto: CreateCompanyDto) {
+    // is_rolling=true면 마감일은 개념상 의미 없으므로 강제 null.
+    // 클라가 명시적으로 둘 다 넘긴 경우도 상시 우선.
     const [row] = await db
       .insert(companies)
-      .values({ ...dto, ownerId })
+      .values({
+        ...dto,
+        ownerId,
+        ...(dto.isRolling === true ? { applicationDeadline: null } : {}),
+      })
       .returning();
     return row;
   }
@@ -77,6 +83,12 @@ export class CompaniesService {
       const now = new Date();
       const pad = (n: number) => String(n).padStart(2, '0');
       patch.appliedAt = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    }
+
+    // is_rolling=true로 전환하는 patch면 마감일 강제 null. 클라가 같이 명시하지
+    // 않은 경우만 자동 clear(명시적 값이 있으면 사용자 선택 존중).
+    if (dto.isRolling === true && dto.applicationDeadline === undefined) {
+      patch.applicationDeadline = null;
     }
 
     const [row] = await db

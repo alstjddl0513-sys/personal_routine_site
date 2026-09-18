@@ -89,7 +89,7 @@ export function JobsTable({
               </Td>
               <Td>
                 <Center>
-                  <DeadlinePopover id={c.id} value={c.applicationDeadline} />
+                  <DeadlinePopover id={c.id} value={c.applicationDeadline} isRolling={c.isRolling} />
                 </Center>
               </Td>
               <Td className="pr-0">

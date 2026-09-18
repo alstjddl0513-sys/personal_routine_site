@@ -76,7 +76,7 @@ export function JobCard({
               <StatusSelect id={c.id} value={c.applicationStatus} />
             </Row>
             <Row label="마감일">
-              <DeadlinePopover id={c.id} value={c.applicationDeadline} />
+              <DeadlinePopover id={c.id} value={c.applicationDeadline} isRolling={c.isRolling} />
             </Row>
             <Row label="공고링크">
               <UrlPopover id={c.id} value={c.postingUrl} />

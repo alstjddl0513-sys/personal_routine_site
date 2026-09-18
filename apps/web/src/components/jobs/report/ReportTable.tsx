@@ -70,7 +70,13 @@ export function ReportTable({ rows, companyTypes }: Props) {
               {APPLICATION_STATUS_LABELS[c.applicationStatus]}
             </td>
             <td className="px-2 py-1.5 text-center text-zinc-600 dark:text-zinc-400">
-              {formatDeadline(c.applicationDeadline)}
+              {c.isRolling ? (
+                <span className="inline-flex items-center whitespace-nowrap rounded bg-blue-100 px-1.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
+                  상시채용
+                </span>
+              ) : (
+                formatDeadline(c.applicationDeadline)
+              )}
             </td>
             <td className="px-2 py-1.5 whitespace-pre-wrap break-words text-zinc-600 dark:text-zinc-400">
               {c.note ? c.note : <span className="text-zinc-400">—</span>}

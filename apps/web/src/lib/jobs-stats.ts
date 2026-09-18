@@ -127,6 +127,10 @@ export function computeUpcomingDeadlines(
   const items: UpcomingDeadline[] = [];
   for (const c of rows) {
     if (!c.applicationDeadline) continue;
+    // 상시채용은 고정 마감이 없어 D-7/D-1 개념 자체가 성립 X. 서버가
+    // applicationDeadline을 null로 강제하므로 위 가드에 이미 걸리지만
+    // 명시 방어.
+    if (c.isRolling) continue;
     // isHiring은 필터 대상 아님 — 사용자가 마감일을 설정했다는 것 자체가
     // "지원 예정" 시그널. 채용중 토글을 깜빡 잊어도 D-7 리스트/D-1 알림에서
     // 놓치지 않도록. 이미 최종 상태(합격/탈락/철회)는 ACTIVE_STATUSES에서 걸러짐.
@@ -166,6 +170,8 @@ export function computeMissedPostings(
   const items: MissedPosting[] = [];
   for (const c of rows) {
     if (!c.applicationDeadline) continue;
+    // 상시채용은 마감 자체가 없어 "놓친 공고" 개념 불가.
+    if (c.isRolling) continue;
     if (c.applicationStatus !== 'not_applied') continue;
     const daysLeft = daysUntil(c.applicationDeadline, now);
     if (daysLeft >= 0 || daysLeft < -windowDays) continue;

@@ -45,6 +45,7 @@ export type CompanyPatch = Partial<
     | 'postingUrl'
     | 'employmentType'
     | 'applicationDeadline'
+    | 'isRolling'
     | 'applicationStatus'
     | 'appliedAt'
     | 'applicationDocUrl'
