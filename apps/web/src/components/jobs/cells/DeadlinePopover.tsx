@@ -114,8 +114,8 @@ export function DeadlinePopover({
         aria-expanded={open}
       >
         {currentRolling ? (
-          <span className="inline-flex items-center rounded bg-blue-100 px-1.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
-            상시
+          <span className="inline-flex items-center whitespace-nowrap rounded bg-blue-100 px-1.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
+            상시채용
           </span>
         ) : currentIso ? (
           <>
