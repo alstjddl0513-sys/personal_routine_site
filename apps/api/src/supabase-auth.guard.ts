@@ -10,16 +10,12 @@ import type { Request } from 'express';
 import { createRemoteJWKSet, jwtVerify, type JWTPayload } from 'jose';
 import { IS_PUBLIC_KEY } from './public.decorator';
 
-// Supabase-issued JWT verifier (asymmetric, ES256 via JWKS).
-// This Supabase project already migrated to JWKS-based signing keys, so we
-// fetch the public keyset from the project's well-known endpoint and let jose
+// Supabase-issued JWT verifier (asymmetric, ES256 via JWKS). Fetches the
+// public keyset from the project's well-known endpoint and lets jose
 // cache/rotate it. Attaches { id, email } to req.user on success. When
-// SUPABASE_URL is unset the guard is a no-op, mirroring AccessTokenGuard so
-// local dev needs no extra config. /health stays public for Render's uptime
-// pinger.
-//
-// Not yet registered in AppModule — wired in Phase 12.2 alongside the
-// frontend Supabase Auth cutover.
+// SUPABASE_URL is unset the guard is a no-op so local dev needs no extra
+// config; production boot is gated in bootstrap-env.ts. /health stays public
+// for Render's uptime pinger.
 
 export interface AuthUser {
   id: string;
