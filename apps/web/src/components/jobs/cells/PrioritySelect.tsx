@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
+import { useOptimistic, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { PRIORITY_LABELS, PRIORITY_VALUES, type Priority } from '@repo/shared';
 import { patchCompany } from '../../../lib/api';
@@ -30,23 +30,17 @@ export function PrioritySelect({
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [current, setCurrent] = useState(value);
-
-  useEffect(() => {
-    setCurrent(value);
-  }, [value]);
+  const [current, setCurrent] = useOptimistic(value);
 
   function commit(next: string) {
     if (next === current) return;
-    const prev = current;
-    setCurrent(next as Priority);
     startTransition(async () => {
+      setCurrent(next as Priority);
       try {
         await patchCompany(id, { priority: next as Priority });
         router.refresh();
       } catch (err) {
         console.error(err);
-        setCurrent(prev);
       }
     });
   }

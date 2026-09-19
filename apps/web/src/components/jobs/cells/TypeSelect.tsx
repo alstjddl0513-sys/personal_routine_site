@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState, useTransition } from 'react';
+import { useMemo, useOptimistic, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { type CompanyType } from '@repo/shared';
 import { patchCompany } from '../../../lib/api';
@@ -17,11 +17,7 @@ export function TypeSelect({
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [current, setCurrent] = useState(value);
-
-  useEffect(() => {
-    setCurrent(value);
-  }, [value]);
+  const [current, setCurrent] = useOptimistic(value);
 
   // Existing companies may hold a type2 value whose row has since been
   // deleted from company_types. Surface the raw key with "(삭제됨)" so it
@@ -42,15 +38,13 @@ export function TypeSelect({
 
   function commit(next: string) {
     if (next === current) return;
-    const prev = current;
-    setCurrent(next);
     startTransition(async () => {
+      setCurrent(next);
       try {
         await patchCompany(id, { type2: next });
         router.refresh();
       } catch (err) {
         console.error(err);
-        setCurrent(prev);
       }
     });
   }

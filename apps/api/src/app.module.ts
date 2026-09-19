@@ -14,12 +14,18 @@ import { TimeBlocksModule } from './time-blocks/time-blocks.module';
 import { RoutineChecksModule } from './routine-checks/routine-checks.module';
 import { DayNotesModule } from './day-notes/day-notes.module';
 import { ExercisesModule } from './exercises/exercises.module';
+import { MuscleGoalsModule } from './muscle-goals/muscle-goals.module';
 import { WorkoutSessionsModule } from './workout-sessions/workout-sessions.module';
 import { WorkoutSetsModule } from './workout-sets/workout-sets.module';
 import { ExportModule } from './export/export.module';
 import { BlogSourcesModule } from './blog-sources/blog-sources.module';
 import { BlogPostsModule } from './blog-posts/blog-posts.module';
 import { ProfilesModule } from './profiles/profiles.module';
+import { QuestionCategoriesModule } from './question-categories/question-categories.module';
+import { QuestionsModule } from './questions/questions.module';
+import { DocumentsModule } from './documents/documents.module';
+import { AdminModule } from './admin/admin.module';
+import { AnnouncementsModule } from './announcements/announcements.module';
 
 @Module({
   imports: [
@@ -37,12 +43,18 @@ import { ProfilesModule } from './profiles/profiles.module';
     RoutineChecksModule,
     DayNotesModule,
     ExercisesModule,
+    MuscleGoalsModule,
     WorkoutSessionsModule,
     WorkoutSetsModule,
     ExportModule,
     BlogSourcesModule,
     BlogPostsModule,
     ProfilesModule,
+    QuestionCategoriesModule,
+    QuestionsModule,
+    DocumentsModule,
+    AdminModule,
+    AnnouncementsModule,
   ],
   controllers: [AppController, HealthController],
   providers: [

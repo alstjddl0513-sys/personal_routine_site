@@ -2,17 +2,20 @@ import { Suspense } from 'react';
 import {
   getExerciseStats,
   getExercises,
-  getWorkoutHeatmap,
+  getMuscleGoals,
+  getMuscleSets,
+  getWeeklyVolume,
   getWorkoutSessionsRange,
 } from '../../../lib/api';
 import { addDays, mondayOf, toISODate } from '../../../lib/routines-week';
 import { calcBestWeeklyStreak, calcWeeklyStreak } from '../../../lib/streak';
 import { ExerciseStatsCard } from '../../../components/workouts/ExerciseStatsCard';
-import { HeatmapCard } from '../../../components/workouts/HeatmapCard';
+import { MuscleGoalsCard } from '../../../components/workouts/MuscleGoalsCard';
+import { WeeklyVolumeCard } from '../../../components/workouts/WeeklyVolumeCard';
 import { Skeleton } from '../../../components/Skeleton';
 import { StreakBadge } from '../../../components/StreakBadge';
 
-const HEATMAP_WEEKS = 12;
+const VOLUME_WEEKS = 12;
 const HISTORY_LIMIT = 12;
 const STREAK_WEEKS = 26; // ~6 months for best-streak lookback
 const WEEKLY_THRESHOLD = 3;
@@ -36,12 +39,16 @@ async function WorkoutsStatisticsContent() {
   const currentMon = mondayOf(today);
   const streakFrom = toISODate(addDays(currentMon, -(STREAK_WEEKS - 1) * 7));
   const rangeTo = toISODate(addDays(currentMon, 6));
-  const heatmapFrom = toISODate(addDays(currentMon, -(HEATMAP_WEEKS - 1) * 7));
+  const volumeFrom = toISODate(addDays(currentMon, -(VOLUME_WEEKS - 1) * 7));
+  const weekFrom = toISODate(currentMon);
+  const weekTo = toISODate(addDays(currentMon, 6));
 
-  const [exercises, sessions, heatmapEntries] = await Promise.all([
+  const [exercises, sessions, volumeEntries, muscleGoals, muscleSets] = await Promise.all([
     getExercises(),
     getWorkoutSessionsRange({ from: streakFrom, to: rangeTo }),
-    getWorkoutHeatmap({ from: heatmapFrom, to: rangeTo }),
+    getWeeklyVolume({ from: volumeFrom, to: rangeTo }),
+    getMuscleGoals(),
+    getMuscleSets({ from: weekFrom, to: weekTo }),
   ]);
 
   const statsList = await Promise.all(
@@ -67,16 +74,21 @@ async function WorkoutsStatisticsContent() {
         caption={`주 ${WEEKLY_THRESHOLD}회+`}
       />
 
-      <HeatmapCard
-        entries={heatmapEntries}
-        totalExercises={exercises.length}
+      <WeeklyVolumeCard
+        entries={volumeEntries}
         today={today}
-        weeks={HEATMAP_WEEKS}
+        weeks={VOLUME_WEEKS}
+      />
+
+      <MuscleGoalsCard
+        goals={muscleGoals}
+        entries={muscleSets}
+        rangeLabel="이번주"
       />
 
       {exercises.length === 0 ? (
         <div className="rounded-md border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500 dark:border-zinc-700">
-          등록된 운동이 없습니다.
+          아직 등록한 운동이 없어요. 설정에서 운동 종목을 추가해보세요.
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">

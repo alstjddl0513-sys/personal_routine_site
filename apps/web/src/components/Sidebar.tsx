@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
+  BookOpen,
   Briefcase,
   CalendarCheck2,
   ChevronDown,
@@ -11,8 +12,10 @@ import {
   LogOut,
   Rss,
   Settings,
+  Shield,
 } from 'lucide-react';
 import { useEffect, useState, useSyncExternalStore, type ComponentType, type SVGProps } from 'react';
+import { NotifBell } from './NotifBell';
 import { ThemeToggle } from './ThemeToggle';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { getMyProfile } from '@/lib/api';
@@ -60,6 +63,17 @@ const NAV: NavItem[] = [
     children: [
       { href: '/workouts', label: '기록' },
       { href: '/workouts/statistics', label: '통계' },
+    ],
+  },
+  {
+    href: '/learn',
+    label: '학습',
+    icon: BookOpen,
+    matchPrefixes: ['/learn'],
+    children: [
+      { href: '/learn', label: '오늘의 학습' },
+      { href: '/learn/review', label: '복습' },
+      { href: '/learn/statistics', label: '통계' },
     ],
   },
   {
@@ -125,10 +139,13 @@ function writeCollapsed(next: CollapsedMap) {
 
 function UserRow() {
   const [label, setLabel] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // Read the session on mount and whenever auth state flips (login/logout).
   // Nickname is the display label; if the profile row hasn't been created
   // yet (edge case) fall back to the email's local part.
+  // isAdmin(Phase 12.5)은 /admin 링크 조건부 렌더에만 사용 — 서버 진리치라
+  // 클라 조작 시도해도 실제 API는 AdminGuard로 재검증.
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
     let cancelled = false;
@@ -138,7 +155,10 @@ function UserRow() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
-        if (!cancelled) setLabel(null);
+        if (!cancelled) {
+          setLabel(null);
+          setIsAdmin(false);
+        }
         return;
       }
       try {
@@ -146,11 +166,16 @@ function UserRow() {
         if (cancelled) return;
         if (profile) {
           setLabel(profile.nickname);
+          setIsAdmin(profile.isAdmin);
         } else {
           setLabel(user.email?.split('@')[0] ?? '유저');
+          setIsAdmin(false);
         }
       } catch {
-        if (!cancelled) setLabel(user.email?.split('@')[0] ?? '유저');
+        if (!cancelled) {
+          setLabel(user.email?.split('@')[0] ?? '유저');
+          setIsAdmin(false);
+        }
       }
     }
 
@@ -166,8 +191,19 @@ function UserRow() {
 
   if (!label) return null;
   return (
-    <div className="border-t border-zinc-200 px-4 py-2 text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-500">
-      <span className="truncate" title={label}>{label}</span>
+    <div className="flex items-center gap-2 border-t border-zinc-200 px-4 py-2 text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-500">
+      <span className="min-w-0 flex-1 truncate" title={label}>
+        {label}
+      </span>
+      {isAdmin ? (
+        <Link
+          href="/admin"
+          aria-label="관리자 페이지"
+          className="inline-flex h-6 w-6 items-center justify-center rounded-md text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+        >
+          <Shield className="h-3.5 w-3.5" aria-hidden />
+        </Link>
+      ) : null}
     </div>
   );
 }
@@ -197,7 +233,12 @@ function LogoutButton() {
 function isActive(pathname: string, href: string) {
   // Parents whose href doubles as a child link need exact match, otherwise
   // both parent and sub-route link highlight simultaneously.
-  if (href === '/jobs' || href === '/workouts' || href === '/routines') {
+  if (
+    href === '/jobs' ||
+    href === '/workouts' ||
+    href === '/routines' ||
+    href === '/learn'
+  ) {
     return pathname === href;
   }
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -232,7 +273,10 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-zinc-200 bg-zinc-50 md:flex dark:border-zinc-800 dark:bg-zinc-950">
+    <aside
+      data-app-sidebar
+      className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-zinc-200 bg-zinc-50 md:flex dark:border-zinc-800 dark:bg-zinc-950"
+    >
       <div className="px-5 pt-5 pb-4">
         <Link href="/jobs" className="text-base font-semibold tracking-tight">
           Rally
@@ -316,8 +360,9 @@ export function Sidebar() {
           <span>설정</span>
         </Link>
         <div className="flex items-center gap-1">
-          <LogoutButton />
           <ThemeToggle />
+          <NotifBell />
+          <LogoutButton />
         </div>
       </div>
     </aside>

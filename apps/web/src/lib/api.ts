@@ -1,20 +1,42 @@
 import type {
+  AdminUsersPage,
+  Announcement,
   ApplicationStatus,
+  BanDurationHours,
   BlogPost,
   BlogRefreshResult,
   BlogSource,
   Company,
   CompanyType,
   CompanyType1,
+  CreateAnnouncementInput,
   DayNote,
+  Document,
+  DocumentKind,
   Exercise,
   ExerciseStats,
+  InitDocumentInput,
+  InitDocumentResult,
   NicknameAvailability,
+  Preferences,
   PreviousWorkout,
   Priority,
   Profile,
+  Question,
+  QuestionCategory,
+  QuestionDetail,
+  QuestionHeatmapEntry,
+  QuestionLog,
+  QuestionStatsSummary,
+  QuestionStatus,
+  MuscleGoal,
+  MuscleSetCountEntry,
+  RandomQuestion,
   RoutineCheck,
   TimeBlock,
+  UpdateAnnouncementInput,
+  UserAnnouncement,
+  WeeklyVolumeEntry,
   WorkoutHeatmapEntry,
   WorkoutSession,
   WorkoutSet,
@@ -33,6 +55,7 @@ export type CompanyPatch = Partial<
     | 'postingUrl'
     | 'employmentType'
     | 'applicationDeadline'
+    | 'isRolling'
     | 'applicationStatus'
     | 'appliedAt'
     | 'applicationDocUrl'
@@ -183,7 +206,11 @@ export async function patchCompany(id: string, patch: CompanyPatch): Promise<Com
     body: JSON.stringify(patch),
   });
   if (!res.ok) {
-    throw new Error(`PATCH /companies/${id} failed: HTTP ${res.status}`);
+    const body = await res.text().catch(() => '');
+    throw new HttpError(
+      `PATCH /companies/${id} failed: HTTP ${res.status}${body ? ` — ${body}` : ''}`,
+      res.status,
+    );
   }
   return (await res.json()) as Company;
 }
@@ -441,6 +468,60 @@ export async function getWorkoutHeatmap(range: {
   return (await res.json()) as WorkoutHeatmapEntry[];
 }
 
+export async function getWeeklyVolume(range: {
+  from: string;
+  to: string;
+}): Promise<WeeklyVolumeEntry[]> {
+  const qs = new URLSearchParams({ from: range.from, to: range.to });
+  const res = await fetch(apiUrl(`/workout-sets/weekly-volume?${qs.toString()}`), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new Error(`GET /workout-sets/weekly-volume failed: HTTP ${res.status}`);
+  }
+  return (await res.json()) as WeeklyVolumeEntry[];
+}
+
+export async function getMuscleSets(range: {
+  from: string;
+  to: string;
+}): Promise<MuscleSetCountEntry[]> {
+  const qs = new URLSearchParams({ from: range.from, to: range.to });
+  const res = await fetch(apiUrl(`/workout-sets/muscle-sets?${qs.toString()}`), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new Error(`GET /workout-sets/muscle-sets failed: HTTP ${res.status}`);
+  }
+  return (await res.json()) as MuscleSetCountEntry[];
+}
+
+export async function getMuscleGoals(): Promise<MuscleGoal[]> {
+  const res = await fetch(apiUrl('/muscle-goals'), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) throw new Error(`GET /muscle-goals failed: HTTP ${res.status}`);
+  return (await res.json()) as MuscleGoal[];
+}
+
+export async function putMuscleGoal(
+  muscleKey: string,
+  weeklySetTarget: number,
+): Promise<MuscleGoal> {
+  const res = await fetch(apiUrl(`/muscle-goals/${encodeURIComponent(muscleKey)}`), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify({ weeklySetTarget }),
+  });
+  if (!res.ok) {
+    throw new Error(`PUT /muscle-goals/${muscleKey} failed: HTTP ${res.status}`);
+  }
+  return (await res.json()) as MuscleGoal;
+}
+
 export async function getExerciseStats(params: {
   exerciseId: string;
   limit?: number;
@@ -602,6 +683,36 @@ export async function renameMyNickname(nickname: string): Promise<Profile> {
   return (await res.json()) as Profile;
 }
 
+// 부분 patch — 서버가 deep merge. shape는 Preferences와 동일하되 모든
+// 필드가 optional. 서버는 whitelist ValidationPipe로 unknown 키를 400 처리.
+export type PreferencesPatch = {
+  notif?: {
+    master?: boolean;
+    morningSummary?: boolean;
+    deadline?: boolean;
+    routineEvening?: boolean;
+    workoutSkip?: {
+      enabled?: boolean;
+      skipDays?: number;
+    };
+  };
+};
+
+export async function patchMyPreferences(patch: PreferencesPatch): Promise<Profile> {
+  const res = await fetch(apiUrl('/profiles/me/preferences'), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `PATCH /profiles/me/preferences failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as Profile;
+}
+
 // 계정 탈퇴. 성공 시 서버는 auth.users를 지우고 profiles·도메인 데이터가
 // FK CASCADE로 함께 정리. 클라는 응답 후 signOut → /login으로 이동.
 export async function deleteMyAccount(): Promise<void> {
@@ -626,4 +737,502 @@ export async function checkNicknameAvailability(
     throw new Error(`GET /profiles/check-nickname failed: HTTP ${res.status}`);
   }
   return (await res.json()) as NicknameAvailability;
+}
+
+// --- learn (CS questions) ---
+
+// Today's 5-question set. Server picks deterministically by (owner, date)
+// so the same date always returns the same 5. Client passes its local KST
+// date as the seed. `categories`가 있으면 해당 카테고리로 스코프를 좁힘.
+export async function getDailyQuestions(
+  date: string,
+  categories?: readonly string[],
+): Promise<RandomQuestion[]> {
+  const qs = new URLSearchParams({ date });
+  if (categories && categories.length > 0) qs.set('categories', categories.join(','));
+  const res = await fetch(apiUrl(`/questions/daily?${qs.toString()}`), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `GET /questions/daily failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as RandomQuestion[];
+}
+
+// '복습필요'로 마킹된 질문들. 오래된(updated_at ASC) 순서라 spaced-repetition
+// 직관을 따라감. 재답변으로 status가 'understood'로 바뀌어도 리스트가 실시간
+// 갱신되진 않고 다음 페이지 진입 시에 반영됨.
+export async function getReviewQuestions(
+  categories?: readonly string[],
+): Promise<RandomQuestion[]> {
+  const qs = new URLSearchParams();
+  if (categories && categories.length > 0) qs.set('categories', categories.join(','));
+  const url = qs.toString()
+    ? apiUrl(`/questions/review?${qs.toString()}`)
+    : apiUrl('/questions/review');
+  const res = await fetch(url, {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `GET /questions/review failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as RandomQuestion[];
+}
+
+export async function getQuestionDetail(id: string): Promise<QuestionDetail> {
+  const res = await fetch(apiUrl(`/questions/${id}`), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(`GET /questions/${id} failed: HTTP ${res.status}`, res.status);
+  }
+  return (await res.json()) as QuestionDetail;
+}
+
+export async function logQuestion(
+  id: string,
+  status: QuestionStatus,
+): Promise<QuestionLog> {
+  const res = await fetch(apiUrl(`/questions/${id}/log`), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify({ status }),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `PUT /questions/${id}/log failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as QuestionLog;
+}
+
+export async function getQuestionHeatmap(range: {
+  from: string;
+  to: string;
+}): Promise<QuestionHeatmapEntry[]> {
+  const qs = new URLSearchParams({ from: range.from, to: range.to });
+  const res = await fetch(apiUrl(`/questions/stats/heatmap?${qs.toString()}`), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new Error(`GET /questions/stats/heatmap failed: HTTP ${res.status}`);
+  }
+  return (await res.json()) as QuestionHeatmapEntry[];
+}
+
+export async function getQuestionStatsSummary(): Promise<QuestionStatsSummary> {
+  const res = await fetch(apiUrl('/questions/stats/summary'), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new Error(`GET /questions/stats/summary failed: HTTP ${res.status}`);
+  }
+  return (await res.json()) as QuestionStatsSummary;
+}
+
+// --- questions (관리 페이지 CRUD) ---
+
+export async function getAllQuestions(
+  categories?: readonly string[],
+): Promise<Question[]> {
+  const qs = new URLSearchParams();
+  if (categories && categories.length > 0) qs.set('categories', categories.join(','));
+  const url = qs.toString()
+    ? apiUrl(`/questions?${qs.toString()}`)
+    : apiUrl('/questions');
+  const res = await fetch(url, {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) throw new Error(`GET /questions failed: HTTP ${res.status}`);
+  return (await res.json()) as Question[];
+}
+
+export async function createQuestion(input: {
+  content: string;
+  answer: string;
+  tip?: string | null;
+  categoryKey?: string | null;
+}): Promise<Question> {
+  const res = await fetch(apiUrl('/questions'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(`POST /questions failed: HTTP ${res.status}`);
+  return (await res.json()) as Question;
+}
+
+export async function patchQuestion(
+  id: string,
+  patch: {
+    content?: string;
+    answer?: string;
+    tip?: string | null;
+    categoryKey?: string | null;
+  },
+): Promise<Question> {
+  const res = await fetch(apiUrl(`/questions/${id}`), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok) throw new Error(`PATCH /questions/${id} failed: HTTP ${res.status}`);
+  return (await res.json()) as Question;
+}
+
+export async function deleteQuestion(id: string): Promise<void> {
+  const res = await fetch(apiUrl(`/questions/${id}`), {
+    method: 'DELETE',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) throw new Error(`DELETE /questions/${id} failed: HTTP ${res.status}`);
+}
+
+// --- question-categories (user-editable list backing questions.category_key) ---
+
+export async function getQuestionCategories(): Promise<QuestionCategory[]> {
+  const res = await fetch(apiUrl('/question-categories'), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) throw new Error(`GET /question-categories failed: HTTP ${res.status}`);
+  return (await res.json()) as QuestionCategory[];
+}
+
+export async function createQuestionCategory(input: {
+  key: string;
+  label: string;
+  sortOrder?: number;
+}): Promise<QuestionCategory> {
+  const res = await fetch(apiUrl('/question-categories'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(`POST /question-categories failed: HTTP ${res.status}`);
+  return (await res.json()) as QuestionCategory;
+}
+
+export async function patchQuestionCategory(
+  id: string,
+  patch: { label?: string; sortOrder?: number },
+): Promise<QuestionCategory> {
+  const res = await fetch(apiUrl(`/question-categories/${id}`), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok)
+    throw new Error(`PATCH /question-categories/${id} failed: HTTP ${res.status}`);
+  return (await res.json()) as QuestionCategory;
+}
+
+export async function deleteQuestionCategory(id: string): Promise<void> {
+  const res = await fetch(apiUrl(`/question-categories/${id}`), {
+    method: 'DELETE',
+    headers: await authHeaders(),
+  });
+  if (!res.ok)
+    throw new Error(`DELETE /question-categories/${id} failed: HTTP ${res.status}`);
+}
+
+// --- documents (이력서·포폴·외부 링크) ---
+
+export async function listDocuments(kind?: DocumentKind): Promise<Document[]> {
+  const qs = new URLSearchParams();
+  if (kind) qs.set('kind', kind);
+  const url = apiUrl(`/documents${qs.size ? `?${qs.toString()}` : ''}`);
+  const res = await fetch(url, {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) throw new Error(`GET /documents failed: HTTP ${res.status}`);
+  return (await res.json()) as Document[];
+}
+
+// 2단계 업로드 1단계. 서버가 row insert + Supabase Storage signed upload URL
+// 발급. 다음 단계로 반환 uploadUrl에 PUT 하면 됨(`uploadDocumentFile`).
+export async function initDocumentUpload(
+  input: InitDocumentInput,
+): Promise<InitDocumentResult> {
+  const res = await fetch(apiUrl('/documents/init'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    // 서버가 상세 에러 메시지 담아 보냄(크기 초과 등).
+    const text = await res.text().catch(() => '');
+    throw new HttpError(
+      `POST /documents/init failed: HTTP ${res.status} ${text}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as InitDocumentResult;
+}
+
+// 2단계 업로드 2단계. Supabase Storage로 직접 PUT.
+// createSignedUploadUrl이 반환하는 uploadUrl은 이미 인증 토큰 포함(x-upsert
+// 없이 단일 use). Content-Type은 실제 파일 mime.
+export async function uploadDocumentFile(
+  uploadUrl: string,
+  file: File,
+): Promise<void> {
+  const res = await fetch(uploadUrl, {
+    method: 'PUT',
+    headers: { 'Content-Type': file.type || 'application/octet-stream' },
+    body: file,
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Storage upload failed: HTTP ${res.status} ${text}`);
+  }
+}
+
+export async function createLinkDocument(input: {
+  title: string;
+  url: string;
+  notes?: string;
+}): Promise<Document> {
+  const res = await fetch(apiUrl('/documents/link'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `POST /documents/link failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as Document;
+}
+
+export type DocumentPatch = {
+  title?: string;
+  notes?: string;
+  isActive?: boolean;
+  url?: string;
+};
+
+export async function patchDocument(
+  id: string,
+  patch: DocumentPatch,
+): Promise<Document> {
+  const res = await fetch(apiUrl(`/documents/${id}`), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `PATCH /documents/${id} failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as Document;
+}
+
+export async function deleteDocument(id: string): Promise<void> {
+  const res = await fetch(apiUrl(`/documents/${id}`), {
+    method: 'DELETE',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `DELETE /documents/${id} failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+}
+
+// 60분 만료 signed URL. 링크 kind는 400 (클라가 url 필드를 직접 열도록).
+export async function getDocumentDownloadUrl(
+  id: string,
+): Promise<{ url: string; expiresAt: string }> {
+  const res = await fetch(apiUrl(`/documents/${id}/download`), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `GET /documents/${id}/download failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as { url: string; expiresAt: string };
+}
+
+// --- admin (Phase 12.5) ---
+
+export interface ListAdminUsersOptions {
+  page?: number;
+  perPage?: number;
+  search?: string;
+  sortBy?: 'createdAt' | 'lastSignInAt';
+}
+
+export async function listAdminUsers(
+  opts: ListAdminUsersOptions = {},
+): Promise<AdminUsersPage> {
+  const qs = new URLSearchParams();
+  if (opts.page) qs.set('page', String(opts.page));
+  if (opts.perPage) qs.set('perPage', String(opts.perPage));
+  if (opts.search) qs.set('search', opts.search);
+  if (opts.sortBy) qs.set('sortBy', opts.sortBy);
+  const url = qs.toString()
+    ? apiUrl(`/admin/users?${qs.toString()}`)
+    : apiUrl('/admin/users');
+  const res = await fetch(url, {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(`GET /admin/users failed: HTTP ${res.status}`, res.status);
+  }
+  return (await res.json()) as AdminUsersPage;
+}
+
+export async function banUser(
+  id: string,
+  durationHours: BanDurationHours,
+): Promise<{ id: string; bannedUntil: string | null }> {
+  const res = await fetch(apiUrl(`/admin/users/${id}/ban`), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify({ durationHours }),
+  });
+  if (!res.ok) {
+    throw new HttpError(`POST /admin/users/${id}/ban failed: HTTP ${res.status}`, res.status);
+  }
+  return (await res.json()) as { id: string; bannedUntil: string | null };
+}
+
+export async function unbanUser(
+  id: string,
+): Promise<{ id: string; bannedUntil: string | null }> {
+  const res = await fetch(apiUrl(`/admin/users/${id}/unban`), {
+    method: 'POST',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(`POST /admin/users/${id}/unban failed: HTTP ${res.status}`, res.status);
+  }
+  return (await res.json()) as { id: string; bannedUntil: string | null };
+}
+
+export async function deleteUserAsAdmin(id: string): Promise<void> {
+  const res = await fetch(apiUrl(`/admin/users/${id}`), {
+    method: 'DELETE',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(`DELETE /admin/users/${id} failed: HTTP ${res.status}`, res.status);
+  }
+}
+
+export async function listAllAnnouncements(): Promise<Announcement[]> {
+  const res = await fetch(apiUrl('/admin/announcements'), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `GET /admin/announcements failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as Announcement[];
+}
+
+export async function createAnnouncement(
+  input: CreateAnnouncementInput,
+): Promise<Announcement> {
+  const res = await fetch(apiUrl('/admin/announcements'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `POST /admin/announcements failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as Announcement;
+}
+
+export async function patchAnnouncement(
+  id: string,
+  input: UpdateAnnouncementInput,
+): Promise<Announcement> {
+  const res = await fetch(apiUrl(`/admin/announcements/${id}`), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `PATCH /admin/announcements/${id} failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as Announcement;
+}
+
+export async function deleteAnnouncement(id: string): Promise<void> {
+  const res = await fetch(apiUrl(`/admin/announcements/${id}`), {
+    method: 'DELETE',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `DELETE /admin/announcements/${id} failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+}
+
+// --- announcements (일반 유저) ---
+
+// 활성 + 기간 매치 + 나에게 노출되는 공지 전부. 읽음 시점은 readAt에 담김
+// (null=미읽음). 인박스 스타일 렌더에 사용.
+export async function getMyAnnouncements(): Promise<UserAnnouncement[]> {
+  const res = await fetch(apiUrl('/announcements'), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `GET /announcements failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as UserAnnouncement[];
+}
+
+export async function markAnnouncementRead(id: string): Promise<void> {
+  const res = await fetch(apiUrl(`/announcements/${id}/read`), {
+    method: 'POST',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `POST /announcements/${id}/read failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
 }

@@ -73,6 +73,10 @@ export const companies = pgTable('companies', {
     .notNull()
     .default('not_applied'),
   appliedAt: date('applied_at'),
+  // 상시채용(rolling): 고정 마감일 없이 계속 뽑는 공고. true면
+  // applicationDeadline은 서비스 레이어에서 null로 강제되고, D-1/D-3 알림 ·
+  // 오늘 마감 카운트 · 놓친 공고 통계에서 제외됨.
+  isRolling: boolean('is_rolling').notNull().default(false),
   applicationDocUrl: text('application_doc_url'),
   progressNote: text('progress_note'),
 

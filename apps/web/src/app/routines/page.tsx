@@ -76,7 +76,11 @@ async function RoutinesContent({ week }: { week: WeekInfo }) {
         <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
           이번주 회고
         </h2>
-        <RoutineRetro weekStart={week.from} initialContent={retroContent} />
+        <RoutineRetro
+          key={week.from}
+          weekStart={week.from}
+          initialContent={retroContent}
+        />
       </section>
     </>
   );

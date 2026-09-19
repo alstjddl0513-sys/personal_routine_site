@@ -56,3 +56,112 @@ body {
 .dark .thin-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: rgb(82 82 91); /* zinc-600 */
 }
+
+/* /learn 카드 넘기기 애니메이션. subtle rotateY + translate로 물리 카드 넘기는
+   느낌. React key 갱신 시 자동 재생. 방향(next/prev)별로 두 벌. */
+@keyframes card-flip-in-right {
+  from {
+    transform: translateX(28px) rotateY(-12deg);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) rotateY(0);
+    opacity: 1;
+  }
+}
+@keyframes card-flip-in-left {
+  from {
+    transform: translateX(-28px) rotateY(12deg);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) rotateY(0);
+    opacity: 1;
+  }
+}
+.animate-card-flip-in-right {
+  animation: card-flip-in-right 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform-origin: left center;
+}
+.animate-card-flip-in-left {
+  animation: card-flip-in-left 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform-origin: right center;
+}
+
+/* 통계 → /jobs?highlight=id 이동 시 해당 row/카드에 잠깐 노란 강조.
+   HighlightScroller가 2.5초 뒤 URL에서 highlight 파라미터를 제거하므로
+   애니메이션 duration도 동일. peak 색을 CSS variable로 두어 다크모드에서
+   더 어두운 톤으로 자동 교체. */
+:root {
+  --highlight-flash-peak: rgba(254, 240, 138, 0.6); /* yellow-200 60% */
+}
+.dark {
+  --highlight-flash-peak: rgba(133, 77, 14, 0.4); /* yellow-800 40% */
+}
+@keyframes highlight-flash {
+  0% {
+    background-color: transparent;
+  }
+  15% {
+    background-color: var(--highlight-flash-peak);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+/* 인쇄 전용 스타일 — /jobs/report에서 window.print() 호출 시 활성.
+   앱 chrome(사이드바/서브내브/바텀내브)과 인쇄 무관 UI(.print:hidden)를
+   숨기고 표는 얇은 검정 테두리 + 링크는 URL 각주로. */
+@media print {
+  aside[data-app-sidebar],
+  nav[data-app-bottom-nav],
+  div[data-app-subnav],
+  .print\:hidden {
+    display: none !important;
+  }
+  html,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  main,
+  [data-report-root] {
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  [data-report-table] {
+    border: 1px solid #000;
+    border-collapse: collapse;
+    font-size: 10pt;
+    width: 100%;
+  }
+  [data-report-table] th,
+  [data-report-table] td {
+    border: 1px solid #000;
+    padding: 4px 6px;
+    background: transparent !important;
+    color: #000 !important;
+  }
+  tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  thead {
+    display: table-header-group;
+  }
+  a {
+    color: #000 !important;
+    text-decoration: none;
+  }
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 8pt;
+    color: #444;
+  }
+}
+@page {
+  size: A4 landscape;
+  margin: 12mm;
+}

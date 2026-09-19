@@ -4,17 +4,36 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { eq, sql } from 'drizzle-orm';
 import { db } from '../db/client';
-import { blogSources, companyTypes, profiles } from '../db/schema';
+import {
+  blogSources,
+  companyTypes,
+  muscleGoals,
+  profiles,
+  questionCategories,
+  questions,
+} from '../db/schema';
 import {
   DEFAULT_BLOG_SOURCES,
   DEFAULT_COMPANY_TYPES,
+  DEFAULT_MUSCLE_GOALS,
+  DEFAULT_QUESTION_CATEGORIES,
+  DEFAULT_QUESTIONS,
 } from '../db/defaults';
 import { getSupabaseAdmin } from '../supabase-admin';
+import { isAdminUserId } from '../admin/is-admin.util';
+import { deepMerge } from './preferences.util';
+import type { PatchPreferencesDto } from './dto/patch-preferences.dto';
 
 @Injectable()
 export class ProfilesService {
+  constructor(private readonly config: ConfigService) {}
+
+  // isAdmin은 DB 컬럼이 아니라 env `ADMIN_USER_IDS` 매치로 파생. 서비스가
+  // 컨트롤러 대신 이 계산까지 책임져야 응답 shape가 shared `Profile` 타입과
+  // 정확히 일치한다. Phase 12.5.
   async findMe(userId: string) {
     const [row] = await db
       .select()
@@ -22,12 +41,13 @@ export class ProfilesService {
       .where(eq(profiles.id, userId))
       .limit(1);
     if (!row) throw new NotFoundException('profile not found');
-    return row;
+    return { ...row, isAdmin: isAdminUserId(this.config, userId) };
   }
 
-  // Create-if-missing, else rename. When creating, seeds company_types and
-  // blog_sources so a fresh account isn't empty on first /jobs and /blog
-  // visit. Exercises are intentionally not seeded — new users pick their own.
+  // Create-if-missing, else rename. When creating, seeds company_types,
+  // blog_sources, questions, and muscle_goals so a fresh account isn't empty
+  // on first /jobs, /blog, /learn, and /workouts/statistics visits. Exercises
+  // are intentionally not seeded — new users pick their own.
   async upsertMe(userId: string, nickname: string) {
     try {
       return await db.transaction(async (tx) => {
@@ -46,6 +66,10 @@ export class ProfilesService {
             set: { nickname, updatedAt: new Date() },
           })
           .returning();
+        const rowWithAdmin = {
+          ...row,
+          isAdmin: isAdminUserId(this.config, userId),
+        };
 
         if (isNewProfile) {
           await tx
@@ -60,9 +84,31 @@ export class ProfilesService {
                 sortOrder: i,
               })),
             );
+          await tx
+            .insert(questionCategories)
+            .values(
+              DEFAULT_QUESTION_CATEGORIES.map((c) => ({
+                ...c,
+                ownerId: userId,
+              })),
+            );
+          await tx
+            .insert(questions)
+            .values(
+              DEFAULT_QUESTIONS.map((q) => ({
+                ...q,
+                ownerId: userId,
+                isSeed: true,
+              })),
+            );
+          await tx
+            .insert(muscleGoals)
+            .values(
+              DEFAULT_MUSCLE_GOALS.map((g) => ({ ...g, ownerId: userId })),
+            );
         }
 
-        return row;
+        return rowWithAdmin;
       });
     } catch (err) {
       if (isUniqueViolation(err, 'profiles_nickname_unique')) {
@@ -80,13 +126,41 @@ export class ProfilesService {
         .where(eq(profiles.id, userId))
         .returning();
       if (!row) throw new NotFoundException('profile not found');
-      return row;
+      return { ...row, isAdmin: isAdminUserId(this.config, userId) };
     } catch (err) {
       if (isUniqueViolation(err, 'profiles_nickname_unique')) {
         throw new ConflictException('nickname already taken');
       }
       throw err;
     }
+  }
+
+  // preferences JSONB에 partial deep merge. Postgres `||` 대신 앱 레이어에서
+  // 병합한 뒤 통째 UPDATE — nested 필드(workoutSkip 등)가 shallow overwrite
+  // 되는 걸 막기 위함. FOR UPDATE row lock으로 동시 조작 시 lost-update 방지.
+  async patchPreferences(userId: string, patch: PatchPreferencesDto) {
+    return db.transaction(async (tx) => {
+      const [cur] = await tx
+        .select()
+        .from(profiles)
+        .where(eq(profiles.id, userId))
+        .for('update')
+        .limit(1);
+      if (!cur) throw new NotFoundException('profile not found');
+      const merged = deepMerge(
+        (cur.preferences ?? {}) as unknown as Record<string, unknown>,
+        patch as unknown as Record<string, unknown>,
+      );
+      const [row] = await tx
+        .update(profiles)
+        .set({
+          preferences: merged as unknown as typeof cur.preferences,
+          updatedAt: new Date(),
+        })
+        .where(eq(profiles.id, userId))
+        .returning();
+      return { ...row, isAdmin: isAdminUserId(this.config, userId) };
+    });
   }
 
   // 계정 삭제 = auth.users(id) 삭제. profiles와 도메인 데이터는 각각의

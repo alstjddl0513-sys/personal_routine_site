@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { HighlightScroller } from '../../components/jobs/HighlightScroller';
 import { JobsCards } from '../../components/jobs/JobsCards';
 import { JobsFilters } from '../../components/jobs/JobsFilters';
 import { JobsTable } from '../../components/jobs/JobsTable';
@@ -59,6 +60,7 @@ async function JobsContent({ sp }: { sp: JobsSearchParams }) {
   const isHiring = hiringRaw === '1' ? true : undefined;
   const rawQ = first(sp.q);
   const search = rawQ && rawQ.trim() ? rawQ.trim() : undefined;
+  const highlightId = first(sp.highlight);
 
   // type2는 user-editable이라 예전엔 companyTypes 도착 후에 유효 key로 검증
   // 했지만, getCompanies는 클라이언트 로컬 필터(lib/api.ts)라 무효 key를
@@ -93,14 +95,25 @@ async function JobsContent({ sp }: { sp: JobsSearchParams }) {
 
       {rows.length === 0 ? (
         <div className="rounded-md border border-dashed border-zinc-300 p-10 text-center text-sm text-zinc-500 dark:border-zinc-700">
-          조건에 맞는 회사가 없습니다.
+          조건에 맞는 회사가 없어요. 필터를 조금 풀어보세요.
         </div>
       ) : (
         <>
-          <JobsTable rows={rows} companyTypes={companyTypes} />
-          <JobsCards rows={rows} companyTypes={companyTypes} />
+          <JobsTable
+            rows={rows}
+            companyTypes={companyTypes}
+            highlightId={highlightId}
+          />
+          <JobsCards
+            rows={rows}
+            companyTypes={companyTypes}
+            highlightId={highlightId}
+          />
         </>
       )}
+      <Suspense fallback={null}>
+        <HighlightScroller />
+      </Suspense>
     </>
   );
 }

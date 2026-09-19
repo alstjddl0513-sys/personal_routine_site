@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, Check, Dices, UserPlus, X } from 'lucide-react';
@@ -8,27 +9,8 @@ import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { checkNicknameAvailability, HttpError, upsertMyProfile } from '@/lib/api';
 import { randomNickname } from '@/lib/nickname';
 
-// Google 공식 4색 "G" 로고. lucide-react엔 없어 인라인 SVG.
-function GoogleIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden>
-      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
-      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
-      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
-      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
-    </svg>
-  );
-}
-
-function Divider({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
-      <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
-      {children}
-      <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
-    </div>
-  );
-}
+// Google signup 진입은 /login의 "Google로 계속하기"로 통일 (OAuth 콜백에서
+// 신규 유저면 자동 프로필 생성). /signup은 이메일/비번 전용으로 단순화.
 
 type NicknameStatus =
   | { kind: 'idle' }
@@ -59,23 +41,34 @@ export default function SignupPage() {
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Debounced availability check. Skip when the shape is invalid — the
-  // client-side error is already shown and the server would just 400.
-  useEffect(() => {
-    if (!nickname) {
+  useEffect(
+    () => () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    },
+    [],
+  );
+
+  // Debounced availability check driven by input event, not an effect
+  // (react-hooks/set-state-in-effect used to flag the sync 'idle' reset).
+  function updateNickname(next: string) {
+    setNickname(next);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    if (!next) {
       setNicknameStatus({ kind: 'idle' });
       return;
     }
-    const shapeErr = validateNicknameShape(nickname);
+    const shapeErr = validateNicknameShape(next);
     if (shapeErr) {
       setNicknameStatus(shapeErr);
       return;
     }
     setNicknameStatus({ kind: 'checking' });
-    const t = setTimeout(async () => {
+    debounceRef.current = setTimeout(async () => {
       try {
-        const { available } = await checkNicknameAvailability(nickname);
+        const { available } = await checkNicknameAvailability(next);
         setNicknameStatus({ kind: available ? 'available' : 'taken' });
       } catch (err) {
         setNicknameStatus({
@@ -84,8 +77,7 @@ export default function SignupPage() {
         });
       }
     }, 400);
-    return () => clearTimeout(t);
-  }, [nickname]);
+  }
 
   const passwordsMatch = password.length > 0 && password === passwordConfirm;
   const canSubmit =
@@ -94,28 +86,6 @@ export default function SignupPage() {
     password.length >= 6 &&
     passwordsMatch &&
     !submitting;
-
-  async function handleGoogle() {
-    setError(null);
-    setSubmitting(true);
-    try {
-      const supabase = createSupabaseBrowserClient();
-      // OAuth 신규 유저는 /auth/callback에서 랜덤 닉네임 자동 부여됨.
-      // /settings/NicknameRow에서 언제든 변경 가능.
-      const callback = new URL('/auth/callback', window.location.origin);
-      const { error: oauthError } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: callback.toString() },
-      });
-      if (oauthError) {
-        setError('Google 로그인 시작에 실패했습니다.');
-        setSubmitting(false);
-      }
-    } catch {
-      setError('네트워크 오류가 발생했습니다. 다시 시도해주세요.');
-      setSubmitting(false);
-    }
-  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -147,7 +117,7 @@ export default function SignupPage() {
         if (err instanceof HttpError && err.status === 409) {
           setError('닉네임이 방금 다른 사람에게 선점됐어요. 다른 닉네임으로 다시 시도해주세요.');
         } else {
-          setError('프로필 저장 실패. 잠시 후 다시 시도해주세요.');
+          setError('프로필을 저장하지 못했어요. 잠시 후 다시 시도해주세요.');
         }
         // 세션은 살아있음 — 사용자가 닉네임만 바꿔 재시도 가능.
         setSubmitting(false);
@@ -165,7 +135,8 @@ export default function SignupPage() {
     <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-zinc-50 via-white to-zinc-100 px-4 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+          <h1 className="inline-flex items-center gap-2 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+            <Image src="/icon.svg" alt="" aria-hidden width={36} height={36} className="h-9 w-9" priority />
             Rally
           </h1>
           <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">회원가입</p>
@@ -176,18 +147,6 @@ export default function SignupPage() {
           className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
         >
           <div className="space-y-4">
-            <button
-              type="button"
-              onClick={handleGoogle}
-              disabled={submitting}
-              className="inline-flex min-h-11 w-full items-center justify-center gap-3 rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60 md:min-h-0 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:bg-zinc-900"
-            >
-              <GoogleIcon />
-              Google로 시작하기
-            </button>
-
-            <Divider>또는 이메일로 가입</Divider>
-
             <Field htmlFor="email" label="이메일">
               <input
                 id="email"
@@ -213,7 +172,7 @@ export default function SignupPage() {
                   autoComplete="off"
                   required
                   value={nickname}
-                  onChange={(e) => setNickname(e.target.value)}
+                  onChange={(e) => updateNickname(e.target.value)}
                   disabled={submitting}
                   className={`${inputCls} pr-20`}
                 />
@@ -221,7 +180,7 @@ export default function SignupPage() {
                   <NicknameStatusIcon status={nicknameStatus} />
                   <button
                     type="button"
-                    onClick={() => setNickname(randomNickname())}
+                    onClick={() => updateNickname(randomNickname())}
                     disabled={submitting}
                     aria-label="랜덤 닉네임 생성"
                     className="inline-flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-40 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"

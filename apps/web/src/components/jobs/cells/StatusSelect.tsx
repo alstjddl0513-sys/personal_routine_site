@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
+import { useOptimistic, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   APPLICATION_STATUS_LABELS,
@@ -50,23 +50,17 @@ export function StatusSelect({
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [current, setCurrent] = useState(value);
-
-  useEffect(() => {
-    setCurrent(value);
-  }, [value]);
+  const [current, setCurrent] = useOptimistic(value);
 
   function commit(next: string) {
     if (next === current) return;
-    const prev = current;
-    setCurrent(next as ApplicationStatus);
     startTransition(async () => {
+      setCurrent(next as ApplicationStatus);
       try {
         await patchCompany(id, { applicationStatus: next as ApplicationStatus });
         router.refresh();
       } catch (err) {
         console.error(err);
-        setCurrent(prev);
       }
     });
   }
@@ -78,6 +72,7 @@ export function StatusSelect({
       options={OPTIONS}
       disabled={isPending}
       ariaLabel="지원상태"
+      highlightStyle="ring"
       triggerClassName="cursor-pointer rounded px-2 py-0.5 text-xs focus:ring-2 focus:ring-zinc-400 focus:outline-none"
     />
   );

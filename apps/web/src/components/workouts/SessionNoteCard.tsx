@@ -16,13 +16,17 @@ export function SessionNoteCard(props: Props) {
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Reset only when the server-provided initialNote changes (i.e., date nav
-  // or reorder-triggered refresh). Do NOT depend on sessionId — it flips
-  // null→id during the same save that also sends the user's typed value.
-  useEffect(() => {
+  // or reorder-triggered refresh). Keyed on sessionId at the parent would
+  // unmount mid-save (null→id flip happens during the save that submits the
+  // user's typed value), so we snap state in render via the "adjust state on
+  // prop change" pattern (react.dev/learn/you-might-not-need-an-effect).
+  const [prevInitial, setPrevInitial] = useState(props.initialNote);
+  if (props.initialNote !== prevInitial) {
+    setPrevInitial(props.initialNote);
     setValue(props.initialNote);
     setSaved(props.initialNote);
     setFlash(null);
-  }, [props.initialNote]);
+  }
 
   useEffect(() => {
     return () => {

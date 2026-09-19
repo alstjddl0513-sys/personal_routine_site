@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AlertCircle, Check, Dices, User, X } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import {
@@ -36,6 +36,7 @@ export function NicknameRow() {
   const [status, setStatus] = useState<Status>({ kind: 'idle' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Fetch initial nickname. Re-fetch on auth change (unlikely on this
   // page but keeps state honest).
@@ -63,21 +64,32 @@ export function NicknameRow() {
     };
   }, []);
 
-  // Debounced availability check — skip when unchanged.
-  useEffect(() => {
-    if (!draft || draft === current) {
+  useEffect(
+    () => () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    },
+    [],
+  );
+
+  // Debounced availability check driven by the input event, not an effect
+  // (react-hooks/set-state-in-effect used to flag the sync 'idle' reset).
+  function updateDraft(next: string) {
+    setDraft(next);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    if (!next || next === current) {
       setStatus({ kind: 'idle' });
       return;
     }
-    const shapeErr = shapeError(draft);
+    const shapeErr = shapeError(next);
     if (shapeErr) {
       setStatus(shapeErr);
       return;
     }
     setStatus({ kind: 'checking' });
-    const t = setTimeout(async () => {
+    debounceRef.current = setTimeout(async () => {
       try {
-        const { available } = await checkNicknameAvailability(draft);
+        const { available } = await checkNicknameAvailability(next);
         setStatus({ kind: available ? 'available' : 'taken' });
       } catch (err) {
         setStatus({
@@ -86,8 +98,7 @@ export function NicknameRow() {
         });
       }
     }, 400);
-    return () => clearTimeout(t);
-  }, [draft, current]);
+  }
 
   async function handleSave() {
     setError(null);
@@ -122,7 +133,7 @@ export function NicknameRow() {
         <div className="flex-1">
           <div className="text-sm font-medium text-zinc-800 dark:text-zinc-200">닉네임</div>
           <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-            사이드바·앞으로 공유되는 컨텐츠에 표시.
+            사이드바와 공유 화면에 표시돼요.
           </p>
         </div>
       </div>
@@ -132,7 +143,7 @@ export function NicknameRow() {
             <input
               type="text"
               value={draft}
-              onChange={(e) => setDraft(e.target.value)}
+              onChange={(e) => updateDraft(e.target.value)}
               disabled={saving}
               className="block min-h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 pr-20 text-base text-zinc-900 outline-none transition-colors focus:border-zinc-400 focus:ring-2 focus:ring-zinc-200 disabled:opacity-60 md:min-h-0 md:text-sm dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:focus:border-zinc-500 dark:focus:ring-zinc-800"
             />
@@ -140,7 +151,7 @@ export function NicknameRow() {
               <StatusIcon status={status} />
               <button
                 type="button"
-                onClick={() => setDraft(randomNickname())}
+                onClick={() => updateDraft(randomNickname())}
                 disabled={saving}
                 aria-label="랜덤 닉네임 생성"
                 className="inline-flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-40 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
@@ -200,10 +211,10 @@ function StatusMessage({
     return <p className="text-xs text-red-600 dark:text-red-400">{status.message}</p>;
   }
   if (status.kind === 'taken') {
-    return <p className="text-xs text-red-600 dark:text-red-400">이미 사용 중.</p>;
+    return <p className="text-xs text-red-600 dark:text-red-400">이미 사용중인 닉네임이에요.</p>;
   }
   if (status.kind === 'available') {
-    return <p className="text-xs text-emerald-600 dark:text-emerald-400">사용 가능.</p>;
+    return <p className="text-xs text-emerald-600 dark:text-emerald-400">사용가능한 닉네임이에요.</p>;
   }
   if (status.kind === 'error') {
     return <p className="text-xs text-red-600 dark:text-red-400">{status.message}</p>;

@@ -1,6 +1,6 @@
 # 배포 가이드 (Render + Vercel + Supabase)
 
-첫 배포용 단계별 절차. Phase 9.1까지 코드 준비는 끝난 상태(`/api/proxy`, `AccessTokenGuard`, `proxy.ts` Basic Auth, `main.ts`의 `PORT`/`CORS_ALLOWED_ORIGIN` env 대응).
+첫 배포용 단계별 절차. 현재 코드는 Phase 12(Supabase Auth 다인화) 반영 상태: `SupabaseAuthGuard`(JWKS/ES256), `proxy.ts` 세션 refresh, `AdminGuard`(env `ADMIN_USER_IDS`), Storage `documents` 버킷, `bootstrap-env.ts` prod fail-fast, `main.ts`의 `PORT`/`CORS_ALLOWED_ORIGIN`.
 
 ## 사전 조건
 
@@ -41,7 +41,8 @@ Render 대시보드 → **Environment** → 추가:
 |---|---|---|
 | `DATABASE_URL` | `postgresql://postgres.<ref>:<pw>@<host>:5432/postgres` | Supabase Session Pooler(port 5432). Direct(6543)는 IPv6 전용이라 실패 |
 | `SUPABASE_URL` | `https://<project-ref>.supabase.co` | 슬래시 없이. JWKS fetch 대상. 미설정 시 `bootstrap-env.ts`가 부팅 거부 |
-| `SUPABASE_SECRET_KEY` | `sb_secret_...` | Phase 12.4b 계정 탈퇴에서 `auth.admin.deleteUser` 호출용. 미설정 시 `DELETE /profiles/me`만 500, 나머지 API는 동작. Console → Settings → API Keys → `sb_secret_*` 복사. **service_role 권한이라 서버 전용, 절대 커밋 X** |
+| `SUPABASE_SECRET_KEY` | `sb_secret_...` | Phase 12.4b 계정 탈퇴 + Phase 12.5 어드민(`auth.admin.deleteUser` · `listUsers` · `updateUserById`) 호출용. 미설정 시 해당 endpoint만 500. Console → Settings → API Keys → `sb_secret_*` 복사. **service_role 권한이라 서버 전용, 절대 커밋 X** |
+| `ADMIN_USER_IDS` | `uuid-1,uuid-2` | Phase 12.5. 쉼표 구분. 어드민 UUID. 미설정 시 `/admin/*` 전부 403, profiles.me의 isAdmin은 false. Supabase Studio → Authentication → Users에서 uid 복사 |
 | `CORS_ALLOWED_ORIGIN` | `*` | 임시. §3에서 Vercel URL로 교체 |
 | `NODE_VERSION` | `22.11.0` | Node 20은 의존 트리 중 `node:sqlite`(22.5+) 요구 패키지로 실패. `22`만 넣지 말고 정확한 patch 버전으로 |
 

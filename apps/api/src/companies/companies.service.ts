@@ -51,17 +51,49 @@ export class CompaniesService {
   }
 
   async create(ownerId: string, dto: CreateCompanyDto) {
+    // is_rolling=true면 마감일은 개념상 의미 없으므로 강제 null.
+    // 클라가 명시적으로 둘 다 넘긴 경우도 상시 우선.
     const [row] = await db
       .insert(companies)
-      .values({ ...dto, ownerId })
+      .values({
+        ...dto,
+        ownerId,
+        ...(dto.isRolling === true ? { applicationDeadline: null } : {}),
+      })
       .returning();
     return row;
   }
 
   async update(ownerId: string, id: string, dto: UpdateCompanyDto) {
+    // 자동 기록 판정을 위해 현재 row 로드. RLS/소유자 검증도 겸함.
+    const current = await this.findOne(ownerId, id);
+
+    const patch: Record<string, unknown> = { ...dto, updatedAt: new Date() };
+
+    // Auto-fill appliedAt: 클라가 명시 X + 현재 null + 지원 후 status 진입 시.
+    // 시드나 backfill로 status만 뒤늦게 바뀌는 케이스도 커버(null && !=
+    // not_applied면 fill). withdrawn은 not_applied가 아니라 걸리는데 실제로는
+    // 이미 appliedAt이 있는 상태에서 오므로 자연스럽게 skip.
+    if (
+      dto.appliedAt === undefined &&
+      current.appliedAt === null &&
+      dto.applicationStatus !== undefined &&
+      dto.applicationStatus !== 'not_applied'
+    ) {
+      const now = new Date();
+      const pad = (n: number) => String(n).padStart(2, '0');
+      patch.appliedAt = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    }
+
+    // is_rolling=true로 전환하는 patch면 마감일 강제 null. 클라가 같이 명시하지
+    // 않은 경우만 자동 clear(명시적 값이 있으면 사용자 선택 존중).
+    if (dto.isRolling === true && dto.applicationDeadline === undefined) {
+      patch.applicationDeadline = null;
+    }
+
     const [row] = await db
       .update(companies)
-      .set({ ...dto, updatedAt: new Date() })
+      .set(patch)
       .where(and(eq(companies.id, id), eq(companies.ownerId, ownerId)))
       .returning();
     if (!row) {

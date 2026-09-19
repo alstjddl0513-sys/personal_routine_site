@@ -86,7 +86,7 @@ export function DeleteRowButton({
               <span className="font-medium text-zinc-900 dark:text-zinc-100">
                 {name}
               </span>
-              을(를) 삭제할까요? 되돌릴 수 없습니다.
+              을(를) 삭제할까요? 되돌릴 수 없어요.
             </p>
             <div className="flex items-center justify-end gap-2">
               <button

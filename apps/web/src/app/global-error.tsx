@@ -21,13 +21,14 @@ export default function GlobalError({
       <body style={rootStyle}>
         <div style={cardStyle}>
           <div style={iconStyle}>!</div>
-          <h1 style={titleStyle}>서비스에 문제가 생겼습니다</h1>
-          <p style={descStyle}>새로 고침하거나 잠시 후 다시 접속해주세요.</p>
+          <h1 style={titleStyle}>서비스가 잠깐 멈췄어요</h1>
+          <p style={descStyle}>새로고침하거나 잠시 후 다시 열어봐주세요.</p>
           {error.digest ? <p style={digestStyle}>digest: {error.digest}</p> : null}
           <div style={buttonRowStyle}>
             <button type="button" onClick={reset} style={primaryButtonStyle}>
               다시 시도
             </button>
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- root error boundary is outside RootLayout, next/link is unavailable */}
             <a href="/" style={linkButtonStyle}>
               홈으로
             </a>

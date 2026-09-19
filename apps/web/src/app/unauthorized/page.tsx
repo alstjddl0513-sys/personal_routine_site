@@ -16,10 +16,10 @@ export default function UnauthorizedPage() {
           <Lock className="h-6 w-6" aria-hidden />
         </div>
         <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-          접근 권한이 없습니다
+          로그인이 필요해요
         </h1>
         <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-          세션이 만료되었거나 잘못된 경로로 접근했습니다.
+          잠시 자리를 비운 사이 세션이 끝났나 봐요. 다시 로그인해주세요.
         </p>
 
         <div className="mt-8 flex flex-col gap-2">

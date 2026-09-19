@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import {
   ChevronDown,
   Heart,
+  Printer,
   Search,
   Settings2,
   SlidersHorizontal,
@@ -55,23 +56,24 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
 
   const [searchInput, setSearchInput] = useState(currentSearch);
   const lastPushedRef = useRef(currentSearch);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (currentSearch !== lastPushedRef.current) {
+      // Kill any in-flight debounce so it doesn't overwrite the external
+      // URL change we're about to reflect (e.g., back button while typing).
+      if (debounceRef.current) clearTimeout(debounceRef.current);
       setSearchInput(currentSearch);
       lastPushedRef.current = currentSearch;
     }
   }, [currentSearch]);
 
-  useEffect(() => {
-    if (searchInput === lastPushedRef.current) return;
-    const t = setTimeout(() => {
-      lastPushedRef.current = searchInput;
-      pushPatch({ q: searchInput || null });
-    }, 300);
-    return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchInput]);
+  useEffect(
+    () => () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    },
+    [],
+  );
 
   function pushPatch(patch: Record<string, string | null>) {
     const next = new URLSearchParams(searchParams.toString());
@@ -84,6 +86,19 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
     });
   }
 
+  // Debounced URL push driven by input event, not an effect
+  // (react-hooks/exhaustive-deps used to require pushPatch in deps but
+  // that would re-run the effect on every render).
+  function updateSearch(next: string) {
+    setSearchInput(next);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (next === lastPushedRef.current) return;
+    debounceRef.current = setTimeout(() => {
+      lastPushedRef.current = next;
+      pushPatch({ q: next || null });
+    }, 300);
+  }
+
   function toggleMulti(key: string, values: Set<string>, v: string) {
     const next = new Set(values);
     if (next.has(v)) next.delete(v);
@@ -92,6 +107,7 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
   }
 
   function clearAll() {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     lastPushedRef.current = '';
     setSearchInput('');
     startTransition(() => {
@@ -126,12 +142,20 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
           <input
             type="search"
             value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
+            onChange={(e) => updateSearch(e.target.value)}
             placeholder="회사명 검색"
             className="min-h-11 w-full rounded-md border border-zinc-300 bg-white py-2 pr-3 pl-9 text-base outline-none placeholder:text-zinc-400 focus:border-zinc-500 md:min-h-0 md:text-sm dark:border-zinc-700 dark:bg-zinc-900"
           />
         </div>
         <AddCompanyButton companyTypes={companyTypes} />
+        <Link
+          href={`/jobs/report${searchParams.size ? `?${searchParams.toString()}` : ''}`}
+          className="inline-flex min-h-11 items-center gap-2 rounded-md border border-zinc-300 bg-white px-3 text-sm text-zinc-600 hover:bg-zinc-50 md:min-h-0 md:py-2 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
+          title="현재 필터 그대로 취업활동 표로 이동"
+        >
+          <Printer className="h-4 w-4" aria-hidden />
+          인쇄
+        </Link>
         <button
           type="button"
           onClick={() => pushPatch({ favorite: currentFavorite ? null : '1' })}
@@ -211,7 +235,7 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
                 href="/settings/company-types"
                 className="text-xs text-zinc-400 underline-offset-2 hover:text-zinc-600 hover:underline dark:text-zinc-500 dark:hover:text-zinc-300"
               >
-                등록된 유형이 없습니다 — 유형 관리에서 추가하세요
+                아직 만든 유형이 없어요 — 유형 관리에서 추가해보세요
               </Link>
             ) : (
               companyTypes.map((t) => (

@@ -1,11 +1,35 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Pause, Play, RotateCcw, Timer, X } from 'lucide-react';
 
 const PRESETS = [60, 90, 120, 180] as const;
 const STORAGE_KEY = 'rally.restTimer.lastPreset';
 const DEFAULT_PRESET = 90;
+// 같은 탭 안에서도 setItem 이후 useSyncExternalStore가 재읽도록 broadcast.
+const LAST_PRESET_CHANGE_EVENT = 'rally.restTimer.lastPresetChanged';
+
+function readLastPreset(): number {
+  if (typeof window === 'undefined') return DEFAULT_PRESET;
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return DEFAULT_PRESET;
+    const n = Number(raw);
+    return Number.isFinite(n) && n > 0 ? n : DEFAULT_PRESET;
+  } catch {
+    return DEFAULT_PRESET;
+  }
+}
+
+function subscribeLastPreset(cb: () => void): () => void {
+  if (typeof window === 'undefined') return () => {};
+  window.addEventListener(LAST_PRESET_CHANGE_EVENT, cb);
+  window.addEventListener('storage', cb);
+  return () => {
+    window.removeEventListener(LAST_PRESET_CHANGE_EVENT, cb);
+    window.removeEventListener('storage', cb);
+  };
+}
 
 type Status = 'idle' | 'running' | 'paused' | 'done';
 
@@ -74,35 +98,26 @@ function notifyIfAllowed(body: string) {
 }
 
 export function RestTimer() {
+  // lastPreset은 localStorage에서 hydration 후 자동 복원 (useSyncExternalStore).
+  // 서버 스냅샷은 DEFAULT_PRESET이라 하이드 정합.
+  const lastPreset = useSyncExternalStore<number>(
+    subscribeLastPreset,
+    readLastPreset,
+    () => DEFAULT_PRESET,
+  );
   const [status, setStatus] = useState<Status>('idle');
   const [totalSec, setTotalSec] = useState<number>(DEFAULT_PRESET);
   const [remainingMs, setRemainingMs] = useState<number>(DEFAULT_PRESET * 1000);
-  const [lastPreset, setLastPreset] = useState<number>(DEFAULT_PRESET);
   // Mobile-only: collapse to a FAB when idle so the full preset bar
   // doesn't block content. Desktop always shows the full card (md:).
-  const [mobileExpanded, setMobileExpanded] = useState(false);
+  // 사용자가 FAB 탭으로 명시적으로 펼친 여부만 저장 — 실제 노출은
+  // status !== 'idle'로도 파생되어 non-idle 상태에서는 항상 보임.
+  const [mobileUserExpanded, setMobileUserExpanded] = useState(false);
   // 실제 종료 시각(ms since epoch). setInterval은 백그라운드에서 스로틀되므로,
   // deadline 기준으로 남은 시간을 계산해 스로틀에 무관하게 정확도 유지.
   const deadlineRef = useRef<number | null>(null);
   // 일시정지 시점의 남은 ms를 저장해 resume에서 deadline 재계산.
   const pausedRemainingRef = useRef<number | null>(null);
-
-  // 마지막 프리셋 복원
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const n = Number(raw);
-        if (Number.isFinite(n) && n > 0) {
-          setLastPreset(n);
-          setTotalSec(n);
-          setRemainingMs(n * 1000);
-        }
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
 
   // 카운트다운 tick
   useEffect(() => {
@@ -126,13 +141,14 @@ export function RestTimer() {
 
   const start = useCallback((sec: number) => {
     setTotalSec(sec);
-    setLastPreset(sec);
     setRemainingMs(sec * 1000);
     deadlineRef.current = Date.now() + sec * 1000;
     pausedRemainingRef.current = null;
     setStatus('running');
     try {
       window.localStorage.setItem(STORAGE_KEY, String(sec));
+      // 같은 탭의 useSyncExternalStore 구독자에게 알림 (storage 이벤트는 다른 탭만).
+      window.dispatchEvent(new Event(LAST_PRESET_CHANGE_EVENT));
     } catch {
       // ignore
     }
@@ -163,6 +179,8 @@ export function RestTimer() {
     pausedRemainingRef.current = null;
     setRemainingMs(totalSec * 1000);
     setStatus('idle');
+    // idle로 복귀하면 다시 FAB만 노출.
+    setMobileUserExpanded(false);
   }, [totalSec]);
 
   const close = useCallback(() => {
@@ -171,19 +189,15 @@ export function RestTimer() {
     setStatus('idle');
     setRemainingMs(lastPreset * 1000);
     setTotalSec(lastPreset);
+    setMobileUserExpanded(false);
   }, [lastPreset]);
-
-  // Auto-expand card on mobile whenever timer is not idle so the running/
-  // done state is always visible. Collapse back to FAB when returning to
-  // idle (via reset/close).
-  useEffect(() => {
-    setMobileExpanded(status !== 'idle');
-  }, [status]);
 
   const progress =
     totalSec > 0 ? 1 - Math.max(0, Math.min(1, remainingMs / (totalSec * 1000))) : 0;
   const isDone = status === 'done';
-  const showMobileFab = status === 'idle' && !mobileExpanded;
+  // non-idle이거나 사용자가 명시 확장한 경우 카드 노출, 아니면 FAB.
+  const mobileExpanded = status !== 'idle' || mobileUserExpanded;
+  const showMobileFab = !mobileExpanded;
 
   return (
     <>
@@ -192,7 +206,7 @@ export function RestTimer() {
       {showMobileFab ? (
         <button
           type="button"
-          onClick={() => setMobileExpanded(true)}
+          onClick={() => setMobileUserExpanded(true)}
           aria-label="휴식 타이머"
           className="fixed bottom-24 left-4 z-40 flex h-14 w-14 items-center justify-center rounded-full border border-zinc-200 bg-white/95 text-zinc-600 shadow-lg backdrop-blur md:hidden dark:border-zinc-800 dark:bg-zinc-950/95 dark:text-zinc-400"
         >
@@ -217,7 +231,7 @@ export function RestTimer() {
               presets={PRESETS}
               lastPreset={lastPreset}
               onStart={start}
-              onCollapseMobile={() => setMobileExpanded(false)}
+              onCollapseMobile={() => setMobileUserExpanded(false)}
             />
           ) : (
             <ActiveBar

@@ -1,6 +1,7 @@
 'use client';
 
-import { Suspense, useEffect, useState, type FormEvent } from 'react';
+import { Suspense, useState, type FormEvent } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { LogIn, AlertCircle } from 'lucide-react';
@@ -37,12 +38,14 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // OAuth 콜백에서 실패해서 되돌아오는 경우 배너로 표시.
-  useEffect(() => {
-    if (searchParams.get('error') === 'oauth') {
-      setError('소셜 로그인에 실패했습니다. 다시 시도해주세요.');
-    }
-  }, [searchParams]);
+  // OAuth 콜백에서 실패해서 되돌아오는 경우 URL에 ?error=oauth 로 표시.
+  // render 시점 파생 — 별도 상태 없이 배너 노출. 사용자가 password 로그인을
+  // 시도해 error가 세팅되면 그쪽이 우선.
+  const oauthError =
+    searchParams.get('error') === 'oauth'
+      ? '소셜 로그인이 잘 안 됐어요. 다시 시도해주세요.'
+      : null;
+  const displayError = error ?? oauthError;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -82,7 +85,7 @@ function LoginForm() {
         options: { redirectTo: callback.toString() },
       });
       if (oauthError) {
-        setError('Google 로그인 시작에 실패했습니다.');
+        setError('Google 로그인을 시작하지 못했어요. 잠시 후 다시 시도해주세요.');
         setSubmitting(false);
       }
       // 성공 시 브라우저가 Google로 redirect됨.
@@ -96,7 +99,8 @@ function LoginForm() {
     <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-zinc-50 via-white to-zinc-100 px-4 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+          <h1 className="inline-flex items-center gap-2 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+            <Image src="/icon.svg" alt="" aria-hidden width={36} height={36} className="h-9 w-9" priority />
             Rally
           </h1>
           <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
@@ -147,13 +151,13 @@ function LoginForm() {
               />
             </div>
 
-            {error ? (
+            {displayError ? (
               <div
                 role="alert"
                 className="flex items-start gap-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700 dark:bg-red-950/40 dark:text-red-300"
               >
                 <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
-                <span>{error}</span>
+                <span>{displayError}</span>
               </div>
             ) : null}
 

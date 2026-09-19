@@ -1,0 +1,117 @@
+import type { RoutineCheck, TimeBlock } from '@repo/shared';
+import { toISODate } from './routines-week';
+
+// 저녁 루틴 리마인더 유틸. 서버 push 없이 앱 진입 시 로컬 계산 + setTimeout
+// 예약 방식. deadline-notifier 패턴 미러. localStorage 키를 별도 도메인으로
+// 분리(rally.notif.routine-evening.*).
+//
+// 알림 시각은 고정. 사용자 커스텀 대신 자연스러운 저녁 시간으로 통일.
+
+export const NOTIF_HOUR = 21;
+
+const KEY_ENABLED = 'rally.notif.routine-evening.enabled';
+const KEY_LAST_FIRED = 'rally.notif.routine-evening.last-fired';
+export const CHANGE_EVENT_NAME = 'rally.notif.routine-evening.enabled-changed';
+const ENABLED_CHANGE_EVENT = CHANGE_EVENT_NAME;
+
+// PreferencesSyncClient가 자기 dispatch를 재소비해 upload를 다시 트리거하는
+// 루프 방지용. setEnabledSilent 중일 때만 true.
+let applyingRemote = false;
+export function isApplyingRemote(): boolean {
+  return applyingRemote;
+}
+
+function storage(): Storage | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
+export function getEnabled(): boolean {
+  const s = storage();
+  if (!s) return true;
+  const v = s.getItem(KEY_ENABLED);
+  if (v === null) return true;
+  return v === 'true';
+}
+
+export function setEnabled(enabled: boolean): void {
+  const s = storage();
+  if (!s) return;
+  s.setItem(KEY_ENABLED, enabled ? 'true' : 'false');
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(ENABLED_CHANGE_EVENT));
+  }
+}
+
+export function subscribeEnabled(cb: () => void): () => void {
+  if (typeof window === 'undefined') return () => {};
+  window.addEventListener(ENABLED_CHANGE_EVENT, cb);
+  window.addEventListener('storage', cb);
+  return () => {
+    window.removeEventListener(ENABLED_CHANGE_EVENT, cb);
+    window.removeEventListener('storage', cb);
+  };
+}
+
+export function setEnabledSilent(enabled: boolean): void {
+  const s = storage();
+  if (!s) return;
+  applyingRemote = true;
+  try {
+    s.setItem(KEY_ENABLED, enabled ? 'true' : 'false');
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event(ENABLED_CHANGE_EVENT));
+    }
+  } finally {
+    applyingRemote = false;
+  }
+}
+
+// 로컬 시각 기준 오늘 ISO. 리마인더는 사용자 로컬 시각 21시 개념이라
+// last-fired 판정도 로컬 자정 기준이 맞음(deadline-notifier의 KST 기준과 대조).
+function todayLocalIso(): string {
+  return toISODate(new Date());
+}
+
+export function wasFiredToday(): boolean {
+  const s = storage();
+  if (!s) return false;
+  return s.getItem(KEY_LAST_FIRED) === todayLocalIso();
+}
+
+export function markFiredToday(): void {
+  const s = storage();
+  if (!s) return;
+  s.setItem(KEY_LAST_FIRED, todayLocalIso());
+}
+
+// 활성 블록(archived 제외) 중 오늘 checks에 없는 것을 셈. RoutineTable의
+// checkKey와 동일한 (blockId, date) 정합 키.
+export function countUncheckedToday(
+  blocks: TimeBlock[],
+  checks: RoutineCheck[],
+  todayIso: string,
+): number {
+  const active = blocks.filter((b) => !b.isArchived);
+  if (active.length === 0) return 0;
+  const checkedIds = new Set(
+    checks.filter((c) => c.date === todayIso).map((c) => c.blockId),
+  );
+  return active.reduce((n, b) => n + (checkedIds.has(b.id) ? 0 : 1), 0);
+}
+
+export interface NotificationCopy {
+  title: string;
+  body: string;
+}
+
+export function formatReminderMessage(uncheckedCount: number): NotificationCopy {
+  return {
+    title: '오늘의 루틴',
+    body: `아직 ${uncheckedCount}개 남았어요. 자기 전에 마무리해보세요.`,
+  };
+}

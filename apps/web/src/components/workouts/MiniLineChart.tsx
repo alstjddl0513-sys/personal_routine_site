@@ -8,7 +8,14 @@ interface Props {
   width?: number;
   height?: number;
   strokeClass?: string;
-  fillClass?: string;
+  ariaLabel?: string;
+  /** Suffix appended to the tooltip value (e.g. 'kg'). Defaults to 'kg' for
+   *  back-compat with the original per-exercise top-weight usage. */
+  unit?: string;
+  /** Hide the per-point dots. Line-only sparkline for cases where discrete
+   *  points don't matter (e.g. long trend). Default true. */
+  showDots?: boolean;
+  strokeWidth?: number;
 }
 
 // Pure SVG line chart. Renders line + dots; no axes, no interactivity.
@@ -19,7 +26,10 @@ export function MiniLineChart({
   width = 280,
   height = 72,
   strokeClass = 'stroke-emerald-500',
-  fillClass = 'fill-emerald-500',
+  ariaLabel,
+  unit = 'kg',
+  showDots = true,
+  strokeWidth = 1.5,
 }: Props) {
   if (points.length === 0) return null;
 
@@ -55,29 +65,48 @@ export function MiniLineChart({
       height={height}
       preserveAspectRatio="none"
       role="img"
-      aria-label={`최근 ${points.length}회 top set 무게 추이`}
+      aria-label={ariaLabel ?? `최근 ${points.length}회 top set 무게 추이`}
     >
       {path ? (
         <path
           d={path}
           className={strokeClass}
           fill="none"
-          strokeWidth={1.5}
+          strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeLinejoin="round"
+          // Non-scaling-stroke keeps the line the same visual thickness
+          // whether the SVG is stretched wide (weekly volume card) or held
+          // at natural aspect (per-exercise cards).
+          vectorEffect="non-scaling-stroke"
         />
       ) : null}
-      {points.map((p, i) => (
-        <circle
-          key={`${p.date}-${i}`}
-          cx={x(i)}
-          cy={y(p.value)}
-          r={2.2}
-          className={fillClass}
-        >
-          <title>{`${p.date}: ${p.value}kg`}</title>
-        </circle>
-      ))}
+      {showDots
+        ? points.map((p, i) => {
+            // Zero-length line with a round stroke cap = a circle of
+            // radius (strokeWidth/2). Paired with vector-effect
+            // non-scaling-stroke, the resulting "dot" keeps its pixel
+            // radius regardless of horizontal stretch — <circle> fills
+            // can't opt out of non-uniform scaling and become ovals.
+            const cx = x(i);
+            const cy = y(p.value);
+            return (
+              <line
+                key={`${p.date}-${i}`}
+                x1={cx}
+                y1={cy}
+                x2={cx}
+                y2={cy}
+                className={strokeClass}
+                strokeWidth={5}
+                strokeLinecap="round"
+                vectorEffect="non-scaling-stroke"
+              >
+                <title>{`${p.date}: ${p.value}${unit}`}</title>
+              </line>
+            );
+          })
+        : null}
     </svg>
   );
 }

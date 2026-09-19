@@ -19,10 +19,7 @@ export function usePopoverPosition(
   const [pos, setPos] = useState<PopoverPosition | null>(null);
 
   useLayoutEffect(() => {
-    if (!open) {
-      setPos(null);
-      return;
-    }
+    if (!open) return;
     function compute() {
       const el = anchorRef.current;
       if (!el) return;
@@ -51,5 +48,9 @@ export function usePopoverPosition(
     };
   }, [open, anchorRef, estimatedHeight, popoverWidth]);
 
-  return pos;
+  // Derive to null while closed instead of calling setPos(null) in the effect
+  // (react-hooks/set-state-in-effect). Stale pos from the previous open cycle
+  // stays in state but never leaks to callers, and the next open's
+  // useLayoutEffect overwrites it synchronously before paint.
+  return open ? pos : null;
 }

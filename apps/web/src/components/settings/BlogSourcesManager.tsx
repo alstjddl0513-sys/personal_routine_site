@@ -198,8 +198,8 @@ export function BlogSourcesManager({ initial }: { initial: BlogSource[] }) {
       </div>
 
       <p className="text-xs text-zinc-500 dark:text-zinc-400">
-        <strong>일시중지</strong>는 다음 RSS 새로고침에서 스킵됨 (수집된 글은 그대로).
-        <strong>삭제</strong>는 소스와 함께 수집된 <strong>모든 글도 함께 삭제</strong>됨 (되돌릴 수 없음).
+        <strong>일시중지</strong>하면 다음 새로고침에서 잠시 쉬어요. 이미 모아둔 글은 그대로 남아요.
+        <strong>삭제</strong>는 소스와 함께 모아둔 <strong>글도 전부 함께 사라져요</strong>. 되돌릴 수 없어요.
       </p>
 
       <ConfirmDialog
@@ -210,8 +210,8 @@ export function BlogSourcesManager({ initial }: { initial: BlogSource[] }) {
             <span className="font-medium text-zinc-900 dark:text-zinc-100">
               {confirmDeleteRow?.name}
             </span>
-            을(를) 삭제할까요? 이 소스에서 수집된{' '}
-            <strong>모든 글도 함께 삭제</strong>되며, 되돌릴 수 없습니다.
+            을(를) 삭제할까요? 이 소스에서 모아둔{' '}
+            <strong>글도 전부 함께 사라져요</strong>. 되돌릴 수 없어요.
           </p>
         }
         confirmLabel={isPending ? '삭제 중…' : '삭제'}

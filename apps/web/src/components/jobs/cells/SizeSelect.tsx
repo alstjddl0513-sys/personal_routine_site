@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
+import { useOptimistic, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   COMPANY_TYPE_1_LABELS,
@@ -24,23 +24,17 @@ export function SizeSelect({
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [current, setCurrent] = useState(value);
-
-  useEffect(() => {
-    setCurrent(value);
-  }, [value]);
+  const [current, setCurrent] = useOptimistic(value);
 
   function commit(next: string) {
     if (next === current) return;
-    const prev = current;
-    setCurrent(next as CompanyType1);
     startTransition(async () => {
+      setCurrent(next as CompanyType1);
       try {
         await patchCompany(id, { type1: next as CompanyType1 });
         router.refresh();
       } catch (err) {
         console.error(err);
-        setCurrent(prev);
       }
     });
   }

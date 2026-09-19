@@ -22,8 +22,8 @@ export default async function CompanyTypesSettingsPage() {
         </Link>
         <h1 className="text-xl font-semibold">기업 유형 관리</h1>
         <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          채용 리스트에서 회사에 붙일 수 있는 유형(서비스/솔루션/SI…)을 추가·편집·삭제합니다.
-          삭제해도 기존 회사에 저장된 값은 유지되며, 선택 목록에서만 사라집니다.
+          회사에 붙일 유형을 취향대로 정리해두세요.
+          지워도 이미 그 유형을 쓰던 회사에는 그대로 남고, 새로 고를 목록에서만 사라져요.
         </p>
       </header>
 

@@ -13,9 +13,11 @@ import { DeleteRowButton } from './cells/DeleteRowButton';
 export function JobsTable({
   rows,
   companyTypes,
+  highlightId,
 }: {
   rows: Company[];
   companyTypes: CompanyType[];
+  highlightId?: string;
 }) {
   return (
     <div className="hidden rounded-md border border-zinc-200 md:block dark:border-zinc-800">
@@ -45,7 +47,12 @@ export function JobsTable({
           {rows.map((c) => (
             <tr
               key={c.id}
-              className="group hover:bg-zinc-50/60 dark:hover:bg-zinc-900/30"
+              data-cid={c.id}
+              className={`group hover:bg-zinc-50/60 dark:hover:bg-zinc-900/30 ${
+                c.id === highlightId
+                  ? 'animate-[highlight-flash_2.5s_ease-out]'
+                  : ''
+              }`}
             >
               <Td>
                 <Center>
@@ -82,7 +89,7 @@ export function JobsTable({
               </Td>
               <Td>
                 <Center>
-                  <DeadlinePopover id={c.id} value={c.applicationDeadline} />
+                  <DeadlinePopover id={c.id} value={c.applicationDeadline} isRolling={c.isRolling} />
                 </Center>
               </Td>
               <Td className="pr-0">

@@ -8,9 +8,9 @@ import {
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react';
-import { createPortal } from 'react-dom';
 import { useOutsideClick } from '../../lib/useOutsideClick';
 import { usePopoverPosition } from '../../lib/usePopoverPosition';
+import { Portal } from './Portal';
 
 export interface SelectOption {
   value: string;
@@ -73,7 +73,6 @@ export function Select({
   highlightStyle = 'bg',
 }: Props) {
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const [triggerWidth, setTriggerWidth] = useState(0);
   const [highlightIdx, setHighlightIdx] = useState(-1);
   // usePopoverPosition uses estimated max-height/hint-width, so pos.top can
@@ -95,10 +94,6 @@ export function Select({
     POPOVER_MAX_HEIGHT,
     POSITION_HINT_WIDTH,
   );
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useOutsideClick([anchorRef, popoverRef], () => setOpen(false), open);
 
@@ -145,18 +140,6 @@ export function Select({
     };
   }, [open, pos]);
 
-  // Reset highlight to the current value (or first enabled) on open.
-  useEffect(() => {
-    if (!open) return;
-    const idx = flatOptions.findIndex((o) => o.value === value);
-    if (idx >= 0) {
-      setHighlightIdx(idx);
-      return;
-    }
-    const firstEnabled = flatOptions.findIndex((o) => !o.disabled);
-    setHighlightIdx(firstEnabled);
-  }, [open, value, flatOptions]);
-
   // Scroll highlighted option into view.
   useEffect(() => {
     if (!open) return;
@@ -164,71 +147,85 @@ export function Select({
     el?.scrollIntoView({ block: 'nearest' });
   }, [open, highlightIdx]);
 
+  function computeInitialHighlight(): number {
+    const idx = flatOptions.findIndex((o) => o.value === value);
+    if (idx >= 0) return idx;
+    return flatOptions.findIndex((o) => !o.disabled);
+  }
+
+  function openPopover() {
+    if (disabled) return;
+    setHighlightIdx(computeInitialHighlight());
+    setOpen(true);
+  }
+
   function commitAndClose(next: string) {
     if (next !== value) onChange(next);
     setOpen(false);
     anchorRef.current?.focus();
   }
 
-  function moveHighlight(delta: number) {
-    if (flatOptions.length === 0) return;
-    let i = highlightIdx;
-    for (let step = 0; step < flatOptions.length; step++) {
-      i = (i + delta + flatOptions.length) % flatOptions.length;
-      if (!flatOptions[i].disabled) {
-        setHighlightIdx(i);
-        return;
-      }
-    }
-  }
-
   function onTriggerKeyDown(e: ReactKeyboardEvent<HTMLButtonElement>) {
     if (disabled) return;
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      setOpen(true);
-    }
-  }
-
-  function onPopoverKeyDown(e: KeyboardEvent) {
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      setOpen(false);
-      anchorRef.current?.focus();
-    } else if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      moveHighlight(1);
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      moveHighlight(-1);
-    } else if (e.key === 'Home') {
-      e.preventDefault();
-      const first = flatOptions.findIndex((o) => !o.disabled);
-      if (first >= 0) setHighlightIdx(first);
-    } else if (e.key === 'End') {
-      e.preventDefault();
-      for (let i = flatOptions.length - 1; i >= 0; i--) {
-        if (!flatOptions[i].disabled) {
-          setHighlightIdx(i);
-          return;
-        }
-      }
-    } else if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      const opt = flatOptions[highlightIdx];
-      if (opt && !opt.disabled) commitAndClose(opt.value);
-    } else if (e.key === 'Tab') {
-      setOpen(false);
+      // 팝오버가 이미 열려 있을 땐 아무것도 하지 않는다 — document keydown
+      // 리스너가 하이라이트 이동/커밋을 처리. 여기서 openPopover를 다시
+      // 부르면 setHighlightIdx(initial)가 매 press마다 발화하며 리스너의
+      // setHighlightIdx(prev + 1)와 같은 batch에 섞여 진동/멈춤을 만듦.
+      if (!open) openPopover();
     }
   }
 
   useEffect(() => {
     if (!open) return;
-    const listener = (e: KeyboardEvent) => onPopoverKeyDown(e);
+    // Handler is defined inside the effect so eslint can see all deps
+    // directly (previously it was extracted and `exhaustive-deps` couldn't
+    // trace through the function call).
+    function listener(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setOpen(false);
+        anchorRef.current?.focus();
+      } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (flatOptions.length === 0) return;
+        const delta = e.key === 'ArrowDown' ? 1 : -1;
+        let i = highlightIdx;
+        for (let step = 0; step < flatOptions.length; step++) {
+          i = (i + delta + flatOptions.length) % flatOptions.length;
+          if (!flatOptions[i].disabled) {
+            setHighlightIdx(i);
+            return;
+          }
+        }
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        const first = flatOptions.findIndex((o) => !o.disabled);
+        if (first >= 0) setHighlightIdx(first);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        for (let i = flatOptions.length - 1; i >= 0; i--) {
+          if (!flatOptions[i].disabled) {
+            setHighlightIdx(i);
+            return;
+          }
+        }
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        const opt = flatOptions[highlightIdx];
+        if (opt && !opt.disabled) {
+          if (opt.value !== value) onChange(opt.value);
+          setOpen(false);
+          anchorRef.current?.focus();
+        }
+      } else if (e.key === 'Tab') {
+        setOpen(false);
+      }
+    }
     document.addEventListener('keydown', listener);
     return () => document.removeEventListener('keydown', listener);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, highlightIdx, flatOptions]);
+  }, [open, highlightIdx, flatOptions, value, onChange]);
 
   const triggerClass = [
     'inline-flex items-center justify-center gap-1',
@@ -246,7 +243,7 @@ export function Select({
         ref={anchorRef}
         id={id}
         type="button"
-        onClick={() => !disabled && setOpen((o) => !o)}
+        onClick={() => (open ? setOpen(false) : openPopover())}
         onKeyDown={onTriggerKeyDown}
         disabled={disabled}
         aria-label={ariaLabel}
@@ -259,53 +256,52 @@ export function Select({
         </span>
       </button>
 
-      {mounted && open && pos
-        ? createPortal(
-            <div
-              ref={popoverRef}
-              style={{
-                position: 'fixed',
-                top: pxPos?.top ?? pos.top,
-                left: pxPos?.left ?? pos.left,
-                minWidth: triggerWidth || undefined,
-                maxWidth: '90vw',
-                zIndex: 50,
-                // Hide until we've re-measured with actual size to avoid a
-                // one-frame flash at the (usually wrong) estimated position.
-                visibility: pxPos ? 'visible' : 'hidden',
-              }}
-              className="thin-scrollbar max-h-72 w-max overflow-y-auto rounded-md border border-zinc-200 bg-white py-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
-              role="listbox"
-              aria-label={ariaLabel}
-              aria-activedescendant={
-                flatOptions[highlightIdx]
-                  ? `${id ?? 'select'}-opt-${flatOptions[highlightIdx].value}`
-                  : undefined
-              }
-              tabIndex={-1}
-            >
-              {grouped
-                ? (options as SelectGroup[]).map((group) => (
-                    <div key={group.label} role="group" aria-label={group.label}>
-                      <div className="px-3 pt-2 pb-1 text-[10px] font-medium tracking-wide text-zinc-400 uppercase">
-                        {group.label}
-                      </div>
-                      <ul className="mb-1">
-                        {group.options.map((opt) => {
-                          flatIdx++;
-                          return renderOption(opt, flatIdx);
-                        })}
-                      </ul>
+      {open && pos ? (
+        <Portal>
+          <div
+            ref={popoverRef}
+            style={{
+              position: 'fixed',
+              top: pxPos?.top ?? pos.top,
+              left: pxPos?.left ?? pos.left,
+              minWidth: triggerWidth || undefined,
+              maxWidth: '90vw',
+              zIndex: 50,
+              // Hide until we've re-measured with actual size to avoid a
+              // one-frame flash at the (usually wrong) estimated position.
+              visibility: pxPos ? 'visible' : 'hidden',
+            }}
+            className="thin-scrollbar max-h-72 w-max overflow-y-auto rounded-md border border-zinc-200 bg-white py-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
+            role="listbox"
+            aria-label={ariaLabel}
+            aria-activedescendant={
+              flatOptions[highlightIdx]
+                ? `${id ?? 'select'}-opt-${flatOptions[highlightIdx].value}`
+                : undefined
+            }
+            tabIndex={-1}
+          >
+            {grouped
+              ? (options as SelectGroup[]).map((group) => (
+                  <div key={group.label} role="group" aria-label={group.label}>
+                    <div className="px-3 pt-2 pb-1 text-[10px] font-medium tracking-wide text-zinc-400 uppercase">
+                      {group.label}
                     </div>
-                  ))
-                : (options as SelectOption[]).map((opt) => {
-                    flatIdx++;
-                    return renderOption(opt, flatIdx);
-                  })}
-            </div>,
-            document.body,
-          )
-        : null}
+                    <ul className="mb-1">
+                      {group.options.map((opt) => {
+                        flatIdx++;
+                        return renderOption(opt, flatIdx);
+                      })}
+                    </ul>
+                  </div>
+                ))
+              : (options as SelectOption[]).map((opt) => {
+                  flatIdx++;
+                  return renderOption(opt, flatIdx);
+                })}
+          </div>
+        </Portal>
+      ) : null}
     </>
   );
 

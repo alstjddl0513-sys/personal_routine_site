@@ -21,14 +21,21 @@ import { UrlPopover } from './cells/UrlPopover';
 export function JobCard({
   company: c,
   companyTypes,
+  highlighted,
 }: {
   company: Company;
   companyTypes: CompanyType[];
+  highlighted?: boolean;
 }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <article className="rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+    <article
+      data-cid={c.id}
+      className={`rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 ${
+        highlighted ? 'animate-[highlight-flash_2.5s_ease-out]' : ''
+      }`}
+    >
       <div className="flex items-center gap-2 px-3 py-2">
         <FavoriteToggle id={c.id} value={c.isFavorite} />
         <button
@@ -69,7 +76,7 @@ export function JobCard({
               <StatusSelect id={c.id} value={c.applicationStatus} />
             </Row>
             <Row label="마감일">
-              <DeadlinePopover id={c.id} value={c.applicationDeadline} />
+              <DeadlinePopover id={c.id} value={c.applicationDeadline} isRolling={c.isRolling} />
             </Row>
             <Row label="공고링크">
               <UrlPopover id={c.id} value={c.postingUrl} />

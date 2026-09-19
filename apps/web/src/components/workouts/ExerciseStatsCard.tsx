@@ -55,7 +55,7 @@ export function ExerciseStatsCard({ exercise, stats }: Props) {
         </>
       ) : (
         <div className="rounded bg-zinc-50 px-2 py-6 text-center text-[11px] italic text-zinc-400 dark:bg-zinc-900">
-          아직 무게 기록이 없습니다
+          아직 무게 기록이 없어요
         </div>
       )}
     </div>

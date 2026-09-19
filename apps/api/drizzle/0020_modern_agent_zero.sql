@@ -1,0 +1,1 @@
+ALTER TABLE "companies" ADD COLUMN "is_rolling" boolean DEFAULT false NOT NULL;

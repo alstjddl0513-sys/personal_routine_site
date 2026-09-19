@@ -111,6 +111,16 @@
 - 원인: ValidationPipe에 `transformOptions: { enableImplicitConversion: true }` 켜면 class-transformer가 declared type(`boolean`)에 맞춰 `Boolean(value)`를 적용. `Boolean('false') === true`라 `@Transform` 결과를 덮어씀
 - 해결: `enableImplicitConversion` 제거. 숫자 쿼리 파라미터가 필요해지면 그때 필드별로 `@Type(() => Number)`로 명시. Boolean은 `@Transform`으로 직접 다룸
 
+### `@IsUrl`이 한글 쿼리스트링 채용 URL을 400으로 거부
+- 상황: `/jobs` UrlPopover에서 공고 링크 저장 시 `PATCH /companies/:id` → 400 `{"message":["postingUrl must be a URL address"]}`
+- 원인: class-validator `@IsUrl`이 내부적으로 validator.js `isURL()`을 그대로 씀. 옵션 기본값이 IDN을 거부해서, 잡코리아·사람인 등 쿼리스트링에 한글 파라미터가 들어간 URL이 통과 못 함
+- 해결: `@Matches(/^https?:\/\/.+/i)` + `@MaxLength()`로 대체. 프론트가 이미 `new URL()` 파싱 + 프로토콜 체크로 검증하므로 서버는 프리픽스만 얕게 확인. 같은 이유로 `applicationDocUrl`, blog-sources의 `rssUrl`/`siteUrl`도 함께 완화
+
+### PATCH 400/500 에러가 body 없이 status만 던져지면 원인 파악이 오래 걸림
+- 상황: 클라이언트 콘솔에 `PATCH /companies/xxx failed: HTTP 400` 만 나오고 실제 어떤 필드가 왜 거부됐는지 안 보임 → 위 IDN 이슈 재현이 오래 걸렸음
+- 원인: `patchCompany` 등 mutation 헬퍼가 `res.status`만 붙여서 throw. Nest가 응답 body에 `{"message":[...]}` 형태로 상세 메시지를 담고 있지만 안 읽음
+- 해결: `!res.ok` 분기에서 `await res.text()`를 붙여 `HttpError` 메시지에 포함. dev 툴 콘솔에 서버 message 배열이 그대로 노출되어 해당 필드/규칙까지 즉시 파악 가능
+
 ---
 
 ## Windows 개발환경
@@ -282,3 +292,28 @@
 - 상황: 0.4.0 배포 후 `/jobs` 표 행의 PrioritySelect·SizeSelect, 회사 추가 모달의 규모/유형 Select 등을 열면 popover가 트리거에서 크게 벗어난 위치(주로 뷰포트 상단)에 렌더링. 로컬 dev에선 재현 안 됨
 - 원인 추정: `usePopoverPosition`이 `POPOVER_MAX_HEIGHT=288`을 추정 높이로 써서 `pos.top`을 계산 → 실제 popover가 훨씬 짧을 때(옵션 3~5개, 실제 높이 ~100px) "above" 배치 시 앵커 위로 큰 공백을 두고 위치. 기존 `useLayoutEffect`가 `leftPx`만 실측 보정하고 `top`은 방치. 로컬 dev 빌드에서는 timing/hydration 순서상 안 튀고 prod 빌드에서만 관측됨
 - 해결: `Select.tsx`에서 popover mount 후 `getBoundingClientRect()`로 실측한 높이·너비 기준으로 top·left 둘 다 재계산. 첫 렌더는 `visibility: hidden`으로 감춰 flash 방지. `scroll`/`resize`에서도 재추적
+
+### 커스텀 Select 열린 상태에서 화살표 키가 1칸만 내려가고 다시 올라감
+- 상황: 어떤 Select든 열어놓고 ArrowDown을 연타하면 첫 press는 다음 항목으로 이동하는데 두 번째 press부터 원래 선택 위치로 되돌아옴. 그 아래로 진행이 안 됨
+- 원인: 팝오버가 열려도 focus는 여전히 트리거 버튼에 남아있어 키가 눌리면 (a) `onTriggerKeyDown` — `openPopover()` → `setHighlightIdx(computeInitialHighlight())`로 리셋, (b) 같은 이벤트가 document로 bubble → 문서 keydown 리스너가 `setHighlightIdx(prev + 1)`. 같은 이벤트 배치에서 두 개의 `setHighlightIdx`가 큐잉되고 마지막 값이 이긴다는 가정이 렌더 사이 클로저 캡처 타이밍과 얽히며 실제로는 초기값 리셋이 우세해지는 케이스가 반복 발생 — 사용자 눈엔 하이라이트가 진동
+- 해결: `Select.tsx`의 `onTriggerKeyDown`이 popover가 **닫혀 있을 때만** `openPopover()`를 호출하도록 조건 추가. 열려있으면 preventDefault만 하고 실제 이동/커밋은 document 리스너에 위임
+
+### 어드민 endpoint에서 여러 클릭 이동 시 HTTP 429
+- 상황: `/admin` 하위 페이지를 오가면서 UserPicker 등 열면 `GET /admin/users failed: HTTP 429`. 전역 ThrottlerGuard(60/min per IP)에 걸림
+- 원인: `/admin/*`는 admin 1인만 접근하고 페이지 오가는 동안 profile fetch + admin/users fetch + UserPicker fetch가 짧은 시간에 누적. 다른 API 호출과 합쳐 IP 기준 60/min 임계 초과
+- 해결: `AdminController`에 `@SkipThrottle()` 클래스 데코 부착 (AdminGuard로 접근 이미 통제됨). 추가로 `UserPickerModal`이 모듈 레벨 캐시(`cachedUsers` + `inFlight`)로 여닫기마다 재fetch 방지
+
+### Drizzle `sql\`\`` 안 correlated subquery가 항상 빈 결과
+- 상황: `announcements/unread` 서비스에서 `sql\`NOT EXISTS (SELECT 1 FROM ${announcementReads} r WHERE r.announcement_id = ${announcements.id})\``로 짜니 조건 만족하는 row가 있어도 항상 `[]` 반환
+- 원인 추정: sql 템플릿에서 테이블 참조(`${announcementTargets}`)와 outer query 컬럼(`${announcements.id}`) 그리고 파라미터(`${userId}`)가 뒤섞이면 Drizzle이 correlated subquery로 안전히 렌더링한다는 보장이 없음. 생성 SQL 뜯어보기 전엔 원인 특정 어려움
+- 해결: 서비스를 앱-레벨 필터로 재작성 (1) 활성+기간 매치 후보 fetch (2) 이 사용자의 read set fetch (3) targets 배치 조회 → Map (4) 앱 레벨에서 필터. 초기 유저 수 작아 오버헤드 미미하고 로직이 눈에 보여 디버깅 쉬움
+
+### 로그아웃/재로그인 시 브라우저 알림 이력이 계정 간 섞임
+- 상황: 계정 A가 알림 몇 개 받은 뒤 로그아웃 → 계정 B로 로그인 → NotifBell 드로어에 A의 알림 이력이 그대로 보임
+- 원인: `notif-log.ts`가 localStorage 단일 키(`rally.notif.log`)를 사용. origin 공유라 auth 세션 무관하게 유지
+- 해결: `KEY_USER_ID`(`rally.notif.log.user-id`) 마커 추가 + `ensureLogScope(currentUserId)` — 이전 마커와 다르면 log/last-read 청소하고 새 마커 저장. 같은 계정 재로그인이면 no-op라 이력 유지. `NotifAuthSync`가 `SIGNED_IN`/`INITIAL_SESSION`/`TOKEN_REFRESHED` 이벤트에서 호출. `SIGNED_OUT`엔 log 유지(다음 계정 로그인 시 자동 정리)
+
+### 마감 알림이 하루 중 나중에 추가한 회사를 놓침
+- 상황: 오전에 D-1 회사 5곳 알림 발송됨 → 오후에 새 회사 D-1으로 추가 → 새로고침해도 알림 안 옴
+- 원인: `wasFiredToday(daysLeft)` 마커가 daysLeft 단위 boolean이라 오늘 이 daysLeft에서 한 번이라도 발송되면 무조건 skip
+- 해결: 마커 포맷을 `{ date: YYYY-MM-DD, ids: string[] }` JSON으로 변경. `getFiredIdsToday(daysLeft)`가 Set 반환 → DeadlineNotifier가 `all.filter(i => !alreadyFired.has(i.id))`로 새 회사만 발송. `addFiredIdsToday`가 union으로 마커 업데이트. 옛 date-string 포맷도 오늘 날짜면 all-fired로 하위 호환
