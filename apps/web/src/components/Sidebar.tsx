@@ -12,6 +12,7 @@ import {
   LogOut,
   Rss,
   Settings,
+  Shield,
 } from 'lucide-react';
 import { useEffect, useState, useSyncExternalStore, type ComponentType, type SVGProps } from 'react';
 import { NotifBell } from './NotifBell';
@@ -138,10 +139,13 @@ function writeCollapsed(next: CollapsedMap) {
 
 function UserRow() {
   const [label, setLabel] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // Read the session on mount and whenever auth state flips (login/logout).
   // Nickname is the display label; if the profile row hasn't been created
   // yet (edge case) fall back to the email's local part.
+  // isAdmin(Phase 12.5)은 /admin 링크 조건부 렌더에만 사용 — 서버 진리치라
+  // 클라 조작 시도해도 실제 API는 AdminGuard로 재검증.
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
     let cancelled = false;
@@ -151,7 +155,10 @@ function UserRow() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
-        if (!cancelled) setLabel(null);
+        if (!cancelled) {
+          setLabel(null);
+          setIsAdmin(false);
+        }
         return;
       }
       try {
@@ -159,11 +166,16 @@ function UserRow() {
         if (cancelled) return;
         if (profile) {
           setLabel(profile.nickname);
+          setIsAdmin(profile.isAdmin);
         } else {
           setLabel(user.email?.split('@')[0] ?? '유저');
+          setIsAdmin(false);
         }
       } catch {
-        if (!cancelled) setLabel(user.email?.split('@')[0] ?? '유저');
+        if (!cancelled) {
+          setLabel(user.email?.split('@')[0] ?? '유저');
+          setIsAdmin(false);
+        }
       }
     }
 
@@ -179,8 +191,19 @@ function UserRow() {
 
   if (!label) return null;
   return (
-    <div className="border-t border-zinc-200 px-4 py-2 text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-500">
-      <span className="truncate" title={label}>{label}</span>
+    <div className="flex items-center gap-2 border-t border-zinc-200 px-4 py-2 text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-500">
+      <span className="min-w-0 flex-1 truncate" title={label}>
+        {label}
+      </span>
+      {isAdmin ? (
+        <Link
+          href="/admin"
+          aria-label="관리자 페이지"
+          className="inline-flex h-6 w-6 items-center justify-center rounded-md text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+        >
+          <Shield className="h-3.5 w-3.5" aria-hidden />
+        </Link>
+      ) : null}
     </div>
   );
 }
