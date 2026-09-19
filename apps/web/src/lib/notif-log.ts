@@ -23,6 +23,7 @@ export interface NotifLogEntry {
 
 const KEY_LOG = 'rally.notif.log';
 const KEY_LAST_READ = 'rally.notif.log.last-read-at';
+const KEY_USER_ID = 'rally.notif.log.user-id';
 const LOG_CHANGE_EVENT = 'rally.notif.log.changed';
 const MAX_ENTRIES = 30;
 
@@ -159,4 +160,27 @@ export function getUnreadCount(): number {
 
 export function getServerSnapshot(): readonly NotifLogEntry[] {
   return EMPTY_LOG;
+}
+
+// 다른 사용자가 이 브라우저에 로그인하면 이전 사용자 알림 흔적을 지움.
+// SPA 전환에서 로그아웃 → 로그인 시 sink는 module-scope라 자연 리셋되지만
+// localStorage는 origin 공유라 명시적으로 청소해야 함. NotifAuthSync가
+// SIGNED_IN/INITIAL_SESSION 이벤트에서 호출.
+//
+// 같은 계정 재로그인이면 마커가 일치해 no-op → 알림 이력 유지. 다른 계정이
+// 들어오면 이전 log 지우고 새 사용자로 마킹.
+//
+// 로그아웃만으로는 지우지 않는다 — 같은 계정이 다시 들어올 때 유지되어야
+// 자연스럽고, 로그아웃 상태에선 알림 볼 진입점이 없어 노출 위험도 없음.
+export function ensureLogScope(currentUserId: string): void {
+  const s = storage();
+  if (!s) return;
+  const prev = s.getItem(KEY_USER_ID);
+  if (prev === currentUserId) return;
+  s.removeItem(KEY_LOG);
+  s.removeItem(KEY_LAST_READ);
+  s.setItem(KEY_USER_ID, currentUserId);
+  cachedRaw = undefined;
+  cachedSnapshot = EMPTY_LOG;
+  emitChange();
 }
