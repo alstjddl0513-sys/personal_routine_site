@@ -7,33 +7,38 @@
 ```
 [브라우저]
     │
-    │  HTTPS + Basic Auth (BASIC_AUTH_USER/PASSWORD)
+    │  HTTPS + Supabase Auth 세션 쿠키 (sb-*.access-token 등)
     ▼
 ┌──────────────────────────────────────────────┐
 │  Vercel  ─  apps/web (Next.js 16)            │
 │                                              │
 │  · SSR/SSG 페이지 렌더                        │
+│  · proxy.ts로 세션 refresh + 페이지 가드      │
 │  · /api/proxy/* route handler                │
 │    (클라이언트 mutation을 same-origin으로 받아  │
-│     서버측에서 X-Auth-Token 첨부 후 Render로) │
+│     서버측에서 Authorization: Bearer <JWT>    │
+│     헤더 첨부 후 Render로 전달)                │
 └──────────────────────────────────────────────┘
     │
-    │  서버-서버 fetch (X-Auth-Token 헤더, 브라우저에 노출 X)
+    │  서버-서버 fetch (Authorization: Bearer <supabase JWT>)
     ▼
 ┌──────────────────────────────────────────────┐
 │  Render  ─  apps/api (NestJS + Drizzle)      │
 │                                              │
 │  · HTTP endpoint, DTO 검증, 도메인 로직        │
-│  · AccessTokenGuard로 X-Auth-Token 검증       │
+│  · SupabaseAuthGuard(JWKS/ES256, jose)       │
+│  · AdminGuard(env ADMIN_USER_IDS)로 /admin/* │
 │  · Drizzle ORM → postgres.js 드라이버         │
 └──────────────────────────────────────────────┘
     │
     │  PostgreSQL wire protocol + SSL (Session Pooler 5432)
     ▼
 ┌──────────────────────────────────────────────┐
-│  Supabase  ─  Managed PostgreSQL             │
+│  Supabase  ─  Postgres · Auth · Storage      │
 │                                              │
-│  · 유일한 영속 계층 (모든 데이터가 여기 저장)    │
+│  · Postgres: 도메인 데이터, RLS 4정책×N테이블 │
+│  · Auth: JWKS 발급/회전, Google OAuth        │
+│  · Storage: documents 버킷(private, 50MB)    │
 │  · Session Pooler 게이트웨이 (IPv4)           │
 └──────────────────────────────────────────────┘
 ```
@@ -54,12 +59,12 @@
 
 ## 트래픽 흐름 (mutation 예시: /jobs에서 회사 추가)
 
-1. 브라우저: 폼 submit → `POST /api/proxy/companies` (same-origin, `X-Auth-Token` 없음)
-2. Vercel 서버측: `apps/web/src/proxy.ts`가 요청 받음 → Basic Auth 통과 확인 → `X-Auth-Token: <API_ACCESS_TOKEN>` 헤더 첨부 → Render로 프록시
-3. Render: `AccessTokenGuard`가 헤더 검증 → NestJS controller → Drizzle → Supabase INSERT
+1. 브라우저: 폼 submit → `POST /api/proxy/companies` (same-origin, JWT 헤더 없음)
+2. Vercel 서버측: `apps/web/src/proxy.ts`가 세션 쿠키 refresh → `/api/proxy/[...path]` route handler가 서버 컨텍스트에서 access token 조회 → `Authorization: Bearer <supabase JWT>` 헤더 첨부 → Render로 프록시
+3. Render: `SupabaseAuthGuard`가 JWKS로 JWT 검증(ES256, jose) → `req.user.id` 세팅 → NestJS controller → Drizzle → Supabase INSERT (ownerId 필터로 소유자 스코프)
 4. 응답 역경로로 브라우저에 반환
 
-**중요**: `X-Auth-Token`은 서버측에서만 만들어짐. 브라우저 DevTools Network 탭엔 노출되지 않음. `API_ACCESS_TOKEN`은 `NEXT_PUBLIC_` 접두어 없이 Vercel Env에만 있음.
+**중요**: JWT는 세션 쿠키에서 서버측이 뽑아내 헤더로 첨부. 브라우저 DevTools Network 탭에서 클라이언트 → `/api/proxy/*` 호출엔 `Authorization` 헤더가 없어야 정상. `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`만 브라우저에 노출되며, RLS가 최종 게이트.
 
 ## Vercel은 Supabase에 직접 연결하지 않음
 
@@ -69,16 +74,23 @@
 - Vercel이 Serverless여도 Transaction Pooler(6543) 신경 쓸 필요 없음. Render는 long-running 컨테이너라 Session Pooler(5432)로 충분
 - 프론트에서 DB 쿼리 직접 못 하는 게 오히려 안전 (권한 분리)
 
-## 현재 안 쓰는 Supabase 기능
+## 현재 사용 중인 Supabase 서비스
 
-MVP는 순수 Postgres 호스팅으로만 사용. 나중에 다인 서비스로 확장 시 추가 가능:
+Phase 12 이후 Postgres 호스팅 외에도 Supabase가 여러 층을 담당:
+
+| 기능 | 도입 시점 | 용도 |
+|---|---|---|
+| Postgres | Phase 0 | 유일한 영속 계층 |
+| Auth (email/password + Google OAuth) | Phase 12.2·12.3 | Basic Auth 대체, JWKS/ES256 |
+| Row Level Security | Phase 12.4 | 유저별 데이터 격리 (4 정책 × 11 도메인 테이블) |
+| Storage | Phase 12.5C | `documents` private 버킷 (이력서·포트폴리오 PDF) |
+
+붙이지 않은 것:
 
 | 기능 | 언제 붙일까 |
 |---|---|
-| Auth (소셜 로그인) | 다인 서비스 전환 시. Basic Auth 대체 |
-| Storage (파일 업로드) | 이력서/포트폴리오 첨부 기능 생기면 |
-| Realtime | 실시간 협업/알림 붙일 때 |
-| Row Level Security | 유저별 데이터 격리 필요할 때 (Auth와 세트) |
+| Realtime | 실시간 협업/공유 알림 붙일 때 |
+| Edge Functions | 클라 인접 서버리스 로직 필요 시 (현재는 Render로 대체) |
 
 ## 선택 이유 (Stack decisions)
 
@@ -95,7 +107,7 @@ MVP는 순수 Postgres 호스팅으로만 사용. 나중에 다인 서비스로 
 | 콜드 스타트 완화 | **cronjob.org** | GitHub Actions, UptimeRobot | UI 간단, 완전 무료, 10분 주기로 `/health` 핑. GH Actions는 무료 분 소진 아까움 |
 | 모노레포 | **pnpm workspace** | npm workspace, Yarn, turbo | 심볼릭 링크 방식이 디스크 절약, `workspace:*` 프로토콜 안정. turbo는 앱 2개 규모엔 캐시 이득보다 세팅 부담 |
 | 패키지 매니저 | **pnpm 11** | npm, yarn | 위와 동일 이유. Windows에서 `.ps1` 실행 정책 이슈는 `pnpm.cmd`로 우회(troubleshooting.md) |
-| 인증 (MVP → 이관 중) | **자체 폼 + HttpOnly 쿠키** → Phase 12에서 Supabase Auth로 이관 중 | Supabase Auth, NextAuth | 1인 전용 시기엔 계정 시스템 오버킬이라 env 두 개(`BASIC_AUTH_USER/PASSWORD`)만으로 시작. Phase 12에서 다인화 트리거로 아래 행의 Supabase Auth로 대체 |
+| 인증 (MVP · 폐기됨) | 자체 폼 + HttpOnly 쿠키 (Basic Auth env) | — | 1인 전용 MVP 시기 임시. Phase 12.2에서 아래 Supabase Auth로 완전 대체 (`BASIC_AUTH_*`·`API_ACCESS_TOKEN` env 제거) |
 | 인증 (Phase 12) | **Supabase Auth (JWKS/ES256)** | NextAuth (self-host), Auth0/Clerk (managed) | DB가 이미 Supabase라 auth.users FK + RLS를 한 벤더 안에서. NextAuth는 세션 저장·소셜 provider 세팅 수제 부담. Auth0/Clerk는 무료 티어 MAU 제한이 취준용 규모엔 오버킬이고 vendor lock-in 큼. Supabase는 이 프로젝트에서 이미 vendor lock-in 감수 중이라 추가 락 없음 |
 | JWT verify | **jose** | jsonwebtoken (+jwks-rsa) | 프로젝트가 JWKS(ES256/ECC P-256)로 서명 → `createRemoteJWKSet`으로 공개키 자동 fetch·캐싱·회전 대응. jsonwebtoken은 HS256 콜백 API 시절 표준이지만 JWKS 쓰려면 별도 lib 조합 필요. jose는 zero-deps + native async + TS 우선 |
 | Rate limit | **@nestjs/throttler** | 수제 미들웨어, express-rate-limit, Redis 기반 | 공식 Nest 통합, 데코레이터로 엔드포인트별 세밀 제어(`@Throttle`). 인메모리라 무료 티어 재시작마다 초기화되지만 스크레이핑 방지 목적엔 충분. 다중 인스턴스 되면 Redis storage 어댑터로 교체 |

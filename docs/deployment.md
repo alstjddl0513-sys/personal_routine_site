@@ -1,6 +1,6 @@
 # 배포 가이드 (Render + Vercel + Supabase)
 
-첫 배포용 단계별 절차. Phase 9.1까지 코드 준비는 끝난 상태(`/api/proxy`, `AccessTokenGuard`, `proxy.ts` Basic Auth, `main.ts`의 `PORT`/`CORS_ALLOWED_ORIGIN` env 대응).
+첫 배포용 단계별 절차. 현재 코드는 Phase 12(Supabase Auth 다인화) 반영 상태: `SupabaseAuthGuard`(JWKS/ES256), `proxy.ts` 세션 refresh, `AdminGuard`(env `ADMIN_USER_IDS`), Storage `documents` 버킷, `bootstrap-env.ts` prod fail-fast, `main.ts`의 `PORT`/`CORS_ALLOWED_ORIGIN`.
 
 ## 사전 조건
 
