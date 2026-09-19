@@ -297,3 +297,23 @@
 - 상황: 어떤 Select든 열어놓고 ArrowDown을 연타하면 첫 press는 다음 항목으로 이동하는데 두 번째 press부터 원래 선택 위치로 되돌아옴. 그 아래로 진행이 안 됨
 - 원인: 팝오버가 열려도 focus는 여전히 트리거 버튼에 남아있어 키가 눌리면 (a) `onTriggerKeyDown` — `openPopover()` → `setHighlightIdx(computeInitialHighlight())`로 리셋, (b) 같은 이벤트가 document로 bubble → 문서 keydown 리스너가 `setHighlightIdx(prev + 1)`. 같은 이벤트 배치에서 두 개의 `setHighlightIdx`가 큐잉되고 마지막 값이 이긴다는 가정이 렌더 사이 클로저 캡처 타이밍과 얽히며 실제로는 초기값 리셋이 우세해지는 케이스가 반복 발생 — 사용자 눈엔 하이라이트가 진동
 - 해결: `Select.tsx`의 `onTriggerKeyDown`이 popover가 **닫혀 있을 때만** `openPopover()`를 호출하도록 조건 추가. 열려있으면 preventDefault만 하고 실제 이동/커밋은 document 리스너에 위임
+
+### 어드민 endpoint에서 여러 클릭 이동 시 HTTP 429
+- 상황: `/admin` 하위 페이지를 오가면서 UserPicker 등 열면 `GET /admin/users failed: HTTP 429`. 전역 ThrottlerGuard(60/min per IP)에 걸림
+- 원인: `/admin/*`는 admin 1인만 접근하고 페이지 오가는 동안 profile fetch + admin/users fetch + UserPicker fetch가 짧은 시간에 누적. 다른 API 호출과 합쳐 IP 기준 60/min 임계 초과
+- 해결: `AdminController`에 `@SkipThrottle()` 클래스 데코 부착 (AdminGuard로 접근 이미 통제됨). 추가로 `UserPickerModal`이 모듈 레벨 캐시(`cachedUsers` + `inFlight`)로 여닫기마다 재fetch 방지
+
+### Drizzle `sql\`\`` 안 correlated subquery가 항상 빈 결과
+- 상황: `announcements/unread` 서비스에서 `sql\`NOT EXISTS (SELECT 1 FROM ${announcementReads} r WHERE r.announcement_id = ${announcements.id})\``로 짜니 조건 만족하는 row가 있어도 항상 `[]` 반환
+- 원인 추정: sql 템플릿에서 테이블 참조(`${announcementTargets}`)와 outer query 컬럼(`${announcements.id}`) 그리고 파라미터(`${userId}`)가 뒤섞이면 Drizzle이 correlated subquery로 안전히 렌더링한다는 보장이 없음. 생성 SQL 뜯어보기 전엔 원인 특정 어려움
+- 해결: 서비스를 앱-레벨 필터로 재작성 (1) 활성+기간 매치 후보 fetch (2) 이 사용자의 read set fetch (3) targets 배치 조회 → Map (4) 앱 레벨에서 필터. 초기 유저 수 작아 오버헤드 미미하고 로직이 눈에 보여 디버깅 쉬움
+
+### 로그아웃/재로그인 시 브라우저 알림 이력이 계정 간 섞임
+- 상황: 계정 A가 알림 몇 개 받은 뒤 로그아웃 → 계정 B로 로그인 → NotifBell 드로어에 A의 알림 이력이 그대로 보임
+- 원인: `notif-log.ts`가 localStorage 단일 키(`rally.notif.log`)를 사용. origin 공유라 auth 세션 무관하게 유지
+- 해결: `KEY_USER_ID`(`rally.notif.log.user-id`) 마커 추가 + `ensureLogScope(currentUserId)` — 이전 마커와 다르면 log/last-read 청소하고 새 마커 저장. 같은 계정 재로그인이면 no-op라 이력 유지. `NotifAuthSync`가 `SIGNED_IN`/`INITIAL_SESSION`/`TOKEN_REFRESHED` 이벤트에서 호출. `SIGNED_OUT`엔 log 유지(다음 계정 로그인 시 자동 정리)
+
+### 마감 알림이 하루 중 나중에 추가한 회사를 놓침
+- 상황: 오전에 D-1 회사 5곳 알림 발송됨 → 오후에 새 회사 D-1으로 추가 → 새로고침해도 알림 안 옴
+- 원인: `wasFiredToday(daysLeft)` 마커가 daysLeft 단위 boolean이라 오늘 이 daysLeft에서 한 번이라도 발송되면 무조건 skip
+- 해결: 마커 포맷을 `{ date: YYYY-MM-DD, ids: string[] }` JSON으로 변경. `getFiredIdsToday(daysLeft)`가 Set 반환 → DeadlineNotifier가 `all.filter(i => !alreadyFired.has(i.id))`로 새 회사만 발송. `addFiredIdsToday`가 union으로 마커 업데이트. 옛 date-string 포맷도 오늘 날짜면 all-fired로 하위 호환
