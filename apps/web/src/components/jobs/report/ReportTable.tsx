@@ -31,9 +31,10 @@ export function ReportTable({ rows, companyTypes }: Props) {
   );
 
   return (
+    <div className="-mx-6 overflow-x-auto px-6 sm:mx-0 sm:overflow-visible sm:px-0 print:mx-0 print:overflow-visible print:px-0">
     <table
       data-report-table
-      className="w-full table-fixed border-collapse text-sm text-zinc-800 dark:text-zinc-200"
+      className="w-full min-w-[720px] table-fixed border-collapse text-sm text-zinc-800 sm:min-w-0 print:min-w-0 dark:text-zinc-200"
     >
       <thead>
         <tr className="border-b border-zinc-300 text-left text-xs text-zinc-500 dark:border-zinc-700 dark:text-zinc-500">
@@ -85,5 +86,6 @@ export function ReportTable({ rows, companyTypes }: Props) {
         ))}
       </tbody>
     </table>
+    </div>
   );
 }
