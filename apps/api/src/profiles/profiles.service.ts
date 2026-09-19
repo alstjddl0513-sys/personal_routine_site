@@ -4,6 +4,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { eq, sql } from 'drizzle-orm';
 import { db } from '../db/client';
 import {
@@ -22,11 +23,17 @@ import {
   DEFAULT_QUESTIONS,
 } from '../db/defaults';
 import { getSupabaseAdmin } from '../supabase-admin';
+import { isAdminUserId } from '../admin/is-admin.util';
 import { deepMerge } from './preferences.util';
 import type { PatchPreferencesDto } from './dto/patch-preferences.dto';
 
 @Injectable()
 export class ProfilesService {
+  constructor(private readonly config: ConfigService) {}
+
+  // isAdmin은 DB 컬럼이 아니라 env `ADMIN_USER_IDS` 매치로 파생. 서비스가
+  // 컨트롤러 대신 이 계산까지 책임져야 응답 shape가 shared `Profile` 타입과
+  // 정확히 일치한다. Phase 12.5.
   async findMe(userId: string) {
     const [row] = await db
       .select()
@@ -34,7 +41,7 @@ export class ProfilesService {
       .where(eq(profiles.id, userId))
       .limit(1);
     if (!row) throw new NotFoundException('profile not found');
-    return row;
+    return { ...row, isAdmin: isAdminUserId(this.config, userId) };
   }
 
   // Create-if-missing, else rename. When creating, seeds company_types,
@@ -59,6 +66,10 @@ export class ProfilesService {
             set: { nickname, updatedAt: new Date() },
           })
           .returning();
+        const rowWithAdmin = {
+          ...row,
+          isAdmin: isAdminUserId(this.config, userId),
+        };
 
         if (isNewProfile) {
           await tx
@@ -97,7 +108,7 @@ export class ProfilesService {
             );
         }
 
-        return row;
+        return rowWithAdmin;
       });
     } catch (err) {
       if (isUniqueViolation(err, 'profiles_nickname_unique')) {
@@ -115,7 +126,7 @@ export class ProfilesService {
         .where(eq(profiles.id, userId))
         .returning();
       if (!row) throw new NotFoundException('profile not found');
-      return row;
+      return { ...row, isAdmin: isAdminUserId(this.config, userId) };
     } catch (err) {
       if (isUniqueViolation(err, 'profiles_nickname_unique')) {
         throw new ConflictException('nickname already taken');
@@ -148,7 +159,7 @@ export class ProfilesService {
         })
         .where(eq(profiles.id, userId))
         .returning();
-      return row;
+      return { ...row, isAdmin: isAdminUserId(this.config, userId) };
     });
   }
 

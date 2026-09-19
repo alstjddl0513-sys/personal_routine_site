@@ -24,6 +24,8 @@ import { ProfilesModule } from './profiles/profiles.module';
 import { QuestionCategoriesModule } from './question-categories/question-categories.module';
 import { QuestionsModule } from './questions/questions.module';
 import { DocumentsModule } from './documents/documents.module';
+import { AdminModule } from './admin/admin.module';
+import { AnnouncementsModule } from './announcements/announcements.module';
 
 @Module({
   imports: [
@@ -51,6 +53,8 @@ import { DocumentsModule } from './documents/documents.module';
     QuestionCategoriesModule,
     QuestionsModule,
     DocumentsModule,
+    AdminModule,
+    AnnouncementsModule,
   ],
   controllers: [AppController, HealthController],
   providers: [

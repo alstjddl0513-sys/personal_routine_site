@@ -75,19 +75,67 @@ export function setEnabledSilent(enabled: boolean): void {
   }
 }
 
-// KST 기준 오늘 이미 발송했는지. tab/디바이스 별로 관리됨(같은 유저라도 다른
-// 브라우저면 중복 알림 가능 — 이 스코프에서는 감수).
-export function wasFiredToday(daysLeft: number): boolean {
-  const s = storage();
-  if (!s) return false;
-  const last = s.getItem(keyLastFired(daysLeft));
-  return last === toISODate(todayInSeoul());
+// KST 기준 오늘 이미 발송한 회사 id 집합. 회사 단위로 추적해 오늘 나중에
+// 추가된 회사도 놓치지 않음. 저장 포맷은 `{ date, ids }` JSON.
+//
+// 옛 포맷(단순 date string)은 오늘이면 all-fired로 취급, 다른 날이면 stale로
+// 무시 — 마이그 부담 없이 자연스레 교체.
+
+interface FiredMarker {
+  date: string;
+  ids: string[];
 }
 
-export function markFiredToday(daysLeft: number): void {
+function readFiredMarker(daysLeft: number): FiredMarker | null {
+  const s = storage();
+  if (!s) return null;
+  const raw = s.getItem(keyLastFired(daysLeft));
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (
+      parsed &&
+      typeof parsed === 'object' &&
+      typeof (parsed as { date?: unknown }).date === 'string' &&
+      Array.isArray((parsed as { ids?: unknown }).ids)
+    ) {
+      return parsed as FiredMarker;
+    }
+  } catch {
+    // 옛 포맷(단순 date string). 아래로 흘러감.
+  }
+  // 옛 포맷 호환: 오늘 date면 all-fired로 간주(정확한 회사 id 알 수 없어
+  // 보수적으로 empty ids 대신 sentinel — 다음 호출부터 자연스레 새 포맷 저장).
+  return { date: raw, ids: [] };
+}
+
+// 오늘 이 daysLeft에 이미 발송된 회사 id Set 반환. 어제/이전이면 빈 Set.
+export function getFiredIdsToday(daysLeft: number): Set<string> {
+  const marker = readFiredMarker(daysLeft);
+  if (!marker) return new Set();
+  if (marker.date !== toISODate(todayInSeoul())) return new Set();
+  return new Set(marker.ids);
+}
+
+// 발송한 회사 id들을 오늘 마커에 union. 하루 지나면 자동 리셋(readFiredMarker).
+export function addFiredIdsToday(daysLeft: number, ids: string[]): void {
   const s = storage();
   if (!s) return;
-  s.setItem(keyLastFired(daysLeft), toISODate(todayInSeoul()));
+  const existing = getFiredIdsToday(daysLeft);
+  for (const id of ids) existing.add(id);
+  const marker: FiredMarker = {
+    date: toISODate(todayInSeoul()),
+    ids: [...existing],
+  };
+  s.setItem(keyLastFired(daysLeft), JSON.stringify(marker));
+}
+
+// 하위 호환 유지 — DeadlineNotifier 외 다른 코드가 참조할 경우 대비.
+// `모든` 회사가 이미 오늘 발송됐는지가 아니라 "적어도 한 번 오늘 발송했는지".
+export function wasFiredToday(daysLeft: number): boolean {
+  const marker = readFiredMarker(daysLeft);
+  if (!marker) return false;
+  return marker.date === toISODate(todayInSeoul());
 }
 
 // D-N 마감인 활성 상태 회사만. computeUpcomingDeadlines(windowDays=N)이

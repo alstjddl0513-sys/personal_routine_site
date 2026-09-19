@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import { BottomNav } from '../components/BottomNav';
 import { DeadlineNotifier } from '../components/DeadlineNotifier';
 import { MorningSummary } from '../components/MorningSummary';
+import { NotifAuthSync } from '../components/NotifAuthSync';
 import { PreferencesSyncClient } from '../components/PreferencesSyncClient';
 import { RoutineReminder } from '../components/RoutineReminder';
 import { SectionSubNav } from '../components/SectionSubNav';
@@ -104,6 +105,8 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
         <BottomNav />
         {/* 서버 → 로컬 반영이 notifier들의 fire 로직보다 먼저 완료되도록 앞에 배치. */}
         <PreferencesSyncClient />
+        {/* auth state 변화 시 알림 sink 재fetch + 이전 사용자 흔적 정리 */}
+        <NotifAuthSync />
         <DeadlineNotifier />
         <MorningSummary />
         <RoutineReminder />

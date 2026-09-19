@@ -1,11 +1,15 @@
 import type {
+  AdminUsersPage,
+  Announcement,
   ApplicationStatus,
+  BanDurationHours,
   BlogPost,
   BlogRefreshResult,
   BlogSource,
   Company,
   CompanyType,
   CompanyType1,
+  CreateAnnouncementInput,
   DayNote,
   Document,
   DocumentKind,
@@ -30,6 +34,8 @@ import type {
   RandomQuestion,
   RoutineCheck,
   TimeBlock,
+  UpdateAnnouncementInput,
+  UserAnnouncement,
   WeeklyVolumeEntry,
   WorkoutHeatmapEntry,
   WorkoutSession,
@@ -1068,4 +1074,165 @@ export async function getDocumentDownloadUrl(
     );
   }
   return (await res.json()) as { url: string; expiresAt: string };
+}
+
+// --- admin (Phase 12.5) ---
+
+export interface ListAdminUsersOptions {
+  page?: number;
+  perPage?: number;
+  search?: string;
+  sortBy?: 'createdAt' | 'lastSignInAt';
+}
+
+export async function listAdminUsers(
+  opts: ListAdminUsersOptions = {},
+): Promise<AdminUsersPage> {
+  const qs = new URLSearchParams();
+  if (opts.page) qs.set('page', String(opts.page));
+  if (opts.perPage) qs.set('perPage', String(opts.perPage));
+  if (opts.search) qs.set('search', opts.search);
+  if (opts.sortBy) qs.set('sortBy', opts.sortBy);
+  const url = qs.toString()
+    ? apiUrl(`/admin/users?${qs.toString()}`)
+    : apiUrl('/admin/users');
+  const res = await fetch(url, {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(`GET /admin/users failed: HTTP ${res.status}`, res.status);
+  }
+  return (await res.json()) as AdminUsersPage;
+}
+
+export async function banUser(
+  id: string,
+  durationHours: BanDurationHours,
+): Promise<{ id: string; bannedUntil: string | null }> {
+  const res = await fetch(apiUrl(`/admin/users/${id}/ban`), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify({ durationHours }),
+  });
+  if (!res.ok) {
+    throw new HttpError(`POST /admin/users/${id}/ban failed: HTTP ${res.status}`, res.status);
+  }
+  return (await res.json()) as { id: string; bannedUntil: string | null };
+}
+
+export async function unbanUser(
+  id: string,
+): Promise<{ id: string; bannedUntil: string | null }> {
+  const res = await fetch(apiUrl(`/admin/users/${id}/unban`), {
+    method: 'POST',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(`POST /admin/users/${id}/unban failed: HTTP ${res.status}`, res.status);
+  }
+  return (await res.json()) as { id: string; bannedUntil: string | null };
+}
+
+export async function deleteUserAsAdmin(id: string): Promise<void> {
+  const res = await fetch(apiUrl(`/admin/users/${id}`), {
+    method: 'DELETE',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(`DELETE /admin/users/${id} failed: HTTP ${res.status}`, res.status);
+  }
+}
+
+export async function listAllAnnouncements(): Promise<Announcement[]> {
+  const res = await fetch(apiUrl('/admin/announcements'), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `GET /admin/announcements failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as Announcement[];
+}
+
+export async function createAnnouncement(
+  input: CreateAnnouncementInput,
+): Promise<Announcement> {
+  const res = await fetch(apiUrl('/admin/announcements'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `POST /admin/announcements failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as Announcement;
+}
+
+export async function patchAnnouncement(
+  id: string,
+  input: UpdateAnnouncementInput,
+): Promise<Announcement> {
+  const res = await fetch(apiUrl(`/admin/announcements/${id}`), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `PATCH /admin/announcements/${id} failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as Announcement;
+}
+
+export async function deleteAnnouncement(id: string): Promise<void> {
+  const res = await fetch(apiUrl(`/admin/announcements/${id}`), {
+    method: 'DELETE',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `DELETE /admin/announcements/${id} failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+}
+
+// --- announcements (일반 유저) ---
+
+// 활성 + 기간 매치 + 나에게 노출되는 공지 전부. 읽음 시점은 readAt에 담김
+// (null=미읽음). 인박스 스타일 렌더에 사용.
+export async function getMyAnnouncements(): Promise<UserAnnouncement[]> {
+  const res = await fetch(apiUrl('/announcements'), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `GET /announcements failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as UserAnnouncement[];
+}
+
+export async function markAnnouncementRead(id: string): Promise<void> {
+  const res = await fetch(apiUrl(`/announcements/${id}/read`), {
+    method: 'POST',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `POST /announcements/${id}/read failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
 }

@@ -309,6 +309,9 @@ export interface Profile {
   preferences: Preferences;
   createdAt: string;
   updatedAt: string;
+  // Phase 12.5: env `ADMIN_USER_IDS` 매치 시 true. UI(사이드바 어드민 링크)
+  // 조건부 렌더에 사용. 클라에서 재검증 불가하므로 서버 진리치.
+  isAdmin: boolean;
 }
 
 export interface NicknameAvailability {
@@ -437,3 +440,82 @@ export const DOCUMENT_MAX_BYTES: Record<'resume' | 'portfolio', number> = {
 };
 
 export const DOCUMENT_ALLOWED_MIME = ['application/pdf'] as const;
+
+// --- admin (Phase 12.5) ---
+
+export const ANNOUNCEMENT_KINDS = ['notice', 'update', 'maintenance', 'event'] as const;
+export type AnnouncementKind = (typeof ANNOUNCEMENT_KINDS)[number];
+
+export const ANNOUNCEMENT_KIND_LABELS: Record<AnnouncementKind, string> = {
+  notice: '공지',
+  update: '업데이트',
+  maintenance: '점검',
+  event: '이벤트',
+};
+
+export interface Announcement {
+  id: string;
+  kind: AnnouncementKind;
+  title: string;
+  body: string;
+  isActive: boolean;
+  startsAt: string | null;
+  endsAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  // 빈 배열 = 전체 유저 대상 (어드민 응답에만 채워지고, 일반 유저 응답에선
+  // 항상 빈 배열로 보내 개인정보 누출 방지)
+  targetUserIds: string[];
+}
+
+// 일반 유저 관점의 공지. 읽음 시점(`readAt`) 포함해서 인박스 스타일로 표시.
+// 어드민이 isActive=false 하거나 기간을 지나기 전까진 읽어도 목록에 남아서
+// 언제든 다시 볼 수 있음. 뱃지 카운트는 `readAt === null` 갯수.
+export interface UserAnnouncement extends Announcement {
+  readAt: string | null;
+}
+
+// 어드민이 CRUD할 때 사용. targetUserIds가 undefined 또는 빈 배열이면 전체
+// 대상. 명시적으로 지정하면 announcement_targets에 upsert.
+export interface CreateAnnouncementInput {
+  kind: AnnouncementKind;
+  title: string;
+  body: string;
+  isActive?: boolean;
+  startsAt?: string | null;
+  endsAt?: string | null;
+  targetUserIds?: string[];
+}
+export type UpdateAnnouncementInput = Partial<CreateAnnouncementInput>;
+
+// 어드민 사용자 목록 row. auth.users + profiles LEFT JOIN.
+// isAdmin은 env `ADMIN_USER_IDS` 매치. UI에서 뱃지 표시 + 차단/삭제 버튼
+// 숨김에 사용. 백엔드도 같은 판정으로 self-lockout · admin 상호 무력화 방지.
+export interface AdminUserRow {
+  id: string;
+  email: string | null;
+  nickname: string | null;
+  createdAt: string;
+  lastSignInAt: string | null;
+  bannedUntil: string | null;
+  isAdmin: boolean;
+}
+
+export interface AdminUsersPage {
+  page: number;
+  perPage: number;
+  total: number;
+  users: AdminUserRow[];
+}
+
+// 1일 · 7일 · 30일 · 100년(=사실상 영구). Supabase가 ban_duration을
+// `<n>h` 형식으로 받음. 100년 = 24*365*100 = 876000시간.
+export const BAN_DURATION_HOURS = [24, 168, 720, 876000] as const;
+export type BanDurationHours = (typeof BAN_DURATION_HOURS)[number];
+
+export const BAN_DURATION_LABELS: Record<BanDurationHours, string> = {
+  24: '1일',
+  168: '7일',
+  720: '30일',
+  876000: '영구',
+};
