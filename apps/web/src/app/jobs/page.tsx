@@ -104,7 +104,7 @@ async function JobsContent({ sp }: { sp: JobsSearchParams }) {
         <div className="rounded-md border border-dashed border-zinc-300 p-10 text-center text-sm text-zinc-500 dark:border-zinc-700">
           {hasAnyFilter
             ? '조건에 맞는 회사가 없어요. 필터를 조금 풀어보세요.'
-            : '아직 등록한 회사가 없어요. 위 툴바의 “+ 추가”로 첫 회사를 담아보세요.'}
+            : '아직 등록한 회사가 없어요. 위 [+ 추가하기] 버튼을 눌러 첫 회사를 담아보세요.'}
         </div>
       ) : (
         <>
