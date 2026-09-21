@@ -84,6 +84,13 @@ async function JobsContent({ sp }: { sp: JobsSearchParams }) {
     }),
   ]);
 
+  // 빈 상태를 두 갈래로 안내: 필터가 걸려 0건이면 필터 조정을, 진짜 등록
+  // 회사 0건이면 툴바의 "+ 추가"로 유도. 신규 유저가 기본 문구를 보고
+  // "필터 뭐 풀지?" 혼란 겪는 걸 방지.
+  const hasAnyFilter =
+    !!type1 || !!type2 || !!priority || !!applicationStatus ||
+    favorite || !!isHiring || !!search;
+
   return (
     <>
       <div className="-mt-2 flex justify-end text-xs text-zinc-500">
@@ -95,7 +102,9 @@ async function JobsContent({ sp }: { sp: JobsSearchParams }) {
 
       {rows.length === 0 ? (
         <div className="rounded-md border border-dashed border-zinc-300 p-10 text-center text-sm text-zinc-500 dark:border-zinc-700">
-          조건에 맞는 회사가 없어요. 필터를 조금 풀어보세요.
+          {hasAnyFilter
+            ? '조건에 맞는 회사가 없어요. 필터를 조금 풀어보세요.'
+            : '아직 등록한 회사가 없어요. 위 툴바의 “+ 추가”로 첫 회사를 담아보세요.'}
         </div>
       ) : (
         <>
