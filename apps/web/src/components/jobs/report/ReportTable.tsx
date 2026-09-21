@@ -34,17 +34,17 @@ export function ReportTable({ rows, companyTypes }: Props) {
     <div className="-mx-6 overflow-x-auto px-6 sm:mx-0 sm:overflow-visible sm:px-0 print:mx-0 print:overflow-visible print:px-0">
     <table
       data-report-table
-      className="w-full min-w-[720px] table-fixed border-collapse text-sm text-zinc-800 sm:min-w-0 print:min-w-0 dark:text-zinc-200"
+      className="w-full min-w-[860px] table-fixed border-collapse text-sm text-zinc-800 sm:min-w-0 print:min-w-0 dark:text-zinc-200"
     >
       <thead>
-        <tr className="border-b border-zinc-300 text-left text-xs text-zinc-500 dark:border-zinc-700 dark:text-zinc-500">
-          <th className="w-[11%] px-2 py-2 text-center font-medium">지원일</th>
-          <th className="w-[14%] px-2 py-2 font-medium">회사명</th>
-          <th className="w-[6%] px-2 py-2 text-center font-medium">유형</th>
-          <th className="w-[8%] px-2 py-2 text-center font-medium">규모</th>
-          <th className="w-[7%] px-2 py-2 text-center font-medium">우선순위</th>
-          <th className="w-[8%] px-2 py-2 text-center font-medium">지원상태</th>
-          <th className="w-[10%] px-2 py-2 text-center font-medium">마감일</th>
+        <tr className="border-b border-zinc-300 text-left text-xs whitespace-nowrap text-zinc-500 dark:border-zinc-700 dark:text-zinc-500">
+          <th className="w-[17%] px-2 py-2 text-center font-medium">지원일</th>
+          <th className="w-[12%] px-2 py-2 font-medium">회사명</th>
+          <th className="w-[7%] px-2 py-2 text-center font-medium">유형</th>
+          <th className="w-[9%] px-2 py-2 text-center font-medium">규모</th>
+          <th className="w-[9%] px-2 py-2 text-center font-medium">우선순위</th>
+          <th className="w-[9%] px-2 py-2 text-center font-medium">지원상태</th>
+          <th className="w-[12%] px-2 py-2 text-center font-medium">마감일</th>
           <th className="px-2 py-2 font-medium">메모</th>
         </tr>
       </thead>
