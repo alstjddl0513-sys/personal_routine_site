@@ -13,11 +13,14 @@ const SUMMARY_MAX = 200;
 const parser = new Parser({
   timeout: 10000,
   headers: {
-    // 브라우저 UA로 스푸핑. `Rally/1.0` 같은 봇 UA는 Cloudflare/Wordfence
-    // 계열 필터에서 403으로 튕김 (특히 techblog.woowahan.com WP+Cloudflare).
-    // 로컬 dev 국내 IP에선 통과하지만 Render 미국 IP + 봇 UA 조합은 즉시
-    // 차단. 공용 RSS 정상 수집 목적이고 rate limit도 자체 스케줄러가
-    // 제어하므로 스푸핑에 문제 없음.
+    // 실제 Chrome이 보내는 헤더 셋 전체를 흉내. v1.1.1에서 UA만 브라우저로
+    // 바꿨는데 우아한형제들이 여전히 403 → Cloudflare/Wordfence가 헤더 조합
+    // 지문(fingerprint)까지 검사한다는 뜻. Sec-Fetch-* + Accept-Language +
+    // Accept-Encoding 등을 더해서 진짜 브라우저 요청처럼 위장.
+    //
+    // 이걸로도 안 되면 Bot Fight Mode(JS challenge)가 걸린 것 — 그때는
+    // 우아한형제들 소스 자체를 disable하는 게 실용적 (Cloudflare Workers
+    // 프록시 세팅은 오버킬).
     'User-Agent':
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
     // rss-parser 기본값은 `application/rss+xml`만 요청하는데, Atom 전용
@@ -25,6 +28,19 @@ const parser = new Parser({
     // 일반 XML 전부 수락하도록 명시.
     Accept:
       'application/atom+xml, application/rss+xml, application/xml;q=0.9, */*;q=0.8',
+    'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'Cache-Control': 'no-cache',
+    Pragma: 'no-cache',
+    'Sec-Ch-Ua':
+      '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
+    'Sec-Ch-Ua-Mobile': '?0',
+    'Sec-Ch-Ua-Platform': '"Windows"',
+    'Sec-Fetch-Dest': 'document',
+    'Sec-Fetch-Mode': 'navigate',
+    'Sec-Fetch-Site': 'none',
+    'Sec-Fetch-User': '?1',
+    'Upgrade-Insecure-Requests': '1',
   },
 });
 
