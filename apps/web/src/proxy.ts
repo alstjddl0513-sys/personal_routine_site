@@ -17,8 +17,10 @@ import { updateSupabaseSession } from '@/lib/supabase/middleware';
 const PUBLIC_PATHS = [
   '/login',
   '/signup',
-  '/unauthorized',
+  '/forgot-password',
   '/auth/callback',
+  '/auth/reset-password',
+  '/unauthorized',
   '/api/proxy/profiles/check-nickname',
 ];
 
