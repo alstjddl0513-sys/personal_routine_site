@@ -156,11 +156,11 @@ export function RoutineDayView({ blocks, checks, days }: Props) {
         </ul>
       )}
 
-      <div className="flex items-center justify-between gap-2 px-1">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-1">
         <AddTimeBlockRow nextSortOrder={nextSortOrder} />
         <Link
           href="/settings/time-blocks"
-          className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+          className="inline-flex shrink-0 items-center gap-1 rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
         >
           <Settings2 className="h-3.5 w-3.5" aria-hidden />
           블록 관리

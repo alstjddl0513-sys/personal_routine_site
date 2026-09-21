@@ -131,11 +131,11 @@ export function BlogSourcesManager({ initial }: { initial: BlogSource[] }) {
             const isExpanded = expandedId === row.id;
             return (
               <li key={row.id} className={row.isActive ? '' : 'opacity-60'}>
-                <div className="flex items-center gap-3 px-3 py-2 text-sm">
+                <div className="flex items-center gap-2 px-3 py-2 text-sm">
                   <button
                     type="button"
                     onClick={() => (isExpanded ? cancelEdit() : beginEdit(row))}
-                    className="flex flex-1 items-center gap-2 text-left"
+                    className="flex min-w-0 flex-1 items-center gap-2 text-left"
                     aria-expanded={isExpanded}
                   >
                     {isExpanded ? (
@@ -143,18 +143,20 @@ export function BlogSourcesManager({ initial }: { initial: BlogSource[] }) {
                     ) : (
                       <ChevronRight className="h-3.5 w-3.5 shrink-0 text-zinc-400" aria-hidden />
                     )}
-                    <span className="font-medium">{row.name}</span>
-                    <span className="truncate font-mono text-[11px] text-zinc-500">
-                      {row.rssUrl}
-                    </span>
+                    <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-2">
+                      <span className="truncate font-medium">{row.name}</span>
+                      <span className="truncate font-mono text-[11px] text-zinc-500">
+                        {row.rssUrl}
+                      </span>
+                    </div>
                     {!row.isActive ? (
-                      <span className="rounded bg-zinc-200 px-1.5 py-0.5 text-[10px] text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+                      <span className="shrink-0 rounded bg-zinc-200 px-1.5 py-0.5 text-[10px] text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
                         비활성
                       </span>
                     ) : null}
                   </button>
 
-                  <div className="flex items-center gap-1">
+                  <div className="flex shrink-0 items-center gap-1">
                     <IconButton
                       onClick={() => toggleActive(row)}
                       disabled={isPending}

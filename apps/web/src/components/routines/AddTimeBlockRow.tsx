@@ -55,7 +55,7 @@ export function AddTimeBlockRow({ nextSortOrder }: { nextSortOrder: number }) {
     );
   }
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex min-w-0 flex-1 items-center gap-2">
       <input
         ref={inputRef}
         type="text"
@@ -74,9 +74,9 @@ export function AddTimeBlockRow({ nextSortOrder }: { nextSortOrder: number }) {
         maxLength={100}
         placeholder="블록 이름 (예: 아침 운동)"
         disabled={saving}
-        className="w-64 rounded border border-zinc-400 bg-white px-2 py-1 text-sm outline-none focus:border-zinc-600 dark:border-zinc-500 dark:bg-zinc-950"
+        className="min-w-0 flex-1 rounded border border-zinc-400 bg-white px-2 py-1 text-sm outline-none focus:border-zinc-600 md:max-w-64 dark:border-zinc-500 dark:bg-zinc-950"
       />
-      <span className="text-xs text-zinc-400">Enter 저장 · Esc 취소</span>
+      <span className="hidden text-xs text-zinc-400 md:inline">Enter 저장 · Esc 취소</span>
     </div>
   );
 }

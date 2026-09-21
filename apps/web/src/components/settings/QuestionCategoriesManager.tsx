@@ -102,8 +102,8 @@ export function QuestionCategoriesManager({
             const state = edits[row.id];
             const isEditing = !!state?.editing;
             return (
-              <li key={row.id} className="flex items-center gap-3 px-3 py-2 text-sm">
-                <code className="min-w-24 truncate text-xs text-zinc-500 dark:text-zinc-500">
+              <li key={row.id} className="flex items-center gap-2 px-3 py-2 text-sm">
+                <code className="w-20 shrink-0 truncate text-xs text-zinc-500 sm:w-24 dark:text-zinc-500">
                   {row.key}
                 </code>
                 {isEditing ? (
@@ -125,15 +125,15 @@ export function QuestionCategoriesManager({
                     className="flex-1 rounded border border-zinc-300 bg-white px-2 py-1 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
                   />
                 ) : (
-                  <span className="flex-1">{row.label}</span>
+                  <span className="min-w-0 flex-1 truncate">{row.label}</span>
                 )}
                 {row.isDefault ? (
-                  <span className="rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                  <span className="shrink-0 rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
                     기본
                   </span>
                 ) : null}
 
-                <div className="ml-auto flex items-center gap-1">
+                <div className="ml-auto flex shrink-0 items-center gap-1">
                   {isEditing ? (
                     <>
                       <IconButton onClick={() => saveEdit(row)} disabled={isPending} label="저장">

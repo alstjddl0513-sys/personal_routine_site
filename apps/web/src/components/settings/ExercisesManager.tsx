@@ -189,11 +189,11 @@ export function ExercisesManager({ initial }: { initial: Exercise[] }) {
             const isExpanded = expandedId === row.id;
             return (
               <li key={row.id} className={row.isArchived ? 'opacity-60' : ''}>
-                <div className="flex items-center gap-3 px-3 py-2 text-sm">
+                <div className="flex items-center gap-2 px-3 py-2 text-sm">
                   <button
                     type="button"
                     onClick={() => (isExpanded ? cancelEdit() : beginEdit(row))}
-                    className="flex flex-1 items-center gap-2 text-left"
+                    className="flex min-w-0 flex-1 items-center gap-2 text-left"
                     aria-expanded={isExpanded}
                   >
                     {isExpanded ? (
@@ -201,23 +201,27 @@ export function ExercisesManager({ initial }: { initial: Exercise[] }) {
                     ) : (
                       <ChevronRight className="h-3.5 w-3.5 shrink-0 text-zinc-400" aria-hidden />
                     )}
-                    <span className="font-medium">{row.name}</span>
-                    {row.targetMuscle ? (
-                      <span className="rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-                        {muscleLabel(row.targetMuscle)}
-                      </span>
-                    ) : null}
-                    <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                      {row.defaultSets}세트 · {row.repMin}~{row.repMax}회
-                    </span>
-                    {row.isArchived ? (
-                      <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] text-amber-700 dark:bg-amber-950/50 dark:text-amber-300">
-                        숨김
-                      </span>
-                    ) : null}
+                    <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
+                      <span className="truncate font-medium">{row.name}</span>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {row.targetMuscle ? (
+                          <span className="rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                            {muscleLabel(row.targetMuscle)}
+                          </span>
+                        ) : null}
+                        <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                          {row.defaultSets}세트 · {row.repMin}~{row.repMax}회
+                        </span>
+                        {row.isArchived ? (
+                          <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] text-amber-700 dark:bg-amber-950/50 dark:text-amber-300">
+                            숨김
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
                   </button>
 
-                  <div className="flex items-center gap-1">
+                  <div className="flex shrink-0 items-center gap-1">
                     <IconButton
                       onClick={() => toggleArchive(row)}
                       disabled={isPending}

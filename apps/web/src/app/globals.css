@@ -26,6 +26,10 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  /* 한글 어절이 좁은 화면에서 글자 단위로 쪼개지지 않게 keep-all.
+     예외적으로 긴 URL/토큰이 컨테이너를 넘길 때만 break-word로 강제 개행. */
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 /* Slim scrollbar for scrollable popovers (Select dropdown, etc.).
