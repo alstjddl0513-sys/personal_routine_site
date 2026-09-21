@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type {
   Exercise,
@@ -93,7 +94,14 @@ export function WorkoutBoard(props: Props) {
       />
       {props.exercises.length === 0 ? (
         <div className="rounded-md border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500 dark:border-zinc-700">
-          아직 등록한 운동이 없어요. 설정 → 운동 종목 관리에서 추가해보세요.
+          아직 등록한 운동이 없어요.{' '}
+          <Link
+            href="/settings/exercises"
+            className="font-medium text-zinc-800 underline underline-offset-2 hover:text-zinc-950 dark:text-zinc-200 dark:hover:text-zinc-50"
+          >
+            운동 종목 관리
+          </Link>
+          에서 추가해보세요.
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
