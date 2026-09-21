@@ -63,7 +63,9 @@ export interface DefaultBlogSource {
 
 export const DEFAULT_BLOG_SOURCES: readonly DefaultBlogSource[] = [
   { name: '카카오 tech', rssUrl: 'https://tech.kakao.com/feed/', siteUrl: 'https://tech.kakao.com' },
-  { name: '우아한형제들', rssUrl: 'https://techblog.woowahan.com/feed/', siteUrl: 'https://techblog.woowahan.com' },
+  // 우아한형제들(techblog.woowahan.com) 제거 — Cloudflare Bot Fight Mode로
+  // Render IP에서 지속 403. UA/헤더 스푸핑 무의미. Cloudflare Workers 프록시
+  // 세팅은 1인 앱에 오버킬이라 손절. 직접 방문(https://techblog.woowahan.com).
   { name: '토스', rssUrl: 'https://toss.tech/rss.xml', siteUrl: 'https://toss.tech' },
   { name: '라인', rssUrl: 'https://engineering.linecorp.com/ko/feed/', siteUrl: 'https://engineering.linecorp.com/ko' },
   { name: '당근', rssUrl: 'https://medium.com/feed/daangn', siteUrl: 'https://medium.com/daangn' },

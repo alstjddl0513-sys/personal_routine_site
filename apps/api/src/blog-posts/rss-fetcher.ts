@@ -13,14 +13,15 @@ const SUMMARY_MAX = 200;
 const parser = new Parser({
   timeout: 10000,
   headers: {
-    // 실제 Chrome이 보내는 헤더 셋 전체를 흉내. v1.1.1에서 UA만 브라우저로
-    // 바꿨는데 우아한형제들이 여전히 403 → Cloudflare/Wordfence가 헤더 조합
-    // 지문(fingerprint)까지 검사한다는 뜻. Sec-Fetch-* + Accept-Language +
-    // Accept-Encoding 등을 더해서 진짜 브라우저 요청처럼 위장.
+    // 브라우저 UA로 스푸핑. `Rally/1.0` 같은 봇 UA는 일부 WP/Cloudflare
+    // 필터에서 403으로 튕김. 로컬 국내 IP는 통과하지만 Render 미국 IP +
+    // 봇 UA 조합은 차단.
     //
-    // 이걸로도 안 되면 Bot Fight Mode(JS challenge)가 걸린 것 — 그때는
-    // 우아한형제들 소스 자체를 disable하는 게 실용적 (Cloudflare Workers
-    // 프록시 세팅은 오버킬).
+    // v1.1.2에서 Sec-Fetch-*, Accept-Language, Accept-Encoding 등 Chrome
+    // 헤더 셋 전체를 더해봤으나 우아한형제들은 여전히 403 + 오히려 다른
+    // 소스(카카오/토스 등)까지 실패 → 롤백. 헤더 조합이 어긋나면
+    // rss-parser 내부 fetch(node-undici)가 gzip을 못 풀거나 서버가
+    // 이상하게 응답하는 케이스로 추정. UA만 바꾼 v1.1.1 상태가 안전.
     'User-Agent':
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
     // rss-parser 기본값은 `application/rss+xml`만 요청하는데, Atom 전용
@@ -28,19 +29,6 @@ const parser = new Parser({
     // 일반 XML 전부 수락하도록 명시.
     Accept:
       'application/atom+xml, application/rss+xml, application/xml;q=0.9, */*;q=0.8',
-    'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
-    'Accept-Encoding': 'gzip, deflate, br',
-    'Cache-Control': 'no-cache',
-    Pragma: 'no-cache',
-    'Sec-Ch-Ua':
-      '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
-    'Sec-Ch-Ua-Mobile': '?0',
-    'Sec-Ch-Ua-Platform': '"Windows"',
-    'Sec-Fetch-Dest': 'document',
-    'Sec-Fetch-Mode': 'navigate',
-    'Sec-Fetch-Site': 'none',
-    'Sec-Fetch-User': '?1',
-    'Upgrade-Insecure-Requests': '1',
   },
 });
 
