@@ -16,6 +16,7 @@ import { BackupButton } from '../../components/settings/BackupButton';
 import { LogoutRow } from '../../components/settings/LogoutRow';
 import { NicknameRow } from '../../components/settings/NicknameRow';
 import { NotifSettingsRow } from '../../components/settings/NotifSettingsRow';
+import { PasswordChangeRow } from '../../components/settings/PasswordChangeRow';
 import { ThemeToggle } from '../../components/ThemeToggle';
 import { APP_VERSION } from '../../lib/version';
 
@@ -173,6 +174,7 @@ export default function SettingsPage() {
       <section className="rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
         <SectionHeader>계정</SectionHeader>
         <NicknameRow />
+        <PasswordChangeRow />
         <LogoutRow />
         <AccountDeleteRow />
       </section>

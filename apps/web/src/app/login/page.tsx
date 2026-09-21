@@ -133,12 +133,20 @@ function LoginForm() {
             </div>
 
             <div>
-              <label
-                htmlFor="password"
-                className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400"
-              >
-                비밀번호
-              </label>
+              <div className="mb-1.5 flex items-center justify-between">
+                <label
+                  htmlFor="password"
+                  className="block text-xs font-medium text-zinc-600 dark:text-zinc-400"
+                >
+                  비밀번호
+                </label>
+                <Link
+                  href="/forgot-password"
+                  className="text-xs text-zinc-500 underline-offset-4 hover:underline dark:text-zinc-400"
+                >
+                  비밀번호를 잊으셨나요?
+                </Link>
+              </div>
               <input
                 id="password"
                 type="password"

@@ -263,6 +263,11 @@
   7. 검증: 트래킹 개수 = 마이그 파일 개수, `is_nullable='NO'` 개수 = 예상치, `rowsecurity=true` 개수 = 예상치
 - 재발 방지: prod 마이그 실행 전 `db:generate`로 "No schema changes" 확인, 대규모 마이그는 **파일을 하나씩** 개별 실행. deployment.md §6 참고
 
+### Supabase Security Advisor: `announcement_targets` "RLS Enabled No Policy" (무시)
+- 상황: Supabase 콘솔 Advisors → Security 탭에 Info 1건 뜸. `public.announcement_targets`에 RLS는 켜져있는데 정책이 0개라는 경고
+- 원인: 이 테이블은 **설계상 authenticated에게 SELECT조차 열지 않음** (누가 어떤 공지의 대상인지 = 개인정보). 접근은 NestJS(service_role/postgres role)에서만 이뤄지고 RLS를 우회하므로 정책 없어도 정상 동작. `schema/announcements.ts:16-19` 주석에 명시된 의도
+- 해결: **정책 추가 금지** — 추가 = 개인정보 노출. Advisor Info는 무시. 접근 경로 추적하려면 웹은 `grep announcementTargets apps/web/src` = 0건, API는 `admin.service.ts` / `announcements.service.ts`만 참조
+
 ### RSS 수집에서 네이버 D2만 `status code 406`
 - 상황: `/blog` 새로고침하면 8개 중 D2 한 개만 406으로 실패. 다른 소스는 정상
 - 원인: `rss-parser` 기본이 `Accept: application/rss+xml` 헤더만 보내는데, D2 피드(`d2.atom`)는 순수 Atom이라 그 Accept로는 406 응답. Accept 헤더 아예 없거나 atom 포함하면 200
