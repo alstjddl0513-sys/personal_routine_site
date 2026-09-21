@@ -32,9 +32,17 @@ export function BanUserModal({
   const dialogRef = useRef<HTMLDivElement>(null);
   useOutsideClick(dialogRef, () => !pending && onCancel(), open);
 
+  // open transition에서 기간을 기본값(24)으로 리셋. React가 derived state
+  // 리셋에 공식 권장하는 "adjust during render" 패턴 — ref는 렌더 중 접근
+  // 금지라서 useState로 이전 값 추적.
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (prevOpen !== open) {
+    setPrevOpen(open);
+    if (open) setDuration(24);
+  }
+
   useEffect(() => {
     if (!open) return;
-    setDuration(24);
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape' && !pending) onCancel();
     }
