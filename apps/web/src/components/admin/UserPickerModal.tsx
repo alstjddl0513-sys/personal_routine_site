@@ -50,35 +50,34 @@ export function UserPickerModal({
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const dialogRef = useRef<HTMLDivElement>(null);
-  const wasOpenRef = useRef(false);
   useOutsideClick(dialogRef, () => !isPending && onCancel(), open);
 
-  // open이 false→true로 바뀌는 순간에만 초기화 + fetch. isPending/onCancel은
-  // deps에서 제외(참조 안정성 없어 재실행 유발). ESLint 규칙 회피용으로
-  // ref로 open 상태 추적.
-  useEffect(() => {
-    if (open && !wasOpenRef.current) {
-      wasOpenRef.current = true;
+  // open transition에서 로컬 상태 리셋. React가 derived state 리셋에 공식
+  // 권장하는 "adjust during render" 패턴 — ref는 렌더 중 접근 금지라서
+  // useState로 이전 값 추적. fetch는 async라 아래 useEffect에서 별도 진행.
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (prevOpen !== open) {
+    setPrevOpen(open);
+    if (open) {
       setSelected(new Set(initialSelected));
       setSearch('');
       setError(null);
-      if (!cachedUsers) {
-        startTransition(async () => {
-          try {
-            const fresh = await loadUsers();
-            setUsers(fresh);
-          } catch (err) {
-            console.error(err);
-            setError('사용자 목록을 불러오지 못했어요.');
-          }
-        });
-      } else {
-        setUsers(cachedUsers);
-      }
-    } else if (!open && wasOpenRef.current) {
-      wasOpenRef.current = false;
+      if (cachedUsers) setUsers(cachedUsers);
     }
-  }, [open, initialSelected]);
+  }
+
+  useEffect(() => {
+    if (!open || cachedUsers) return;
+    startTransition(async () => {
+      try {
+        const fresh = await loadUsers();
+        setUsers(fresh);
+      } catch (err) {
+        console.error(err);
+        setError('사용자 목록을 불러오지 못했어요.');
+      }
+    });
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;

@@ -15,7 +15,7 @@ interface Props {
 function formatDeadline(raw: string | null): string {
   if (!raw) return '—';
   // timestamptz 문자열 파싱 (DeadlinePopover의 로직 축약)
-  let s = raw.replace(' ', 'T').replace(/([+-]\d{2})$/, '$1:00');
+  const s = raw.replace(' ', 'T').replace(/([+-]\d{2})$/, '$1:00');
   const d = new Date(s);
   if (isNaN(d.getTime())) return '—';
   const pad = (n: number) => String(n).padStart(2, '0');

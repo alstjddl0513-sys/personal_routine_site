@@ -18,7 +18,6 @@ import type {
   InitDocumentInput,
   InitDocumentResult,
   NicknameAvailability,
-  Preferences,
   PreviousWorkout,
   Priority,
   Profile,
