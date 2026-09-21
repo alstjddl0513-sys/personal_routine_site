@@ -281,8 +281,11 @@
 
 ### RSS 수집: 우아한형제들만 prod에서 `Status code 403` (로컬은 정상)
 - 상황: Render 배포 후 `/blog`에서 8개 중 `techblog.woowahan.com/feed/`만 403. 로컬 dev에선 문제 없음
-- 원인: 우아한형제들 tech blog는 WordPress + Cloudflare 조합. `User-Agent: Rally/1.0 (RSS collector)` 같은 명백한 봇 UA를 Cloudflare/Wordfence가 차단. 로컬(국내 가정 IP + 익숙한 트래픽 패턴)은 통과하지만 Render 미국 데이터센터 IP + 봇 UA 조합은 즉시 403
-- 해결: `rss-fetcher.ts`의 User-Agent를 실제 Chrome UA(`Mozilla/5.0 (Windows NT 10.0...) Chrome/131...`)로 스푸핑. 공용 RSS 정상 수집 목적이라 문제 없음. 그래도 안 되면 Accept-Language/Encoding 추가하거나 소스별 UA 오버라이드 검토
+- 원인: 우아한형제들 tech blog는 WordPress + Cloudflare 조합. 봇 UA/헤더 지문(fingerprint)을 검사해 차단. 로컬(국내 가정 IP + 익숙한 트래픽 패턴)은 통과하지만 Render 미국 데이터센터 IP + 봇 UA/헤더 조합은 즉시 403
+- 해결 단계:
+  1. **v1.1.1**: User-Agent를 실제 Chrome UA로 스푸핑 → 실패 (Cloudflare가 헤더 조합까지 봄)
+  2. **v1.1.2**: Sec-Fetch-*, Accept-Language, Sec-Ch-Ua 등 실제 Chrome 헤더 셋 전체 추가 → 성공 시 여기서 멈춤
+  3. **여기서도 실패하면**: Bot Fight Mode(JS challenge)가 걸린 것. 헤더로는 절대 우회 불가. Cloudflare Workers 프록시(오버킬) 또는 소스 disable 중 후자 권장 (1인 앱)
 
 ### `Manifest: Line: 1, column: 1, Syntax error.` + 첫 렌더 느림
 - 상황: 로그인 후 페이지에서 콘솔에 manifest.webmanifest Syntax error 두 번, 폰트 preload 미사용 경고. 로그인 직후 첫 렌더가 유독 느림
