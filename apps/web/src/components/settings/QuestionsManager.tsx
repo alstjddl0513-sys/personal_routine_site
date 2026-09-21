@@ -153,7 +153,7 @@ export function QuestionsManager({
                   <button
                     type="button"
                     onClick={() => (isExpanded ? cancelEdit() : beginEdit(row))}
-                    className="flex flex-1 items-center gap-2 text-left"
+                    className="flex min-w-0 flex-1 items-center gap-2 text-left"
                     aria-expanded={isExpanded}
                   >
                     {isExpanded ? (
@@ -166,7 +166,7 @@ export function QuestionsManager({
                         {categoryLabel}
                       </span>
                     ) : null}
-                    <span className="line-clamp-1 flex-1 text-zinc-800 dark:text-zinc-200">
+                    <span className="line-clamp-1 min-w-0 flex-1 text-zinc-800 dark:text-zinc-200">
                       {row.content}
                     </span>
                   </button>

@@ -340,3 +340,18 @@
 - 상황: 오전에 D-1 회사 5곳 알림 발송됨 → 오후에 새 회사 D-1으로 추가 → 새로고침해도 알림 안 옴
 - 원인: `wasFiredToday(daysLeft)` 마커가 daysLeft 단위 boolean이라 오늘 이 daysLeft에서 한 번이라도 발송되면 무조건 skip
 - 해결: 마커 포맷을 `{ date: YYYY-MM-DD, ids: string[] }` JSON으로 변경. `getFiredIdsToday(daysLeft)`가 Set 반환 → DeadlineNotifier가 `all.filter(i => !alreadyFired.has(i.id))`로 새 회사만 발송. `addFiredIdsToday`가 union으로 마커 업데이트. 옛 date-string 포맷도 오늘 날짜면 all-fired로 하위 호환
+
+### 모바일에서 한글 안내 문구가 글자 단위로 쪼개짐 ("버튼" → "버\n튼")
+- 상황: 좁은 화면에서 한글 어절이 컨테이너 끝에 닿으면 어절이 아닌 글자 사이에서 개행
+- 원인: CSS 기본 `word-break: normal`은 CJK 문자 사이라면 어디서든 개행 허용. `break-keep` 클래스를 붙인 문단만 예외였음
+- 해결: `globals.css`의 `body`에 `word-break: keep-all; overflow-wrap: break-word;`를 걸어 전역 기본값 변경. 어절 단위 유지 + 초장문 URL/토큰은 강제 개행되어 컨테이너 밖으로 안 넘침
+
+### 모바일에서 관리자 페이지 진입 경로 부재
+- 상황: 사이드바가 `hidden md:flex`로 데스크톱 전용이라 사이드바 UserRow에 있던 관리자 링크(Shield 아이콘)와 닉네임 표시가 모바일에선 사라짐
+- 원인: 다인화 전환 후에도 어드민 진입점을 사이드바만 두었음. 하단 BottomNav에는 관리자 슬롯 없음
+- 해결: `/settings` 상단에 SSR 프로필 카드(닉네임 + isAdmin일 때 "관리자" 링크) 추가. 데스크톱에서는 `md:hidden`으로 숨겨 중복 방지
+
+### 편집·리스트 행이 좁은 화면에서 뭉개짐 (BlogSourcesManager · ExercisesManager · AddTimeBlockRow 등)
+- 상황: 한 줄에 chevron + name + URL/뱃지 + 액션 버튼 여러 개를 몰아넣은 flex 행이 mobile viewport에서 겹치거나 컨테이너 밖으로 밀려남
+- 원인: (1) `truncate`가 걸린 자식의 조상 flex 컨테이너에 `min-w-0`이 없어 shrink 안 됨. (2) `AddTimeBlockRow`는 편집 상태에서 `w-64`(256px) 고정폭. (3) 부모 flex에 wrap 미허용
+- 해결: 조상 체인에 `min-w-0` 추가, 뱃지·액션 버튼에 `shrink-0`, 정보가 많은 행은 `flex-col sm:flex-row`로 모바일 세로 스택. `AddTimeBlockRow`는 `min-w-0 flex-1 md:max-w-64`로 반응형. 부모 컨테이너는 `flex-wrap` 허용

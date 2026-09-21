@@ -8,8 +8,10 @@ import {
   MessagesSquare,
   Palette,
   Rss,
+  Shield,
   Tag,
   Target,
+  User,
 } from 'lucide-react';
 import { AccountDeleteRow } from '../../components/settings/AccountDeleteRow';
 import { BackupButton } from '../../components/settings/BackupButton';
@@ -18,14 +20,46 @@ import { NicknameRow } from '../../components/settings/NicknameRow';
 import { NotifSettingsRow } from '../../components/settings/NotifSettingsRow';
 import { PasswordChangeRow } from '../../components/settings/PasswordChangeRow';
 import { ThemeToggle } from '../../components/ThemeToggle';
+import { getMyProfile } from '../../lib/api';
 import { APP_VERSION } from '../../lib/version';
 
-export default function SettingsPage() {
+// 모바일에는 사이드바 UserRow가 없어서 닉네임·관리자 진입점이 노출될 자리가 없음.
+// SSR에서 프로필을 읽어 상단 카드로 렌더. md 이상에서는 사이드바가 담당하므로 숨김.
+export default async function SettingsPage() {
+  const profile = await getMyProfile().catch(() => null);
+
   return (
     <div className="flex flex-col gap-6 p-6">
       <header>
         <h1 className="text-xl font-semibold">설정</h1>
       </header>
+
+      {profile ? (
+        <section className="flex items-center gap-3 rounded-md border border-zinc-200 bg-white px-4 py-3 md:hidden dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+            <User className="h-4 w-4" aria-hidden />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
+              {profile.nickname}
+            </div>
+            {profile.isAdmin ? (
+              <div className="mt-0.5 text-[10px] uppercase tracking-wide text-sky-600 dark:text-sky-400">
+                관리자
+              </div>
+            ) : null}
+          </div>
+          {profile.isAdmin ? (
+            <Link
+              href="/admin"
+              className="inline-flex shrink-0 items-center gap-1 rounded-md border border-zinc-200 px-2.5 py-1.5 text-xs text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
+            >
+              <Shield className="h-3.5 w-3.5" aria-hidden />
+              관리자
+            </Link>
+          ) : null}
+        </section>
+      ) : null}
 
       <section className="rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
         <Link
