@@ -83,7 +83,7 @@ export default function SignupPage() {
   const canSubmit =
     !!email &&
     nicknameStatus.kind === 'available' &&
-    password.length >= 6 &&
+    password.length >= 8 &&
     passwordsMatch &&
     !submitting;
 
@@ -192,13 +192,13 @@ export default function SignupPage() {
               <NicknameStatusMessage status={nicknameStatus} />
             </Field>
 
-            <Field htmlFor="password" label="비밀번호" hint="6자 이상">
+            <Field htmlFor="password" label="비밀번호" hint="8자 이상">
               <input
                 id="password"
                 type="password"
                 autoComplete="new-password"
                 required
-                minLength={6}
+                minLength={8}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={submitting}
@@ -212,7 +212,7 @@ export default function SignupPage() {
                 type="password"
                 autoComplete="new-password"
                 required
-                minLength={6}
+                minLength={8}
                 value={passwordConfirm}
                 onChange={(e) => setPasswordConfirm(e.target.value)}
                 disabled={submitting}
@@ -331,7 +331,7 @@ function translateAuthError(message: string): string {
     return '이미 가입된 이메일입니다. 로그인해주세요.';
   }
   if (m.includes('password should be at least')) {
-    return '비밀번호는 6자 이상이어야 합니다.';
+    return '비밀번호는 8자 이상이어야 합니다.';
   }
   // Supabase "Prevent leaked passwords" (HIBP) 정책이 켜져있을 때 반환.
   if (m.includes('pwned') || m.includes('leaked') || m.includes('compromised')) {
