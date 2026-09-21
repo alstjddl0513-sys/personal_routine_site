@@ -279,13 +279,17 @@
 - 원인: `rss-parser` 기본이 `Accept: application/rss+xml` 헤더만 보내는데, D2 피드(`d2.atom`)는 순수 Atom이라 그 Accept로는 406 응답. Accept 헤더 아예 없거나 atom 포함하면 200
 - 해결: `rss-fetcher.ts`의 Parser headers에 `Accept: application/atom+xml, application/rss+xml, application/xml;q=0.9, */*;q=0.8` 명시. 다른 Atom 전용 피드 만나도 재사용
 
-### RSS 수집: 우아한형제들만 prod에서 `Status code 403` (로컬은 정상)
-- 상황: Render 배포 후 `/blog`에서 8개 중 `techblog.woowahan.com/feed/`만 403. 로컬 dev에선 문제 없음
-- 원인: 우아한형제들 tech blog는 WordPress + Cloudflare 조합. 봇 UA/헤더 지문(fingerprint)을 검사해 차단. 로컬(국내 가정 IP + 익숙한 트래픽 패턴)은 통과하지만 Render 미국 데이터센터 IP + 봇 UA/헤더 조합은 즉시 403
-- 해결 단계:
-  1. **v1.1.1**: User-Agent를 실제 Chrome UA로 스푸핑 → 실패 (Cloudflare가 헤더 조합까지 봄)
-  2. **v1.1.2**: Sec-Fetch-*, Accept-Language, Sec-Ch-Ua 등 실제 Chrome 헤더 셋 전체 추가 → 성공 시 여기서 멈춤
-  3. **여기서도 실패하면**: Bot Fight Mode(JS challenge)가 걸린 것. 헤더로는 절대 우회 불가. Cloudflare Workers 프록시(오버킬) 또는 소스 disable 중 후자 권장 (1인 앱)
+### RSS 수집: 우아한형제들만 prod에서 `Status code 403` (로컬은 정상) — 손절
+- 상황: Render 배포 후 `/blog`에서 `techblog.woowahan.com/feed/`만 403. 로컬 dev에선 문제 없음
+- 원인: 우아한형제들 tech blog는 WordPress + Cloudflare 조합. Bot Fight Mode(JS challenge)로 추정. 로컬(국내 가정 IP)은 통과하지만 Render 미국 데이터센터 IP는 봇 취급
+- 시도한 것:
+  1. **v1.1.1**: User-Agent를 실제 Chrome UA로 스푸핑 → 실패
+  2. **v1.1.2**: Sec-Fetch-*, Accept-Language, Sec-Ch-Ua 등 Chrome 헤더 셋 전체 추가 → **우아한형제들 여전히 403 + 오히려 다른 소스(카카오/토스 등)까지 실패**. rss-parser 내부 fetch가 gzip 응답을 못 풀거나 서버가 이상 응답으로 추정
+- 최종 해결(v1.1.3): 
+  - `rss-fetcher.ts`를 v1.1.1 상태(UA만 스푸핑, Accept 유지)로 롤백
+  - `DEFAULT_BLOG_SOURCES`에서 우아한형제들 제거 (신규 유저 안전망)
+  - **prod의 기존 row는 UI(`/settings/blog-sources`)에서 수동으로 삭제/비활성**해야 함
+- 재활성 후보: Cloudflare Workers Free(월 10만 req)로 국내 프록시 만들면 우회 가능. 다른 소스 여러 개가 같은 이유로 막히면 검토
 
 ### `Manifest: Line: 1, column: 1, Syntax error.` + 첫 렌더 느림
 - 상황: 로그인 후 페이지에서 콘솔에 manifest.webmanifest Syntax error 두 번, 폰트 preload 미사용 경고. 로그인 직후 첫 렌더가 유독 느림
