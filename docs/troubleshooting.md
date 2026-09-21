@@ -279,6 +279,11 @@
 - 원인: `rss-parser` 기본이 `Accept: application/rss+xml` 헤더만 보내는데, D2 피드(`d2.atom`)는 순수 Atom이라 그 Accept로는 406 응답. Accept 헤더 아예 없거나 atom 포함하면 200
 - 해결: `rss-fetcher.ts`의 Parser headers에 `Accept: application/atom+xml, application/rss+xml, application/xml;q=0.9, */*;q=0.8` 명시. 다른 Atom 전용 피드 만나도 재사용
 
+### RSS 수집: 우아한형제들만 prod에서 `Status code 403` (로컬은 정상)
+- 상황: Render 배포 후 `/blog`에서 8개 중 `techblog.woowahan.com/feed/`만 403. 로컬 dev에선 문제 없음
+- 원인: 우아한형제들 tech blog는 WordPress + Cloudflare 조합. `User-Agent: Rally/1.0 (RSS collector)` 같은 명백한 봇 UA를 Cloudflare/Wordfence가 차단. 로컬(국내 가정 IP + 익숙한 트래픽 패턴)은 통과하지만 Render 미국 데이터센터 IP + 봇 UA 조합은 즉시 403
+- 해결: `rss-fetcher.ts`의 User-Agent를 실제 Chrome UA(`Mozilla/5.0 (Windows NT 10.0...) Chrome/131...`)로 스푸핑. 공용 RSS 정상 수집 목적이라 문제 없음. 그래도 안 되면 Accept-Language/Encoding 추가하거나 소스별 UA 오버라이드 검토
+
 ### `Manifest: Line: 1, column: 1, Syntax error.` + 첫 렌더 느림
 - 상황: 로그인 후 페이지에서 콘솔에 manifest.webmanifest Syntax error 두 번, 폰트 preload 미사용 경고. 로그인 직후 첫 렌더가 유독 느림
 - 원인: `proxy.ts`의 `matcher`가 excludes `_next/static|_next/image|favicon.ico|icon.svg|apple-icon.png`만 나열 → `/manifest.webmanifest`, `/flag-512.png`, `/icon-maskable.svg`가 미들웨어를 매번 통과. (a) 세션 없으면 `/login`으로 redirect돼 HTML이 돌아오고 브라우저가 이를 manifest로 파싱하려다 실패. (b) 세션 있어도 요청마다 `supabase.auth.getUser()` 서버 왕복이라 병렬 asset 요청 수만큼 지연 누적

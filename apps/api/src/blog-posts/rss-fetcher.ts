@@ -13,8 +13,13 @@ const SUMMARY_MAX = 200;
 const parser = new Parser({
   timeout: 10000,
   headers: {
-    // 일부 블로그는 User-Agent 없이 400 반환 (예: medium)
-    'User-Agent': 'Rally/1.0 (RSS collector)',
+    // 브라우저 UA로 스푸핑. `Rally/1.0` 같은 봇 UA는 Cloudflare/Wordfence
+    // 계열 필터에서 403으로 튕김 (특히 techblog.woowahan.com WP+Cloudflare).
+    // 로컬 dev 국내 IP에선 통과하지만 Render 미국 IP + 봇 UA 조합은 즉시
+    // 차단. 공용 RSS 정상 수집 목적이고 rate limit도 자체 스케줄러가
+    // 제어하므로 스푸핑에 문제 없음.
+    'User-Agent':
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
     // rss-parser 기본값은 `application/rss+xml`만 요청하는데, Atom 전용
     // 피드(예: 네이버 D2 = d2.atom)는 그 헤더에 406으로 응답. Atom·RSS·
     // 일반 XML 전부 수락하도록 명시.
