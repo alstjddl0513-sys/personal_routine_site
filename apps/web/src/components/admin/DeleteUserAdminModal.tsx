@@ -28,12 +28,20 @@ export function DeleteUserAdminModal({
   const [typed, setTyped] = useState('');
   const typedRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
+  // close transition에서 확인 상태를 지움. React가 derived state 리셋에
+  // 공식 권장하는 "adjust during render" 패턴 — ref는 렌더 중 접근 금지라서
+  // useState로 이전 값 추적.
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (prevOpen !== open) {
+    setPrevOpen(open);
     if (!open) {
       setChecked(false);
       setTyped('');
-      return;
     }
+  }
+
+  useEffect(() => {
+    if (!open) return;
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape' && !pending) onCancel();
     }
