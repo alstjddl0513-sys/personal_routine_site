@@ -263,6 +263,12 @@
   7. 검증: 트래킹 개수 = 마이그 파일 개수, `is_nullable='NO'` 개수 = 예상치, `rowsecurity=true` 개수 = 예상치
 - 재발 방지: prod 마이그 실행 전 `db:generate`로 "No schema changes" 확인, 대규모 마이그는 **파일을 하나씩** 개별 실행. deployment.md §6 참고
 
+### Supabase 비번 재설정 메일이 안 옴 (built-in SMTP 실질 사용 불가)
+- 상황: `/forgot-password`에서 gmail로 재설정 요청 → Auth Logs에는 `POST /auth/v1/recover` 200 정상, `redirect_to`도 옳음 → 그런데 받은편지함/스팸/보관함 어디에도 메일 없음
+- 원인: Supabase가 2024~2025년 정책 변경으로 **custom SMTP 없이는 built-in email이 시간당 2통 수준 + 딜리버리 자주 실패**. `recover` 엔드포인트는 계정 존재/발송 성공과 무관하게 항상 200 반환(계정 유출 방지)이라 앱에선 에러 감지 불가. Emails → Templates 탭에도 "Set up custom SMTP to edit templates" 배너로 명시됨
+- 해결: **Resend 같은 custom SMTP 세팅이 사실상 필수**. Resend 무료 3000통/월, 발신 도메인 없으면 `onboarding@resend.dev`로 테스트 가능. Supabase Auth → Emails → SMTP Settings에 host `smtp.resend.com` · port 465 · user `resend` · password `<API key>` 넣기
+- 우회(1인 앱): 지금은 재설정 flow를 login에서 노출 안 하고(`/forgot-password`, `/auth/reset-password` 코드는 남기지만 진입 링크 제거) 비번 잊으면 Supabase 콘솔에서 admin으로 강제 변경. 다인화 나갈 때 Resend 붙이고 login/page.tsx에 "비밀번호를 잊으셨나요?" 링크만 다시 추가
+
 ### Supabase Security Advisor: `announcement_targets` "RLS Enabled No Policy" (무시)
 - 상황: Supabase 콘솔 Advisors → Security 탭에 Info 1건 뜸. `public.announcement_targets`에 RLS는 켜져있는데 정책이 0개라는 경고
 - 원인: 이 테이블은 **설계상 authenticated에게 SELECT조차 열지 않음** (누가 어떤 공지의 대상인지 = 개인정보). 접근은 NestJS(service_role/postgres role)에서만 이뤄지고 RLS를 우회하므로 정책 없어도 정상 동작. `schema/announcements.ts:16-19` 주석에 명시된 의도
