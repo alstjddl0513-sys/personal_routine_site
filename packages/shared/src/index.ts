@@ -508,6 +508,40 @@ export interface AdminUsersPage {
   users: AdminUserRow[];
 }
 
+// 인앱 피드백. 유저가 /settings에서 보내는 자유 텍스트 + 카테고리.
+// user_id/path/version/created_at은 서버·클라가 자동 첨부. 편집·삭제 없음.
+export const FEEDBACK_CATEGORIES = ['bug', 'suggestion', 'other'] as const;
+export type FeedbackCategory = (typeof FEEDBACK_CATEGORIES)[number];
+
+export const FEEDBACK_CATEGORY_LABELS: Record<FeedbackCategory, string> = {
+  bug: '버그',
+  suggestion: '제안',
+  other: '기타',
+};
+
+export interface Feedback {
+  id: string;
+  userId: string;
+  category: FeedbackCategory;
+  body: string;
+  page: string | null;
+  version: string | null;
+  createdAt: string;
+}
+
+export interface CreateFeedbackInput {
+  category: FeedbackCategory;
+  body: string;
+  page?: string;
+  version?: string;
+}
+
+// 어드민 조회. profiles(닉네임) + auth.users(email)와 조인해서 함께 반환.
+export interface AdminFeedback extends Feedback {
+  nickname: string | null;
+  email: string | null;
+}
+
 // 어드민 개요 대시보드용 집계. Supabase auth.users의 created_at / last_sign_in_at
 // 만으로 계산 (별도 로그 테이블 X). last_sign_in_at은 토큰 발급 시점 기준이라
 // "실질 활동"과 100% 일치하진 않지만 MVP 지표로 충분.

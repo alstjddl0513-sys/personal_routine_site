@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { AccountDeleteRow } from '../../components/settings/AccountDeleteRow';
 import { BackupButton } from '../../components/settings/BackupButton';
+import { FeedbackRow } from '../../components/settings/FeedbackRow';
 import { LogoutRow } from '../../components/settings/LogoutRow';
 import { NicknameRow } from '../../components/settings/NicknameRow';
 import { NotifSettingsRow } from '../../components/settings/NotifSettingsRow';
@@ -203,6 +204,11 @@ export default async function SettingsPage() {
       <section className="rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
         <SectionHeader>알림</SectionHeader>
         <NotifSettingsRow />
+      </section>
+
+      <section className="rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+        <SectionHeader>피드백</SectionHeader>
+        <FeedbackRow />
       </section>
 
       <section className="rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
