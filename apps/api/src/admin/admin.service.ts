@@ -8,6 +8,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { desc, eq, inArray } from 'drizzle-orm';
 import type {
+  AdminStatsOverview,
   AdminUserRow,
   AdminUsersPage,
   Announcement,
@@ -115,6 +116,62 @@ export class AdminService {
       perPage,
       total: data.total ?? authUsers.length,
       users: rows,
+    };
+  }
+
+  // 개요 지표. Supabase auth.users를 전량 pull(200/page 반복)해서 카운터 계산.
+  // 유저 규모 소수라 O(n) 앱 레벨 집계로 충분. 커지면 DB 뷰나 캐시로 승격.
+  async getStatsOverview(): Promise<AdminStatsOverview> {
+    const admin = getSupabaseAdmin();
+    const now = Date.now();
+    const DAY_MS = 24 * 60 * 60 * 1000;
+    const cutoff24h = now - DAY_MS;
+    const cutoff7d = now - 7 * DAY_MS;
+    const cutoff30d = now - 30 * DAY_MS;
+    const perPage = 200;
+
+    let totalUsers = 0;
+    let dau = 0;
+    let wau = 0;
+    let mau = 0;
+    let signups7d = 0;
+    let signups30d = 0;
+    let page = 1;
+    // Supabase는 페이지 초과 시 빈 배열 반환. batch.length < perPage 시 종료.
+    while (true) {
+      const { data, error } = await admin.auth.admin.listUsers({
+        page,
+        perPage,
+      });
+      if (error) {
+        throw new InternalServerErrorException(
+          `getStatsOverview failed: ${error.message}`,
+        );
+      }
+      for (const u of data.users) {
+        totalUsers += 1;
+        if (u.last_sign_in_at) {
+          const ts = Date.parse(u.last_sign_in_at);
+          if (ts >= cutoff24h) dau += 1;
+          if (ts >= cutoff7d) wau += 1;
+          if (ts >= cutoff30d) mau += 1;
+        }
+        const cts = Date.parse(u.created_at);
+        if (cts >= cutoff7d) signups7d += 1;
+        if (cts >= cutoff30d) signups30d += 1;
+      }
+      if (data.users.length < perPage) break;
+      page += 1;
+    }
+
+    return {
+      totalUsers,
+      dau,
+      wau,
+      mau,
+      signups7d,
+      signups30d,
+      generatedAt: new Date().toISOString(),
     };
   }
 

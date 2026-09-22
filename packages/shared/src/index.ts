@@ -508,6 +508,19 @@ export interface AdminUsersPage {
   users: AdminUserRow[];
 }
 
+// 어드민 개요 대시보드용 집계. Supabase auth.users의 created_at / last_sign_in_at
+// 만으로 계산 (별도 로그 테이블 X). last_sign_in_at은 토큰 발급 시점 기준이라
+// "실질 활동"과 100% 일치하진 않지만 MVP 지표로 충분.
+export interface AdminStatsOverview {
+  totalUsers: number;
+  dau: number;
+  wau: number;
+  mau: number;
+  signups7d: number;
+  signups30d: number;
+  generatedAt: string;
+}
+
 // 1일 · 7일 · 30일 · 100년(=사실상 영구). Supabase가 ban_duration을
 // `<n>h` 형식으로 받음. 100년 = 24*365*100 = 876000시간.
 export const BAN_DURATION_HOURS = [24, 168, 720, 876000] as const;

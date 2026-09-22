@@ -1,4 +1,5 @@
 import type {
+  AdminStatsOverview,
   AdminUsersPage,
   Announcement,
   ApplicationStatus,
@@ -1082,6 +1083,20 @@ export interface ListAdminUsersOptions {
   perPage?: number;
   search?: string;
   sortBy?: 'createdAt' | 'lastSignInAt';
+}
+
+export async function getAdminStatsOverview(): Promise<AdminStatsOverview> {
+  const res = await fetch(apiUrl('/admin/stats/overview'), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `GET /admin/stats/overview failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as AdminStatsOverview;
 }
 
 export async function listAdminUsers(
