@@ -3,6 +3,7 @@ export * from './blog';
 export * from './companies';
 export * from './company-types';
 export * from './documents';
+export * from './feedback';
 export * from './learn';
 export * from './profiles';
 export * from './routines';

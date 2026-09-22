@@ -26,6 +26,7 @@ import { QuestionsModule } from './questions/questions.module';
 import { DocumentsModule } from './documents/documents.module';
 import { AdminModule } from './admin/admin.module';
 import { AnnouncementsModule } from './announcements/announcements.module';
+import { FeedbackModule } from './feedback/feedback.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { AnnouncementsModule } from './announcements/announcements.module';
     DocumentsModule,
     AdminModule,
     AnnouncementsModule,
+    FeedbackModule,
   ],
   controllers: [AppController, HealthController],
   providers: [

@@ -1,4 +1,5 @@
 import type {
+  AdminFeedback,
   AdminStatsOverview,
   AdminUsersPage,
   Announcement,
@@ -11,11 +12,13 @@ import type {
   CompanyType,
   CompanyType1,
   CreateAnnouncementInput,
+  CreateFeedbackInput,
   DayNote,
   Document,
   DocumentKind,
   Exercise,
   ExerciseStats,
+  Feedback,
   InitDocumentInput,
   InitDocumentResult,
   NicknameAvailability,
@@ -1083,6 +1086,45 @@ export interface ListAdminUsersOptions {
   perPage?: number;
   search?: string;
   sortBy?: 'createdAt' | 'lastSignInAt';
+}
+
+export async function submitFeedback(input: CreateFeedbackInput): Promise<Feedback> {
+  const res = await fetch(apiUrl('/feedback'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    throw new HttpError(`POST /feedback failed: HTTP ${res.status}`, res.status);
+  }
+  return (await res.json()) as Feedback;
+}
+
+export async function listAdminFeedback(): Promise<AdminFeedback[]> {
+  const res = await fetch(apiUrl('/admin/feedback'), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `GET /admin/feedback failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as AdminFeedback[];
+}
+
+export async function deleteFeedbackAsAdmin(id: string): Promise<void> {
+  const res = await fetch(apiUrl(`/admin/feedback/${id}`), {
+    method: 'DELETE',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `DELETE /admin/feedback/${id} failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
 }
 
 export async function getAdminStatsOverview(): Promise<AdminStatsOverview> {
