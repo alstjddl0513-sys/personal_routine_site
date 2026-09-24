@@ -30,8 +30,10 @@ export default async function LearnPage({
       getDailyQuestions(date, selectedCategories),
       getQuestionCategories(),
     ]);
-  } catch {
-    // fall through to empty state
+  } catch (e) {
+    // UI는 그대로 empty state로 fall through — 다만 실 데이터 없음/API 500/
+    // 인증 실패 등을 구분할 수 있게 서버 로그(Vercel Function Logs)에는 남김.
+    console.error('[learn] daily/categories fetch failed', e);
   }
 
   const header = (
