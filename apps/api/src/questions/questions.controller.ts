@@ -14,8 +14,10 @@ import {
 } from '@nestjs/common';
 import { requireUserId, type AuthedRequest } from '../supabase-auth.guard';
 import { CreateQuestionDto } from './dto/create-question.dto';
+import { FavoriteQuestionDto } from './dto/favorite-question.dto';
 import { LogQuestionDto } from './dto/log-question.dto';
 import { QueryDailyDto } from './dto/query-daily.dto';
+import { QueryFavoritesDto } from './dto/query-favorites.dto';
 import { QueryQuestionsDto } from './dto/query-questions.dto';
 import { QueryRandomDto } from './dto/query-random.dto';
 import { QueryReviewDto } from './dto/query-review.dto';
@@ -56,6 +58,12 @@ export class QuestionsController {
   @Get('review')
   findReview(@Req() req: AuthedRequest, @Query() query: QueryReviewDto) {
     return this.service.findReview(requireUserId(req), query);
+  }
+
+  // 별표한 질문 모음. Static path so it lands above :id.
+  @Get('favorites')
+  findFavorites(@Req() req: AuthedRequest, @Query() query: QueryFavoritesDto) {
+    return this.service.findFavorites(requireUserId(req), query);
   }
 
   // Static /stats/* routes above :id so Nest doesn't try to parse 'stats'
@@ -100,5 +108,15 @@ export class QuestionsController {
     @Body() dto: LogQuestionDto,
   ) {
     return this.service.upsertLog(requireUserId(req), id, dto);
+  }
+
+  // 별표 토글. is_seed 무관, 소유권만 검사.
+  @Put(':id/favorite')
+  setFavorite(
+    @Req() req: AuthedRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: FavoriteQuestionDto,
+  ) {
+    return this.service.setFavorite(requireUserId(req), id, dto);
   }
 }

@@ -790,6 +790,47 @@ export async function getReviewQuestions(
   return (await res.json()) as RandomQuestion[];
 }
 
+// 별표(is_favorite=true)한 질문 모음. status 무관 — 이해완료된 것도 포함해서
+// 재복습용으로 쌓아둔 목록. updated_at DESC 순 (최근 별표 or 최근 답변).
+export async function getFavoriteQuestions(
+  categories?: readonly string[],
+): Promise<RandomQuestion[]> {
+  const qs = new URLSearchParams();
+  if (categories && categories.length > 0) qs.set('categories', categories.join(','));
+  const url = qs.toString()
+    ? apiUrl(`/questions/favorites?${qs.toString()}`)
+    : apiUrl('/questions/favorites');
+  const res = await fetch(url, {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `GET /questions/favorites failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as RandomQuestion[];
+}
+
+export async function setQuestionFavorite(
+  id: string,
+  isFavorite: boolean,
+): Promise<{ id: string; isFavorite: boolean }> {
+  const res = await fetch(apiUrl(`/questions/${id}/favorite`), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify({ isFavorite }),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `PUT /questions/${id}/favorite failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as { id: string; isFavorite: boolean };
+}
+
 export async function getQuestionDetail(id: string): Promise<QuestionDetail> {
   const res = await fetch(apiUrl(`/questions/${id}`), {
     cache: 'no-store',

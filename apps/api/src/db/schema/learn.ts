@@ -56,6 +56,9 @@ export const questions = pgTable('questions', {
   // 사용자가 POST /questions로 직접 추가한 커스텀은 false. /settings/questions는
   // false만 노출(시드 노이즈 회피). daily/review pool은 무관하게 전체 사용.
   isSeed: boolean('is_seed').notNull().default(false),
+  // 별표. 시드/커스텀 무관. /learn/review?favorites=1에서 즐겨찾기만 필터링.
+  // '복습필요'와는 의미가 다름 — 이해완료된 질문이라도 반복 학습하고 싶은 케이스.
+  isFavorite: boolean('is_favorite').notNull().default(false),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
     .defaultNow(),
