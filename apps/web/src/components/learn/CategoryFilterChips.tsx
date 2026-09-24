@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTransition } from 'react';
 import type { QuestionCategory } from '@repo/shared';
 
@@ -11,9 +11,11 @@ interface Props {
 
 // 카테고리 chip 다중 선택. URL `?categories=<csv>`로 상태 보존.
 // 필터가 바뀌면 daily set이 달라지므로 `?q=`는 함께 제거.
+// 그 외 파라미터(review 페이지의 ?mode=favorites 등)는 유지.
 export function CategoryFilterChips({ categories, selected }: Props) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
   const set = new Set(selected);
@@ -21,6 +23,10 @@ export function CategoryFilterChips({ categories, selected }: Props) {
   function apply(next: Set<string>) {
     const csv = Array.from(next).join(',');
     const params = new URLSearchParams();
+    searchParams.forEach((v, k) => {
+      if (k === 'categories' || k === 'q') return;
+      params.set(k, v);
+    });
     if (csv) params.set('categories', csv);
     const query = params.toString();
     const url = query ? `${pathname}?${query}` : pathname;

@@ -3,8 +3,10 @@ import { and, asc, desc, eq, gte, inArray, lte, ne, sql, type SQL } from 'drizzl
 import { db } from '../db/client';
 import { questionLogs, questions } from '../db/schema';
 import type { CreateQuestionDto } from './dto/create-question.dto';
+import type { FavoriteQuestionDto } from './dto/favorite-question.dto';
 import type { LogQuestionDto } from './dto/log-question.dto';
 import type { QueryDailyDto } from './dto/query-daily.dto';
+import type { QueryFavoritesDto } from './dto/query-favorites.dto';
 import type { QueryQuestionsDto } from './dto/query-questions.dto';
 import type { QueryRandomDto } from './dto/query-random.dto';
 import type { QueryReviewDto } from './dto/query-review.dto';
@@ -31,6 +33,7 @@ export class QuestionsService {
         content: questions.content,
         categoryKey: questions.categoryKey,
         status: questionLogs.status,
+        isFavorite: questions.isFavorite,
       })
       .from(questions)
       .leftJoin(
@@ -63,6 +66,7 @@ export class QuestionsService {
         content: questions.content,
         categoryKey: questions.categoryKey,
         status: questionLogs.status,
+        isFavorite: questions.isFavorite,
       })
       .from(questions)
       .innerJoin(
@@ -76,6 +80,36 @@ export class QuestionsService {
       .orderBy(asc(questionLogs.updatedAt));
   }
 
+  // 별표(is_favorite=true)만. status와 무관하게 이해완료된 것도 포함. 정렬은
+  // updated_at DESC (최근 별표 or 최근 답변한 것부터). categories chip 필터 지원.
+  async findFavorites(ownerId: string, query: QueryFavoritesDto) {
+    const conditions: SQL[] = [
+      eq(questions.ownerId, ownerId),
+      eq(questions.isFavorite, true),
+    ];
+    if (query.categories && query.categories.length > 0) {
+      conditions.push(inArray(questions.categoryKey, query.categories));
+    }
+    return db
+      .select({
+        id: questions.id,
+        content: questions.content,
+        categoryKey: questions.categoryKey,
+        status: questionLogs.status,
+        isFavorite: questions.isFavorite,
+      })
+      .from(questions)
+      .leftJoin(
+        questionLogs,
+        and(
+          eq(questionLogs.questionId, questions.id),
+          eq(questionLogs.ownerId, ownerId),
+        ),
+      )
+      .where(and(...conditions))
+      .orderBy(desc(questions.updatedAt));
+  }
+
   // Random question WITHOUT the answer — kept for potential admin/debug use.
   // The /learn UI uses findDaily instead as of Phase 13.1 daily-quota rework.
   async findRandom(ownerId: string, query: QueryRandomDto) {
@@ -87,6 +121,7 @@ export class QuestionsService {
         content: questions.content,
         categoryKey: questions.categoryKey,
         status: questionLogs.status,
+        isFavorite: questions.isFavorite,
       })
       .from(questions)
       .leftJoin(
@@ -112,6 +147,7 @@ export class QuestionsService {
         answer: questions.answer,
         tip: questions.tip,
         categoryKey: questions.categoryKey,
+        isFavorite: questions.isFavorite,
         status: questionLogs.status,
         answeredAt: questionLogs.answeredAt,
         updatedAt: questionLogs.updatedAt,
@@ -133,6 +169,7 @@ export class QuestionsService {
       answer: row.answer,
       tip: row.tip,
       categoryKey: row.categoryKey,
+      isFavorite: row.isFavorite,
       log:
         row.status && row.answeredAt && row.updatedAt
           ? {
@@ -208,6 +245,7 @@ export class QuestionsService {
         answer: questions.answer,
         tip: questions.tip,
         categoryKey: questions.categoryKey,
+        isFavorite: questions.isFavorite,
         createdAt: questions.createdAt,
         updatedAt: questions.updatedAt,
       })
@@ -232,6 +270,7 @@ export class QuestionsService {
         answer: questions.answer,
         tip: questions.tip,
         categoryKey: questions.categoryKey,
+        isFavorite: questions.isFavorite,
         createdAt: questions.createdAt,
         updatedAt: questions.updatedAt,
       });
@@ -263,9 +302,23 @@ export class QuestionsService {
         answer: questions.answer,
         tip: questions.tip,
         categoryKey: questions.categoryKey,
+        isFavorite: questions.isFavorite,
         createdAt: questions.createdAt,
         updatedAt: questions.updatedAt,
       });
+    if (!row) throw new NotFoundException(`Question ${id} not found`);
+    return row;
+  }
+
+  // 별표 토글. is_seed 체크 없이 소유권만 검사 — 시드 질문에도 붙일 수 있게.
+  // questions.updated_at 갱신으로 favorites 페이지가 최근 별표 순으로 정렬됨.
+  // review 페이지 정렬은 questionLogs.updated_at 기반이라 영향 없음.
+  async setFavorite(ownerId: string, id: string, dto: FavoriteQuestionDto) {
+    const [row] = await db
+      .update(questions)
+      .set({ isFavorite: dto.isFavorite, updatedAt: new Date() })
+      .where(and(eq(questions.id, id), eq(questions.ownerId, ownerId)))
+      .returning({ id: questions.id, isFavorite: questions.isFavorite });
     if (!row) throw new NotFoundException(`Question ${id} not found`);
     return row;
   }

@@ -6,6 +6,7 @@ import {
   Lightbulb,
   Loader2,
   PartyPopper,
+  Star,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import {
@@ -14,14 +15,14 @@ import {
   type QuestionStatus,
   type RandomQuestion,
 } from '@repo/shared';
-import { getQuestionDetail, logQuestion } from '../../lib/api';
+import { getQuestionDetail, logQuestion, setQuestionFavorite } from '../../lib/api';
 
-export type LearnMode = 'daily' | 'review';
+export type LearnMode = 'daily' | 'review' | 'favorites';
 
 interface Props {
   questions: RandomQuestion[];
   initialIndex: number;
-  /** 'daily'는 오늘 quota, 'review'는 복습필요 모아보기. 완료 카드 문구만 분기. */
+  /** 'daily'는 오늘 quota, 'review'는 복습필요 모아보기, 'favorites'는 별표 모아보기. 완료 카드 문구만 분기. */
   mode?: LearnMode;
 }
 
@@ -36,6 +37,10 @@ export function LearnCard({ questions, initialIndex, mode = 'daily' }: Props) {
   const [statuses, setStatuses] = useState<(QuestionStatus | null)[]>(() =>
     questions.map((q) => q.status),
   );
+  // 별표 shadow도 statuses와 같은 방식. 헤더 별 아이콘/detail 뷰가 즉시 반영.
+  const [favorites, setFavorites] = useState<boolean[]>(() =>
+    questions.map((q) => q.isFavorite),
+  );
   const [detail, setDetail] = useState<QuestionDetail | null>(null);
   const [showAnswer, setShowAnswer] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -45,6 +50,7 @@ export function LearnCard({ questions, initialIndex, mode = 'daily' }: Props) {
   const onCompletion = currentIndex === total;
   const question = onCompletion ? null : questions[currentIndex];
   const currentStatus = onCompletion ? null : statuses[currentIndex];
+  const currentFavorite = onCompletion ? false : favorites[currentIndex];
   const canGoPrev = currentIndex > 0;
   const canGoNext = currentIndex < total;
 
@@ -82,6 +88,31 @@ export function LearnCard({ questions, initialIndex, mode = 'daily' }: Props) {
       setLoading(false);
     }
     setShowAnswer(true);
+  }
+
+  // 별표 토글. optimistic — 요청 실패 시 원복 + 에러 표시. detail도 열려있으면
+  // 같이 반영해서 refetch 없이 다음 상호작용까지 일관성 유지.
+  async function handleToggleFavorite() {
+    if (!question) return;
+    setError(null);
+    const next = !currentFavorite;
+    setFavorites((prev) => {
+      const arr = [...prev];
+      arr[currentIndex] = next;
+      return arr;
+    });
+    setDetail((d) => (d && d.id === question.id ? { ...d, isFavorite: next } : d));
+    try {
+      await setQuestionFavorite(question.id, next);
+    } catch (e) {
+      setFavorites((prev) => {
+        const arr = [...prev];
+        arr[currentIndex] = !next;
+        return arr;
+      });
+      setDetail((d) => (d && d.id === question.id ? { ...d, isFavorite: !next } : d));
+      setError((e as Error).message);
+    }
   }
 
   async function handleStatus(status: QuestionStatus) {
@@ -151,6 +182,25 @@ export function LearnCard({ questions, initialIndex, mode = 'daily' }: Props) {
                 {QUESTION_STATUS_LABELS[currentStatus]}
               </span>
             ) : null}
+            {onCompletion ? null : (
+              <button
+                type="button"
+                onClick={handleToggleFavorite}
+                aria-label={currentFavorite ? '별표 해제' : '별표'}
+                aria-pressed={currentFavorite}
+                className={`inline-flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
+                  currentFavorite
+                    ? 'text-amber-500 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/40'
+                    : 'text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-200'
+                }`}
+              >
+                <Star
+                  className="h-4 w-4"
+                  fill={currentFavorite ? 'currentColor' : 'none'}
+                  aria-hidden
+                />
+              </button>
+            )}
             <div className="flex items-center gap-0.5">
               <button
                 type="button"
@@ -311,12 +361,18 @@ function CompletionBody({
       </div>
       <div className="flex flex-col gap-1">
         <h2 className="text-xl font-semibold text-zinc-900 md:text-2xl dark:text-zinc-100">
-          {mode === 'review' ? '복습 완료!' : '오늘의 학습 완료!'}
+          {mode === 'review'
+            ? '복습 완료!'
+            : mode === 'favorites'
+              ? '별표 훑기 완료!'
+              : '오늘의 학습 완료!'}
         </h2>
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
           {mode === 'review'
             ? '수고했어요. ‘이해완료’로 넘어간 질문은 이 목록에서 빠져요.'
-            : `내일 새로운 ${total}문제로 만나요.`}
+            : mode === 'favorites'
+              ? '별표한 질문을 모두 돌아봤어요. 다시 만나고 싶으면 별표를 유지해두세요.'
+              : `내일 새로운 ${total}문제로 만나요.`}
         </p>
       </div>
       <div className="mt-2 flex flex-wrap items-center justify-center gap-2 text-xs">

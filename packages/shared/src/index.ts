@@ -341,6 +341,7 @@ export interface RandomQuestion {
   /** question_categories.key. 카테고리 미지정/삭제됨 케이스는 null. */
   categoryKey: string | null;
   status: QuestionStatus | null;
+  isFavorite: boolean;
 }
 
 // Full detail (fetched when the user asks to see the answer).
@@ -351,6 +352,7 @@ export interface QuestionDetail {
   /** 답을 열어본 뒤 이어질 만한 꼬리 질문 1~2개 (선택). 없으면 null. */
   tip: string | null;
   categoryKey: string | null;
+  isFavorite: boolean;
   log: QuestionLog | null;
 }
 
@@ -363,6 +365,7 @@ export interface Question {
   answer: string;
   tip: string | null;
   categoryKey: string | null;
+  isFavorite: boolean;
   createdAt: string;
   updatedAt: string;
 }

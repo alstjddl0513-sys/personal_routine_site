@@ -236,6 +236,11 @@
 - 원인: `lib/api.ts`(양쪽 사용)에서 `authHeaders()` 안에 `await import('./supabase/server')`로 dynamic import를 걸었지만 Turbopack은 dynamic import까지 모듈 그래프에 포함시켜 client 번들에 `next/headers`가 딸려옴. Client Components(예: `AddCompanyButton`)가 api.ts를 import한 순간 발생
 - 해결: `lib/supabase/auth-header.ts`에 `'use server'` 지시자를 붙여 Server Action으로 분리. api.ts는 Server Action reference만 import → Next가 client 번들에서 RPC 스텁으로 대체해 server-only 의존은 남지 않음. Server-side는 in-process 직접 호출로 hop 없음. Phase 12.2 참고
 
+### 소프트 네비게이션 후 클라이언트 shadow state가 이전 값 그대로 (LearnCard 별표)
+- 상황: `/learn/review`에서 `[별표]` toggle 진입 시 카드의 ★가 첫 렌더에서 빈 ☆로 뜨고, F5 새로고침해야 채워짐. 카테고리 chip으로 필터 바꿔도 같은 패턴(shadow drift)
+- 원인: `<Link>`/`router.push`는 soft navigation이라 서버 컴포넌트만 재렌더, 하위 클라이언트 컴포넌트 인스턴스는 React reconciliation으로 재사용됨. `useState(() => questions.map(q => q.isFavorite))` 초기값은 첫 마운트에만 계산되므로 새 questions props가 와도 shadow는 이전 목록 값 그대로
+- 해결: 부모에서 `key={mode}:${categories}` 같은 네비 파라미터 조합을 걸어 재마운트 강제. `useEffect`로 매번 shadow 재초기화하는 방식은 무한루프 위험 + currentIndex/detail도 같이 리셋해야 해서 복잡
+
 ### 삭제한 route가 `.next/dev/types/validator.ts`에 잔재로 남아 타입 에러
 - 상황: `apps/web/src/app/api/auth/login/route.ts` 파일을 지웠는데 `pnpm --filter web build` 첫 시도에서 `Cannot find module '../../../src/app/api/auth/login/route.js' or its corresponding type declarations`
 - 원인: Turbopack이 이전 dev 실행 때 만든 `.next/dev/types/validator.ts` 캐시가 삭제된 route를 참조 중. Next가 타입 검증 단계에서 이 파일을 읽음

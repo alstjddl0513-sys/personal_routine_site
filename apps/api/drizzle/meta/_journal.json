@@ -169,6 +169,13 @@
       "when": 1790089310897,
       "tag": "0023_little_leopardon",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1790154181832,
+      "tag": "0024_faulty_grandmaster",
+      "breakpoints": true
     }
   ]
 }

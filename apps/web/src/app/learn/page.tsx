@@ -67,7 +67,14 @@ export default async function LearnPage({
   return (
     <div className="flex flex-col gap-4 p-6">
       {header}
-      <LearnCard questions={daily} initialIndex={initialIndex} />
+      {/* 카테고리 필터 변경은 router.push 소프트 네비게이션이라 LearnCard 인스턴스가
+          재사용됨. useState 초기값(shadow, initialIndex)은 첫 마운트에만 계산되므로
+          key로 재마운트를 강제해 새 daily set에 맞춰 재동기화. */}
+      <LearnCard
+        key={selectedCategories.join(',')}
+        questions={daily}
+        initialIndex={initialIndex}
+      />
     </div>
   );
 }
