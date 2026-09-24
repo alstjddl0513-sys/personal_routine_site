@@ -2,6 +2,7 @@ import type {
   AdminFeedback,
   AdminStatsOverview,
   AdminUsersPage,
+  AdminAnnouncement,
   Announcement,
   ApplicationStatus,
   BanDurationHours,
@@ -1241,7 +1242,7 @@ export async function deleteUserAsAdmin(id: string): Promise<void> {
   }
 }
 
-export async function listAllAnnouncements(): Promise<Announcement[]> {
+export async function listAllAnnouncements(): Promise<AdminAnnouncement[]> {
   const res = await fetch(apiUrl('/admin/announcements'), {
     cache: 'no-store',
     headers: await authHeaders(),
@@ -1252,12 +1253,12 @@ export async function listAllAnnouncements(): Promise<Announcement[]> {
       res.status,
     );
   }
-  return (await res.json()) as Announcement[];
+  return (await res.json()) as AdminAnnouncement[];
 }
 
 export async function createAnnouncement(
   input: CreateAnnouncementInput,
-): Promise<Announcement> {
+): Promise<AdminAnnouncement> {
   const res = await fetch(apiUrl('/admin/announcements'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
@@ -1269,13 +1270,13 @@ export async function createAnnouncement(
       res.status,
     );
   }
-  return (await res.json()) as Announcement;
+  return (await res.json()) as AdminAnnouncement;
 }
 
 export async function patchAnnouncement(
   id: string,
   input: UpdateAnnouncementInput,
-): Promise<Announcement> {
+): Promise<AdminAnnouncement> {
   const res = await fetch(apiUrl(`/admin/announcements/${id}`), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
@@ -1287,7 +1288,7 @@ export async function patchAnnouncement(
       res.status,
     );
   }
-  return (await res.json()) as Announcement;
+  return (await res.json()) as AdminAnnouncement;
 }
 
 export async function deleteAnnouncement(id: string): Promise<void> {

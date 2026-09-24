@@ -471,6 +471,16 @@ export interface Announcement {
   targetUserIds: string[];
 }
 
+// 어드민 응답 전용. targets는 지정된 경우 targetUserIds.length, 전체 대상이면
+// 현재 profiles 전체 수. 신규 회원가입으로 늘어나면 분모도 늘어남.
+export interface AnnouncementStats {
+  reads: number;
+  targets: number;
+}
+export interface AdminAnnouncement extends Announcement {
+  stats: AnnouncementStats;
+}
+
 // 일반 유저 관점의 공지. 읽음 시점(`readAt`) 포함해서 인박스 스타일로 표시.
 // 어드민이 isActive=false 하거나 기간을 지나기 전까진 읽어도 목록에 남아서
 // 언제든 다시 볼 수 있음. 뱃지 카운트는 `readAt === null` 갯수.

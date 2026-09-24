@@ -6,8 +6,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { desc, eq, inArray } from 'drizzle-orm';
+import { desc, eq, inArray, sql } from 'drizzle-orm';
 import type {
+  AdminAnnouncement,
   AdminStatsOverview,
   AdminUserRow,
   AdminUsersPage,
@@ -16,6 +17,7 @@ import type {
 } from '@repo/shared';
 import { db } from '../db/client';
 import {
+  announcementReads,
   announcementTargets,
   announcements,
   profiles,
@@ -225,29 +227,58 @@ export class AdminService {
 
   // --- announcements ---
 
-  async listAnnouncements(): Promise<Announcement[]> {
+  async listAnnouncements(): Promise<AdminAnnouncement[]> {
     const rows = await db
       .select()
       .from(announcements)
       .orderBy(desc(announcements.createdAt));
     if (rows.length === 0) return [];
-    // targets 배치 조회 후 매핑.
     const ids = rows.map((r) => r.id);
-    const targetRows = await db
-      .select()
-      .from(announcementTargets)
-      .where(inArray(announcementTargets.announcementId, ids));
+
+    // 세 배치 병렬:
+    //  a) 각 공지의 targets 목록 (기존)
+    //  b) 각 공지의 읽음 카운트 (신규)
+    //  c) 전체 유저 수 — 타겟 없는 공지의 분모 (신규)
+    const [targetRows, readCountRows, [{ totalUsers }]] = await Promise.all([
+      db
+        .select()
+        .from(announcementTargets)
+        .where(inArray(announcementTargets.announcementId, ids)),
+      db
+        .select({
+          announcementId: announcementReads.announcementId,
+          cnt: sql<number>`count(*)::int`,
+        })
+        .from(announcementReads)
+        .where(inArray(announcementReads.announcementId, ids))
+        .groupBy(announcementReads.announcementId),
+      db.select({ totalUsers: sql<number>`count(*)::int` }).from(profiles),
+    ]);
+
     const targetsByAnn = new Map<string, string[]>();
     for (const t of targetRows) {
       const list = targetsByAnn.get(t.announcementId) ?? [];
       list.push(t.userId);
       targetsByAnn.set(t.announcementId, list);
     }
-    return rows.map((r) => this.toAnnouncement(r, targetsByAnn.get(r.id) ?? []));
+    const readsByAnn = new Map<string, number>();
+    for (const r of readCountRows) {
+      readsByAnn.set(r.announcementId, Number(r.cnt));
+    }
+
+    return rows.map((r) => {
+      const targetIds = targetsByAnn.get(r.id) ?? [];
+      const targets = targetIds.length > 0 ? targetIds.length : totalUsers;
+      const reads = readsByAnn.get(r.id) ?? 0;
+      return {
+        ...this.toAnnouncement(r, targetIds),
+        stats: { reads, targets },
+      };
+    });
   }
 
-  async createAnnouncement(dto: CreateAnnouncementDto): Promise<Announcement> {
-    return db.transaction(async (tx) => {
+  async createAnnouncement(dto: CreateAnnouncementDto): Promise<AdminAnnouncement> {
+    const created = await db.transaction(async (tx) => {
       const [row] = await tx
         .insert(announcements)
         .values({
@@ -269,14 +300,19 @@ export class AdminService {
           })),
         );
       }
-      return this.toAnnouncement(row, targets);
+      return { row, targets };
     });
+    const stats = await this.computeAnnouncementStats(
+      created.row.id,
+      created.targets,
+    );
+    return { ...this.toAnnouncement(created.row, created.targets), stats };
   }
 
   async updateAnnouncement(
     id: string,
     dto: UpdateAnnouncementDto,
-  ): Promise<Announcement> {
+  ): Promise<AdminAnnouncement> {
     return db.transaction(async (tx) => {
       const [current] = await tx
         .select()
@@ -322,7 +358,10 @@ export class AdminService {
         effectiveTargets = existing.map((e) => e.userId);
       }
 
-      return this.toAnnouncement(row, effectiveTargets);
+      return { row, effectiveTargets };
+    }).then(async ({ row, effectiveTargets }) => {
+      const stats = await this.computeAnnouncementStats(row.id, effectiveTargets);
+      return { ...this.toAnnouncement(row, effectiveTargets), stats };
     });
   }
 
@@ -344,6 +383,26 @@ export class AdminService {
       throw new BadRequestException(`invalid date: ${value}`);
     }
     return d;
+  }
+
+  // 단건 create/update 뒤에 stats 계산용. reads는 해당 공지 하나에 대한
+  // COUNT, targets는 명시된 수 or 전체 profiles.
+  private async computeAnnouncementStats(
+    announcementId: string,
+    targetUserIds: string[],
+  ): Promise<{ reads: number; targets: number }> {
+    const [{ cnt }] = await db
+      .select({ cnt: sql<number>`count(*)::int` })
+      .from(announcementReads)
+      .where(eq(announcementReads.announcementId, announcementId));
+    let targets = targetUserIds.length;
+    if (targets === 0) {
+      const [{ n }] = await db
+        .select({ n: sql<number>`count(*)::int` })
+        .from(profiles);
+      targets = Number(n);
+    }
+    return { reads: Number(cnt), targets };
   }
 
   private toAnnouncement(
