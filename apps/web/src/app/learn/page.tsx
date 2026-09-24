@@ -1,5 +1,9 @@
 import type { QuestionCategory, RandomQuestion } from '@repo/shared';
-import { getDailyQuestions, getQuestionCategories } from '../../lib/api';
+import {
+  getDailyQuestions,
+  getMyProfile,
+  getQuestionCategories,
+} from '../../lib/api';
 import { todayInSeoul, toISODate } from '../../lib/routines-week';
 import { CategoryFilterChips } from '../../components/learn/CategoryFilterChips';
 import { LearnCard } from './LearnCard';
@@ -20,7 +24,12 @@ export default async function LearnPage({
   const rawQ = sp.q;
   const qParam = typeof rawQ === 'string' ? rawQ : undefined;
   const rawCategories = sp.categories;
-  const selectedCategories = parseCategoriesParam(rawCategories);
+  const urlCategories = parseCategoriesParam(rawCategories);
+  // URL 부재(null) → preferences fallback. 명시적 빈 배열(=전체 선택)은 그대로.
+  const selectedCategories =
+    urlCategories ??
+    (await getMyProfile().catch(() => null))?.preferences.learn?.dailyCategories ??
+    [];
   const date = toISODate(todayInSeoul());
 
   let daily: RandomQuestion[] = [];
@@ -47,6 +56,7 @@ export default async function LearnPage({
       <CategoryFilterChips
         categories={categories}
         selected={selectedCategories}
+        mode="daily"
       />
     </header>
   );
@@ -81,8 +91,12 @@ export default async function LearnPage({
   );
 }
 
-function parseCategoriesParam(raw: unknown): string[] {
-  if (typeof raw !== 'string' || raw.length === 0) return [];
+// URL에 categories 파라미터 자체가 없으면 null (=preferences fallback 트리거).
+// 빈 문자열이면 [] (=명시적 전체 선택, preferences 무시). 값 있으면 파싱.
+function parseCategoriesParam(raw: unknown): string[] | null {
+  if (raw === undefined) return null;
+  if (typeof raw !== 'string') return null;
+  if (raw.length === 0) return [];
   return raw
     .split(',')
     .map((s) => s.trim())

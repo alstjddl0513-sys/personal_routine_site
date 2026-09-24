@@ -699,6 +699,11 @@ export type PreferencesPatch = {
       skipDays?: number;
     };
   };
+  learn?: {
+    dailyCategories?: string[];
+    reviewCategories?: string[];
+    favoritesCategories?: string[];
+  };
 };
 
 export async function patchMyPreferences(patch: PreferencesPatch): Promise<Profile> {
