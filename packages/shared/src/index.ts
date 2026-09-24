@@ -287,12 +287,23 @@ export interface NotifPreferences {
   workoutSkip: WorkoutSkipPreferences;
 }
 
+// /learn·/learn/review·favorites의 카테고리 chip 필터를 서버에 저장.
+// URL `?categories` 파라미터가 없을 때만 fallback으로 사용 — 빈값(=명시적
+// 전체)이면 preferences 무시. 배열은 deepMerge에서 replace.
+export interface LearnFilterPreferences {
+  dailyCategories?: string[];
+  reviewCategories?: string[];
+  favoritesCategories?: string[];
+}
+
 export interface Preferences {
   notif: NotifPreferences;
+  learn?: LearnFilterPreferences;
 }
 
 // 신규 계정/미마이그 사용자를 위한 시드값. 클라 localStorage 기본값과
-// 반드시 일치시켜야 sync 로직이 성립.
+// 반드시 일치시켜야 sync 로직이 성립. learn은 optional이라 undefined 상태
+// 유지 — 명시적 값이 있어야만 fallback으로 쓰임.
 export const DEFAULT_PREFERENCES: Preferences = {
   notif: {
     master: true,

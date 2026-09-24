@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { QuestionCategory, RandomQuestion } from '@repo/shared';
 import {
   getFavoriteQuestions,
+  getMyProfile,
   getQuestionCategories,
   getReviewQuestions,
 } from '../../../lib/api';
@@ -24,8 +25,14 @@ export default async function LearnReviewPage({
   const rawQ = sp.q;
   const qParam = typeof rawQ === 'string' ? rawQ : undefined;
   const rawCategories = sp.categories;
-  const selectedCategories = parseCategoriesParam(rawCategories);
+  const urlCategories = parseCategoriesParam(rawCategories);
   const mode: ReviewMode = sp.mode === 'favorites' ? 'favorites' : 'review';
+  // URL 부재(null) → preferences fallback (mode별). 명시적 빈 배열은 그대로.
+  const prefKey = mode === 'favorites' ? 'favoritesCategories' : 'reviewCategories';
+  const selectedCategories =
+    urlCategories ??
+    (await getMyProfile().catch(() => null))?.preferences.learn?.[prefKey] ??
+    [];
 
   let list: RandomQuestion[] = [];
   let categories: QuestionCategory[] = [];
@@ -56,6 +63,7 @@ export default async function LearnReviewPage({
       <CategoryFilterChips
         categories={categories}
         selected={selectedCategories}
+        mode={mode}
       />
     </header>
   );
@@ -173,8 +181,12 @@ function EmptyState({ mode, filtered }: { mode: ReviewMode; filtered: boolean })
   );
 }
 
-function parseCategoriesParam(raw: unknown): string[] {
-  if (typeof raw !== 'string' || raw.length === 0) return [];
+// URL에 categories 파라미터 자체가 없으면 null (=preferences fallback 트리거).
+// 빈 문자열이면 [] (=명시적 전체 선택, preferences 무시).
+function parseCategoriesParam(raw: unknown): string[] | null {
+  if (raw === undefined) return null;
+  if (typeof raw !== 'string') return null;
+  if (raw.length === 0) return [];
   return raw
     .split(',')
     .map((s) => s.trim())

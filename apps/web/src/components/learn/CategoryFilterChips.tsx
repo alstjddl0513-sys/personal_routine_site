@@ -1,27 +1,64 @@
 'use client';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useTransition } from 'react';
+import { useEffect, useRef, useTransition } from 'react';
 import type { QuestionCategory } from '@repo/shared';
+import { patchMyPreferences } from '../../lib/api';
+
+type FilterMode = 'daily' | 'review' | 'favorites';
 
 interface Props {
   categories: QuestionCategory[];
   selected: readonly string[];
+  /** preferences.learn의 어떤 키에 저장할지. 서버 컴포넌트가 URL 부재 시
+   *  fallback으로 읽는 값과 짝. */
+  mode: FilterMode;
 }
 
-// 카테고리 chip 다중 선택. URL `?categories=<csv>`로 상태 보존.
-// 필터가 바뀌면 daily set이 달라지므로 `?q=`는 함께 제거.
+const PATCH_DEBOUNCE_MS = 500;
+
+// 카테고리 chip 다중 선택. URL `?categories=<csv>`로 상태 보존하고, 동시에
+// profiles.preferences.learn.[mode]Categories로 서버 sync (debounce). URL이
+// 없을 때만 preferences가 fallback으로 쓰이므로 소프트 네비게이션 시에도
+// 최근 선택이 유지됨. 필터가 바뀌면 daily set이 달라지므로 `?q=`는 제거.
 // 그 외 파라미터(review 페이지의 ?mode=favorites 등)는 유지.
-export function CategoryFilterChips({ categories, selected }: Props) {
+export function CategoryFilterChips({ categories, selected, mode }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
+  const patchTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (patchTimeoutRef.current !== null) {
+        window.clearTimeout(patchTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const set = new Set(selected);
 
+  function schedulePatch(nextArr: string[]) {
+    if (patchTimeoutRef.current !== null) {
+      window.clearTimeout(patchTimeoutRef.current);
+    }
+    const key =
+      mode === 'daily'
+        ? 'dailyCategories'
+        : mode === 'review'
+          ? 'reviewCategories'
+          : 'favoritesCategories';
+    patchTimeoutRef.current = window.setTimeout(() => {
+      patchMyPreferences({ learn: { [key]: nextArr } }).catch((err) => {
+        console.error('[CategoryFilterChips] preferences PATCH failed', err);
+      });
+    }, PATCH_DEBOUNCE_MS);
+  }
+
   function apply(next: Set<string>) {
-    const csv = Array.from(next).join(',');
+    const nextArr = Array.from(next);
+    const csv = nextArr.join(',');
     const params = new URLSearchParams();
     searchParams.forEach((v, k) => {
       if (k === 'categories' || k === 'q') return;
@@ -33,6 +70,7 @@ export function CategoryFilterChips({ categories, selected }: Props) {
     startTransition(() => {
       router.push(url);
     });
+    schedulePatch(nextArr);
   }
 
   function toggle(key: string) {
