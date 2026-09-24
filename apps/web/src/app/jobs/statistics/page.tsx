@@ -57,6 +57,22 @@ export default async function JobsStatisticsPage() {
 
 async function JobsStatisticsContent() {
   const [rows, companyTypes] = await Promise.all([getCompanies(), getCompanyTypes()]);
+
+  if (rows.length === 0) {
+    return (
+      <p className="rounded-md border border-zinc-200 bg-zinc-50 p-6 text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
+        아직 담아둔 회사가 없어요.{' '}
+        <Link
+          href="/jobs"
+          className="text-zinc-700 underline underline-offset-2 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100"
+        >
+          채용 리스트
+        </Link>
+        에서 첫 회사를 담아보세요.
+      </p>
+    );
+  }
+
   const kpi = computeKpi(rows);
   const pipeline = computePipeline(rows);
   const t1 = computeType1Distribution(rows);
