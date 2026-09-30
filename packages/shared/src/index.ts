@@ -287,12 +287,23 @@ export interface NotifPreferences {
   workoutSkip: WorkoutSkipPreferences;
 }
 
+// /learn·/learn/review·favorites의 카테고리 chip 필터를 서버에 저장.
+// URL `?categories` 파라미터가 없을 때만 fallback으로 사용 — 빈값(=명시적
+// 전체)이면 preferences 무시. 배열은 deepMerge에서 replace.
+export interface LearnFilterPreferences {
+  dailyCategories?: string[];
+  reviewCategories?: string[];
+  favoritesCategories?: string[];
+}
+
 export interface Preferences {
   notif: NotifPreferences;
+  learn?: LearnFilterPreferences;
 }
 
 // 신규 계정/미마이그 사용자를 위한 시드값. 클라 localStorage 기본값과
-// 반드시 일치시켜야 sync 로직이 성립.
+// 반드시 일치시켜야 sync 로직이 성립. learn은 optional이라 undefined 상태
+// 유지 — 명시적 값이 있어야만 fallback으로 쓰임.
 export const DEFAULT_PREFERENCES: Preferences = {
   notif: {
     master: true,
@@ -341,6 +352,7 @@ export interface RandomQuestion {
   /** question_categories.key. 카테고리 미지정/삭제됨 케이스는 null. */
   categoryKey: string | null;
   status: QuestionStatus | null;
+  isFavorite: boolean;
 }
 
 // Full detail (fetched when the user asks to see the answer).
@@ -351,6 +363,7 @@ export interface QuestionDetail {
   /** 답을 열어본 뒤 이어질 만한 꼬리 질문 1~2개 (선택). 없으면 null. */
   tip: string | null;
   categoryKey: string | null;
+  isFavorite: boolean;
   log: QuestionLog | null;
 }
 
@@ -363,6 +376,7 @@ export interface Question {
   answer: string;
   tip: string | null;
   categoryKey: string | null;
+  isFavorite: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -468,6 +482,16 @@ export interface Announcement {
   targetUserIds: string[];
 }
 
+// 어드민 응답 전용. targets는 지정된 경우 targetUserIds.length, 전체 대상이면
+// 현재 profiles 전체 수. 신규 회원가입으로 늘어나면 분모도 늘어남.
+export interface AnnouncementStats {
+  reads: number;
+  targets: number;
+}
+export interface AdminAnnouncement extends Announcement {
+  stats: AnnouncementStats;
+}
+
 // 일반 유저 관점의 공지. 읽음 시점(`readAt`) 포함해서 인박스 스타일로 표시.
 // 어드민이 isActive=false 하거나 기간을 지나기 전까진 읽어도 목록에 남아서
 // 언제든 다시 볼 수 있음. 뱃지 카운트는 `readAt === null` 갯수.
@@ -506,6 +530,53 @@ export interface AdminUsersPage {
   perPage: number;
   total: number;
   users: AdminUserRow[];
+}
+
+// 인앱 피드백. 유저가 /settings에서 보내는 자유 텍스트 + 카테고리.
+// user_id/path/version/created_at은 서버·클라가 자동 첨부. 편집·삭제 없음.
+export const FEEDBACK_CATEGORIES = ['bug', 'suggestion', 'other'] as const;
+export type FeedbackCategory = (typeof FEEDBACK_CATEGORIES)[number];
+
+export const FEEDBACK_CATEGORY_LABELS: Record<FeedbackCategory, string> = {
+  bug: '버그',
+  suggestion: '제안',
+  other: '기타',
+};
+
+export interface Feedback {
+  id: string;
+  userId: string;
+  category: FeedbackCategory;
+  body: string;
+  page: string | null;
+  version: string | null;
+  createdAt: string;
+}
+
+export interface CreateFeedbackInput {
+  category: FeedbackCategory;
+  body: string;
+  page?: string;
+  version?: string;
+}
+
+// 어드민 조회. profiles(닉네임) + auth.users(email)와 조인해서 함께 반환.
+export interface AdminFeedback extends Feedback {
+  nickname: string | null;
+  email: string | null;
+}
+
+// 어드민 개요 대시보드용 집계. Supabase auth.users의 created_at / last_sign_in_at
+// 만으로 계산 (별도 로그 테이블 X). last_sign_in_at은 토큰 발급 시점 기준이라
+// "실질 활동"과 100% 일치하진 않지만 MVP 지표로 충분.
+export interface AdminStatsOverview {
+  totalUsers: number;
+  dau: number;
+  wau: number;
+  mau: number;
+  signups7d: number;
+  signups30d: number;
+  generatedAt: string;
 }
 
 // 1일 · 7일 · 30일 · 100년(=사실상 영구). Supabase가 ban_duration을

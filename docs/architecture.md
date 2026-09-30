@@ -82,8 +82,8 @@ Phase 12 이후 Postgres 호스팅 외에도 Supabase가 여러 층을 담당:
 |---|---|---|
 | Postgres | Phase 0 | 유일한 영속 계층 |
 | Auth (email/password + Google OAuth) | Phase 12.2·12.3 | Basic Auth 대체, JWKS/ES256 |
-| Row Level Security | Phase 12.4 | 유저별 데이터 격리 (4 정책 × 11 도메인 테이블) |
-| Storage | Phase 12.5C | `documents` private 버킷 (이력서·포트폴리오 PDF) |
+| Row Level Security | Phase 12.4 | 유저별 데이터 격리 (4 정책 × 17 도메인 테이블 · 공지 3정책 특수) |
+| Storage | Phase 12.5C | `documents` private 버킷 (이력서·포트폴리오 PDF, 50MB) |
 
 붙이지 않은 것:
 
@@ -91,6 +91,7 @@ Phase 12 이후 Postgres 호스팅 외에도 Supabase가 여러 층을 담당:
 |---|---|
 | Realtime | 실시간 협업/공유 알림 붙일 때 |
 | Edge Functions | 클라 인접 서버리스 로직 필요 시 (현재는 Render로 대체) |
+| Custom SMTP (Resend) | 비번 재설정 활성화 필요 시 (built-in SMTP는 시간당 2~3통 제한). 트리거 대기 |
 
 ## 선택 이유 (Stack decisions)
 

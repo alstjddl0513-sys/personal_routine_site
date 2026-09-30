@@ -2,13 +2,14 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Download, ExternalLink, Trash2 } from 'lucide-react';
+import { Download, Eye, ExternalLink, Trash2 } from 'lucide-react';
 import type { Document } from '@repo/shared';
 import {
   deleteDocument,
   getDocumentDownloadUrl,
   patchDocument,
 } from '../../lib/api';
+import { DocumentPreviewModal } from './DocumentPreviewModal';
 
 interface Props {
   document: Document;
@@ -27,6 +28,7 @@ export function DocumentRow({ document }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [downloading, setDownloading] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   function handleSelectActive() {
     if (document.isActive) return; // 이미 대표
@@ -108,6 +110,16 @@ export function DocumentRow({ document }: Props) {
         </p>
       </div>
 
+      {isLink || isOrphan ? null : (
+        <button
+          type="button"
+          onClick={() => setPreviewOpen(true)}
+          title="미리보기"
+          className="inline-flex h-8 w-8 items-center justify-center rounded text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-800 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+        >
+          <Eye className="h-4 w-4" aria-hidden />
+        </button>
+      )}
       <button
         type="button"
         onClick={handleOpen}
@@ -130,6 +142,13 @@ export function DocumentRow({ document }: Props) {
       >
         <Trash2 className="h-4 w-4" aria-hidden />
       </button>
+      {previewOpen ? (
+        <DocumentPreviewModal
+          documentId={document.id}
+          title={document.title}
+          onClose={() => setPreviewOpen(false)}
+        />
+      ) : null}
     </li>
   );
 }

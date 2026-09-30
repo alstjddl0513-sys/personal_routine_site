@@ -38,6 +38,11 @@ export class AdminController {
     return { ok: true };
   }
 
+  @Get('stats/overview')
+  getStatsOverview() {
+    return this.service.getStatsOverview();
+  }
+
   @Get('users')
   listUsers(@Query() query: QueryUsersDto) {
     return this.service.listUsers(query);

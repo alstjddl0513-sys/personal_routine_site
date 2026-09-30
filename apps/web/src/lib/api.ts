@@ -1,5 +1,8 @@
 import type {
+  AdminFeedback,
+  AdminStatsOverview,
   AdminUsersPage,
+  AdminAnnouncement,
   Announcement,
   ApplicationStatus,
   BanDurationHours,
@@ -10,11 +13,13 @@ import type {
   CompanyType,
   CompanyType1,
   CreateAnnouncementInput,
+  CreateFeedbackInput,
   DayNote,
   Document,
   DocumentKind,
   Exercise,
   ExerciseStats,
+  Feedback,
   InitDocumentInput,
   InitDocumentResult,
   NicknameAvailability,
@@ -695,6 +700,11 @@ export type PreferencesPatch = {
       skipDays?: number;
     };
   };
+  learn?: {
+    dailyCategories?: string[];
+    reviewCategories?: string[];
+    favoritesCategories?: string[];
+  };
 };
 
 export async function patchMyPreferences(patch: PreferencesPatch): Promise<Profile> {
@@ -784,6 +794,47 @@ export async function getReviewQuestions(
     );
   }
   return (await res.json()) as RandomQuestion[];
+}
+
+// 별표(is_favorite=true)한 질문 모음. status 무관 — 이해완료된 것도 포함해서
+// 재복습용으로 쌓아둔 목록. updated_at DESC 순 (최근 별표 or 최근 답변).
+export async function getFavoriteQuestions(
+  categories?: readonly string[],
+): Promise<RandomQuestion[]> {
+  const qs = new URLSearchParams();
+  if (categories && categories.length > 0) qs.set('categories', categories.join(','));
+  const url = qs.toString()
+    ? apiUrl(`/questions/favorites?${qs.toString()}`)
+    : apiUrl('/questions/favorites');
+  const res = await fetch(url, {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `GET /questions/favorites failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as RandomQuestion[];
+}
+
+export async function setQuestionFavorite(
+  id: string,
+  isFavorite: boolean,
+): Promise<{ id: string; isFavorite: boolean }> {
+  const res = await fetch(apiUrl(`/questions/${id}/favorite`), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify({ isFavorite }),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `PUT /questions/${id}/favorite failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as { id: string; isFavorite: boolean };
 }
 
 export async function getQuestionDetail(id: string): Promise<QuestionDetail> {
@@ -1084,6 +1135,59 @@ export interface ListAdminUsersOptions {
   sortBy?: 'createdAt' | 'lastSignInAt';
 }
 
+export async function submitFeedback(input: CreateFeedbackInput): Promise<Feedback> {
+  const res = await fetch(apiUrl('/feedback'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    throw new HttpError(`POST /feedback failed: HTTP ${res.status}`, res.status);
+  }
+  return (await res.json()) as Feedback;
+}
+
+export async function listAdminFeedback(): Promise<AdminFeedback[]> {
+  const res = await fetch(apiUrl('/admin/feedback'), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `GET /admin/feedback failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as AdminFeedback[];
+}
+
+export async function deleteFeedbackAsAdmin(id: string): Promise<void> {
+  const res = await fetch(apiUrl(`/admin/feedback/${id}`), {
+    method: 'DELETE',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `DELETE /admin/feedback/${id} failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+}
+
+export async function getAdminStatsOverview(): Promise<AdminStatsOverview> {
+  const res = await fetch(apiUrl('/admin/stats/overview'), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(
+      `GET /admin/stats/overview failed: HTTP ${res.status}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as AdminStatsOverview;
+}
+
 export async function listAdminUsers(
   opts: ListAdminUsersOptions = {},
 ): Promise<AdminUsersPage> {
@@ -1143,7 +1247,7 @@ export async function deleteUserAsAdmin(id: string): Promise<void> {
   }
 }
 
-export async function listAllAnnouncements(): Promise<Announcement[]> {
+export async function listAllAnnouncements(): Promise<AdminAnnouncement[]> {
   const res = await fetch(apiUrl('/admin/announcements'), {
     cache: 'no-store',
     headers: await authHeaders(),
@@ -1154,12 +1258,12 @@ export async function listAllAnnouncements(): Promise<Announcement[]> {
       res.status,
     );
   }
-  return (await res.json()) as Announcement[];
+  return (await res.json()) as AdminAnnouncement[];
 }
 
 export async function createAnnouncement(
   input: CreateAnnouncementInput,
-): Promise<Announcement> {
+): Promise<AdminAnnouncement> {
   const res = await fetch(apiUrl('/admin/announcements'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
@@ -1171,13 +1275,13 @@ export async function createAnnouncement(
       res.status,
     );
   }
-  return (await res.json()) as Announcement;
+  return (await res.json()) as AdminAnnouncement;
 }
 
 export async function patchAnnouncement(
   id: string,
   input: UpdateAnnouncementInput,
-): Promise<Announcement> {
+): Promise<AdminAnnouncement> {
   const res = await fetch(apiUrl(`/admin/announcements/${id}`), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
@@ -1189,7 +1293,7 @@ export async function patchAnnouncement(
       res.status,
     );
   }
-  return (await res.json()) as Announcement;
+  return (await res.json()) as AdminAnnouncement;
 }
 
 export async function deleteAnnouncement(id: string): Promise<void> {

@@ -1,8 +1,11 @@
 import { Type } from 'class-transformer';
 import {
+  ArrayMaxSize,
+  IsArray,
   IsBoolean,
   IsIn,
   IsOptional,
+  IsString,
   ValidateNested,
 } from 'class-validator';
 
@@ -43,9 +46,34 @@ class NotifPrefsDto {
   workoutSkip?: NotifWorkoutSkipDto;
 }
 
+class LearnFilterPrefsDto {
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(20)
+  @IsString({ each: true })
+  dailyCategories?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(20)
+  @IsString({ each: true })
+  reviewCategories?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(20)
+  @IsString({ each: true })
+  favoritesCategories?: string[];
+}
+
 export class PatchPreferencesDto {
   @IsOptional()
   @ValidateNested()
   @Type(() => NotifPrefsDto)
   notif?: NotifPrefsDto;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LearnFilterPrefsDto)
+  learn?: LearnFilterPrefsDto;
 }

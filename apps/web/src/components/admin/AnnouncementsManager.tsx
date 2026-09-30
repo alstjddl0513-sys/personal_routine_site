@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, ChevronDown, ChevronUp, Pencil, Plus, Trash2 } from 'lucide-react';
 import {
-  type Announcement,
+  type AdminAnnouncement,
   type CreateAnnouncementInput,
   type UpdateAnnouncementInput,
 } from '@repo/shared';
@@ -22,15 +22,15 @@ import {
 import { AnnouncementForm } from './AnnouncementForm';
 
 interface Props {
-  initial: Announcement[];
+  initial: AdminAnnouncement[];
 }
 
 export function AnnouncementsManager({ initial }: Props) {
   const router = useRouter();
-  const [rows, setRows] = useState<Announcement[]>(initial);
+  const [rows, setRows] = useState<AdminAnnouncement[]>(initial);
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<Announcement | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AdminAnnouncement | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -161,7 +161,7 @@ function AnnouncementRow({
   onUpdate,
   onDelete,
 }: {
-  row: Announcement;
+  row: AdminAnnouncement;
   editing: boolean;
   pending: boolean;
   onEdit: () => void;
@@ -171,6 +171,10 @@ function AnnouncementRow({
 }) {
   const [expanded, setExpanded] = useState(false);
   const Icon = ANNOUNCEMENT_KIND_ICON[row.kind];
+  const readPct =
+    row.stats.targets > 0
+      ? Math.round((row.stats.reads / row.stats.targets) * 100)
+      : 0;
 
   if (editing) {
     return (
@@ -209,6 +213,17 @@ function AnnouncementRow({
               {row.targetUserIds.length === 0
                 ? '전체'
                 : `${row.targetUserIds.length}명`}
+            </span>
+            <span
+              className="rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
+              title={
+                row.stats.targets > 0
+                  ? `${row.stats.reads}명 읽음 (${row.stats.targets}명 중)`
+                  : '아직 대상 유저가 없어요'
+              }
+            >
+              읽음 {row.stats.reads}/{row.stats.targets}
+              {row.stats.targets > 0 ? ` · ${readPct}%` : ''}
             </span>
           </div>
           <div className="mt-1 text-xs text-zinc-500">

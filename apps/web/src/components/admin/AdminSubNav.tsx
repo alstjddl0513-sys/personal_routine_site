@@ -4,8 +4,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const TABS = [
+  { href: '/admin/dashboard', label: '개요' },
   { href: '/admin/users', label: '사용자' },
   { href: '/admin/announcements', label: '공지' },
+  { href: '/admin/feedback', label: '피드백' },
 ];
 
 export function AdminSubNav() {

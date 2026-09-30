@@ -6,8 +6,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { desc, eq, inArray } from 'drizzle-orm';
+import { desc, eq, inArray, sql } from 'drizzle-orm';
 import type {
+  AdminAnnouncement,
+  AdminStatsOverview,
   AdminUserRow,
   AdminUsersPage,
   Announcement,
@@ -15,6 +17,7 @@ import type {
 } from '@repo/shared';
 import { db } from '../db/client';
 import {
+  announcementReads,
   announcementTargets,
   announcements,
   profiles,
@@ -118,6 +121,62 @@ export class AdminService {
     };
   }
 
+  // 개요 지표. Supabase auth.users를 전량 pull(200/page 반복)해서 카운터 계산.
+  // 유저 규모 소수라 O(n) 앱 레벨 집계로 충분. 커지면 DB 뷰나 캐시로 승격.
+  async getStatsOverview(): Promise<AdminStatsOverview> {
+    const admin = getSupabaseAdmin();
+    const now = Date.now();
+    const DAY_MS = 24 * 60 * 60 * 1000;
+    const cutoff24h = now - DAY_MS;
+    const cutoff7d = now - 7 * DAY_MS;
+    const cutoff30d = now - 30 * DAY_MS;
+    const perPage = 200;
+
+    let totalUsers = 0;
+    let dau = 0;
+    let wau = 0;
+    let mau = 0;
+    let signups7d = 0;
+    let signups30d = 0;
+    let page = 1;
+    // Supabase는 페이지 초과 시 빈 배열 반환. batch.length < perPage 시 종료.
+    while (true) {
+      const { data, error } = await admin.auth.admin.listUsers({
+        page,
+        perPage,
+      });
+      if (error) {
+        throw new InternalServerErrorException(
+          `getStatsOverview failed: ${error.message}`,
+        );
+      }
+      for (const u of data.users) {
+        totalUsers += 1;
+        if (u.last_sign_in_at) {
+          const ts = Date.parse(u.last_sign_in_at);
+          if (ts >= cutoff24h) dau += 1;
+          if (ts >= cutoff7d) wau += 1;
+          if (ts >= cutoff30d) mau += 1;
+        }
+        const cts = Date.parse(u.created_at);
+        if (cts >= cutoff7d) signups7d += 1;
+        if (cts >= cutoff30d) signups30d += 1;
+      }
+      if (data.users.length < perPage) break;
+      page += 1;
+    }
+
+    return {
+      totalUsers,
+      dau,
+      wau,
+      mau,
+      signups7d,
+      signups30d,
+      generatedAt: new Date().toISOString(),
+    };
+  }
+
   async banUser(
     id: string,
     durationHours: BanDurationHours,
@@ -168,29 +227,58 @@ export class AdminService {
 
   // --- announcements ---
 
-  async listAnnouncements(): Promise<Announcement[]> {
+  async listAnnouncements(): Promise<AdminAnnouncement[]> {
     const rows = await db
       .select()
       .from(announcements)
       .orderBy(desc(announcements.createdAt));
     if (rows.length === 0) return [];
-    // targets 배치 조회 후 매핑.
     const ids = rows.map((r) => r.id);
-    const targetRows = await db
-      .select()
-      .from(announcementTargets)
-      .where(inArray(announcementTargets.announcementId, ids));
+
+    // 세 배치 병렬:
+    //  a) 각 공지의 targets 목록 (기존)
+    //  b) 각 공지의 읽음 카운트 (신규)
+    //  c) 전체 유저 수 — 타겟 없는 공지의 분모 (신규)
+    const [targetRows, readCountRows, [{ totalUsers }]] = await Promise.all([
+      db
+        .select()
+        .from(announcementTargets)
+        .where(inArray(announcementTargets.announcementId, ids)),
+      db
+        .select({
+          announcementId: announcementReads.announcementId,
+          cnt: sql<number>`count(*)::int`,
+        })
+        .from(announcementReads)
+        .where(inArray(announcementReads.announcementId, ids))
+        .groupBy(announcementReads.announcementId),
+      db.select({ totalUsers: sql<number>`count(*)::int` }).from(profiles),
+    ]);
+
     const targetsByAnn = new Map<string, string[]>();
     for (const t of targetRows) {
       const list = targetsByAnn.get(t.announcementId) ?? [];
       list.push(t.userId);
       targetsByAnn.set(t.announcementId, list);
     }
-    return rows.map((r) => this.toAnnouncement(r, targetsByAnn.get(r.id) ?? []));
+    const readsByAnn = new Map<string, number>();
+    for (const r of readCountRows) {
+      readsByAnn.set(r.announcementId, Number(r.cnt));
+    }
+
+    return rows.map((r) => {
+      const targetIds = targetsByAnn.get(r.id) ?? [];
+      const targets = targetIds.length > 0 ? targetIds.length : totalUsers;
+      const reads = readsByAnn.get(r.id) ?? 0;
+      return {
+        ...this.toAnnouncement(r, targetIds),
+        stats: { reads, targets },
+      };
+    });
   }
 
-  async createAnnouncement(dto: CreateAnnouncementDto): Promise<Announcement> {
-    return db.transaction(async (tx) => {
+  async createAnnouncement(dto: CreateAnnouncementDto): Promise<AdminAnnouncement> {
+    const created = await db.transaction(async (tx) => {
       const [row] = await tx
         .insert(announcements)
         .values({
@@ -212,14 +300,19 @@ export class AdminService {
           })),
         );
       }
-      return this.toAnnouncement(row, targets);
+      return { row, targets };
     });
+    const stats = await this.computeAnnouncementStats(
+      created.row.id,
+      created.targets,
+    );
+    return { ...this.toAnnouncement(created.row, created.targets), stats };
   }
 
   async updateAnnouncement(
     id: string,
     dto: UpdateAnnouncementDto,
-  ): Promise<Announcement> {
+  ): Promise<AdminAnnouncement> {
     return db.transaction(async (tx) => {
       const [current] = await tx
         .select()
@@ -265,7 +358,10 @@ export class AdminService {
         effectiveTargets = existing.map((e) => e.userId);
       }
 
-      return this.toAnnouncement(row, effectiveTargets);
+      return { row, effectiveTargets };
+    }).then(async ({ row, effectiveTargets }) => {
+      const stats = await this.computeAnnouncementStats(row.id, effectiveTargets);
+      return { ...this.toAnnouncement(row, effectiveTargets), stats };
     });
   }
 
@@ -287,6 +383,26 @@ export class AdminService {
       throw new BadRequestException(`invalid date: ${value}`);
     }
     return d;
+  }
+
+  // 단건 create/update 뒤에 stats 계산용. reads는 해당 공지 하나에 대한
+  // COUNT, targets는 명시된 수 or 전체 profiles.
+  private async computeAnnouncementStats(
+    announcementId: string,
+    targetUserIds: string[],
+  ): Promise<{ reads: number; targets: number }> {
+    const [{ cnt }] = await db
+      .select({ cnt: sql<number>`count(*)::int` })
+      .from(announcementReads)
+      .where(eq(announcementReads.announcementId, announcementId));
+    let targets = targetUserIds.length;
+    if (targets === 0) {
+      const [{ n }] = await db
+        .select({ n: sql<number>`count(*)::int` })
+        .from(profiles);
+      targets = Number(n);
+    }
+    return { reads: Number(cnt), targets };
   }
 
   private toAnnouncement(
