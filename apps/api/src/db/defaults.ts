@@ -1,6 +1,13 @@
 // Onboarding defaults — stamped with the caller's owner_id at insert time.
 // Consumed by profiles.service.upsertMe (new signup) and the seed scripts.
 
+// Bump whenever any DEFAULT_* below gains new entries. profiles.findMe uses
+// this to lazily sync existing users on next session: profiles.defaults_version
+// < this value → run seedUserDefaults(), then set the row to this value.
+// Only bump for additions (new questions, new categories); ON CONFLICT DO NOTHING
+// + content-based dedupe keep the sync idempotent so re-runs are cheap.
+export const DEFAULTS_VERSION = 1;
+
 export interface DefaultCompanyType {
   key: string;
   label: string;
