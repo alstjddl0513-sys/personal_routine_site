@@ -75,6 +75,7 @@ Render는 마이그레이션을 돌리지 않음. 릴리스마다 로컬에서 p
    - **Build Command**: 기본값(`next build`) 그대로. Vercel이 pnpm workspace 자동 감지
    - **Install Command**: 기본값(`pnpm install`) 그대로
    - **Node.js Version**: 22.x (Render와 일관)
+   - **Function Region**: Seoul (`icn1`). 기본값 `iad1`(Washington)이면 한국 사용자의 SSR 왕복이 태평양을 건너 페이지 전환마다 400ms+ 페널티 → repo의 `apps/web/vercel.json`(`{"regions":["icn1"]}`)이 기본값이지만, 대시보드에서도 확인·저장 권장
 
 ### 환경 변수
 

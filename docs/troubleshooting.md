@@ -190,6 +190,11 @@
 - 원인: `proxy.ts`의 `matcher`가 excludes에 `.webmanifest`·`.png`·`.svg` 등 정적 파일 제외 누락 → 세션 없으면 `/login`으로 redirect돼 HTML이 돌아오고 브라우저가 이를 manifest로 파싱하려다 실패. 세션 있어도 요청마다 `getUser()` 서버 왕복이 병렬 asset 요청 수만큼 지연 누적
 - 해결: matcher 정규식을 확장자 기반으로 넓혀서 정적 파일 통째로 제외: `/((?!_next/static|_next/image|.*\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest|txt|xml)$).*)`
 
+### 모든 페이지 전환이 1초 근처로 체감 느림 (렉은 아닌데 답답)
+- 상황: 사이드바 클릭·필터 chip·버튼 등 SSR 왕복이 있는 조작 대부분이 1초 언저리. `/learn` DevTools Timing에서 TTFB ~716ms + content download ~402ms
+- 원인: Vercel Function Region 기본값이 `iad1`(Washington). 한국 사용자의 SSR 왕복이 브라우저 → Vercel iad1 → Render Singapore → Supabase Seoul → 역순으로 태평양을 두 번 건넘. 홉당 150-230ms 페널티가 페이지마다 붙음
+- 해결: `apps/web/vercel.json`에 `{"regions":["icn1"]}` 추가 + Vercel 대시보드 Settings → Functions → Function Region을 Seoul로 변경 후 Redeploy. iad1 → icn1 이관으로 SSR TTFB 400ms+ 단축
+
 ### /signup에서 `/api/proxy/profiles/check-nickname` 401
 - 상황: /signup 닉네임 필드가 401로 중복검사 실패. 백엔드에 `@Public()`이 있어도
 - 원인: 요청 경로는 브라우저 → Next `proxy.ts` middleware → `/api/proxy/[...path]` → NestJS. Middleware가 세션 없는 `/api/*` 요청을 401로 차단해서 NestJS의 `@Public()`은 도달 못 함
