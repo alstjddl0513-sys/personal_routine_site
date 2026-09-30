@@ -199,6 +199,15 @@ export interface ExerciseStats {
   pr: ExerciseStatsPR | null;
 }
 
+// /workouts 페이지 진입 시 종목별 previous + PR을 한 번의 왕복으로 받기 위한
+// 배치 응답. record 두 개로 캡슐화 — 클라는 exerciseId로 lookup.
+// 종목 id가 caller 소유가 아니면 서버가 조용히 null로 채움 (기존 개별
+// endpoint와 동일한 정책).
+export interface WorkoutSessionContext {
+  previous: Record<string, PreviousWorkout | null>;
+  pr: Record<string, ExerciseStatsPR | null>;
+}
+
 export interface WorkoutHeatmapEntry {
   date: string;
   completedExerciseCount: number;
