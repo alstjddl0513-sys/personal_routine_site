@@ -1,0 +1,1 @@
+ALTER TABLE "profiles" ADD COLUMN "defaults_version" integer DEFAULT 0 NOT NULL;
