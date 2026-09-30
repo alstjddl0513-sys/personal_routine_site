@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import {
   ChevronDown,
   Heart,
@@ -21,6 +21,8 @@ import {
   PRIORITY_VALUES,
   type ApplicationStatus,
   type CompanyType,
+  type CompanyType1,
+  type Priority,
 } from '@repo/shared';
 import { AddCompanyButton } from './AddCompanyButton';
 
@@ -38,18 +40,40 @@ const STATUS_CHIP_STYLE: Record<ApplicationStatus, string> = {
   withdrawn: 'border-zinc-300 bg-zinc-100 text-zinc-500 italic',
 };
 
-export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
+export interface JobsClientFilters {
+  type1: ReadonlySet<CompanyType1>;
+  type2: ReadonlySet<string>;
+  priority: ReadonlySet<Priority>;
+  status: ReadonlySet<ApplicationStatus>;
+}
+
+type ClientFilterKey = keyof JobsClientFilters;
+
+// 필터를 두 그룹으로 나눠 처리:
+// - URL/SSR 그룹: q(검색), favorite, hiring — 서버가 실제로 fetch를 좁히는 조건
+//   이라 여전히 router.push로 SSR 왕복
+// - 클라 필터 그룹: type1/type2/priority/status — 이미 데이터셋(~170행)이 로컬에
+//   와있어 서버에서 재필터할 이유가 없음. 부모(JobsClientView)가 state를 관리
+//   하고 chip 클릭은 콜백 + window.history.replaceState로 URL만 갱신, SSR 왕복
+//   자체를 제거해 chip 반응이 즉각
+export function JobsFilters({
+  companyTypes,
+  clientFilters,
+  onClientFilterChange,
+  onClientClearAll,
+}: {
+  companyTypes: CompanyType[];
+  clientFilters: JobsClientFilters;
+  onClientFilterChange: <K extends ClientFilterKey>(
+    key: K,
+    next: JobsClientFilters[K],
+  ) => void;
+  onClientClearAll: () => void;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [, startTransition] = useTransition();
 
-  const type2Set = useMemo(() => parseCsv(searchParams.get('type2')), [searchParams]);
-  const type1Set = useMemo(() => parseCsv(searchParams.get('type1')), [searchParams]);
-  const prioritySet = useMemo(
-    () => parseCsv(searchParams.get('priority')),
-    [searchParams],
-  );
-  const statusSet = useMemo(() => parseCsv(searchParams.get('status')), [searchParams]);
   const currentHiring = searchParams.get('hiring') === '1';
   const currentFavorite = searchParams.get('favorite') === '1';
   const currentSearch = searchParams.get('q') ?? '';
@@ -90,8 +114,7 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
     });
   }
 
-  // Hover/focus로 예상 URL RSC payload warm-up. chip 여러 개를 훑기만 해도
-  // 각각 dedupe된 prefetch가 백그라운드에서 시작됨.
+  // Hover/focus로 SSR-트리거 chip(즐겨찾기)의 URL RSC payload warm-up.
   function prefetchPatch(patch: Record<string, string | null>) {
     router.prefetch(buildUrl(patch));
   }
@@ -109,35 +132,32 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
     }, 300);
   }
 
-  function multiPatch(key: string, values: Set<string>, v: string): Record<string, string | null> {
+  function toggleClient<K extends ClientFilterKey>(
+    key: K,
+    values: ReadonlySet<JobsClientFilters[K] extends ReadonlySet<infer T> ? T : never>,
+    v: JobsClientFilters[K] extends ReadonlySet<infer T> ? T : never,
+  ) {
     const next = new Set(values);
     if (next.has(v)) next.delete(v);
     else next.add(v);
-    return { [key]: next.size ? Array.from(next).join(',') : null };
-  }
-
-  function toggleMulti(key: string, values: Set<string>, v: string) {
-    pushPatch(multiPatch(key, values, v));
-  }
-
-  function prefetchMulti(key: string, values: Set<string>, v: string) {
-    prefetchPatch(multiPatch(key, values, v));
+    onClientFilterChange(key, next as JobsClientFilters[K]);
   }
 
   function clearAll() {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     lastPushedRef.current = '';
     setSearchInput('');
+    onClientClearAll();
     startTransition(() => {
       router.push('/jobs');
     });
   }
 
   const anyActive =
-    type2Set.size ||
-    type1Set.size ||
-    prioritySet.size ||
-    statusSet.size ||
+    clientFilters.type2.size ||
+    clientFilters.type1.size ||
+    clientFilters.priority.size ||
+    clientFilters.status.size ||
     currentHiring ||
     currentFavorite ||
     currentSearch;
@@ -145,7 +165,10 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
   // Sum only the chip-group filters — search/favorite/hiring have their own
   // controls above the disclosure and don't belong in the mobile chip badge.
   const chipFilterCount =
-    type2Set.size + type1Set.size + prioritySet.size + statusSet.size;
+    clientFilters.type2.size +
+    clientFilters.type1.size +
+    clientFilters.priority.size +
+    clientFilters.status.size;
 
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -203,7 +226,7 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
             className="inline-flex min-h-11 items-center gap-1 rounded-md px-2 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 md:min-h-0 md:py-2 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
           >
             <X className="h-3.5 w-3.5" aria-hidden />
-            초기화
+            필터 초기화
           </button>
         ) : null}
       </div>
@@ -265,9 +288,8 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
               companyTypes.map((t) => (
                 <Chip
                   key={t.key}
-                  active={type2Set.has(t.key)}
-                  onClick={() => toggleMulti('type2', type2Set, t.key)}
-                  onHover={() => prefetchMulti('type2', type2Set, t.key)}
+                  active={clientFilters.type2.has(t.key)}
+                  onClick={() => toggleClient('type2', clientFilters.type2, t.key)}
                 >
                   {t.label}
                 </Chip>
@@ -278,9 +300,8 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
             {COMPANY_TYPE_1_VALUES.map((v) => (
               <Chip
                 key={v}
-                active={type1Set.has(v)}
-                onClick={() => toggleMulti('type1', type1Set, v)}
-                onHover={() => prefetchMulti('type1', type1Set, v)}
+                active={clientFilters.type1.has(v)}
+                onClick={() => toggleClient('type1', clientFilters.type1, v)}
               >
                 {COMPANY_TYPE_1_LABELS[v]}
               </Chip>
@@ -290,9 +311,8 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
             {PRIORITY_VALUES.map((v) => (
               <Chip
                 key={v}
-                active={prioritySet.has(v)}
-                onClick={() => toggleMulti('priority', prioritySet, v)}
-                onHover={() => prefetchMulti('priority', prioritySet, v)}
+                active={clientFilters.priority.has(v)}
+                onClick={() => toggleClient('priority', clientFilters.priority, v)}
               >
                 {PRIORITY_LABELS[v]}
               </Chip>
@@ -313,14 +333,12 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
           </FilterRow>
           <FilterRow label="지원상태">
             {APPLICATION_STATUS_VALUES.map((v) => {
-              const active = statusSet.has(v);
+              const active = clientFilters.status.has(v);
               return (
                 <button
                   key={v}
                   type="button"
-                  onClick={() => toggleMulti('status', statusSet, v)}
-                  onMouseEnter={() => prefetchMulti('status', statusSet, v)}
-                  onFocus={() => prefetchMulti('status', statusSet, v)}
+                  onClick={() => toggleClient('status', clientFilters.status, v)}
                   aria-pressed={active}
                   className={`rounded-full border px-3 py-1 text-xs transition-colors ${
                     active
@@ -337,11 +355,6 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
       </div>
     </div>
   );
-}
-
-function parseCsv(raw: string | null): Set<string> {
-  if (!raw) return new Set();
-  return new Set(raw.split(',').map((s) => s.trim()).filter(Boolean));
 }
 
 function FilterRow({
@@ -369,20 +382,16 @@ function FilterRow({
 function Chip({
   active,
   onClick,
-  onHover,
   children,
 }: {
   active: boolean;
   onClick: () => void;
-  onHover?: () => void;
   children: React.ReactNode;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      onMouseEnter={onHover}
-      onFocus={onHover}
       aria-pressed={active}
       className={`rounded-full border px-3 py-1 text-xs transition-colors ${
         active
