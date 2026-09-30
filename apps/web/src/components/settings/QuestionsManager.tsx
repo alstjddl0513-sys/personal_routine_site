@@ -24,11 +24,13 @@ type Draft = {
   content: string;
   answer: string;
   tip: string;
-  // '' = 미지정. 저장 시 null로 변환.
+  // 신규 추가 시엔 항상 실제 카테고리 key로 preselect. 편집 폼도 기존 row가
+  // 카테고리를 가진 경우만 세팅 — '' 로 저장하지 않음(카테고리 없음 옵션 제거).
   categoryKey: string;
 };
 
-const ADD_DEFAULTS: Draft = { content: '', answer: '', tip: '', categoryKey: '' };
+// AddRow가 초기 draft를 만들 때 categoryKey는 부모의 첫 카테고리 key로 override.
+const EMPTY_DRAFT: Draft = { content: '', answer: '', tip: '', categoryKey: '' };
 
 function draftFromQuestion(q: Question): Draft {
   return {
@@ -61,10 +63,7 @@ export function QuestionsManager({
   const [isPending, startTransition] = useTransition();
 
   const categoryOptions = useMemo<SelectOption[]>(
-    () => [
-      { value: '', label: '카테고리 없음' },
-      ...categories.map((c) => ({ value: c.key, label: c.label })),
-    ],
+    () => categories.map((c) => ({ value: c.key, label: c.label })),
     [categories],
   );
 
@@ -200,6 +199,7 @@ export function QuestionsManager({
           onAdd={(row) => setRows((prev) => [row, ...prev])}
           onError={setError}
           categoryOptions={categoryOptions}
+          defaultCategoryKey={categories[0]?.key ?? ''}
         />
       </div>
 
@@ -324,18 +324,24 @@ function AddRow({
   onAdd,
   onError,
   categoryOptions,
+  defaultCategoryKey,
 }: {
   onAdd: (row: Question) => void;
   onError: (msg: string | null) => void;
   categoryOptions: SelectOption[];
+  defaultCategoryKey: string;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState<Draft>(ADD_DEFAULTS);
+  const initialDraft = useMemo<Draft>(
+    () => ({ ...EMPTY_DRAFT, categoryKey: defaultCategoryKey }),
+    [defaultCategoryKey],
+  );
+  const [draft, setDraft] = useState<Draft>(initialDraft);
   const [isPending, startTransition] = useTransition();
 
   function reset() {
-    setDraft(ADD_DEFAULTS);
+    setDraft(initialDraft);
     setOpen(false);
     onError(null);
   }
