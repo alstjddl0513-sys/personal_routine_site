@@ -75,15 +75,25 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
     [],
   );
 
-  function pushPatch(patch: Record<string, string | null>) {
+  function buildUrl(patch: Record<string, string | null>): string {
     const next = new URLSearchParams(searchParams.toString());
     for (const [k, v] of Object.entries(patch)) {
       if (v === null || v === '') next.delete(k);
       else next.set(k, v);
     }
+    return next.size ? `/jobs?${next.toString()}` : '/jobs';
+  }
+
+  function pushPatch(patch: Record<string, string | null>) {
     startTransition(() => {
-      router.push(next.size ? `/jobs?${next.toString()}` : '/jobs');
+      router.push(buildUrl(patch));
     });
+  }
+
+  // Hover/focus로 예상 URL RSC payload warm-up. chip 여러 개를 훑기만 해도
+  // 각각 dedupe된 prefetch가 백그라운드에서 시작됨.
+  function prefetchPatch(patch: Record<string, string | null>) {
+    router.prefetch(buildUrl(patch));
   }
 
   // Debounced URL push driven by input event, not an effect
@@ -99,11 +109,19 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
     }, 300);
   }
 
-  function toggleMulti(key: string, values: Set<string>, v: string) {
+  function multiPatch(key: string, values: Set<string>, v: string): Record<string, string | null> {
     const next = new Set(values);
     if (next.has(v)) next.delete(v);
     else next.add(v);
-    pushPatch({ [key]: next.size ? Array.from(next).join(',') : null });
+    return { [key]: next.size ? Array.from(next).join(',') : null };
+  }
+
+  function toggleMulti(key: string, values: Set<string>, v: string) {
+    pushPatch(multiPatch(key, values, v));
+  }
+
+  function prefetchMulti(key: string, values: Set<string>, v: string) {
+    prefetchPatch(multiPatch(key, values, v));
   }
 
   function clearAll() {
@@ -159,6 +177,12 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
         <button
           type="button"
           onClick={() => pushPatch({ favorite: currentFavorite ? null : '1' })}
+          onMouseEnter={() =>
+            prefetchPatch({ favorite: currentFavorite ? null : '1' })
+          }
+          onFocus={() =>
+            prefetchPatch({ favorite: currentFavorite ? null : '1' })
+          }
           className={`inline-flex min-h-11 items-center gap-2 rounded-md border px-3 text-sm transition-colors md:min-h-0 md:py-2 ${
             currentFavorite
               ? 'border-rose-300 bg-rose-50 text-rose-700 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-300'
@@ -243,6 +267,7 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
                   key={t.key}
                   active={type2Set.has(t.key)}
                   onClick={() => toggleMulti('type2', type2Set, t.key)}
+                  onHover={() => prefetchMulti('type2', type2Set, t.key)}
                 >
                   {t.label}
                 </Chip>
@@ -255,6 +280,7 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
                 key={v}
                 active={type1Set.has(v)}
                 onClick={() => toggleMulti('type1', type1Set, v)}
+                onHover={() => prefetchMulti('type1', type1Set, v)}
               >
                 {COMPANY_TYPE_1_LABELS[v]}
               </Chip>
@@ -266,6 +292,7 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
                 key={v}
                 active={prioritySet.has(v)}
                 onClick={() => toggleMulti('priority', prioritySet, v)}
+                onHover={() => prefetchMulti('priority', prioritySet, v)}
               >
                 {PRIORITY_LABELS[v]}
               </Chip>
@@ -292,6 +319,8 @@ export function JobsFilters({ companyTypes }: { companyTypes: CompanyType[] }) {
                   key={v}
                   type="button"
                   onClick={() => toggleMulti('status', statusSet, v)}
+                  onMouseEnter={() => prefetchMulti('status', statusSet, v)}
+                  onFocus={() => prefetchMulti('status', statusSet, v)}
                   aria-pressed={active}
                   className={`rounded-full border px-3 py-1 text-xs transition-colors ${
                     active
@@ -340,16 +369,20 @@ function FilterRow({
 function Chip({
   active,
   onClick,
+  onHover,
   children,
 }: {
   active: boolean;
   onClick: () => void;
+  onHover?: () => void;
   children: React.ReactNode;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      onMouseEnter={onHover}
+      onFocus={onHover}
       aria-pressed={active}
       className={`rounded-full border px-3 py-1 text-xs transition-colors ${
         active

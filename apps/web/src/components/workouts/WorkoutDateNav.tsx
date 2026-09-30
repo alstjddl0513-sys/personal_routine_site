@@ -30,6 +30,11 @@ export function WorkoutDateNav({
     });
   }
 
+  // Hover/focus로 대상 URL RSC payload를 warm-up. 클릭 시 캐시에서 즉시 렌더.
+  function prefetch(next: Date | null) {
+    router.prefetch(buildUrl(next));
+  }
+
   const todayIso = toISODate(new Date());
   const isToday = toISODate(date) === todayIso;
 
@@ -40,6 +45,8 @@ export function WorkoutDateNav({
       <button
         type="button"
         onClick={() => goto(addDays(date, -1))}
+        onMouseEnter={() => prefetch(addDays(date, -1))}
+        onFocus={() => prefetch(addDays(date, -1))}
         className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-50 md:h-8 md:w-8 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
         aria-label="이전 날짜"
       >
@@ -48,6 +55,8 @@ export function WorkoutDateNav({
       <button
         type="button"
         onClick={() => goto(null)}
+        onMouseEnter={() => prefetch(null)}
+        onFocus={() => prefetch(null)}
         disabled={isToday}
         className="inline-flex min-h-11 items-center rounded-md border border-zinc-300 bg-white px-3 text-xs text-zinc-700 hover:bg-zinc-50 disabled:cursor-default disabled:opacity-50 md:min-h-0 md:py-1.5 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
       >
@@ -56,6 +65,8 @@ export function WorkoutDateNav({
       <button
         type="button"
         onClick={() => goto(addDays(date, 1))}
+        onMouseEnter={() => prefetch(addDays(date, 1))}
+        onFocus={() => prefetch(addDays(date, 1))}
         className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-50 md:h-8 md:w-8 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
         aria-label="다음 날짜"
       >
