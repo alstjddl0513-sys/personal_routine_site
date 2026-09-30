@@ -1,5 +1,6 @@
 import {
   boolean,
+  index,
   integer,
   pgEnum,
   pgTable,
@@ -41,31 +42,42 @@ export const questionCategories = pgTable(
 // seed on onboarding (see profiles.service.upsertMe) — mirrors the
 // company_types / blog_sources pattern. Custom user-added questions land in
 // the same table in a later phase.
-export const questions = pgTable('questions', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  ownerId: uuid('owner_id').notNull(),
-  content: text('content').notNull(),
-  answer: text('answer').notNull(),
-  // 답을 열어본 뒤 이어서 나올 만한 꼬리 질문 1~2개. 면접 flow 훈련 용도.
-  // 서식 자유 (줄바꿈으로 구분 권장). 기존 질문은 null이었다가 시드 갱신으로 채워짐.
-  tip: text('tip'),
-  // question_categories.key와 매칭. FK 없음(company_types와 동일 이유):
-  // 카테고리 삭제 시 questions 데이터는 유지되고 chip에서만 사라짐.
-  categoryKey: text('category_key'),
-  // profiles.upsertMe 온보딩 또는 findMe lazy backfill로 삽입된 큐레이션 문항이면 true.
-  // 사용자가 POST /questions로 직접 추가한 커스텀은 false. /settings/questions는
-  // false만 노출(시드 노이즈 회피). daily/review pool은 무관하게 전체 사용.
-  isSeed: boolean('is_seed').notNull().default(false),
-  // 별표. 시드/커스텀 무관. /learn/review?favorites=1에서 즐겨찾기만 필터링.
-  // '복습필요'와는 의미가 다름 — 이해완료된 질문이라도 반복 학습하고 싶은 케이스.
-  isFavorite: boolean('is_favorite').notNull().default(false),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
+export const questions = pgTable(
+  'questions',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    ownerId: uuid('owner_id').notNull(),
+    content: text('content').notNull(),
+    answer: text('answer').notNull(),
+    // 답을 열어본 뒤 이어서 나올 만한 꼬리 질문 1~2개. 면접 flow 훈련 용도.
+    // 서식 자유 (줄바꿈으로 구분 권장). 기존 질문은 null이었다가 시드 갱신으로 채워짐.
+    tip: text('tip'),
+    // question_categories.key와 매칭. FK 없음(company_types와 동일 이유):
+    // 카테고리 삭제 시 questions 데이터는 유지되고 chip에서만 사라짐.
+    categoryKey: text('category_key'),
+    // profiles.upsertMe 온보딩 또는 findMe lazy backfill로 삽입된 큐레이션 문항이면 true.
+    // 사용자가 POST /questions로 직접 추가한 커스텀은 false. /settings/questions는
+    // false만 노출(시드 노이즈 회피). daily/review pool은 무관하게 전체 사용.
+    isSeed: boolean('is_seed').notNull().default(false),
+    // 별표. 시드/커스텀 무관. /learn/review?favorites=1에서 즐겨찾기만 필터링.
+    // '복습필요'와는 의미가 다름 — 이해완료된 질문이라도 반복 학습하고 싶은 케이스.
+    isFavorite: boolean('is_favorite').notNull().default(false),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  // findDaily/findReview/findFavorites 모두 `WHERE owner_id = ? AND category_key IN (...)`
+  // 패턴이라 composite index로 owner 스캔 + category 필터를 한 번에 커버.
+  // owner-only 쿼리(카테고리 필터 없음)도 prefix scan으로 이 인덱스 사용 가능.
+  // 지금 규모(1-3 유저 · 각 ~500문항)에선 seq scan도 <5ms지만 유저·풀 증가에
+  // 선형 대비용. hygiene 성격.
+  (t) => [
+    index('questions_owner_category_idx').on(t.ownerId, t.categoryKey),
+  ],
+);
 
 // One log per (owner, question). Re-answering flips status via upsert
 // instead of appending a new row — repeat-history is out of scope for MVP.

@@ -15,11 +15,19 @@ export function RoutineWeekNav({ week }: { week: WeekInfo }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
 
+  function buildUrl(date: Date | null): string {
+    return date ? `/routines?week=${toISODate(date)}` : '/routines';
+  }
+
   function goto(date: Date | null) {
     startTransition(() => {
-      if (!date) router.push('/routines');
-      else router.push(`/routines?week=${toISODate(date)}`);
+      router.push(buildUrl(date));
     });
+  }
+
+  // Hover/focus로 대상 주(week) URL의 RSC payload를 warm-up.
+  function prefetch(date: Date | null) {
+    router.prefetch(buildUrl(date));
   }
 
   const todayMon = mondayOf(new Date());
@@ -30,6 +38,8 @@ export function RoutineWeekNav({ week }: { week: WeekInfo }) {
       <button
         type="button"
         onClick={() => goto(addDays(week.monday, -7))}
+        onMouseEnter={() => prefetch(addDays(week.monday, -7))}
+        onFocus={() => prefetch(addDays(week.monday, -7))}
         className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-50 md:h-8 md:w-8 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
         aria-label="이전 주"
       >
@@ -38,6 +48,8 @@ export function RoutineWeekNav({ week }: { week: WeekInfo }) {
       <button
         type="button"
         onClick={() => goto(null)}
+        onMouseEnter={() => prefetch(null)}
+        onFocus={() => prefetch(null)}
         disabled={isThisWeek}
         className="inline-flex min-h-11 items-center rounded-md border border-zinc-300 bg-white px-3 text-xs text-zinc-700 hover:bg-zinc-50 disabled:cursor-default disabled:opacity-50 md:min-h-0 md:py-1.5 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
       >
@@ -46,6 +58,8 @@ export function RoutineWeekNav({ week }: { week: WeekInfo }) {
       <button
         type="button"
         onClick={() => goto(addDays(week.monday, 7))}
+        onMouseEnter={() => prefetch(addDays(week.monday, 7))}
+        onFocus={() => prefetch(addDays(week.monday, 7))}
         className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-50 md:h-8 md:w-8 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
         aria-label="다음 주"
       >

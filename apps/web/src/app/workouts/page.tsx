@@ -1,11 +1,10 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { Settings2 } from 'lucide-react';
-import type { ExerciseStatsPR, PreviousWorkout, WorkoutSet } from '@repo/shared';
+import type { WorkoutSessionContext, WorkoutSet } from '@repo/shared';
 import {
-  getExerciseStats,
   getExercises,
-  getPreviousWorkout,
+  getWorkoutSessionContext,
   getWorkoutSessionsByDate,
   getWorkoutSets,
 } from '../../lib/api';
@@ -97,16 +96,19 @@ async function WorkoutsContent({
       ? allExercises
       : allExercises.filter((e) => classifyMuscleGroup(e.targetMuscle) === groupFilter);
 
-  // limit=1 fetches PR (all-time) with only 1 history row we don't use.
-  // Cheaper than adding a dedicated /pr endpoint just for this page.
-  const [allSets, previousList, statsList] = await Promise.all([
+  // 종목별 previous + PR을 한 번의 배치 endpoint로. 이전엔 종목마다 개별
+  // GET을 2N번 병렬로 쏘느라 Vercel(icn1) → Render(Singapore) 홉이 커넥션
+  // 풀·네트워크 분산으로 200-400ms 지연. session-context 하나로 왕복 1회
+  // 압축 (자세한 배경은 서버 service.getSessionContext 주석).
+  const emptyContext: WorkoutSessionContext = { previous: {}, pr: {} };
+  const [allSets, sessionContext] = await Promise.all([
     activeSession ? getWorkoutSets(activeSession.id) : Promise.resolve<WorkoutSet[]>([]),
-    Promise.all(
-      exercises.map((e) => getPreviousWorkout({ exerciseId: e.id, beforeDate: dateIso })),
-    ),
-    Promise.all(
-      exercises.map((e) => getExerciseStats({ exerciseId: e.id, limit: 1 })),
-    ),
+    exercises.length > 0
+      ? getWorkoutSessionContext({
+          exerciseIds: exercises.map((e) => e.id),
+          beforeDate: dateIso,
+        })
+      : Promise.resolve(emptyContext),
   ]);
 
   const setsByExercise: Record<string, WorkoutSet[]> = {};
@@ -116,13 +118,6 @@ async function WorkoutsContent({
   for (const list of Object.values(setsByExercise)) {
     list.sort((a, b) => a.setNumber - b.setNumber);
   }
-
-  const previousByExercise: Record<string, PreviousWorkout | null> = {};
-  const prByExercise: Record<string, ExerciseStatsPR | null> = {};
-  exercises.forEach((e, i) => {
-    previousByExercise[e.id] = previousList[i];
-    prByExercise[e.id] = statsList[i].pr;
-  });
 
   return (
     <>
@@ -148,8 +143,8 @@ async function WorkoutsContent({
         sessions={sessions}
         activeSession={activeSession}
         setsByExercise={setsByExercise}
-        previousByExercise={previousByExercise}
-        prByExercise={prByExercise}
+        previousByExercise={sessionContext.previous}
+        prByExercise={sessionContext.pr}
       />
     </>
   );

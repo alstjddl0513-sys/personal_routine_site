@@ -8,6 +8,7 @@ import { QueryWeeklyVolumeDto } from './dto/query-weekly-volume.dto';
 import { QueryWorkoutSetsDto } from './dto/query-workout-sets.dto';
 import { QueryPreviousDto } from './dto/query-previous.dto';
 import { QueryExerciseStatsDto } from './dto/query-exercise-stats.dto';
+import { QuerySessionContextDto } from './dto/query-session-context.dto';
 
 @Controller('workout-sets')
 export class WorkoutSetsController {
@@ -29,6 +30,16 @@ export class WorkoutSetsController {
     @Query() query: QueryExerciseStatsDto,
   ) {
     return this.service.findExerciseStats(requireUserId(req), query);
+  }
+
+  // /workouts 페이지가 종목별로 부르던 previous + exercise-stats를 한 왕복으로.
+  // (자세한 배경은 service.getSessionContext 주석)
+  @Get('session-context')
+  getSessionContext(
+    @Req() req: AuthedRequest,
+    @Query() query: QuerySessionContextDto,
+  ) {
+    return this.service.getSessionContext(requireUserId(req), query);
   }
 
   @Get('heatmap')

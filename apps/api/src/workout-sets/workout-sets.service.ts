@@ -13,6 +13,12 @@ import type { QueryWeeklyVolumeDto } from './dto/query-weekly-volume.dto';
 import type { QueryWorkoutSetsDto } from './dto/query-workout-sets.dto';
 import type { QueryPreviousDto } from './dto/query-previous.dto';
 import type { QueryExerciseStatsDto } from './dto/query-exercise-stats.dto';
+import type { QuerySessionContextDto } from './dto/query-session-context.dto';
+import type {
+  ExerciseStatsPR,
+  PreviousWorkout,
+  WorkoutSessionContext,
+} from '@repo/shared';
 
 @Injectable()
 export class WorkoutSetsService {
@@ -335,5 +341,48 @@ export class WorkoutSetsService {
           }
         : null,
     };
+  }
+
+  // /workouts 진입 시 종목 N개의 previous + PR을 한 번의 요청으로 반환.
+  // 기존엔 GET /workout-sets/previous · GET /workout-sets/exercise-stats?limit=1
+  // 를 종목마다 각각 호출 → 클라→서버 2N 왕복. Vercel(icn1) → Render(Singapore)
+  // 홉당 ~70ms라 종목 15개면 30개 왕복이 병렬이라도 커넥션 풀·네트워크 분산으로
+  // 200-400ms 지연. 이 endpoint 하나로 왕복을 1회로 압축.
+  //
+  // 서버 내부는 여전히 기존 findPrevious/findExerciseStats 재사용 (Promise.all
+  // 로 병렬). DB 왕복 2N은 그대로지만 Render↔Supabase(둘 다 아시아 리전
+  // 가까움) ~30-50ms라 큰 문제 아님. 필요시 후속으로 window function/LATERAL
+  // 로 압축 가능.
+  //
+  // 소유권: findPrevious/findExerciseStats 둘 다 workoutSets.ownerId 필터가
+  // 걸려 있어 caller 소유가 아닌 exerciseId는 자연스레 null/빈 결과. 별도
+  // preflight 검증은 skip (기존 개별 endpoint 정책과 동일).
+  async getSessionContext(
+    ownerId: string,
+    query: QuerySessionContextDto,
+  ): Promise<WorkoutSessionContext> {
+    const [previousList, statsList] = await Promise.all([
+      Promise.all(
+        query.exerciseIds.map((id) =>
+          this.findPrevious(ownerId, {
+            exerciseId: id,
+            beforeDate: query.beforeDate,
+          }),
+        ),
+      ),
+      Promise.all(
+        query.exerciseIds.map((id) =>
+          this.findExerciseStats(ownerId, { exerciseId: id, limit: 1 }),
+        ),
+      ),
+    ]);
+
+    const previous: Record<string, PreviousWorkout | null> = {};
+    const pr: Record<string, ExerciseStatsPR | null> = {};
+    query.exerciseIds.forEach((id, i) => {
+      previous[id] = previousList[i];
+      pr[id] = statsList[i].pr;
+    });
+    return { previous, pr };
   }
 }
