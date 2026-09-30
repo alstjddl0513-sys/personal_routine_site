@@ -131,9 +131,8 @@ export class ProfilesService {
   // backfill for existing users). Duplicates: company_types/question_categories/
   // muscle_goals/blog_sources는 (owner_id, key|rss_url|muscle_key) unique로
   // ON CONFLICT DO NOTHING. questions는 unique가 없어서 content 기준 SELECT →
-  // 없는 것만 INSERT (seed-questions.ts와 동일 dedupe). 유저가 커스텀 편집한
-  // seed 문항은 update(isSeed=false 제약)으로 못 건드리게 돼 있으므로 content
-  // 매치가 안정적.
+  // 없는 것만 INSERT. 유저가 커스텀 편집한 seed 문항은 update(isSeed=false 제약)으로
+  // 못 건드리게 돼 있으므로 content 매치가 안정적.
   private async seedUserDefaults(tx: DrizzleTx, userId: string): Promise<void> {
     await tx
       .insert(companyTypes)
