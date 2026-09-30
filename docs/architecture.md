@@ -105,6 +105,7 @@ Phase 12 이후 Postgres 호스팅 외에도 Supabase가 여러 층을 담당:
 | DB 호스팅 | **Supabase** (Postgres) | Neon, PlanetScale, Railway Postgres | 무료 티어 넉넉(500MB), Session Pooler로 IPv4 지원, 미래 확장 시 Auth/Storage/Realtime을 코드 갈아엎지 않고 얹을 수 있음 |
 | API 호스팅 | **Render** (Free) | Railway, Fly.io | 무료로 상시 서비스, GitHub 연동 자동 배포 단순. 무료 티어의 15분 슬립은 cron 핑으로 완화 |
 | Web 호스팅 | **Vercel** (Hobby) | Netlify, Cloudflare Pages | Next.js 만든 곳 → 세팅 0, 빌드 자동, preview URL 무료. 상업적 사용 금지는 개인 MVP엔 무관 |
+| Vercel Function Region | **icn1 (Seoul)** | iad1(default·US East), hnd1(Tokyo) | 사용자·API(Render Singapore)·DB(Supabase Seoul) 전부 아시아라 iad1이면 SSR 왕복이 태평양을 두 번 건넘 (~400ms 페널티). icn1은 사용자↔Vercel 15ms + Vercel↔Render 70ms로 최소. hnd1도 유사하나 Render Singapore와의 홉 살짝 김. `apps/web/vercel.json`으로 코드에 박아뒀고 대시보드도 같이 세팅 필요 |
 | 콜드 스타트 완화 | **cronjob.org** | GitHub Actions, UptimeRobot | UI 간단, 완전 무료, 10분 주기로 `/health` 핑. GH Actions는 무료 분 소진 아까움 |
 | 모노레포 | **pnpm workspace** | npm workspace, Yarn, turbo | 심볼릭 링크 방식이 디스크 절약, `workspace:*` 프로토콜 안정. turbo는 앱 2개 규모엔 캐시 이득보다 세팅 부담 |
 | 패키지 매니저 | **pnpm 11** | npm, yarn | 위와 동일 이유. Windows에서 `.ps1` 실행 정책 이슈는 `pnpm.cmd`로 우회(troubleshooting.md) |

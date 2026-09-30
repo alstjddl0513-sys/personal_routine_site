@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers';
 import type { QuestionCategory, RandomQuestion } from '@repo/shared';
 import {
   getDailyQuestions,
@@ -25,9 +26,14 @@ export default async function LearnPage({
   const qParam = typeof rawQ === 'string' ? rawQ : undefined;
   const rawCategories = sp.categories;
   const urlCategories = parseCategoriesParam(rawCategories);
-  // URL 부재(null) → preferences fallback. 명시적 빈 배열(=전체 선택)은 그대로.
+  // 우선순위: URL → cookie mirror(클라가 chip 변경 시 즉시 write) → profile
+  // fallback(다른 기기·초기 진입). cookie가 있으면 profile RTT를 skip해서
+  // /learn 진입이 100ms 정도 빨라짐. profile은 여전히 source of truth라
+  // cookie 없을 때만 fetch.
+  const cookieCategories = readCookieCategories(await cookies(), 'daily');
   const selectedCategories =
     urlCategories ??
+    cookieCategories ??
     (await getMyProfile().catch(() => null))?.preferences.learn?.dailyCategories ??
     [];
   const date = toISODate(todayInSeoul());
@@ -96,6 +102,23 @@ export default async function LearnPage({
 function parseCategoriesParam(raw: unknown): string[] | null {
   if (raw === undefined) return null;
   if (typeof raw !== 'string') return null;
+  if (raw.length === 0) return [];
+  return raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+// Mirror cookie는 CategoryFilterChips가 chip 변경 시 즉시 write. 존재 자체가
+// "유저가 이 mode에 대한 선호를 남긴 적 있음" 신호 — 값이 빈 문자열이면
+// '명시적 전체(=[])'. cookie 자체가 없으면 null 반환 → profile fallback.
+function readCookieCategories(
+  store: Awaited<ReturnType<typeof cookies>>,
+  mode: 'daily' | 'review' | 'favorites',
+): string[] | null {
+  const c = store.get(`rally.learn.${mode}`);
+  if (!c) return null;
+  const raw = decodeURIComponent(c.value);
   if (raw.length === 0) return [];
   return raw
     .split(',')

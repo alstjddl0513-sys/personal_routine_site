@@ -43,6 +43,7 @@ import type {
   WeeklyVolumeEntry,
   WorkoutHeatmapEntry,
   WorkoutSession,
+  WorkoutSessionContext,
   WorkoutSet,
 } from '@repo/shared';
 
@@ -552,6 +553,28 @@ export async function getExportJson(): Promise<string> {
   });
   if (!res.ok) throw new Error(`GET /export failed: HTTP ${res.status}`);
   return await res.text();
+}
+
+// /workouts 페이지 진입 시 종목별 previous + PR을 한 왕복으로 받음.
+// 종목 N개면 이전엔 getPreviousWorkout N번 + getExerciseStats N번 → 2N 왕복.
+// 이 배치 endpoint로 클라→서버 왕복 1회로 압축 (자세한 배경은 서버 service
+// 주석 참고). 응답은 exerciseId → { previous, pr } record 두 개.
+export async function getWorkoutSessionContext(params: {
+  exerciseIds: readonly string[];
+  beforeDate: string;
+}): Promise<WorkoutSessionContext> {
+  const qs = new URLSearchParams({
+    exerciseIds: params.exerciseIds.join(','),
+    beforeDate: params.beforeDate,
+  });
+  const res = await fetch(apiUrl(`/workout-sets/session-context?${qs.toString()}`), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new Error(`GET /workout-sets/session-context failed: HTTP ${res.status}`);
+  }
+  return (await res.json()) as WorkoutSessionContext;
 }
 
 export async function getPreviousWorkout(params: {

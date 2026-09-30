@@ -1,3 +1,5 @@
+'use client';
+
 import { type Company, type CompanyType } from '@repo/shared';
 import { PrioritySelect } from './cells/PrioritySelect';
 import { StatusSelect } from './cells/StatusSelect';

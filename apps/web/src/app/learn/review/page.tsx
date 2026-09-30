@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers';
 import Link from 'next/link';
 import type { QuestionCategory, RandomQuestion } from '@repo/shared';
 import {
@@ -27,10 +28,14 @@ export default async function LearnReviewPage({
   const rawCategories = sp.categories;
   const urlCategories = parseCategoriesParam(rawCategories);
   const mode: ReviewMode = sp.mode === 'favorites' ? 'favorites' : 'review';
-  // URL 부재(null) → preferences fallback (mode별). 명시적 빈 배열은 그대로.
+  // 우선순위: URL → cookie mirror(클라가 chip 변경 시 즉시 write) → profile
+  // fallback. cookie가 있으면 profile RTT를 skip. 자세한 배경은 /learn/page.tsx
+  // 주석.
   const prefKey = mode === 'favorites' ? 'favoritesCategories' : 'reviewCategories';
+  const cookieCategories = readCookieCategories(await cookies(), mode);
   const selectedCategories =
     urlCategories ??
+    cookieCategories ??
     (await getMyProfile().catch(() => null))?.preferences.learn?.[prefKey] ??
     [];
 
@@ -186,6 +191,21 @@ function EmptyState({ mode, filtered }: { mode: ReviewMode; filtered: boolean })
 function parseCategoriesParam(raw: unknown): string[] | null {
   if (raw === undefined) return null;
   if (typeof raw !== 'string') return null;
+  if (raw.length === 0) return [];
+  return raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+// Mirror cookie 판독. 자세한 배경은 /learn/page.tsx의 동명 함수 참고.
+function readCookieCategories(
+  store: Awaited<ReturnType<typeof cookies>>,
+  mode: ReviewMode,
+): string[] | null {
+  const c = store.get(`rally.learn.${mode}`);
+  if (!c) return null;
+  const raw = decodeURIComponent(c.value);
   if (raw.length === 0) return [];
   return raw
     .split(',')

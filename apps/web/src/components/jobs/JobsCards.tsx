@@ -1,3 +1,5 @@
+'use client';
+
 import { type Company, type CompanyType } from '@repo/shared';
 import { JobCard } from './JobCard';
 
