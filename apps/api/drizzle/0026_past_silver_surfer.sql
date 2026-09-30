@@ -1,0 +1,1 @@
+CREATE INDEX "questions_owner_category_idx" ON "questions" USING btree ("owner_id","category_key");
