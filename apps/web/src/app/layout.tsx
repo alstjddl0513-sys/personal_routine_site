@@ -55,6 +55,10 @@ const THEME_INIT_SCRIPT = `
 })();
 `;
 
+// NEXT_PUBLIC_*는 빌드 타임 inline이라 서버·클라 양쪽에서 안전하게 접근.
+// 없으면 (로컬에서 supabase env 세팅 안 된 경우) preconnect도 skip.
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
 // iOS "add to home screen" splash images (portrait only). CSS px + dpr must
 // match exactly for Safari to pick the file — keep entries in sync with
 // scripts/generate-icons.mjs. Light-mode only (dark falls back gracefully).
@@ -85,6 +89,17 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        {/* Supabase는 브라우저에서 cross-origin으로 호출되는 유일한 오리진
+            (Auth SDK + Storage). HTML 파싱 중에 DNS+TCP+TLS handshake를
+            병렬로 끝내둬서 첫 API 호출의 handshake 오버헤드(~200-400ms) 제거.
+            crossorigin 속성은 실제 fetch가 CORS로 나가기 때문에 붙임 —
+            없으면 브라우저가 non-CORS/CORS 커넥션을 각각 열어 낭비. */}
+        {SUPABASE_URL && (
+          <>
+            <link rel="preconnect" href={SUPABASE_URL} crossOrigin="anonymous" />
+            <link rel="dns-prefetch" href={SUPABASE_URL} />
+          </>
+        )}
         {IOS_SPLASH.map(({ name, w, h, dpr }) => (
           <link
             key={name}
