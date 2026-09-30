@@ -313,6 +313,11 @@
 - 원인: 초기 대량 시드 스크립트를 그대로 유지 중. exercises는 이후 `if empty` 조건 붙었지만 companies는 여전히 무조건 wipe
 - 해결: 재실행 필요한 도메인은 **전용 스크립트로 분리 + upsert-if-missing**. exercises는 `db:seed:exercises`(`seed-exercises.ts`)로 분리, 이름 기준 신규만 insert. 새 도메인 시드도 같은 패턴
 
+### `DEFAULT_*` 확장이 기존 유저에게 반영 안 됨 (질문 30→100 등)
+- 상황: v1.2.0 배포 후 기존 prod 유저의 `/learn`에 시드 질문이 이전 그대로. 신규 가입만 최신 목록을 받음
+- 원인: `profiles.upsertMe`가 **신규 프로필일 때만** seed 삽입. `defaults.ts`를 늘려도 이미 프로필이 있는 유저는 sync 트리거 없음
+- 해결: `defaults.ts`에 `DEFAULTS_VERSION` 상수. `profiles.defaults_version` 컬럼(기본 0)과 비교해 낮으면 `findMe`에서 `seedUserDefaults(tx, userId)` 자동 실행 후 컬럼 bump. 유저별 다음 세션 한 번에 backfill됨. **`defaults.ts`에서 DEFAULT_* 배열에 항목 추가할 때마다 `DEFAULTS_VERSION`을 반드시 +1**할 것 (안 하면 기존 유저는 계속 못 받음)
+
 ## 스케줄러 (cronjob.org · 내부 cron)
 
 ### cronjob.org "Failed (output too large)"

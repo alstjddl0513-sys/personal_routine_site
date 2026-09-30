@@ -77,9 +77,8 @@ pnpm --filter api db:studio         # Drizzle Studio (브라우저 GUI)
 
 # 시드 (전용 스크립트로 분리, 이름 기준 upsert-if-missing)
 pnpm --filter api db:seed           # 최초 세팅용 (companies 대량 삽입 — 재실행 시 wipe 주의)
-pnpm --filter api db:seed:exercises # 운동 종목 upsert
+pnpm --filter api db:seed:exercises    # 운동 종목 upsert
 pnpm --filter api db:seed:blog-sources # 블로그 RSS 소스 upsert
-pnpm --filter api db:seed:questions    # CS 질문 upsert
 ```
 
 ## 배포

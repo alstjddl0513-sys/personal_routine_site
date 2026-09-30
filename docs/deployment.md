@@ -211,7 +211,18 @@ async scheduledRefresh() { ... }
 
 ## §6. 릴리스 절차 (develop → main)
 
-### 흐름 요약
+### 처음 하시는 분에게 (TL;DR)
+
+이 프로젝트는 자동 마이그레이션이 없습니다. 릴리스는 아래 4단계:
+
+1. **버전 bump PR**: 로컬에서 `chore/release-X.Y.Z` 브랜치 → root `package.json` version만 수정 → PR로 develop 병합
+2. **릴리스 PR**: GitHub UI에서 develop → main PR 만들고 병합. 병합 순간 Render(API)·Vercel(Web)이 자동 재배포 시작
+3. **prod 마이그 적용**: `apps/api/drizzle/`에 이번에 새로 추가된 SQL 파일이 있으면 아래 "마이그 적용 (PowerShell)" 순서대로 실행. 배포 실패 유형에 따라 코드 배포 전/후 여부는 아래 "마이그 적용 타이밍" 표 참고
+4. **검증**: 배포된 사이트 접속 · `/health` 응답 확인 · 스모크 테스트 (§4)
+
+로컬 `main` 브랜치는 배포 지점이라 **직접 커밋 금지**. 항상 PR 병합으로만 갱신.
+
+### 흐름 요약 (상세)
 
 1. develop이 릴리스 준비 상태 (신규 마이그·기능 병합 완료)
 2. 로컬에서 root `package.json` version bump → PR로 develop 병합 (예: `chore/release-X.Y.Z` 브랜치)
@@ -232,9 +243,16 @@ async scheduledRefresh() { ... }
 
 ### 마이그 적용 (PowerShell)
 
+**시작 전 체크**
+
+- [ ] `apps/api/drizzle/`에 이번 릴리스로 새로 들어온 SQL 파일이 있는가? (없으면 이 절차 skip)
+- [ ] 미적용 파일이 **하나뿐**인가? 여러 개면 아래 "여러 개 미적용 마이그" 섹션부터 읽기
+- [ ] Supabase 대시보드에서 **prod 프로젝트**에 들어와 있는가? (로컬 dev 프로젝트와 혼동 주의)
+- [ ] destructive 마이그(NOT NULL / DROP)면 대시보드 SQL Editor에서 백업 dump 먼저 확보
+
 **1. Prod DATABASE_URL 준비**
 
-Supabase 대시보드 → 프로젝트 → **Project Settings** → **Database** → **Connection string** 탭 → **Session pooler** 선택 (Transaction 모드는 마이그레이션 부적합):
+Supabase 대시보드 → prod 프로젝트 → **Project Settings** → **Database** → **Connection string** 탭 → **Session pooler** 선택 (Transaction 모드는 마이그레이션 부적합):
 
 ```
 postgresql://postgres.<project-ref>:<PASSWORD>@aws-0-<region>.pooler.supabase.com:5432/postgres
@@ -242,36 +260,49 @@ postgresql://postgres.<project-ref>:<PASSWORD>@aws-0-<region>.pooler.supabase.co
 
 Port `5432`(Session pooler) 확인. Direct(6543)는 IPv6 전용이라 국내에서 DNS 실패.
 
-**2. 실행**
+**2. REF 크로스체크** (권장 — 로컬/prod 헷갈리면 재앙)
+
+방금 붙여넣은 URL의 `postgres.<REF>` 부분과, 지금 열어놓은 Supabase 대시보드 URL의 `dashboard/project/<REF>/` 부분이 **정확히 동일**해야 함. 상세는 아래 별도 섹션 참고.
+
+**3. 실행**
 
 ```powershell
-# 세션 한정 env (창 닫으면 사라짐, .env 파일은 안 건드림)
+# repo 루트에서 실행. 세션 한정 env (창 닫으면 사라짐, .env 파일은 안 건드림).
 $env:DATABASE_URL = "postgresql://postgres.<ref>:<pw>@aws-0-<region>.pooler.supabase.com:5432/postgres"
-
-# 미적용 마이그 파일 확인 (선택. "No schema changes"면 스키마-DB 이미 일치)
-pnpm.cmd --filter api db:generate
 
 # 실제 적용
 pnpm.cmd --filter api db:migrate
-# → "Running migrations..." → "Migrations applied." 로그로 확인
+# → "Running migrations..." → "Migrations applied." 로그가 뜨면 성공
 
-# 세션 정리
+# 세션 정리 (다음 명령이 로컬 dev DB를 안 건드리도록)
 Remove-Item env:DATABASE_URL
 ```
 
 `pnpm.ps1`은 PowerShell 실행 정책에 막히므로 `.cmd` 래퍼 사용. `migrate.ts`가 dotenv를 default 모드로 로드해서 이미 세팅된 `$env:DATABASE_URL`을 안 덮음.
 
-**3. 적용 확인**
+**4. 적용 확인** (두 종류 다 실행 권장)
 
-Supabase 대시보드 → **SQL Editor**:
+Supabase 대시보드 → prod 프로젝트 → **SQL Editor**:
 
 ```sql
+-- (a) Drizzle 트래킹 row가 들어갔는지
 SELECT id, hash, created_at
 FROM drizzle.__drizzle_migrations
 ORDER BY id DESC LIMIT 5;
+-- 최상단에 방금 적용한 파일명 접두어(예: 0025_*)와 매칭되는 hash가 있어야 함
 ```
 
-방금 실행한 마이그 파일명 접두어(예: `0009`)의 hash가 뜨면 성공. 이후 API 재배포된 프로세스가 첫 요청부터 정상 동작해야 함.
+```sql
+-- (b) 실제 스키마 변경이 반영됐는지 — 예: 컬럼 추가 마이그면
+SELECT column_name, data_type, column_default, is_nullable
+FROM information_schema.columns
+WHERE table_name = '<대상 테이블>' AND column_name = '<대상 컬럼>';
+-- 예상한 타입/기본값/NULL 여부로 뜨면 OK
+```
+
+(a)만 확인하고 넘어가면 트래킹은 성공했는데 실제 DDL이 안 반영된 어중간한 상태(§ "여러 개 미적용 마이그" 참고)를 놓칠 수 있음. (b)까지 확인.
+
+이후 Render의 API 프로세스가 재배포 완료된 뒤 첫 요청부터 새 컬럼을 참조하게 됨. Render Events 탭에서 "Deploy live" 확인.
 
 ### 여러 개 미적용 마이그를 한 번에 돌릴 때 주의
 

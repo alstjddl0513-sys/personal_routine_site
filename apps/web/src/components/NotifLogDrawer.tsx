@@ -194,7 +194,7 @@ export function NotifLogDrawer({ open, onClose }: Props) {
               onClick={() => clearLog()}
               className="text-xs text-zinc-500 transition-colors hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
             >
-              브라우저 알림 이력 지우기
+              모두 지우기
             </button>
           </footer>
         ) : null}

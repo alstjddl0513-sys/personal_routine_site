@@ -1,4 +1,4 @@
-import { jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { integer, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import type { Preferences } from '@repo/shared';
 
 // Per-user profile. id is the auth.users(id) — 1:1 mapping. FK constraint
@@ -20,6 +20,10 @@ export const profiles = pgTable('profiles', {
   // `Preferences`가 정의(nested: notif.*). 신규 계정은 {}로 시작해서
   // 클라 진입 시 localStorage 값으로 1회 upload.
   preferences: jsonb('preferences').$type<Preferences>().notNull().default({} as Preferences),
+  // defaults.ts:DEFAULTS_VERSION 스냅샷. findMe에서 값이 낮으면 seedUserDefaults 재실행
+  // 후 이 컬럼을 현재 버전으로 bump. 신규 가입은 upsertMe에서 곧바로 최신값으로 세팅.
+  // 기본값 0 = 자동 sync 대상 (Phase 12 이전 & 기존 prod 유저 전부).
+  defaultsVersion: integer('defaults_version').notNull().default(0),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });

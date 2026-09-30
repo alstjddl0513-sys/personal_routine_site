@@ -30,6 +30,7 @@
 - 스키마 변경 흐름: 스키마 편집 → `pnpm --filter api db:generate` → 생성된 SQL 사용자에게 보여주고 승인 → `pnpm --filter api db:migrate`. **자동 실행 금지**.
 - 로컬 dev는 Supabase **Session Pooler(port 5432)** 문자열 사용. Direct connection은 IPv6 전용이라 국내 환경에서 DNS 실패.
 - **Prod 마이그은 파일 하나씩**. `db:migrate`가 여러 개 미적용을 한 번에 돌리면 실패 시 부분 반영 상태에 빠질 수 있음(Phase 12.4에서 겪음). 파일별 실행이 필요하면 `apps/api/src/db/apply-sql-file.ts` 유틸 + 수동 트래킹 INSERT. deployment.md §6 · troubleshooting.md 참고.
+- **`defaults.ts`의 `DEFAULT_*`에 항목 추가하면 같은 파일의 `DEFAULTS_VERSION`을 반드시 +1**. `profiles.findMe`의 lazy sync가 이 값으로 기존 유저 backfill 여부를 판단. bump 누락 시 기존 유저는 새 시드를 못 받음. troubleshooting.md 참고.
 
 ## 5. 검증
 - 수정 후 빌드/테스트를 실행해 정상 동작을 확인한다.

@@ -176,6 +176,13 @@
       "when": 1790154181832,
       "tag": "0024_faulty_grandmaster",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1790758768086,
+      "tag": "0025_little_kitty_pryde",
+      "breakpoints": true
     }
   ]
 }
