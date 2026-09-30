@@ -18,16 +18,9 @@ import {
 
 config({ path: resolve(__dirname, '../../../../.env') });
 
-// Phase 12.4 backfill. Stamps every pre-auth row across the 10 domain
-// tables with the operator's own Supabase user id, so the follow-up
-// NOT NULL migration doesn't reject them.
-//
-// Idempotent: only rows where owner_id IS NULL are touched.
-// Run once locally, then once against prod with the prod user's UUID.
-//
-// Usage:
-//   $env:SEED_OWNER_ID = "<uuid>"   # PowerShell
-//   pnpm --filter api db:seed:owner
+// Phase 12.4 다인화 이전 데이터의 owner_id NULL을 SEED_OWNER_ID로 채우는 일회성
+// 백필. 이미 지나간 마이그의 안전망이라 현행 워크플로에서 다시 쓸 일은 없지만,
+// 과거 상태의 dump에서 복구할 때 참고용으로 유지. Idempotent (NULL row만).
 
 async function main() {
   const url = process.env.DATABASE_URL;

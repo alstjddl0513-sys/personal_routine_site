@@ -33,6 +33,37 @@ import { parseAdminUserIds } from './is-admin.util';
 // 공지는 announcements + announcement_targets 조합. 트랜잭션 정합성 유지.
 
 const PER_PAGE_DEFAULT = 50;
+type SortableKey = 'createdAt' | 'lastSignInAt';
+
+// nickname 또는 email 부분 매치(대소문자 무관). 빈/공백 search는 그대로 통과.
+function filterUsersRows(
+  rows: AdminUserRow[],
+  search: string | undefined,
+): AdminUserRow[] {
+  const needle = search?.trim().toLowerCase();
+  if (!needle) return rows;
+  return rows.filter(
+    (r) =>
+      (r.nickname !== null && r.nickname.toLowerCase().includes(needle)) ||
+      (r.email !== null && r.email.toLowerCase().includes(needle)),
+  );
+}
+
+// createdAt 또는 lastSignInAt DESC. null 값은 항상 뒤로 밀림 —
+// lastSignInAt이 null인 유저(가입만 하고 로그인 X)가 최상단에 올라오지 않도록.
+function sortUsersRows(
+  rows: AdminUserRow[],
+  sortBy: SortableKey,
+): AdminUserRow[] {
+  return [...rows].sort((a, b) => {
+    const av = a[sortBy] ?? '';
+    const bv = b[sortBy] ?? '';
+    if (av === bv) return 0;
+    if (!av) return 1;
+    if (!bv) return -1;
+    return av < bv ? 1 : -1;
+  });
+}
 
 @Injectable()
 export class AdminService {
@@ -77,7 +108,7 @@ export class AdminService {
     );
     const adminIds = parseAdminUserIds(this.config);
 
-    let rows: AdminUserRow[] = authUsers.map((u) => ({
+    const mappedRows: AdminUserRow[] = authUsers.map((u) => ({
       id: u.id,
       email: u.email ?? null,
       nickname: nicknameById.get(u.id) ?? null,
@@ -90,34 +121,14 @@ export class AdminService {
       isAdmin: adminIds.has(u.id),
     }));
 
-    // 검색: nickname 또는 email에 포함(대소문자 무관)
-    if (query.search) {
-      const needle = query.search.trim().toLowerCase();
-      if (needle) {
-        rows = rows.filter(
-          (r) =>
-            (r.nickname && r.nickname.toLowerCase().includes(needle)) ||
-            (r.email && r.email.toLowerCase().includes(needle)),
-        );
-      }
-    }
-
-    // 정렬: createdAt(default) or lastSignInAt DESC. null은 뒤로.
-    const sortBy = query.sortBy ?? 'createdAt';
-    rows.sort((a, b) => {
-      const av = a[sortBy] ?? '';
-      const bv = b[sortBy] ?? '';
-      if (av === bv) return 0;
-      if (!av) return 1;
-      if (!bv) return -1;
-      return av < bv ? 1 : -1;
-    });
+    const filtered = filterUsersRows(mappedRows, query.search);
+    const sorted = sortUsersRows(filtered, query.sortBy ?? 'createdAt');
 
     return {
       page,
       perPage,
       total: data.total ?? authUsers.length,
-      users: rows,
+      users: sorted,
     };
   }
 
