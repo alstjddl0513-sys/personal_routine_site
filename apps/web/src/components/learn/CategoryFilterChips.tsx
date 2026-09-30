@@ -17,11 +17,13 @@ interface Props {
 
 const PATCH_DEBOUNCE_MS = 500;
 
-// 카테고리 chip 다중 선택. URL `?categories=<csv>`로 상태 보존하고, 동시에
-// profiles.preferences.learn.[mode]Categories로 서버 sync (debounce). URL이
-// 없을 때만 preferences가 fallback으로 쓰이므로 소프트 네비게이션 시에도
-// 최근 선택이 유지됨. 필터가 바뀌면 daily set이 달라지므로 `?q=`는 제거.
-// 그 외 파라미터(review 페이지의 ?mode=favorites 등)는 유지.
+// 카테고리 chip 단일 선택. 활성 chip 다시 누르면 초기화(전체). URL
+// `?categories=<key>`로 상태 보존하고 동시에 profiles.preferences.learn.
+// [mode]Categories로 서버 sync (debounce). URL이 없을 때만 preferences가
+// fallback으로 쓰이므로 소프트 네비게이션 시에도 최근 선택이 유지됨.
+// 필터가 바뀌면 daily set이 달라지므로 `?q=`는 제거. 그 외 파라미터
+// (review 페이지의 ?mode=favorites 등)는 유지. preferences 값은 string[] 유지
+// (히스토리 호환) — 실질적으로 원소 0 또는 1개.
 export function CategoryFilterChips({ categories, selected, mode }: Props) {
   const router = useRouter();
   const pathname = usePathname();
@@ -64,7 +66,11 @@ export function CategoryFilterChips({ categories, selected, mode }: Props) {
       if (k === 'categories' || k === 'q') return;
       params.set(k, v);
     });
-    if (csv) params.set('categories', csv);
+    // 빈 값이어도 파라미터 자체는 세팅해서 서버가 '명시적 전체(=[])'로 인식
+    // 하게 만듦. 안 그러면 '전체' 클릭 시 URL에 categories가 사라지고 서버가
+    // preferences fallback으로 넘어가 debounced PATCH 완료 전엔 이전 선택이
+    // 그대로 돌아옴 (한 번 클릭으로 안 넘어가는 버그).
+    params.set('categories', csv);
     const query = params.toString();
     const url = query ? `${pathname}?${query}` : pathname;
     startTransition(() => {
@@ -74,10 +80,9 @@ export function CategoryFilterChips({ categories, selected, mode }: Props) {
   }
 
   function toggle(key: string) {
-    const next = new Set(set);
-    if (next.has(key)) next.delete(key);
-    else next.add(key);
-    apply(next);
+    // 단일 선택: 이미 활성인 chip 다시 누르면 클리어(전체 상태), 아니면 그 chip만.
+    if (set.has(key)) apply(new Set());
+    else apply(new Set([key]));
   }
 
   function clearAll() {
