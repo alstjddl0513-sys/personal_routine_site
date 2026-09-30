@@ -53,10 +53,24 @@ export function CategoryFilterChips({ categories, selected, mode }: Props) {
 
   const activeSet = new Set(optimisticSelected);
 
+  // 세션 간 preference 유지용 mirror cookie. 서버(`/learn` page.tsx)가 profile
+  // fetch 하기 전 이 cookie를 먼저 확인 → 있으면 profile RTT (~100ms) skip.
+  // profile PATCH도 여전히 유지 (source of truth · 다른 기기·브라우저 sync용).
+  // 값: CSV. 빈 문자열도 유효 (=명시적 '전체'). cookie 미존재 시에만 profile
+  // fallback으로 폴백. 1년 유효, SameSite=Lax (동일 사이트 SSR nav에서 읽힘).
+  function writeCookie(nextArr: string[]) {
+    const cookieName = `rally.learn.${mode}`;
+    const csv = nextArr.join(',');
+    const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = `${cookieName}=${encodeURIComponent(csv)}; path=/; max-age=31536000; SameSite=Lax${secure}`;
+  }
+
   function schedulePatch(nextArr: string[]) {
     if (patchTimeoutRef.current !== null) {
       window.clearTimeout(patchTimeoutRef.current);
     }
+    // Cookie는 즉시 write — 다음 SSR 진입이 debounce 만료 전이라도 반영됨.
+    writeCookie(nextArr);
     const key =
       mode === 'daily'
         ? 'dailyCategories'
