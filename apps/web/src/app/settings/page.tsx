@@ -116,13 +116,7 @@ const MANAGEMENT_GROUPS: {
 // SSR에서 프로필을 읽어 상단 카드로 렌더. md 이상에서는 사이드바가 담당하므로 숨김.
 export default async function SettingsPage() {
   const profile = await getMyProfile().catch(() => null);
-
-  // 마지막 관리 항목 여부 판단용 flat 인덱스 (border-b 생략에 사용).
-  const totalManagementItems = MANAGEMENT_GROUPS.reduce(
-    (sum, g) => sum + g.items.length,
-    0,
-  );
-  let flatIdx = 0;
+  const lastGroupIdx = MANAGEMENT_GROUPS.length - 1;
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 p-6">
@@ -163,9 +157,9 @@ export default async function SettingsPage() {
         {MANAGEMENT_GROUPS.map((group, gi) => (
           <div key={group.title}>
             <SubHeader isFirst={gi === 0}>{group.title}</SubHeader>
-            {group.items.map((item) => {
-              flatIdx += 1;
-              const isLast = flatIdx === totalManagementItems;
+            {group.items.map((item, ii) => {
+              const isLast =
+                gi === lastGroupIdx && ii === group.items.length - 1;
               return (
                 <SettingsLink
                   key={item.href}
