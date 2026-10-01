@@ -42,7 +42,7 @@ const NAV: NavItem[] = [
     matchPrefixes: ['/jobs'],
     children: [
       { href: '/jobs', label: '기업 분석' },
-      { href: '/jobs/statistics', label: '기업 통계' },
+      { href: '/jobs/statistics', label: '통계' },
     ],
   },
   {
@@ -52,6 +52,7 @@ const NAV: NavItem[] = [
     matchPrefixes: ['/routines'],
     children: [
       { href: '/routines', label: '트래커' },
+      { href: '/routines/statistics', label: '통계' },
       { href: '/routines/calendar', label: '캘린더' },
     ],
   },

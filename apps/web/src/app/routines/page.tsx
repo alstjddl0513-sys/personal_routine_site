@@ -4,16 +4,12 @@ import {
   getRoutineChecks,
   getTimeBlocks,
 } from '../../lib/api';
-import { addDays, parseISODate, toISODate, weekOf, type WeekInfo } from '../../lib/routines-week';
-import { calcBestDailyStreak, calcDailyStreak } from '../../lib/streak';
+import { parseISODate, weekOf, type WeekInfo } from '../../lib/routines-week';
 import { RoutineDayView } from '../../components/routines/RoutineDayView';
 import { RoutineRetro } from '../../components/routines/RoutineRetro';
 import { RoutineTable } from '../../components/routines/RoutineTable';
 import { RoutineWeekNav } from '../../components/routines/RoutineWeekNav';
 import { Skeleton } from '../../components/Skeleton';
-import { StreakBadge } from '../../components/StreakBadge';
-
-const STREAK_WINDOW_DAYS = 180;
 
 function first(raw: string | string[] | undefined): string | undefined {
   return Array.isArray(raw) ? raw[0] : raw;
@@ -43,35 +39,16 @@ export default async function RoutinesPage({
 }
 
 async function RoutinesContent({ week }: { week: WeekInfo }) {
-  const today = new Date();
-  const streakFrom = addDays(today, -(STREAK_WINDOW_DAYS - 1));
-
   // Retro is one note per week, stored in day_notes keyed by the week's Monday.
-  const [blocks, checks, retroNotes, streakChecks] = await Promise.all([
+  const [blocks, checks, retroNotes] = await Promise.all([
     getTimeBlocks(),
     getRoutineChecks({ from: week.from, to: week.to }),
     getDayNotes({ from: week.from, to: week.from }),
-    getRoutineChecks({ from: toISODate(streakFrom), to: toISODate(today) }),
   ]);
   const retroContent = retroNotes[0]?.content ?? '';
 
-  // A day counts as "done" if any block was checked. Row existence = checked.
-  const successDays = new Set(streakChecks.map((c) => c.date));
-  const currentStreak = calcDailyStreak(successDays, today);
-  const bestStreak = calcBestDailyStreak(successDays, streakFrom, today);
-
   return (
     <>
-      <StreakBadge
-        label="루틴 스트릭"
-        current={currentStreak}
-        best={bestStreak}
-        unit="일"
-      />
-
-      <RoutineTable blocks={blocks} checks={checks} days={week.days} />
-      <RoutineDayView blocks={blocks} checks={checks} days={week.days} />
-
       <section className="flex flex-col gap-2">
         <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
           이번주 회고
@@ -82,6 +59,9 @@ async function RoutinesContent({ week }: { week: WeekInfo }) {
           initialContent={retroContent}
         />
       </section>
+
+      <RoutineTable blocks={blocks} checks={checks} days={week.days} />
+      <RoutineDayView blocks={blocks} checks={checks} days={week.days} />
     </>
   );
 }
@@ -89,10 +69,8 @@ async function RoutinesContent({ week }: { week: WeekInfo }) {
 function RoutinesSkeleton() {
   return (
     <>
-      <Skeleton className="h-16" />
-      <Skeleton className="h-72" />
-      <Skeleton className="h-40" />
       <Skeleton className="h-28" />
+      <Skeleton className="h-72" />
     </>
   );
 }
