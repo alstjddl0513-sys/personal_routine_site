@@ -49,16 +49,16 @@ async function RoutinesContent({ week }: { week: WeekInfo }) {
 
   return (
     <>
-      <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          이번주 회고
-        </h2>
+      {/* 데스크톱 상단 / 모바일 하단 — 매일 체크 흐름은 모바일에서 DayView 먼저.
+          RoutineTable은 데스크톱 전용(hidden md:block), DayView는 모바일 전용(md:hidden)이라
+          각각 자기가 보이는 환경의 order만 신경 쓰면 됨. */}
+      <div className="order-2 md:order-1">
         <RoutineRetro
           key={week.from}
           weekStart={week.from}
           initialContent={retroContent}
         />
-      </section>
+      </div>
 
       <RoutineTable blocks={blocks} checks={checks} days={week.days} />
       <RoutineDayView blocks={blocks} checks={checks} days={week.days} />

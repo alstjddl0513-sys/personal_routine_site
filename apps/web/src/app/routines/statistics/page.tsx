@@ -24,7 +24,7 @@ const RANKING_WINDOW_DAYS = 28;
 
 export default async function RoutinesStatisticsPage() {
   return (
-    <div className="flex flex-col gap-4 p-6">
+    <div className="flex flex-col gap-4 p-4 sm:p-6">
       <header>
         <h1 className="text-xl font-semibold">루틴 통계</h1>
       </header>
@@ -153,7 +153,7 @@ async function RoutinesStatisticsContent() {
       />
 
       {blocks.length > 0 ? (
-        <section className="flex flex-col gap-2">
+        <section className="flex flex-col gap-2 border-t border-zinc-200 pt-4 dark:border-zinc-800">
           <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
             {month.month}월 루틴
           </h2>

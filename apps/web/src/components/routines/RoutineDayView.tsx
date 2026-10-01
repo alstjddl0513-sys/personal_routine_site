@@ -10,7 +10,7 @@ import {
   useTransition,
 } from 'react';
 import { useRouter } from 'next/navigation';
-import { Check, GripVertical, Pencil, Trash2 } from 'lucide-react';
+import { Check, GripVertical, Trash2 } from 'lucide-react';
 import {
   DndContext,
   KeyboardSensor,
@@ -277,7 +277,7 @@ export function RoutineDayView({ blocks, checks, days }: Props) {
     (rows.length ? Math.max(...rows.map((b) => b.sortOrder)) : -1) + 1;
 
   return (
-    <div className="flex flex-col gap-3 md:hidden">
+    <div className="order-1 flex flex-col gap-3 md:hidden">
       <nav className="grid grid-cols-7 gap-1" aria-label="요일 선택">
         {days.map((d) => {
           const iso = toISODate(d);
@@ -342,9 +342,7 @@ export function RoutineDayView({ blocks, checks, days }: Props) {
             <div className="overflow-hidden rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
               <div className="flex items-center gap-3 border-b border-zinc-100 bg-zinc-50 pr-3 py-1.5 text-[11px] font-normal text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-400">
                 <span className="w-8 shrink-0" aria-hidden />
-                <span className="w-16 shrink-0 text-center">시간</span>
                 <span className="min-w-0 flex-1 text-center">내용</span>
-                <span className="w-14 shrink-0" aria-hidden />
                 <span className="w-10 shrink-0 text-center">완료</span>
               </div>
               <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -497,32 +495,33 @@ function SortableBlockItem({
             >
               <Check className="h-4 w-4" aria-hidden />
             </IconButton>
+            <IconButton
+              onClick={onDelete}
+              disabled={isPending}
+              label={`${block.label} 삭제`}
+              danger
+            >
+              <Trash2 className="h-3.5 w-3.5" aria-hidden />
+            </IconButton>
           </>
         ) : (
           <>
-            <span className="w-16 shrink-0 text-center text-xs tabular-nums text-zinc-500 dark:text-zinc-400">
-              {timeText ?? '—'}
-            </span>
-            <span className="min-w-0 flex-1 truncate text-center text-sm text-zinc-800 dark:text-zinc-200">
-              {block.label}
-            </span>
-            <div className="flex w-14 shrink-0 items-center justify-end gap-0.5">
-              <IconButton
-                onClick={onBeginEdit}
-                disabled={isPending}
-                label={`${block.label} 편집`}
-              >
-                <Pencil className="h-3.5 w-3.5" aria-hidden />
-              </IconButton>
-              <IconButton
-                onClick={onDelete}
-                disabled={isPending}
-                label={`${block.label} 삭제`}
-                danger
-              >
-                <Trash2 className="h-3.5 w-3.5" aria-hidden />
-              </IconButton>
-            </div>
+            <button
+              type="button"
+              onClick={onBeginEdit}
+              disabled={isPending}
+              aria-label={`${block.label} 편집`}
+              className="flex min-w-0 flex-1 cursor-pointer flex-col items-start justify-center gap-0.5 rounded px-2 py-1 text-left transition-colors hover:bg-zinc-50 disabled:cursor-not-allowed dark:hover:bg-zinc-900"
+            >
+              <span className="min-w-0 max-w-full text-sm text-zinc-800 line-clamp-2 dark:text-zinc-200">
+                {block.label}
+              </span>
+              {timeText ? (
+                <span className="text-[11px] tabular-nums text-zinc-500 dark:text-zinc-400">
+                  {timeText}
+                </span>
+              ) : null}
+            </button>
             <label className="flex w-10 shrink-0 cursor-pointer items-center justify-center py-2">
               <input
                 type="checkbox"

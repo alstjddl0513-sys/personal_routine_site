@@ -180,7 +180,7 @@ export function RoutineTable({ blocks, checks, days }: Props) {
     (rows.length ? Math.max(...rows.map((b) => b.sortOrder)) : -1) + 1;
 
   return (
-    <div className="hidden overflow-x-auto rounded-md border border-zinc-200 md:block dark:border-zinc-800">
+    <div className="hidden overflow-x-auto rounded-md border border-zinc-200 md:order-2 md:block dark:border-zinc-800">
       <DndContext
         id={dndContextId}
         sensors={sensors}
