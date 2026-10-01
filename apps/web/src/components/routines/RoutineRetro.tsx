@@ -61,6 +61,9 @@ export function RoutineRetro({ weekStart, initialContent }: Props) {
 
   return (
     <div className="flex flex-col gap-2 rounded-md border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+      <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        이번주 회고
+      </h2>
       <textarea
         value={value}
         onChange={(e) => setValue(e.target.value)}

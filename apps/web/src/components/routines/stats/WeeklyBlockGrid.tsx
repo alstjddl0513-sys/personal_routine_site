@@ -37,7 +37,7 @@ export function WeeklyBlockGrid({ blocks, checks, days, today }: Props) {
         <table className="w-full border-separate border-spacing-y-1">
         <thead>
           <tr className="text-[10px] text-zinc-400 dark:text-zinc-500">
-            <th className="w-32 pb-1 text-left font-normal sm:w-40" />
+            <th className="w-24 pb-1 text-left font-normal sm:w-40" />
             {days.map((d) => {
               const iso = toISODate(d);
               const isToday = iso === todayIso;

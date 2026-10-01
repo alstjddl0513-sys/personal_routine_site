@@ -85,7 +85,7 @@ export function BlockMonthCard({ block, month, checks, today }: Props) {
           const checked = checkedSet.has(iso);
 
           if (!inMonth) {
-            return <div key={iso} className="h-4" aria-hidden />;
+            return <div key={iso} className="h-5" aria-hidden />;
           }
 
           return (

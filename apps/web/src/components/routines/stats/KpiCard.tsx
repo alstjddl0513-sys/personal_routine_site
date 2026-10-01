@@ -35,7 +35,7 @@ export function KpiCard({ weekly, monthly, weekLabel, monthLabel }: Props) {
       aria-label={`${titleLabel} 요약`}
       className="rounded-md border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950 sm:p-4"
     >
-      <div className="mb-2 flex items-center justify-between sm:mb-3">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2 sm:mb-3">
         <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
           {titleLabel}
         </h2>
