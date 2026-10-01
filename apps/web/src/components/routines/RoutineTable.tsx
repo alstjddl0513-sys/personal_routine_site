@@ -201,7 +201,6 @@ export function RoutineTable({ blocks, checks, days }: Props) {
                   {d.getDate()} ({dowLabel(d)})
                 </th>
               ))}
-              <th className="w-32 px-3 py-2 text-center align-middle font-normal">주간 달성률</th>
               <th className="w-16 px-2 py-2 align-middle" aria-label="액션" />
             </tr>
           </thead>
@@ -209,7 +208,7 @@ export function RoutineTable({ blocks, checks, days }: Props) {
             {rows.length === 0 ? (
               <tr>
                 <td
-                  colSpan={days.length + 5}
+                  colSpan={days.length + 4}
                   className="px-4 py-8 text-center text-sm text-zinc-500"
                 >
                   아직 만든 시간블록이 없어요. 아래에서 하나 추가해보세요.
@@ -232,7 +231,7 @@ export function RoutineTable({ blocks, checks, days }: Props) {
               </SortableContext>
             )}
             <tr>
-              <td colSpan={days.length + 5} className="p-2">
+              <td colSpan={days.length + 4} className="p-2">
                 <AddTimeBlockRow nextSortOrder={nextSortOrder} />
               </td>
             </tr>
@@ -306,41 +305,12 @@ function SortableBlockRow({
           </td>
         );
       })}
-      <td className="w-32 px-3 py-2 align-middle">
-        <ProgressBar
-          checkedCount={days.reduce(
-            (n, d) => n + (isChecked(checkKey(block.id, toISODate(d))) ? 1 : 0),
-            0,
-          )}
-          total={days.length}
-        />
-      </td>
       <td className="px-2 py-2 align-middle">
         <div className="flex items-center justify-end opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
           <DeleteBlockButton block={block} />
         </div>
       </td>
     </tr>
-  );
-}
-
-function ProgressBar({ checkedCount, total }: { checkedCount: number; total: number }) {
-  const pct = total > 0 ? (checkedCount / total) * 100 : 0;
-  const full = checkedCount === total && total > 0;
-  return (
-    <div className="flex items-center gap-2">
-      <div className="h-2 flex-1 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
-        <div
-          className={`h-full rounded-full transition-all duration-200 ${
-            full ? 'bg-emerald-500' : 'bg-emerald-400'
-          }`}
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-      <span className="w-8 text-right text-[10px] tabular-nums text-zinc-500 dark:text-zinc-400">
-        {checkedCount}/{total}
-      </span>
-    </div>
   );
 }
 

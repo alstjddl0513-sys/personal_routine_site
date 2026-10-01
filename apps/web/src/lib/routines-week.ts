@@ -80,6 +80,22 @@ export function formatWeekRange(week: WeekInfo): string {
   return `${m.getFullYear()}. ${mm}. ${md} ~ ${sm}. ${sd}`;
 }
 
+// 이 주의 "소속 월"은 이 주의 목요일이 속한 달. 월 경계에 걸치는 주는 과반(Thu~Sun 4일)이
+// 어느 달에 속하는지로 결정 — ISO 8601 week 개념과 비슷하지만 월 단위.
+// Returns 예: "10월 1주차", "12월 1주차".
+export function monthWeekLabel(week: WeekInfo): string {
+  const thursday = addDays(week.monday, 3);
+  const owningMonth = thursday.getMonth() + 1;
+  const owningYear = thursday.getFullYear();
+  // 해당 달의 첫 목요일 날짜 (1~7).
+  const firstOfMonth = new Date(owningYear, owningMonth - 1, 1);
+  const firstDow = firstOfMonth.getDay(); // 0=Sun, 4=Thu
+  const daysUntilFirstThu = (4 - firstDow + 7) % 7;
+  const firstThursdayDate = 1 + daysUntilFirstThu;
+  const weekNum = Math.floor((thursday.getDate() - firstThursdayDate) / 7) + 1;
+  return `${owningMonth}월 ${weekNum}주차`;
+}
+
 // --- month view (calendar) ---
 
 export interface MonthInfo {
