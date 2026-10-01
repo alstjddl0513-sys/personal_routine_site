@@ -7,10 +7,8 @@ export default function Loading() {
         <h1 className="text-xl font-semibold">루틴 트래커</h1>
         <Skeleton className="h-8 w-48" />
       </header>
-      <Skeleton className="h-16" />
-      <Skeleton className="h-72" />
-      <Skeleton className="h-40" />
       <Skeleton className="h-28" />
+      <Skeleton className="h-72" />
     </div>
   );
 }
