@@ -48,7 +48,7 @@ const NAV: NavItem[] = [
     icon: Briefcase,
     matchPrefixes: ['/jobs'],
     children: [
-      { href: '/jobs', label: '기업 분석' },
+      { href: '/jobs', label: '리스트' },
       { href: '/jobs/statistics', label: '통계' },
     ],
   },

@@ -36,14 +36,14 @@ export function JobsTable({
             <Th className="w-8 px-1" srOnly>
               즐겨찾기
             </Th>
-            <Th align="left" className="pl-1 pr-2">
+            <Th align="left" className="pl-1 pr-1">
               회사명
             </Th>
-            <Th className="px-2">유형</Th>
-            <Th className="px-2">규모</Th>
-            <Th className="px-2">우선순위</Th>
-            <Th className="px-2">채용중</Th>
-            <Th className="px-2">지원상태</Th>
+            <Th className="px-3">유형</Th>
+            <Th className="px-3">규모</Th>
+            <Th className="px-3">우선순위</Th>
+            <Th className="px-3">채용중</Th>
+            <Th className="px-3">지원상태</Th>
             <Th>마감일</Th>
             <Th className="px-2">일정</Th>
             <Th className="px-2">공고 링크</Th>
@@ -69,30 +69,30 @@ export function JobsTable({
                   <FavoriteToggle id={c.id} value={c.isFavorite} />
                 </Center>
               </Td>
-              <Td className="w-1 pl-1 pr-2 font-medium whitespace-nowrap">
+              <Td className="w-1 pl-1 pr-1 font-medium whitespace-nowrap">
                 {c.name}
               </Td>
-              <Td className="px-2">
+              <Td className="px-3">
                 <Center>
                   <TypeSelect id={c.id} value={c.type2} types={companyTypes} />
                 </Center>
               </Td>
-              <Td className="px-2">
+              <Td className="px-3">
                 <Center>
                   <SizeSelect id={c.id} value={c.type1} />
                 </Center>
               </Td>
-              <Td className="px-2">
+              <Td className="px-3">
                 <Center>
                   <PrioritySelect id={c.id} value={c.priority} />
                 </Center>
               </Td>
-              <Td className="px-2">
+              <Td className="px-3">
                 <Center>
                   <HiringToggle id={c.id} value={c.isHiring} />
                 </Center>
               </Td>
-              <Td className="px-2">
+              <Td className="px-3">
                 <Center>
                   <StatusSelect id={c.id} value={c.applicationStatus} />
                 </Center>

@@ -13,7 +13,7 @@ const SECTION_TABS: Array<{ prefix: string; tabs: SubTab[] }> = [
   {
     prefix: '/jobs',
     tabs: [
-      { href: '/jobs', label: '기업 분석' },
+      { href: '/jobs', label: '리스트' },
       { href: '/jobs/statistics', label: '통계' },
     ],
   },
