@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { useRouter } from 'next/navigation';
 import { CalendarDays, Plus, Trash2 } from 'lucide-react';
+// NOTE: Plus는 Body의 "일정 추가" 버튼에서 쓰이고, trigger에선 — 플레이스홀더로 간결화됨.
 import {
   COMPANY_EVENT_TYPES,
   COMPANY_EVENT_TYPE_LABELS,
@@ -25,7 +26,10 @@ import { usePopoverPosition } from '../../../lib/usePopoverPosition';
 import { Portal } from '../../ui/Portal';
 
 const POPOVER_WIDTH = 320;
-const POPOVER_HEIGHT = 320;
+// 전형적 케이스(빈 상태 + 추가 폼) 높이 ~180px. 320이었을 땐 trigger가 뷰포트
+// 상단 근처면 'above' flip + top 클램프로 뷰포트 꼭대기에 붙어 trigger와
+// 시각 분리됐음. 리스트가 많아지면 바디 max-h로 내부 스크롤.
+const POPOVER_HEIGHT = 220;
 const WEEKDAY_KO = ['일', '월', '화', '수', '목', '금', '토'];
 
 function formatDateShort(iso: string): string {
@@ -107,7 +111,7 @@ export function EventsPopover({
         disabled={isPending}
         aria-label={count > 0 ? `일정 ${count}개 편집` : '일정 추가'}
         aria-expanded={open}
-        className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs disabled:opacity-50"
+        className="inline-flex items-center justify-center gap-1 rounded px-1.5 py-0.5 text-xs text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
       >
         {count > 0 ? (
           <span className="inline-flex items-center gap-1 rounded bg-emerald-100 px-1.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
@@ -115,9 +119,8 @@ export function EventsPopover({
             {count}
           </span>
         ) : (
-          <span className="inline-flex items-center gap-0.5 rounded px-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300">
-            <Plus className="h-3.5 w-3.5" aria-hidden />
-            <span className="whitespace-nowrap">일정</span>
+          <span className="whitespace-nowrap text-zinc-400 dark:text-zinc-600">
+            —
           </span>
         )}
       </button>
@@ -195,7 +198,7 @@ function EventsPopoverBody({
           아직 등록된 일정이 없어요.
         </p>
       ) : (
-        <ul className="flex flex-col divide-y divide-zinc-100 dark:divide-zinc-800">
+        <ul className="flex max-h-56 flex-col divide-y divide-zinc-100 overflow-y-auto dark:divide-zinc-800">
           {sorted.map((e) => (
             <li
               key={e.id}
