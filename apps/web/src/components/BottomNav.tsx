@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import {
   BookOpen,
   Briefcase,
+  Calendar,
   CalendarCheck2,
   Dumbbell,
   Rss,
@@ -20,6 +21,7 @@ interface Tab {
 }
 
 const TABS: Tab[] = [
+  { href: '/calendar', label: '캘린더', icon: Calendar, matchPrefixes: ['/calendar'] },
   { href: '/jobs', label: '채용', icon: Briefcase, matchPrefixes: ['/jobs'] },
   { href: '/routines', label: '루틴', icon: CalendarCheck2, matchPrefixes: ['/routines'] },
   { href: '/workouts', label: '운동', icon: Dumbbell, matchPrefixes: ['/workouts'] },
@@ -40,7 +42,7 @@ export function BottomNav() {
       aria-label="주요 탐색"
       className="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-200 bg-white/95 backdrop-blur pb-[env(safe-area-inset-bottom)] dark:border-zinc-800 dark:bg-zinc-950/95 md:hidden"
     >
-      <ul className="grid grid-cols-6">
+      <ul className="grid grid-cols-7">
         {TABS.map((tab) => {
           const active = isActive(pathname, tab.matchPrefixes);
           const Icon = tab.icon;
