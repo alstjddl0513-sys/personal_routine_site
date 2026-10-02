@@ -22,7 +22,6 @@ const SECTION_TABS: Array<{ prefix: string; tabs: SubTab[] }> = [
     tabs: [
       { href: '/routines', label: '트래커' },
       { href: '/routines/statistics', label: '통계' },
-      { href: '/routines/calendar', label: '캘린더' },
     ],
   },
   {

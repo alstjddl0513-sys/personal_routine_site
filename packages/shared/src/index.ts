@@ -138,6 +138,58 @@ export interface DayNote {
   updatedAt: string;
 }
 
+// --- scheduler ---
+
+export const COMPANY_EVENT_TYPES = [
+  'deadline',
+  'test',
+  'interview',
+  'announcement',
+  'other',
+] as const;
+export type CompanyEventType = (typeof COMPANY_EVENT_TYPES)[number];
+
+export const COMPANY_EVENT_TYPE_LABELS: Record<CompanyEventType, string> = {
+  deadline: '마감',
+  test: '시험',
+  interview: '면접',
+  announcement: '발표',
+  other: '기타',
+};
+
+export interface CompanyEvent {
+  id: string;
+  companyId: string;
+  date: string; // YYYY-MM-DD
+  type: CompanyEventType;
+  note: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SchedulerMemo {
+  date: string;
+  content: string;
+  updatedAt: string;
+}
+
+// 스케쥴러 월간 뷰에 뿌리는 통합 이벤트 타입. 서버가 jobs + memos를 합쳐 반환.
+// 향후 'milestone', 'routine_streak' 등 추가 쉽게.
+export type SchedulerEvent =
+  | {
+      kind: 'job';
+      date: string;
+      type: CompanyEventType;
+      companyId: string;
+      companyName: string;
+      note: string | null;
+    }
+  | {
+      kind: 'memo';
+      date: string;
+      content: string;
+    };
+
 // --- workouts ---
 
 export interface Exercise {

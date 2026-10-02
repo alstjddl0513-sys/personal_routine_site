@@ -9,6 +9,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HealthController } from './health/health.controller';
 import { CompaniesModule } from './companies/companies.module';
+import { CompanyEventsModule } from './company-events/company-events.module';
 import { CompanyTypesModule } from './company-types/company-types.module';
 import { TimeBlocksModule } from './time-blocks/time-blocks.module';
 import { RoutineChecksModule } from './routine-checks/routine-checks.module';
@@ -27,6 +28,7 @@ import { DocumentsModule } from './documents/documents.module';
 import { AdminModule } from './admin/admin.module';
 import { AnnouncementsModule } from './announcements/announcements.module';
 import { FeedbackModule } from './feedback/feedback.module';
+import { SchedulerModule } from './scheduler/scheduler.module';
 
 @Module({
   imports: [
@@ -39,6 +41,7 @@ import { FeedbackModule } from './feedback/feedback.module';
     // endpoints (e.g. profiles/check-nickname) can tighten via @Throttle().
     ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 60 }]),
     CompaniesModule,
+    CompanyEventsModule,
     CompanyTypesModule,
     TimeBlocksModule,
     RoutineChecksModule,
@@ -57,6 +60,7 @@ import { FeedbackModule } from './feedback/feedback.module';
     AdminModule,
     AnnouncementsModule,
     FeedbackModule,
+    SchedulerModule,
   ],
   controllers: [AppController, HealthController],
   providers: [
