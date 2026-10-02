@@ -1,6 +1,10 @@
 'use client';
 
-import { type Company, type CompanyType } from '@repo/shared';
+import {
+  type Company,
+  type CompanyEvent,
+  type CompanyType,
+} from '@repo/shared';
 import { PrioritySelect } from './cells/PrioritySelect';
 import { StatusSelect } from './cells/StatusSelect';
 import { HiringToggle } from './cells/HiringToggle';
@@ -9,16 +13,19 @@ import { UrlPopover } from './cells/UrlPopover';
 import { TypeSelect } from './cells/TypeSelect';
 import { SizeSelect } from './cells/SizeSelect';
 import { DeadlinePopover } from './cells/DeadlinePopover';
+import { EventsPopover } from './cells/EventsPopover';
 import { FavoriteToggle } from './cells/FavoriteToggle';
 import { DeleteRowButton } from './cells/DeleteRowButton';
 
 export function JobsTable({
   rows,
   companyTypes,
+  eventsByCompany,
   highlightId,
 }: {
   rows: Company[];
   companyTypes: CompanyType[];
+  eventsByCompany: Map<string, CompanyEvent[]>;
   highlightId?: string;
 }) {
   return (
@@ -38,6 +45,7 @@ export function JobsTable({
             <Th>채용중</Th>
             <Th>지원상태</Th>
             <Th>마감일</Th>
+            <Th>일정</Th>
             <Th className="pr-0">공고 링크</Th>
             <Th className="pl-0">메모</Th>
             <Th className="w-8" srOnly>
@@ -92,6 +100,14 @@ export function JobsTable({
               <Td>
                 <Center>
                   <DeadlinePopover id={c.id} value={c.applicationDeadline} isRolling={c.isRolling} />
+                </Center>
+              </Td>
+              <Td>
+                <Center>
+                  <EventsPopover
+                    companyId={c.id}
+                    events={eventsByCompany.get(c.id) ?? []}
+                  />
                 </Center>
               </Td>
               <Td className="pr-0">

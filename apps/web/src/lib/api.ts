@@ -10,6 +10,8 @@ import type {
   BlogRefreshResult,
   BlogSource,
   Company,
+  CompanyEvent,
+  CompanyEventType,
   CompanyType,
   CompanyType1,
   CreateAnnouncementInput,
@@ -218,6 +220,62 @@ export async function patchCompany(id: string, patch: CompanyPatch): Promise<Com
     );
   }
   return (await res.json()) as Company;
+}
+
+// --- company events (스케쥴러 PR B) ---
+
+export async function getCompanyEvents(filters: {
+  companyId?: string;
+  from?: string;
+  to?: string;
+} = {}): Promise<CompanyEvent[]> {
+  const params = new URLSearchParams();
+  if (filters.companyId) params.set('companyId', filters.companyId);
+  if (filters.from) params.set('from', filters.from);
+  if (filters.to) params.set('to', filters.to);
+  const qs = params.toString();
+  const res = await fetch(
+    apiUrl(`/company-events${qs ? `?${qs}` : ''}`),
+    { cache: 'no-store', headers: await authHeaders() },
+  );
+  if (!res.ok) throw new Error(`GET /company-events failed: HTTP ${res.status}`);
+  return (await res.json()) as CompanyEvent[];
+}
+
+export async function createCompanyEvent(input: {
+  companyId: string;
+  date: string;
+  type: CompanyEventType;
+  note?: string;
+}): Promise<CompanyEvent> {
+  const res = await fetch(apiUrl('/company-events'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(`POST /company-events failed: HTTP ${res.status}`);
+  return (await res.json()) as CompanyEvent;
+}
+
+export async function patchCompanyEvent(
+  id: string,
+  patch: Partial<{ date: string; type: CompanyEventType; note: string | null }>,
+): Promise<CompanyEvent> {
+  const res = await fetch(apiUrl(`/company-events/${id}`), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok) throw new Error(`PATCH /company-events/${id} failed: HTTP ${res.status}`);
+  return (await res.json()) as CompanyEvent;
+}
+
+export async function deleteCompanyEvent(id: string): Promise<void> {
+  const res = await fetch(apiUrl(`/company-events/${id}`), {
+    method: 'DELETE',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) throw new Error(`DELETE /company-events/${id} failed: HTTP ${res.status}`);
 }
 
 // --- routines ---

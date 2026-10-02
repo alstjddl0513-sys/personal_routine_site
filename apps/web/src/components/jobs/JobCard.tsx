@@ -5,10 +5,12 @@ import { ChevronDown } from 'lucide-react';
 import {
   APPLICATION_STATUS_LABELS,
   type Company,
+  type CompanyEvent,
   type CompanyType,
 } from '@repo/shared';
 import { DeadlinePopover } from './cells/DeadlinePopover';
 import { DeleteRowButton } from './cells/DeleteRowButton';
+import { EventsPopover } from './cells/EventsPopover';
 import { FavoriteToggle } from './cells/FavoriteToggle';
 import { HiringToggle } from './cells/HiringToggle';
 import { NotePopover } from './cells/NotePopover';
@@ -21,10 +23,12 @@ import { UrlPopover } from './cells/UrlPopover';
 export function JobCard({
   company: c,
   companyTypes,
+  events,
   highlighted,
 }: {
   company: Company;
   companyTypes: CompanyType[];
+  events: CompanyEvent[];
   highlighted?: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -77,6 +81,9 @@ export function JobCard({
             </Row>
             <Row label="마감일">
               <DeadlinePopover id={c.id} value={c.applicationDeadline} isRolling={c.isRolling} />
+            </Row>
+            <Row label="일정">
+              <EventsPopover companyId={c.id} events={events} />
             </Row>
             <Row label="공고링크">
               <UrlPopover id={c.id} value={c.postingUrl} />
