@@ -8,6 +8,7 @@ import {
   PRIORITY_VALUES,
   type ApplicationStatus,
   type Company,
+  type CompanyEvent,
   type CompanyType,
   type CompanyType1,
   type Priority,
@@ -26,10 +27,12 @@ import { JobsTable } from './JobsTable';
 export function JobsClientView({
   allRows,
   companyTypes,
+  eventsByCompany,
   highlightId,
 }: {
   allRows: Company[];
   companyTypes: CompanyType[];
+  eventsByCompany: Map<string, CompanyEvent[]>;
   highlightId?: string;
 }) {
   const searchParams = useSearchParams();
@@ -167,11 +170,13 @@ export function JobsClientView({
           <JobsTable
             rows={filteredRows}
             companyTypes={companyTypes}
+            eventsByCompany={eventsByCompany}
             highlightId={highlightId}
           />
           <JobsCards
             rows={filteredRows}
             companyTypes={companyTypes}
+            eventsByCompany={eventsByCompany}
             highlightId={highlightId}
           />
         </>
