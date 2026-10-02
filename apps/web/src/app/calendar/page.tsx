@@ -1,10 +1,11 @@
-// 스케쥴러 월 뷰 + 날짜 패널은 다음 PR(PR C)에서 구현.
+// 월 뷰 + 날짜 패널은 다음 PR(PR C)에서 구현.
 // 이 플레이스홀더는 라우트/사이드바/DB가 먼저 깔리는 PR A 범위.
-export default function SchedulerPage() {
+// 내부 코드/DB엔 'scheduler' 이름이 남아있지만 유저 노출은 '캘린더'로 통일.
+export default function CalendarPage() {
   return (
     <div className="flex flex-col gap-4 p-4 sm:p-6">
       <header>
-        <h1 className="text-xl font-semibold">스케쥴러</h1>
+        <h1 className="text-xl font-semibold">캘린더</h1>
       </header>
 
       <div className="rounded-md border border-dashed border-zinc-300 bg-zinc-50 p-10 text-center dark:border-zinc-700 dark:bg-zinc-900/40">

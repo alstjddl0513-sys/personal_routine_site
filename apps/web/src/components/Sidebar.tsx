@@ -37,10 +37,10 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   {
-    href: '/scheduler',
-    label: '스케쥴러',
+    href: '/calendar',
+    label: '캘린더',
     icon: Calendar,
-    matchPrefixes: ['/scheduler'],
+    matchPrefixes: ['/calendar'],
   },
   {
     href: '/jobs',
