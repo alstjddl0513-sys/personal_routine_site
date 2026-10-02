@@ -1,21 +1,84 @@
-// 월 뷰 + 날짜 패널은 다음 PR(PR C)에서 구현.
-// 이 플레이스홀더는 라우트/사이드바/DB가 먼저 깔리는 PR A 범위.
-// 내부 코드/DB엔 'scheduler' 이름이 남아있지만 유저 노출은 '캘린더'로 통일.
-export default function CalendarPage() {
+import { Suspense } from 'react';
+import type { SchedulerEvent } from '@repo/shared';
+import { getSchedulerEvents } from '../../lib/api';
+import {
+  monthOf,
+  parseISOMonth,
+  todayInSeoul,
+  toISODate,
+  type MonthInfo,
+} from '../../lib/routines-week';
+import { CalendarView } from '../../components/calendar/CalendarView';
+import { Skeleton } from '../../components/Skeleton';
+
+function first(raw: string | string[] | undefined): string | undefined {
+  return Array.isArray(raw) ? raw[0] : raw;
+}
+
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+export default async function CalendarPage({
+  searchParams,
+}: PageProps<'/calendar'>) {
+  const sp = await searchParams;
+  const monthParam = first(sp.month);
+  const dateParam = first(sp.date);
+
+  const anchor =
+    (monthParam ? parseISOMonth(monthParam) : null) ?? todayInSeoul();
+  const month = monthOf(anchor);
+  const initialSelectedIso =
+    dateParam && ISO_DATE_RE.test(dateParam) ? dateParam : null;
+
   return (
     <div className="flex flex-col gap-4 p-4 sm:p-6">
-      <header>
-        <h1 className="text-xl font-semibold">캘린더</h1>
-      </header>
-
-      <div className="rounded-md border border-dashed border-zinc-300 bg-zinc-50 p-10 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
-        <p className="text-sm text-zinc-700 dark:text-zinc-300">
-          월 뷰·메모·채용 일정 연동 구현 중이에요.
-        </p>
-        <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-          곧 공개될 예정입니다.
-        </p>
-      </div>
+      <Suspense fallback={<CalendarSkeleton />}>
+        <CalendarContent
+          month={month}
+          initialSelectedIso={initialSelectedIso}
+        />
+      </Suspense>
     </div>
+  );
+}
+
+async function CalendarContent({
+  month,
+  initialSelectedIso,
+}: {
+  month: MonthInfo;
+  initialSelectedIso: string | null;
+}) {
+  const events = await getSchedulerEvents(month.gridFrom, month.gridTo);
+
+  // 날짜별 그룹핑.
+  const eventsByDate = new Map<string, SchedulerEvent[]>();
+  for (const e of events) {
+    const arr = eventsByDate.get(e.date);
+    if (arr) arr.push(e);
+    else eventsByDate.set(e.date, [e]);
+  }
+
+  const todayIso = toISODate(todayInSeoul());
+
+  return (
+    <CalendarView
+      month={month}
+      todayIso={todayIso}
+      initialSelectedIso={initialSelectedIso}
+      eventsByDate={eventsByDate}
+    />
+  );
+}
+
+function CalendarSkeleton() {
+  return (
+    <>
+      <header className="flex items-center justify-between">
+        <Skeleton className="h-7 w-24" />
+        <Skeleton className="h-7 w-40" />
+      </header>
+      <Skeleton className="h-[32rem]" />
+    </>
   );
 }

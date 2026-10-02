@@ -30,6 +30,8 @@ import type {
   Profile,
   Question,
   QuestionCategory,
+  SchedulerEvent,
+  SchedulerMemo,
   QuestionDetail,
   QuestionHeatmapEntry,
   QuestionLog,
@@ -276,6 +278,34 @@ export async function deleteCompanyEvent(id: string): Promise<void> {
     headers: await authHeaders(),
   });
   if (!res.ok) throw new Error(`DELETE /company-events/${id} failed: HTTP ${res.status}`);
+}
+
+// --- scheduler (PR C: /calendar) ---
+
+export async function getSchedulerEvents(
+  from: string,
+  to: string,
+): Promise<SchedulerEvent[]> {
+  const params = new URLSearchParams({ from, to });
+  const res = await fetch(apiUrl(`/scheduler?${params.toString()}`), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) throw new Error(`GET /scheduler failed: HTTP ${res.status}`);
+  return (await res.json()) as SchedulerEvent[];
+}
+
+export async function upsertSchedulerMemo(
+  date: string,
+  content: string,
+): Promise<SchedulerMemo> {
+  const res = await fetch(apiUrl(`/scheduler/memos/${date}`), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify({ content }),
+  });
+  if (!res.ok) throw new Error(`PUT /scheduler/memos/${date} failed: HTTP ${res.status}`);
+  return (await res.json()) as SchedulerMemo;
 }
 
 // --- routines ---
