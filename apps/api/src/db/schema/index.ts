@@ -7,4 +7,5 @@ export * from './feedback';
 export * from './learn';
 export * from './profiles';
 export * from './routines';
+export * from './scheduler';
 export * from './workouts';
