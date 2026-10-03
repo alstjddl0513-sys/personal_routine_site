@@ -30,6 +30,9 @@ import type {
   Profile,
   Question,
   QuestionCategory,
+  RoutineChallenge,
+  RoutineChallengeStatus,
+  RoutineChallengeWithProgress,
   SchedulerEvent,
   SchedulerMemo,
   QuestionDetail,
@@ -278,6 +281,64 @@ export async function deleteCompanyEvent(id: string): Promise<void> {
     headers: await authHeaders(),
   });
   if (!res.ok) throw new Error(`DELETE /company-events/${id} failed: HTTP ${res.status}`);
+}
+
+// --- routine challenges (D-day) ---
+
+export async function getRoutineChallenges(
+  status?: RoutineChallengeStatus,
+): Promise<RoutineChallengeWithProgress[]> {
+  const qs = status ? `?status=${status}` : '';
+  const res = await fetch(apiUrl(`/routine-challenges${qs}`), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) throw new Error(`GET /routine-challenges failed: HTTP ${res.status}`);
+  return (await res.json()) as RoutineChallengeWithProgress[];
+}
+
+// POST/PATCH는 progress 필드 없이 base RoutineChallenge만 반환 (서버가 계산 생략).
+// GET만 progress 포함. 로컬 state 업데이트 시 호출자가 기존 progress를 유지해서 머지.
+export async function createRoutineChallenge(input: {
+  title: string;
+  startDate: string;
+  targetDays: number;
+  blockIds: string[];
+}): Promise<RoutineChallenge> {
+  const res = await fetch(apiUrl('/routine-challenges'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new HttpError(
+      `POST /routine-challenges failed: HTTP ${res.status}${body ? ` — ${body}` : ''}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as RoutineChallenge;
+}
+
+export async function patchRoutineChallenge(
+  id: string,
+  patch: Partial<{ title: string; status: RoutineChallengeStatus }>,
+): Promise<RoutineChallenge> {
+  const res = await fetch(apiUrl(`/routine-challenges/${id}`), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok) throw new Error(`PATCH /routine-challenges/${id} failed: HTTP ${res.status}`);
+  return (await res.json()) as RoutineChallenge;
+}
+
+export async function deleteRoutineChallenge(id: string): Promise<void> {
+  const res = await fetch(apiUrl(`/routine-challenges/${id}`), {
+    method: 'DELETE',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) throw new Error(`DELETE /routine-challenges/${id} failed: HTTP ${res.status}`);
 }
 
 // --- scheduler (PR C: /calendar) ---

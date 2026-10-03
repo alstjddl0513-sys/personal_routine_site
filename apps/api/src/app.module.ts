@@ -12,6 +12,7 @@ import { CompaniesModule } from './companies/companies.module';
 import { CompanyEventsModule } from './company-events/company-events.module';
 import { CompanyTypesModule } from './company-types/company-types.module';
 import { TimeBlocksModule } from './time-blocks/time-blocks.module';
+import { RoutineChallengesModule } from './routine-challenges/routine-challenges.module';
 import { RoutineChecksModule } from './routine-checks/routine-checks.module';
 import { DayNotesModule } from './day-notes/day-notes.module';
 import { ExercisesModule } from './exercises/exercises.module';
@@ -44,6 +45,7 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     CompanyEventsModule,
     CompanyTypesModule,
     TimeBlocksModule,
+    RoutineChallengesModule,
     RoutineChecksModule,
     DayNotesModule,
     ExercisesModule,

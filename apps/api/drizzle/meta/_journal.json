@@ -197,6 +197,13 @@
       "when": 1790914331592,
       "tag": "0027_kind_the_leader",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1790969284789,
+      "tag": "0028_cheerful_trish_tilby",
+      "breakpoints": true
     }
   ]
 }

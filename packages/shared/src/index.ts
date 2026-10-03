@@ -138,6 +138,51 @@ export interface DayNote {
   updatedAt: string;
 }
 
+// --- routine challenges (D-day) ---
+
+export const ROUTINE_CHALLENGE_STATUSES = [
+  'active',
+  'completed',
+  'abandoned',
+] as const;
+export type RoutineChallengeStatus = (typeof ROUTINE_CHALLENGE_STATUSES)[number];
+
+// 활성 챌린지 최대 개수. 1인 집중 트래커 성격이라 너무 많으면 흐지부지.
+// 완료/포기 상태는 카운트에서 제외.
+// 3개: 밀러의 법칙(4±1), GTD 류 "일일 중요 과제 3개" 룰, 데스크톱 3열 그리드
+// 한 줄 정확히 맞음, 희소성이 완주 가치 ↑. 사용자가 답답해하면 늘리기 쉬움.
+export const MAX_ACTIVE_CHALLENGES = 3;
+
+export const ROUTINE_CHALLENGE_STATUS_LABELS: Record<
+  RoutineChallengeStatus,
+  string
+> = {
+  active: '진행중',
+  completed: '완료',
+  abandoned: '포기',
+};
+
+export interface RoutineChallenge {
+  id: string;
+  title: string;
+  startDate: string; // YYYY-MM-DD
+  targetDays: number;
+  blockIds: string[];
+  status: RoutineChallengeStatus;
+  completedAt: string | null;
+  abandonedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// GET /routine-challenges가 반환하는 shape — 진행률 계산치 포함.
+export interface RoutineChallengeWithProgress extends RoutineChallenge {
+  // start_date부터 오늘까지 "모든 blockIds가 체크된 날"의 수.
+  successDays: number;
+  // targetDays - successDays (음수면 초과 달성 — 자동 completed 전환).
+  remainingDays: number;
+}
+
 // --- scheduler ---
 
 export const COMPANY_EVENT_TYPES = [

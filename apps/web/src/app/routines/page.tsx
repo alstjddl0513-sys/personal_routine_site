@@ -1,10 +1,12 @@
 import { Suspense } from 'react';
 import {
   getDayNotes,
+  getRoutineChallenges,
   getRoutineChecks,
   getTimeBlocks,
 } from '../../lib/api';
 import { parseISODate, weekOf, type WeekInfo } from '../../lib/routines-week';
+import { ChallengesList } from '../../components/routines/challenges/ChallengesList';
 import { RoutineDayView } from '../../components/routines/RoutineDayView';
 import { RoutineRetro } from '../../components/routines/RoutineRetro';
 import { RoutineTable } from '../../components/routines/RoutineTable';
@@ -40,19 +42,25 @@ export default async function RoutinesPage({
 
 async function RoutinesContent({ week }: { week: WeekInfo }) {
   // Retro is one note per week, stored in day_notes keyed by the week's Monday.
-  const [blocks, checks, retroNotes] = await Promise.all([
+  const [blocks, checks, retroNotes, challenges] = await Promise.all([
     getTimeBlocks(),
     getRoutineChecks({ from: week.from, to: week.to }),
     getDayNotes({ from: week.from, to: week.from }),
+    getRoutineChallenges(),
   ]);
   const retroContent = retroNotes[0]?.content ?? '';
 
   return (
     <>
-      {/* 데스크톱 상단 / 모바일 하단 — 매일 체크 흐름은 모바일에서 DayView 먼저.
-          RoutineTable은 데스크톱 전용(hidden md:block), DayView는 모바일 전용(md:hidden)이라
-          각각 자기가 보이는 환경의 order만 신경 쓰면 됨. */}
+      {/* 챌린지: 데스크톱 상단(order-1), 모바일 2번째(order-2).
+          "지금 뭐에 도전 중인지" 즉시 인지. */}
       <div className="order-2 md:order-1">
+        <ChallengesList challenges={challenges} blocks={blocks} />
+      </div>
+
+      {/* 회고: 데스크톱 하단(order-3), 모바일 하단(order-3). 일주일 돌아보는 성격이라
+          체크/챌린지 끝낸 후 마지막에 쓰기 좋음. */}
+      <div className="order-3 md:order-3">
         <RoutineRetro
           key={week.from}
           weekStart={week.from}
@@ -60,6 +68,8 @@ async function RoutinesContent({ week }: { week: WeekInfo }) {
         />
       </div>
 
+      {/* 트래커 테이블/DayView — 데스크톱 2번째(md:order-2는 RoutineTable 루트에),
+          모바일 가장 위(order-1는 RoutineDayView 루트에). */}
       <RoutineTable blocks={blocks} checks={checks} days={week.days} />
       <RoutineDayView blocks={blocks} checks={checks} days={week.days} />
     </>
@@ -69,6 +79,7 @@ async function RoutinesContent({ week }: { week: WeekInfo }) {
 function RoutinesSkeleton() {
   return (
     <>
+      <Skeleton className="h-32" />
       <Skeleton className="h-28" />
       <Skeleton className="h-72" />
     </>
