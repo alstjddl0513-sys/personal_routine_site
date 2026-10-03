@@ -1,5 +1,6 @@
 export * from './announcements';
 export * from './blog';
+export * from './challenges';
 export * from './companies';
 export * from './company-types';
 export * from './documents';
