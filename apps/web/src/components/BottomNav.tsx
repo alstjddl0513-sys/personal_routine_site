@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -8,10 +9,10 @@ import {
   Calendar,
   CalendarCheck2,
   Dumbbell,
-  Rss,
-  Settings,
+  MoreHorizontal,
   type LucideIcon,
 } from 'lucide-react';
+import { isMoreMenuPath, MoreMenu } from './MoreMenu';
 
 interface Tab {
   href: string;
@@ -26,47 +27,75 @@ const TABS: Tab[] = [
   { href: '/routines', label: '루틴', icon: CalendarCheck2, matchPrefixes: ['/routines'] },
   { href: '/workouts', label: '운동', icon: Dumbbell, matchPrefixes: ['/workouts'] },
   { href: '/learn', label: '학습', icon: BookOpen, matchPrefixes: ['/learn'] },
-  { href: '/blog', label: '블로그', icon: Rss, matchPrefixes: ['/blog'] },
-  { href: '/settings', label: '설정', icon: Settings, matchPrefixes: ['/settings'] },
 ];
 
 function isActive(pathname: string, prefixes: string[]) {
   return prefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
+// 모바일 하단 탭 — 5 메인 + '⋯ 더보기'(블로그/설정). 7탭은 좁은 폭에서 터치
+// 타겟이 44pt 하한에 근접해 iOS HIG 가이드라인에 어긋났음. iOS Mail /
+// Instagram More 패턴 미러.
 export function BottomNav() {
   const pathname = usePathname();
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreActive = isMoreMenuPath(pathname);
+
   return (
-    <nav
-      data-app-bottom-nav
-      aria-label="주요 탐색"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-200 bg-white/95 backdrop-blur pb-[env(safe-area-inset-bottom)] dark:border-zinc-800 dark:bg-zinc-950/95 md:hidden"
-    >
-      <ul className="grid grid-cols-7">
-        {TABS.map((tab) => {
-          const active = isActive(pathname, tab.matchPrefixes);
-          const Icon = tab.icon;
-          return (
-            <li key={tab.href}>
-              <Link
-                href={tab.href}
-                aria-current={active ? 'page' : undefined}
-                className={`flex min-h-[3.25rem] flex-col items-center justify-center gap-0.5 py-1.5 text-[10px] leading-tight transition-colors ${
-                  active
-                    ? 'text-zinc-900 dark:text-zinc-50'
-                    : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200'
-                }`}
-              >
-                <Icon
-                  className={`h-5 w-5 ${active ? '' : 'opacity-80'}`}
-                  aria-hidden
-                />
-                <span>{tab.label}</span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
+    <>
+      <nav
+        data-app-bottom-nav
+        aria-label="주요 탐색"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-200 bg-white/95 backdrop-blur pb-[env(safe-area-inset-bottom)] dark:border-zinc-800 dark:bg-zinc-950/95 md:hidden"
+      >
+        <ul className="grid grid-cols-6">
+          {TABS.map((tab) => {
+            const active = isActive(pathname, tab.matchPrefixes);
+            const Icon = tab.icon;
+            return (
+              <li key={tab.href}>
+                <Link
+                  href={tab.href}
+                  aria-current={active ? 'page' : undefined}
+                  className={`flex min-h-[3.25rem] flex-col items-center justify-center gap-0.5 py-1.5 text-[10px] leading-tight transition-colors ${
+                    active
+                      ? 'text-zinc-900 dark:text-zinc-50'
+                      : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200'
+                  }`}
+                >
+                  <Icon
+                    className={`h-5 w-5 ${active ? '' : 'opacity-80'}`}
+                    aria-hidden
+                  />
+                  <span>{tab.label}</span>
+                </Link>
+              </li>
+            );
+          })}
+          <li>
+            <button
+              type="button"
+              onClick={() => setMoreOpen(true)}
+              aria-haspopup="dialog"
+              aria-expanded={moreOpen}
+              aria-label="더보기 메뉴 열기"
+              aria-current={moreActive ? 'page' : undefined}
+              className={`flex min-h-[3.25rem] w-full flex-col items-center justify-center gap-0.5 py-1.5 text-[10px] leading-tight transition-colors ${
+                moreActive
+                  ? 'text-zinc-900 dark:text-zinc-50'
+                  : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200'
+              }`}
+            >
+              <MoreHorizontal
+                className={`h-5 w-5 ${moreActive ? '' : 'opacity-80'}`}
+                aria-hidden
+              />
+              <span>더보기</span>
+            </button>
+          </li>
+        </ul>
+      </nav>
+      <MoreMenu open={moreOpen} onClose={() => setMoreOpen(false)} />
+    </>
   );
 }
