@@ -2,7 +2,12 @@
 
 import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { getCompanies, getRoutineChecks, getTimeBlocks } from '../lib/api';
+import {
+  getCompanies,
+  getCompanyEvents,
+  getRoutineChecks,
+  getTimeBlocks,
+} from '../lib/api';
 import {
   computeMorningSummary,
   formatMorningMessage,
@@ -34,12 +39,13 @@ export function MorningSummary(): null {
       if (wasFiredToday()) return;
 
       const todayIso = toISODate(new Date());
-      let rows, blocks, checks;
+      let rows, blocks, checks, events;
       try {
-        [rows, blocks, checks] = await Promise.all([
+        [rows, blocks, checks, events] = await Promise.all([
           getCompanies(),
           getTimeBlocks(false),
           getRoutineChecks({ from: todayIso, to: todayIso }),
+          getCompanyEvents({ from: todayIso, to: todayIso }),
         ]);
       } catch {
         // 401(비인증) 등은 조용히 무시. 다음 진입에서 재시도.
@@ -47,8 +53,13 @@ export function MorningSummary(): null {
       }
       if (cancelled) return;
 
-      const summary = computeMorningSummary(rows, blocks, checks);
-      if (summary.todayDeadlines === 0 && summary.uncheckedRoutines === 0) return;
+      const summary = computeMorningSummary(rows, blocks, checks, events);
+      if (
+        summary.todayDeadlines === 0 &&
+        summary.uncheckedRoutines === 0 &&
+        summary.todayEvents === 0
+      )
+        return;
 
       const { title, body } = formatMorningMessage(summary);
       try {
@@ -57,7 +68,13 @@ export function MorningSummary(): null {
           tag: 'rally-morning-summary',
           icon: '/flag-192.png',
         });
-        const href = summary.todayDeadlines > 0 ? '/jobs' : '/routines';
+        // 우선순위: 이벤트 > 마감 > 루틴. 이벤트는 /calendar로.
+        const href =
+          summary.todayEvents > 0
+            ? '/calendar'
+            : summary.todayDeadlines > 0
+              ? '/jobs'
+              : '/routines';
         notif.onclick = () => {
           try {
             window.focus();

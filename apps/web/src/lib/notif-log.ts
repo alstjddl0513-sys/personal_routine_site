@@ -10,7 +10,13 @@ export type NotifType =
   | 'deadline-d3'
   | 'morning-summary'
   | 'routine-reminder'
-  | 'workout-skip';
+  | 'workout-skip'
+  // 캘린더 이벤트(면접/시험/발표) D-3/D-1/당일 임박 알림.
+  | 'event-d3'
+  | 'event-d1'
+  | 'event-today'
+  // 챌린지 완주 하이라이트 (target 달성 당일).
+  | 'challenge-completed';
 
 export interface NotifLogEntry {
   id: string;
