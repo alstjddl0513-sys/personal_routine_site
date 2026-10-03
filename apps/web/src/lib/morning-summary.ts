@@ -1,4 +1,9 @@
-import type { Company, RoutineCheck, TimeBlock } from '@repo/shared';
+import type {
+  Company,
+  CompanyEvent,
+  RoutineCheck,
+  TimeBlock,
+} from '@repo/shared';
 import { countUncheckedToday } from './routine-reminder';
 import { toISODate } from './routines-week';
 
@@ -93,6 +98,9 @@ export interface MorningSummaryCounts {
   todayDeadlines: number;
   todayDeadlineNames: string[];
   uncheckedRoutines: number;
+  // 오늘 캘린더 이벤트(면접/시험/발표 등) 개수. 회사 이름 요약도 함께.
+  todayEvents: number;
+  todayEventSummary: string | null;
 }
 
 // ACTIVE 상태(not_applied ~ interview_2_passed)이고 마감이 로컬 오늘인 회사 수.
@@ -138,16 +146,49 @@ export function computeMorningSummary(
   rows: Company[],
   blocks: TimeBlock[],
   checks: RoutineCheck[],
+  events: CompanyEvent[],
   now: Date = new Date(),
 ): MorningSummaryCounts {
   const todayIso = toISODate(now);
   const names = pickTodayDeadlineNames(rows, now);
+
+  // 오늘 이벤트: date === todayIso인 것만. applicationDeadline은 이미 위에서
+  // 별도 집계되므로 company_events만 (deadline 중복 방지).
+  const companyNameById = new Map(rows.map((c) => [c.id, c.name]));
+  const todayEventsList = events.filter((e) => e.date === todayIso);
+  const todayEventSummary = formatEventSummary(todayEventsList, companyNameById);
+
   return {
     todayDeadlines: names.length,
     todayDeadlineNames: names,
     uncheckedRoutines: countUncheckedToday(blocks, checks, todayIso),
+    todayEvents: todayEventsList.length,
+    todayEventSummary,
   };
 }
+
+function formatEventSummary(
+  events: CompanyEvent[],
+  companyNameById: Map<string, string>,
+): string | null {
+  if (events.length === 0) return null;
+  if (events.length === 1) {
+    const e = events[0];
+    const name = companyNameById.get(e.companyId) ?? '';
+    const label = COMPANY_EVENT_TYPE_LABEL[e.type] ?? '일정';
+    return name ? `${name} ${label}` : `${label} 1건`;
+  }
+  return `일정 ${events.length}건`;
+}
+
+// Note: 라이브러리에서 직접 import하면 순환 참조 리스크 — 이름만 중복 선언.
+const COMPANY_EVENT_TYPE_LABEL: Record<CompanyEvent['type'], string> = {
+  deadline: '마감',
+  test: '시험',
+  interview: '면접',
+  announcement: '발표',
+  other: '일정',
+};
 
 export interface NotificationCopy {
   title: string;
@@ -169,6 +210,7 @@ export function formatMorningMessage(
   summary: MorningSummaryCounts,
 ): NotificationCopy {
   const parts: string[] = [];
+  if (summary.todayEventSummary) parts.push(summary.todayEventSummary);
   const deadlinePart = formatDeadlinePart(summary.todayDeadlineNames);
   if (deadlinePart) parts.push(deadlinePart);
   if (summary.uncheckedRoutines > 0)

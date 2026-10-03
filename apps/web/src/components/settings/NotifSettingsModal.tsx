@@ -8,7 +8,9 @@ import {
   subscribeMasterEnabled,
 } from '../../lib/notif-master';
 import { Portal } from '../ui/Portal';
+import { ChallengeCelebrateRow } from './ChallengeCelebrateRow';
 import { DeadlineNotifRow } from './DeadlineNotifRow';
+import { EventNotifRow } from './EventNotifRow';
 import { MorningSummaryRow } from './MorningSummaryRow';
 import { NotificationPermissionRow } from './NotificationPermissionRow';
 import { RoutineReminderRow } from './RoutineReminderRow';
@@ -108,8 +110,10 @@ export function NotifSettingsModal({ open, onClose }: Props) {
               <NotificationPermissionRow />
               <MorningSummaryRow />
               <DeadlineNotifRow />
+              <EventNotifRow />
               <RoutineReminderRow />
               <WorkoutSkipRow />
+              <ChallengeCelebrateRow />
             </div>
           </div>
         </div>

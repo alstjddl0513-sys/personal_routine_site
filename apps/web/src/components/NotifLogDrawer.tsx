@@ -6,10 +6,12 @@ import {
   Bell,
   Briefcase,
   CalendarClock,
+  CalendarDays,
   ChevronDown,
   ChevronUp,
   Dumbbell,
   Sunrise,
+  Trophy,
   X,
   type LucideIcon,
 } from 'lucide-react';
@@ -47,6 +49,10 @@ const ICON_MAP: Record<NotifType, LucideIcon> = {
   'morning-summary': Sunrise,
   'routine-reminder': CalendarClock,
   'workout-skip': Dumbbell,
+  'event-d3': CalendarDays,
+  'event-d1': CalendarDays,
+  'event-today': CalendarDays,
+  'challenge-completed': Trophy,
 };
 
 // 병합용 통합 아이템. announcement인지 log entry인지 분기.

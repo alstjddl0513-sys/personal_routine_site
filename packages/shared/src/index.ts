@@ -391,6 +391,11 @@ export interface NotifPreferences {
   deadline: boolean;
   routineEvening: boolean;
   workoutSkip: WorkoutSkipPreferences;
+  // 캘린더 이벤트(면접/시험/발표) D-3/D-1/당일 임박 알림. optional —
+  // 기존 유저 preferences엔 없으므로 서버 복원 시 DEFAULT로 fallback.
+  event?: boolean;
+  // 챌린지 완주 당일 축하 알림.
+  challengeCelebrate?: boolean;
 }
 
 // /learn·/learn/review·favorites의 카테고리 chip 필터를 서버에 저장.
@@ -417,6 +422,8 @@ export const DEFAULT_PREFERENCES: Preferences = {
     deadline: true,
     routineEvening: true,
     workoutSkip: { enabled: true, skipDays: 3 },
+    event: true,
+    challengeCelebrate: true,
   },
 };
 
