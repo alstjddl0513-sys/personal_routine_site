@@ -92,9 +92,7 @@ export class RoutineChallengesService {
         blockIds,
         status,
         completedAt:
-          completedAt instanceof Date
-            ? completedAt.toISOString()
-            : (completedAt as unknown as string | null),
+          completedAt instanceof Date ? completedAt.toISOString() : completedAt,
         abandonedAt: r.abandonedAt as unknown as string | null,
         createdAt: r.createdAt as unknown as string,
         updatedAt: r.updatedAt as unknown as string,
@@ -107,7 +105,11 @@ export class RoutineChallengesService {
     if (toMarkCompleted.length > 0) {
       await db
         .update(routineChallenges)
-        .set({ status: 'completed', completedAt: new Date(), updatedAt: new Date() })
+        .set({
+          status: 'completed',
+          completedAt: new Date(),
+          updatedAt: new Date(),
+        })
         .where(
           and(
             eq(routineChallenges.ownerId, ownerId),

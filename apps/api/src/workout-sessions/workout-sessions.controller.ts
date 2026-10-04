@@ -22,18 +22,12 @@ export class WorkoutSessionsController {
   constructor(private readonly service: WorkoutSessionsService) {}
 
   @Get()
-  findAll(
-    @Req() req: AuthedRequest,
-    @Query() query: QueryWorkoutSessionsDto,
-  ) {
+  findAll(@Req() req: AuthedRequest, @Query() query: QueryWorkoutSessionsDto) {
     return this.service.findAll(requireUserId(req), query);
   }
 
   @Get(':id')
-  findOne(
-    @Req() req: AuthedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  findOne(@Req() req: AuthedRequest, @Param('id', ParseUUIDPipe) id: string) {
     return this.service.findOne(requireUserId(req), id);
   }
 

@@ -45,7 +45,9 @@ export class WorkoutSetsService {
     const nums = new Set<number>();
     for (const s of dto.sets) {
       if (nums.has(s.setNumber)) {
-        throw new BadRequestException(`duplicate setNumber ${s.setNumber} in batch`);
+        throw new BadRequestException(
+          `duplicate setNumber ${s.setNumber} in batch`,
+        );
       }
       nums.add(s.setNumber);
     }
@@ -64,7 +66,9 @@ export class WorkoutSetsService {
         )
         .limit(1);
       if (!session) {
-        throw new NotFoundException(`WorkoutSession ${dto.sessionId} not found`);
+        throw new NotFoundException(
+          `WorkoutSession ${dto.sessionId} not found`,
+        );
       }
       const [exercise] = await tx
         .select({ id: exercises.id })
@@ -205,10 +209,7 @@ export class WorkoutSetsService {
       })
       .from(workoutSets)
       .innerJoin(exercises, eq(exercises.id, workoutSets.exerciseId))
-      .innerJoin(
-        workoutSessions,
-        eq(workoutSessions.id, workoutSets.sessionId),
-      )
+      .innerJoin(workoutSessions, eq(workoutSessions.id, workoutSets.sessionId))
       .where(
         and(
           eq(workoutSessions.ownerId, ownerId),

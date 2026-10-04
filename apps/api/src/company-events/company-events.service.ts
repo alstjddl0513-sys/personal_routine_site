@@ -70,9 +70,7 @@ export class CompanyEventsService {
     const [row] = await db
       .update(companyEvents)
       .set({ ...dto, updatedAt: new Date() })
-      .where(
-        and(eq(companyEvents.id, id), eq(companyEvents.ownerId, ownerId)),
-      )
+      .where(and(eq(companyEvents.id, id), eq(companyEvents.ownerId, ownerId)))
       .returning();
     if (!row) {
       throw new NotFoundException(`CompanyEvent ${id} not found`);
@@ -83,9 +81,7 @@ export class CompanyEventsService {
   async remove(ownerId: string, id: string) {
     const [row] = await db
       .delete(companyEvents)
-      .where(
-        and(eq(companyEvents.id, id), eq(companyEvents.ownerId, ownerId)),
-      )
+      .where(and(eq(companyEvents.id, id), eq(companyEvents.ownerId, ownerId)))
       .returning({ id: companyEvents.id });
     if (!row) {
       throw new NotFoundException(`CompanyEvent ${id} not found`);

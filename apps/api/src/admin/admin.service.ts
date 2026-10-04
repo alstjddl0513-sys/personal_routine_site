@@ -103,9 +103,7 @@ export class AdminService {
           .from(profiles)
           .where(inArray(profiles.id, ids))
       : [];
-    const nicknameById = new Map(
-      nicknameRows.map((r) => [r.id, r.nickname]),
-    );
+    const nicknameById = new Map(nicknameRows.map((r) => [r.id, r.nickname]));
     const adminIds = parseAdminUserIds(this.config);
 
     const mappedRows: AdminUserRow[] = authUsers.map((u) => ({
@@ -288,7 +286,9 @@ export class AdminService {
     });
   }
 
-  async createAnnouncement(dto: CreateAnnouncementDto): Promise<AdminAnnouncement> {
+  async createAnnouncement(
+    dto: CreateAnnouncementDto,
+  ): Promise<AdminAnnouncement> {
     const created = await db.transaction(async (tx) => {
       const [row] = await tx
         .insert(announcements)
@@ -324,56 +324,63 @@ export class AdminService {
     id: string,
     dto: UpdateAnnouncementDto,
   ): Promise<AdminAnnouncement> {
-    return db.transaction(async (tx) => {
-      const [current] = await tx
-        .select()
-        .from(announcements)
-        .where(eq(announcements.id, id))
-        .limit(1);
-      if (!current) throw new NotFoundException(`announcement ${id} not found`);
+    return db
+      .transaction(async (tx) => {
+        const [current] = await tx
+          .select()
+          .from(announcements)
+          .where(eq(announcements.id, id))
+          .limit(1);
+        if (!current)
+          throw new NotFoundException(`announcement ${id} not found`);
 
-      const patch: Record<string, unknown> = { updatedAt: new Date() };
-      if (dto.kind !== undefined) patch.kind = dto.kind;
-      if (dto.title !== undefined) patch.title = dto.title;
-      if (dto.body !== undefined) patch.body = dto.body;
-      if (dto.isActive !== undefined) patch.isActive = dto.isActive;
-      if (dto.startsAt !== undefined) patch.startsAt = this.parseDate(dto.startsAt);
-      if (dto.endsAt !== undefined) patch.endsAt = this.parseDate(dto.endsAt);
+        const patch: Record<string, unknown> = { updatedAt: new Date() };
+        if (dto.kind !== undefined) patch.kind = dto.kind;
+        if (dto.title !== undefined) patch.title = dto.title;
+        if (dto.body !== undefined) patch.body = dto.body;
+        if (dto.isActive !== undefined) patch.isActive = dto.isActive;
+        if (dto.startsAt !== undefined)
+          patch.startsAt = this.parseDate(dto.startsAt);
+        if (dto.endsAt !== undefined) patch.endsAt = this.parseDate(dto.endsAt);
 
-      const [row] = await tx
-        .update(announcements)
-        .set(patch)
-        .where(eq(announcements.id, id))
-        .returning();
+        const [row] = await tx
+          .update(announcements)
+          .set(patch)
+          .where(eq(announcements.id, id))
+          .returning();
 
-      // targetUserIds 명시적으로 오면 완전 교체. undefined면 유지.
-      let effectiveTargets: string[];
-      if (dto.targetUserIds !== undefined) {
-        await tx
-          .delete(announcementTargets)
-          .where(eq(announcementTargets.announcementId, id));
-        if (dto.targetUserIds.length > 0) {
-          await tx.insert(announcementTargets).values(
-            dto.targetUserIds.map((userId) => ({
-              announcementId: id,
-              userId,
-            })),
-          );
+        // targetUserIds 명시적으로 오면 완전 교체. undefined면 유지.
+        let effectiveTargets: string[];
+        if (dto.targetUserIds !== undefined) {
+          await tx
+            .delete(announcementTargets)
+            .where(eq(announcementTargets.announcementId, id));
+          if (dto.targetUserIds.length > 0) {
+            await tx.insert(announcementTargets).values(
+              dto.targetUserIds.map((userId) => ({
+                announcementId: id,
+                userId,
+              })),
+            );
+          }
+          effectiveTargets = dto.targetUserIds;
+        } else {
+          const existing = await tx
+            .select({ userId: announcementTargets.userId })
+            .from(announcementTargets)
+            .where(eq(announcementTargets.announcementId, id));
+          effectiveTargets = existing.map((e) => e.userId);
         }
-        effectiveTargets = dto.targetUserIds;
-      } else {
-        const existing = await tx
-          .select({ userId: announcementTargets.userId })
-          .from(announcementTargets)
-          .where(eq(announcementTargets.announcementId, id));
-        effectiveTargets = existing.map((e) => e.userId);
-      }
 
-      return { row, effectiveTargets };
-    }).then(async ({ row, effectiveTargets }) => {
-      const stats = await this.computeAnnouncementStats(row.id, effectiveTargets);
-      return { ...this.toAnnouncement(row, effectiveTargets), stats };
-    });
+        return { row, effectiveTargets };
+      })
+      .then(async ({ row, effectiveTargets }) => {
+        const stats = await this.computeAnnouncementStats(
+          row.id,
+          effectiveTargets,
+        );
+        return { ...this.toAnnouncement(row, effectiveTargets), stats };
+      });
   }
 
   async removeAnnouncement(id: string): Promise<void> {

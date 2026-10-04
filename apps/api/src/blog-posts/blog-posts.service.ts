@@ -27,7 +27,10 @@ export class BlogPostsService {
       .select()
       .from(blogPosts)
       .where(and(...conditions))
-      .orderBy(sql`${blogPosts.publishedAt} DESC NULLS LAST`, desc(blogPosts.createdAt))
+      .orderBy(
+        sql`${blogPosts.publishedAt} DESC NULLS LAST`,
+        desc(blogPosts.createdAt),
+      )
       .limit(query.limit ?? DEFAULT_LIMIT)
       .offset(query.offset ?? 0);
   }

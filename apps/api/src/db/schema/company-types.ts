@@ -1,4 +1,12 @@
-import { boolean, integer, pgTable, text, timestamp, unique, uuid } from 'drizzle-orm/pg-core';
+import {
+  boolean,
+  integer,
+  pgTable,
+  text,
+  timestamp,
+  unique,
+  uuid,
+} from 'drizzle-orm/pg-core';
 
 // User-editable list of company_type_2 values (서비스/솔루션/SI/…).
 // Previously a Postgres enum, moved to a table so the user can add/remove
@@ -24,8 +32,12 @@ export const companyTypes = pgTable(
     // Not enforced — the row can still be deleted like any other.
     isDefault: boolean('is_default').notNull().default(false),
 
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (t) => [unique('company_types_owner_key_uq').on(t.ownerId, t.key)],
 );

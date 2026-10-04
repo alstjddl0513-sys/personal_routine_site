@@ -1,5 +1,11 @@
 import { Transform } from 'class-transformer';
-import { ArrayMaxSize, ArrayMinSize, IsString, IsUUID, Matches } from 'class-validator';
+import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsString,
+  IsUUID,
+  Matches,
+} from 'class-validator';
 
 // /workouts 페이지 진입 시 종목별 previous + PR을 한 번의 왕복으로 받기 위한
 // 배치 endpoint의 query DTO. 개별 GET /workout-sets/previous?exerciseId=...
@@ -9,9 +15,12 @@ import { ArrayMaxSize, ArrayMinSize, IsString, IsUUID, Matches } from 'class-val
 // exerciseIds는 CSV로 전달 (URL 길이는 종목 30개 기준 ~1.2KB, 안전 범위).
 // max 100은 페이지가 실질적으로 다룰 상한.
 export class QuerySessionContextDto {
-  @Transform(({ value }) =>
+  @Transform(({ value }): unknown =>
     typeof value === 'string'
-      ? value.split(',').map((s) => s.trim()).filter(Boolean)
+      ? value
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
       : value,
   )
   @IsUUID('all', { each: true })

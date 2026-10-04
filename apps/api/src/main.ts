@@ -6,7 +6,10 @@ import { AppModule } from './app.module';
 
 function parseOrigins(raw: string | undefined): string[] {
   if (!raw) return ['http://localhost:3000'];
-  return raw.split(',').map((s) => s.trim()).filter(Boolean);
+  return raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
 }
 
 async function bootstrap() {

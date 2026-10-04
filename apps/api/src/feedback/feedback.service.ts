@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { desc, eq, inArray } from 'drizzle-orm';
-import type { AdminFeedback, Feedback, FeedbackCategory } from '@repo/shared';
+import type { AdminFeedback, Feedback } from '@repo/shared';
 import { db } from '../db/client';
 import { feedback, profiles } from '../db/schema';
 import { getSupabaseAdmin } from '../supabase-admin';
@@ -68,14 +68,19 @@ export class FeedbackService {
     }
   }
 
-  private async loadEmails(userIds: string[]): Promise<Map<string, string | null>> {
+  private async loadEmails(
+    userIds: string[],
+  ): Promise<Map<string, string | null>> {
     const admin = getSupabaseAdmin();
     const perPage = 200;
     const need = new Set(userIds);
     const out = new Map<string, string | null>();
     let page = 1;
     while (need.size > 0) {
-      const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
+      const { data, error } = await admin.auth.admin.listUsers({
+        page,
+        perPage,
+      });
       if (error) {
         throw new InternalServerErrorException(
           `feedback loadEmails failed: ${error.message}`,
@@ -97,7 +102,7 @@ export class FeedbackService {
     return {
       id: row.id,
       userId: row.userId,
-      category: row.category as FeedbackCategory,
+      category: row.category,
       body: row.body,
       page: row.page,
       version: row.version,

@@ -80,7 +80,7 @@ export function ChallengesList({ challenges, blocks }: Props) {
 
       {activeList.length === 0 && pastList.length === 0 ? (
         <div className="rounded-md border border-dashed border-zinc-300 p-6 text-center text-xs text-zinc-500 dark:border-zinc-700">
-          "100일 아침 운동" 같은 목표를 세워보세요.
+          {'"100일 아침 운동" 같은 목표를 세워보세요.'}
         </div>
       ) : null}
 

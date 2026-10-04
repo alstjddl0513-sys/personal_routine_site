@@ -77,9 +77,7 @@ export const announcementReads = pgTable(
     announcementId: uuid('announcement_id')
       .notNull()
       .references(() => announcements.id, { onDelete: 'cascade' }),
-    readAt: timestamp('read_at', { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    readAt: timestamp('read_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     primaryKey({ columns: [t.userId, t.announcementId] }),

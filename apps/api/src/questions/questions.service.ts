@@ -1,5 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { and, asc, desc, eq, gte, inArray, lte, ne, sql, type SQL } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  gte,
+  inArray,
+  lte,
+  ne,
+  sql,
+  type SQL,
+} from 'drizzle-orm';
 import { db } from '../db/client';
 import { questionLogs, questions } from '../db/schema';
 import type { CreateQuestionDto } from './dto/create-question.dto';
@@ -197,12 +208,20 @@ export class QuestionsService {
       .where(
         and(
           eq(questionLogs.ownerId, ownerId),
-          gte(sql`(${questionLogs.updatedAt} AT TIME ZONE 'Asia/Seoul')::date`, query.from),
-          lte(sql`(${questionLogs.updatedAt} AT TIME ZONE 'Asia/Seoul')::date`, query.to),
+          gte(
+            sql`(${questionLogs.updatedAt} AT TIME ZONE 'Asia/Seoul')::date`,
+            query.from,
+          ),
+          lte(
+            sql`(${questionLogs.updatedAt} AT TIME ZONE 'Asia/Seoul')::date`,
+            query.to,
+          ),
         ),
       )
       .groupBy(sql`(${questionLogs.updatedAt} AT TIME ZONE 'Asia/Seoul')::date`)
-      .orderBy(sql`(${questionLogs.updatedAt} AT TIME ZONE 'Asia/Seoul')::date`);
+      .orderBy(
+        sql`(${questionLogs.updatedAt} AT TIME ZONE 'Asia/Seoul')::date`,
+      );
     return rows;
   }
 
@@ -284,7 +303,8 @@ export class QuestionsService {
     if (dto.content !== undefined) patch.content = dto.content;
     if (dto.answer !== undefined) patch.answer = dto.answer;
     if (dto.tip !== undefined) patch.tip = dto.tip ?? null;
-    if (dto.categoryKey !== undefined) patch.categoryKey = dto.categoryKey ?? null;
+    if (dto.categoryKey !== undefined)
+      patch.categoryKey = dto.categoryKey ?? null;
 
     const [row] = await db
       .update(questions)

@@ -47,7 +47,8 @@ export async function fetchRssItems(rssUrl: string): Promise<RssItem[]> {
 
     const dateStr = it.isoDate ?? it.pubDate;
     const published = dateStr ? new Date(dateStr) : null;
-    const publishedAt = published && !isNaN(published.getTime()) ? published : null;
+    const publishedAt =
+      published && !isNaN(published.getTime()) ? published : null;
 
     items.push({ title, url, summary, publishedAt });
   }

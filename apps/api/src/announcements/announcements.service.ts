@@ -28,10 +28,7 @@ export class AnnouncementsService {
       .where(
         and(
           eq(announcements.isActive, true),
-          or(
-            isNull(announcements.startsAt),
-            lte(announcements.startsAt, now),
-          ),
+          or(isNull(announcements.startsAt), lte(announcements.startsAt, now)),
           or(isNull(announcements.endsAt), gt(announcements.endsAt, now)),
         ),
       )

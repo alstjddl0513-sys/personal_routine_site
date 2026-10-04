@@ -78,4 +78,3 @@ export class ProfilesController {
     return { available };
   }
 }
-

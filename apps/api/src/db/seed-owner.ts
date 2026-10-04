@@ -51,9 +51,17 @@ async function main() {
     { name: 'time_blocks', table: timeBlocks, col: timeBlocks.ownerId },
     { name: 'day_notes', table: dayNotes, col: dayNotes.ownerId },
     { name: 'exercises', table: exercises, col: exercises.ownerId },
-    { name: 'workout_sessions', table: workoutSessions, col: workoutSessions.ownerId },
+    {
+      name: 'workout_sessions',
+      table: workoutSessions,
+      col: workoutSessions.ownerId,
+    },
     { name: 'blog_sources', table: blogSources, col: blogSources.ownerId },
-    { name: 'routine_checks', table: routineChecks, col: routineChecks.ownerId },
+    {
+      name: 'routine_checks',
+      table: routineChecks,
+      col: routineChecks.ownerId,
+    },
     { name: 'workout_sets', table: workoutSets, col: workoutSets.ownerId },
     { name: 'blog_posts', table: blogPosts, col: blogPosts.ownerId },
   ] as const;

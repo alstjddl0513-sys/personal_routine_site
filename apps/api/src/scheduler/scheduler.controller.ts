@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Put,
-  Query,
-  Req,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Put, Query, Req } from '@nestjs/common';
 import { requireUserId, type AuthedRequest } from '../supabase-auth.guard';
 import { SchedulerService } from './scheduler.service';
 import { QueryRangeDto } from './dto/query-range.dto';

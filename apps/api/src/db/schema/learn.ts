@@ -74,9 +74,7 @@ export const questions = pgTable(
   // owner-only 쿼리(카테고리 필터 없음)도 prefix scan으로 이 인덱스 사용 가능.
   // 지금 규모(1-3 유저 · 각 ~500문항)에선 seq scan도 <5ms지만 유저·풀 증가에
   // 선형 대비용. hygiene 성격.
-  (t) => [
-    index('questions_owner_category_idx').on(t.ownerId, t.categoryKey),
-  ],
+  (t) => [index('questions_owner_category_idx').on(t.ownerId, t.categoryKey)],
 );
 
 // One log per (owner, question). Re-answering flips status via upsert

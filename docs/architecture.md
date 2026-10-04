@@ -82,7 +82,7 @@ Phase 12 이후 Postgres 호스팅 외에도 Supabase가 여러 층을 담당:
 |---|---|---|
 | Postgres | Phase 0 | 유일한 영속 계층 |
 | Auth (email/password + Google OAuth) | Phase 12.2·12.3 | Basic Auth 대체, JWKS/ES256 |
-| Row Level Security | Phase 12.4 | 유저별 데이터 격리 (4 정책 × 17 도메인 테이블 · 공지 3정책 특수) |
+| Row Level Security | Phase 12.4 | 유저별 데이터 격리 (owner_only 4정책 × 20+ 도메인 테이블. 공지 3개는 특수(target 전체 read·self-read), `routine_challenge_blocks`는 상위 챌린지 EXISTS 간접 보호) |
 | Storage | Phase 12.5C | `documents` private 버킷 (이력서·포트폴리오 PDF, 50MB) |
 
 붙이지 않은 것:

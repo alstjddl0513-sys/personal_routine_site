@@ -3,7 +3,6 @@ import type {
   AdminStatsOverview,
   AdminUsersPage,
   AdminAnnouncement,
-  Announcement,
   ApplicationStatus,
   BanDurationHours,
   BlogPost,

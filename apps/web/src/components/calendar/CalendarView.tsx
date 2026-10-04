@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import type { SchedulerEvent } from '@repo/shared';
 import type { MonthInfo } from '../../lib/routines-week';
@@ -23,7 +23,6 @@ export function CalendarView({
   initialSelectedIso,
   eventsByDate,
 }: Props) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [selectedIso, setSelectedIso] = useState<string | null>(
     initialSelectedIso,

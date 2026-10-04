@@ -1,5 +1,11 @@
 import { Transform } from 'class-transformer';
-import { ArrayMaxSize, IsArray, IsOptional, IsString, Matches } from 'class-validator';
+import {
+  ArrayMaxSize,
+  IsArray,
+  IsOptional,
+  IsString,
+  Matches,
+} from 'class-validator';
 
 export class QueryDailyDto {
   // Client sends the user's "today" (KST). Server uses this as the shuffle
@@ -11,9 +17,12 @@ export class QueryDailyDto {
   // CSV of category keys to filter by. Absent/empty = 전체.
   // Transform CSV → string[] before validation.
   @IsOptional()
-  @Transform(({ value }) =>
+  @Transform(({ value }): unknown =>
     typeof value === 'string'
-      ? value.split(',').map((s) => s.trim()).filter(Boolean)
+      ? value
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
       : value,
   )
   @IsArray()

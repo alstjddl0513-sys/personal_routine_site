@@ -27,10 +27,7 @@ export class ExercisesController {
   }
 
   @Get(':id')
-  findOne(
-    @Req() req: AuthedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  findOne(@Req() req: AuthedRequest, @Param('id', ParseUUIDPipe) id: string) {
     return this.service.findOne(requireUserId(req), id);
   }
 

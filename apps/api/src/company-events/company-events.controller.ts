@@ -22,10 +22,7 @@ export class CompanyEventsController {
   constructor(private readonly service: CompanyEventsService) {}
 
   @Get()
-  findAll(
-    @Req() req: AuthedRequest,
-    @Query() query: QueryCompanyEventsDto,
-  ) {
+  findAll(@Req() req: AuthedRequest, @Query() query: QueryCompanyEventsDto) {
     return this.service.findAll(requireUserId(req), query);
   }
 

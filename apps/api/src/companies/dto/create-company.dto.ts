@@ -57,7 +57,9 @@ export class CreateCompanyDto {
 
   @IsOptional()
   @IsString()
-  @Matches(HTTP_URL_REGEX, { message: 'postingUrl must start with http:// or https://' })
+  @Matches(HTTP_URL_REGEX, {
+    message: 'postingUrl must start with http:// or https://',
+  })
   @MaxLength(1000)
   postingUrl?: string;
 
@@ -83,7 +85,9 @@ export class CreateCompanyDto {
 
   @IsOptional()
   @IsString()
-  @Matches(HTTP_URL_REGEX, { message: 'applicationDocUrl must start with http:// or https://' })
+  @Matches(HTTP_URL_REGEX, {
+    message: 'applicationDocUrl must start with http:// or https://',
+  })
   @MaxLength(1000)
   applicationDocUrl?: string;
 

@@ -48,10 +48,7 @@ export class MuscleGoalsService {
     const [row] = await db
       .delete(muscleGoals)
       .where(
-        and(
-          eq(muscleGoals.ownerId, ownerId),
-          eq(muscleGoals.muscleKey, key),
-        ),
+        and(eq(muscleGoals.ownerId, ownerId), eq(muscleGoals.muscleKey, key)),
       )
       .returning({ id: muscleGoals.id });
     return row ? { id: row.id } : null;

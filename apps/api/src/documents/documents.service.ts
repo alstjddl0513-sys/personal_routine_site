@@ -27,12 +27,18 @@ export class DocumentsService {
   async findAll(ownerId: string, query: QueryDocumentsDto) {
     const conditions = [eq(documents.ownerId, ownerId)];
     if (query.kind) conditions.push(eq(documents.kind, query.kind));
-    return db
-      .select()
-      .from(documents)
-      .where(and(...conditions))
-      // 대표 문서를 위로, 그 다음 최신순
-      .orderBy(desc(documents.isActive), desc(documents.createdAt), asc(documents.id));
+    return (
+      db
+        .select()
+        .from(documents)
+        .where(and(...conditions))
+        // 대표 문서를 위로, 그 다음 최신순
+        .orderBy(
+          desc(documents.isActive),
+          desc(documents.createdAt),
+          asc(documents.id),
+        )
+    );
   }
 
   async findOne(ownerId: string, id: string) {
@@ -126,7 +132,10 @@ export class DocumentsService {
           .update(documents)
           .set({ isActive: false, updatedAt: new Date() })
           .where(
-            and(eq(documents.ownerId, ownerId), eq(documents.kind, current.kind)),
+            and(
+              eq(documents.ownerId, ownerId),
+              eq(documents.kind, current.kind),
+            ),
           );
       }
 

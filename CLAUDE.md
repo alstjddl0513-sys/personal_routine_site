@@ -5,8 +5,10 @@
 
 ## 프로젝트 개요
 - **사용자**: MVP는 본인 1인 전용이었으나 Phase 12(v0.4.0)부터 Supabase Auth로 다인화 인프라 도입
-- **탭**: 채용 리스트 / 루틴 트래커 / 운동 기록 / 기술 블로그 / 설정
-- **스택**: Next.js 16 App Router(프론트) + NestJS 11 + Drizzle ORM(백엔드) + Supabase(PostgreSQL, Auth) + `@repo/shared` 공용 타입
+- **탭 구성**:
+  - 데스크톱 사이드바(7): 스케쥴러(`/calendar`) · 채용 · 루틴[트래커·통계] · 운동 · 블로그 · 학습 · 설정
+  - 모바일 BottomNav(5+): 캘린더 / 채용 / 루틴 / 운동 / 학습 + ⋯ 더보기(블로그 · 설정)
+- **스택**: Next.js 16 App Router(프론트) + NestJS 11 + Drizzle ORM(백엔드) + Supabase(PostgreSQL, Auth, Storage) + `@repo/shared` 공용 타입
 - **배포**: Vercel(web) + Render(api) + Supabase(db) — 전부 무료 티어. 상세는 `docs/deployment.md`
 
 ## 1. 계획 우선 (가장 중요)

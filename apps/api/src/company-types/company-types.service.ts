@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { and, asc, eq } from 'drizzle-orm';
 import { db } from '../db/client';
 import { companyTypes } from '../db/schema';
@@ -31,9 +35,12 @@ export class CompanyTypesService {
     const existing = await db
       .select({ id: companyTypes.id })
       .from(companyTypes)
-      .where(and(eq(companyTypes.key, dto.key), eq(companyTypes.ownerId, ownerId)))
+      .where(
+        and(eq(companyTypes.key, dto.key), eq(companyTypes.ownerId, ownerId)),
+      )
       .limit(1);
-    if (existing.length) throw new ConflictException(`key "${dto.key}"가 이미 있음`);
+    if (existing.length)
+      throw new ConflictException(`key "${dto.key}"가 이미 있음`);
 
     const [row] = await db
       .insert(companyTypes)
