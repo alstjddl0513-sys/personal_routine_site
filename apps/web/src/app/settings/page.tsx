@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import {
   BookOpen,
-  CalendarClock,
   ChevronRight,
   Download,
   Dumbbell,
@@ -26,7 +25,8 @@ import { ThemeToggle } from '../../components/ThemeToggle';
 import { getMyProfile } from '../../lib/api';
 import { APP_VERSION } from '../../lib/version';
 
-// 관리 카드의 sub-group. 사이드바 탭 순서(채용/루틴/운동/학습/블로그) 그대로.
+// 관리 카드의 sub-group. 사이드바 탭 순서(채용/운동/학습/블로그) 그대로.
+// 루틴 블록은 /routines에서 직접 편집·재정렬 가능 → 별도 관리 페이지 불필요.
 // 각 sub-group은 SubHeader + N개의 SettingsLink. 마지막 링크는 border-b 생략.
 const MANAGEMENT_GROUPS: {
   title: string;
@@ -51,17 +51,6 @@ const MANAGEMENT_GROUPS: {
         icon: FileText,
         title: '이력서·포폴 관리',
         desc: '여러 버전을 저장하고 대표 문서를 지정해두세요.',
-      },
-    ],
-  },
-  {
-    title: '루틴',
-    items: [
-      {
-        href: '/settings/time-blocks',
-        icon: CalendarClock,
-        title: '시간블록 관리',
-        desc: '하루 루틴의 시간블록을 원하는 순서로 배치해요.',
       },
     ],
   },
@@ -116,13 +105,7 @@ const MANAGEMENT_GROUPS: {
 // SSR에서 프로필을 읽어 상단 카드로 렌더. md 이상에서는 사이드바가 담당하므로 숨김.
 export default async function SettingsPage() {
   const profile = await getMyProfile().catch(() => null);
-
-  // 마지막 관리 항목 여부 판단용 flat 인덱스 (border-b 생략에 사용).
-  const totalManagementItems = MANAGEMENT_GROUPS.reduce(
-    (sum, g) => sum + g.items.length,
-    0,
-  );
-  let flatIdx = 0;
+  const lastGroupIdx = MANAGEMENT_GROUPS.length - 1;
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 p-6">
@@ -163,9 +146,9 @@ export default async function SettingsPage() {
         {MANAGEMENT_GROUPS.map((group, gi) => (
           <div key={group.title}>
             <SubHeader isFirst={gi === 0}>{group.title}</SubHeader>
-            {group.items.map((item) => {
-              flatIdx += 1;
-              const isLast = flatIdx === totalManagementItems;
+            {group.items.map((item, ii) => {
+              const isLast =
+                gi === lastGroupIdx && ii === group.items.length - 1;
               return (
                 <SettingsLink
                   key={item.href}

@@ -12,7 +12,11 @@ async function main() {
     throw new Error('DATABASE_URL is not set. Check the root .env file.');
   }
 
-  const migrationClient = postgres(url, { max: 1, prepare: false, ssl: 'require' });
+  const migrationClient = postgres(url, {
+    max: 1,
+    prepare: false,
+    ssl: 'require',
+  });
   const db = drizzle(migrationClient);
 
   console.log('Running migrations...');

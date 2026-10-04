@@ -3,13 +3,14 @@ import type {
   AdminStatsOverview,
   AdminUsersPage,
   AdminAnnouncement,
-  Announcement,
   ApplicationStatus,
   BanDurationHours,
   BlogPost,
   BlogRefreshResult,
   BlogSource,
   Company,
+  CompanyEvent,
+  CompanyEventType,
   CompanyType,
   CompanyType1,
   CreateAnnouncementInput,
@@ -28,6 +29,11 @@ import type {
   Profile,
   Question,
   QuestionCategory,
+  RoutineChallenge,
+  RoutineChallengeStatus,
+  RoutineChallengeWithProgress,
+  SchedulerEvent,
+  SchedulerMemo,
   QuestionDetail,
   QuestionHeatmapEntry,
   QuestionLog,
@@ -218,6 +224,148 @@ export async function patchCompany(id: string, patch: CompanyPatch): Promise<Com
     );
   }
   return (await res.json()) as Company;
+}
+
+// --- company events (스케쥴러 PR B) ---
+
+export async function getCompanyEvents(filters: {
+  companyId?: string;
+  from?: string;
+  to?: string;
+} = {}): Promise<CompanyEvent[]> {
+  const params = new URLSearchParams();
+  if (filters.companyId) params.set('companyId', filters.companyId);
+  if (filters.from) params.set('from', filters.from);
+  if (filters.to) params.set('to', filters.to);
+  const qs = params.toString();
+  const res = await fetch(
+    apiUrl(`/company-events${qs ? `?${qs}` : ''}`),
+    { cache: 'no-store', headers: await authHeaders() },
+  );
+  if (!res.ok) throw new Error(`GET /company-events failed: HTTP ${res.status}`);
+  return (await res.json()) as CompanyEvent[];
+}
+
+export async function createCompanyEvent(input: {
+  companyId: string;
+  date: string;
+  type: CompanyEventType;
+  note?: string;
+}): Promise<CompanyEvent> {
+  const res = await fetch(apiUrl('/company-events'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(`POST /company-events failed: HTTP ${res.status}`);
+  return (await res.json()) as CompanyEvent;
+}
+
+export async function patchCompanyEvent(
+  id: string,
+  patch: Partial<{ date: string; type: CompanyEventType; note: string | null }>,
+): Promise<CompanyEvent> {
+  const res = await fetch(apiUrl(`/company-events/${id}`), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok) throw new Error(`PATCH /company-events/${id} failed: HTTP ${res.status}`);
+  return (await res.json()) as CompanyEvent;
+}
+
+export async function deleteCompanyEvent(id: string): Promise<void> {
+  const res = await fetch(apiUrl(`/company-events/${id}`), {
+    method: 'DELETE',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) throw new Error(`DELETE /company-events/${id} failed: HTTP ${res.status}`);
+}
+
+// --- routine challenges (D-day) ---
+
+export async function getRoutineChallenges(
+  status?: RoutineChallengeStatus,
+): Promise<RoutineChallengeWithProgress[]> {
+  const qs = status ? `?status=${status}` : '';
+  const res = await fetch(apiUrl(`/routine-challenges${qs}`), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) throw new Error(`GET /routine-challenges failed: HTTP ${res.status}`);
+  return (await res.json()) as RoutineChallengeWithProgress[];
+}
+
+// POST/PATCH는 progress 필드 없이 base RoutineChallenge만 반환 (서버가 계산 생략).
+// GET만 progress 포함. 로컬 state 업데이트 시 호출자가 기존 progress를 유지해서 머지.
+export async function createRoutineChallenge(input: {
+  title: string;
+  startDate: string;
+  targetDays: number;
+  blockIds: string[];
+}): Promise<RoutineChallenge> {
+  const res = await fetch(apiUrl('/routine-challenges'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new HttpError(
+      `POST /routine-challenges failed: HTTP ${res.status}${body ? ` — ${body}` : ''}`,
+      res.status,
+    );
+  }
+  return (await res.json()) as RoutineChallenge;
+}
+
+export async function patchRoutineChallenge(
+  id: string,
+  patch: Partial<{ title: string; status: RoutineChallengeStatus }>,
+): Promise<RoutineChallenge> {
+  const res = await fetch(apiUrl(`/routine-challenges/${id}`), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok) throw new Error(`PATCH /routine-challenges/${id} failed: HTTP ${res.status}`);
+  return (await res.json()) as RoutineChallenge;
+}
+
+export async function deleteRoutineChallenge(id: string): Promise<void> {
+  const res = await fetch(apiUrl(`/routine-challenges/${id}`), {
+    method: 'DELETE',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) throw new Error(`DELETE /routine-challenges/${id} failed: HTTP ${res.status}`);
+}
+
+// --- scheduler (PR C: /calendar) ---
+
+export async function getSchedulerEvents(
+  from: string,
+  to: string,
+): Promise<SchedulerEvent[]> {
+  const params = new URLSearchParams({ from, to });
+  const res = await fetch(apiUrl(`/scheduler?${params.toString()}`), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) throw new Error(`GET /scheduler failed: HTTP ${res.status}`);
+  return (await res.json()) as SchedulerEvent[];
+}
+
+export async function upsertSchedulerMemo(
+  date: string,
+  content: string,
+): Promise<SchedulerMemo> {
+  const res = await fetch(apiUrl(`/scheduler/memos/${date}`), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify({ content }),
+  });
+  if (!res.ok) throw new Error(`PUT /scheduler/memos/${date} failed: HTTP ${res.status}`);
+  return (await res.json()) as SchedulerMemo;
 }
 
 // --- routines ---

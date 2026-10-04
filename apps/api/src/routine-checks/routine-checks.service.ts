@@ -35,7 +35,8 @@ export class RoutineChecksService {
           and(eq(timeBlocks.id, dto.blockId), eq(timeBlocks.ownerId, ownerId)),
         )
         .limit(1);
-      if (!block) throw new NotFoundException(`TimeBlock ${dto.blockId} not found`);
+      if (!block)
+        throw new NotFoundException(`TimeBlock ${dto.blockId} not found`);
 
       // Idempotent insert: if already checked, do nothing.
       await db

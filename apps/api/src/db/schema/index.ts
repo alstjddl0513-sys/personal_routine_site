@@ -1,5 +1,6 @@
 export * from './announcements';
 export * from './blog';
+export * from './challenges';
 export * from './companies';
 export * from './company-types';
 export * from './documents';
@@ -7,4 +8,5 @@ export * from './feedback';
 export * from './learn';
 export * from './profiles';
 export * from './routines';
+export * from './scheduler';
 export * from './workouts';

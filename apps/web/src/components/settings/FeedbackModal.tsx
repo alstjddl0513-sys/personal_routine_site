@@ -29,6 +29,13 @@ const CATEGORY_OPTIONS: SelectOption[] = FEEDBACK_CATEGORIES.map((c) => ({
 // 유저는 카테고리 + 자유 텍스트만 입력. path/version/user_id는 자동 첨부.
 // 성공 시 인라인 감사 메시지 후 자동 닫힘.
 export function FeedbackModal({ open, onClose }: Props) {
+  // open 토글 시 Body가 unmount/remount → useState 초기값으로 자연 리셋.
+  // 과거엔 useEffect 안에서 setState로 리셋했는데 React Compiler 룰 위반.
+  if (!open) return null;
+  return <FeedbackModalBody onClose={onClose} />;
+}
+
+function FeedbackModalBody({ onClose }: { onClose: () => void }) {
   const pathname = usePathname();
   const [category, setCategory] = useState<FeedbackCategory>('suggestion');
   const [body, setBody] = useState('');
@@ -36,14 +43,8 @@ export function FeedbackModal({ open, onClose }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
-  // 모달 열릴 때 초기화. Esc + body scroll lock은 NotifSettingsModal 패턴 미러.
+  // Esc 닫기 + body scroll lock. 외부 부수효과만 담당 (state 리셋 없음).
   useEffect(() => {
-    if (!open) return;
-    setCategory('suggestion');
-    setBody('');
-    setError(null);
-    setDone(false);
-    setSubmitting(false);
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose();
     }
@@ -54,7 +55,7 @@ export function FeedbackModal({ open, onClose }: Props) {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = prev;
     };
-  }, [open, onClose]);
+  }, [onClose]);
 
   // 성공 후 1.5초 뒤 자동 닫힘.
   useEffect(() => {
@@ -62,8 +63,6 @@ export function FeedbackModal({ open, onClose }: Props) {
     const t = setTimeout(() => onClose(), 1500);
     return () => clearTimeout(t);
   }, [done, onClose]);
-
-  if (!open) return null;
 
   const trimmed = body.trim();
   const canSubmit = trimmed.length > 0 && trimmed.length <= BODY_MAX && !submitting;

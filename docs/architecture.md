@@ -82,7 +82,7 @@ Phase 12 이후 Postgres 호스팅 외에도 Supabase가 여러 층을 담당:
 |---|---|---|
 | Postgres | Phase 0 | 유일한 영속 계층 |
 | Auth (email/password + Google OAuth) | Phase 12.2·12.3 | Basic Auth 대체, JWKS/ES256 |
-| Row Level Security | Phase 12.4 | 유저별 데이터 격리 (4 정책 × 17 도메인 테이블 · 공지 3정책 특수) |
+| Row Level Security | Phase 12.4 | 유저별 데이터 격리 (owner_only 4정책 × 20+ 도메인 테이블. 공지 3개는 특수(target 전체 read·self-read), `routine_challenge_blocks`는 상위 챌린지 EXISTS 간접 보호) |
 | Storage | Phase 12.5C | `documents` private 버킷 (이력서·포트폴리오 PDF, 50MB) |
 
 붙이지 않은 것:
@@ -114,6 +114,7 @@ Phase 12 이후 Postgres 호스팅 외에도 Supabase가 여러 층을 담당:
 | JWT verify | **jose** | jsonwebtoken (+jwks-rsa) | 프로젝트가 JWKS(ES256/ECC P-256)로 서명 → `createRemoteJWKSet`으로 공개키 자동 fetch·캐싱·회전 대응. jsonwebtoken은 HS256 콜백 API 시절 표준이지만 JWKS 쓰려면 별도 lib 조합 필요. jose는 zero-deps + native async + TS 우선 |
 | Rate limit | **@nestjs/throttler** | 수제 미들웨어, express-rate-limit, Redis 기반 | 공식 Nest 통합, 데코레이터로 엔드포인트별 세밀 제어(`@Throttle`). 인메모리라 무료 티어 재시작마다 초기화되지만 스크레이핑 방지 목적엔 충분. 다중 인스턴스 되면 Redis storage 어댑터로 교체 |
 | 배포 브랜치 전략 | **feat → develop → main** | trunk-based, GitFlow full | main은 배포 지점(자동 재배포), develop은 통합 줄기. 1인이라 무거운 GitFlow는 과함 |
+| 드래그 앤 드롭 | **@dnd-kit** (core/sortable/utilities) | react-beautiful-dnd(archived), react-dnd(HTML5 백엔드 중심·터치 어색), native HTML5 DnD(모바일 미지원) | React 19/Next 16 호환, 포인터·터치·키보드 센서 표준 제공, headless라 Tailwind 스타일 유지. `TimeBlocksManager`에서 ↑/↓ 버튼 대신 드래그로 재정렬 — 블록 10개 넘어가면 클릭 왕복보다 훨씬 편함 |
 
 ## 관련 문서
 

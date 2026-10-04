@@ -1,4 +1,11 @@
-import { index, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import {
+  index,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from 'drizzle-orm/pg-core';
 
 // 유저가 /settings에서 보내는 인앱 피드백. 편집·삭제 UI 없이 immutable.
 // user_id FK to auth.users(id) ON DELETE CASCADE + RLS는 마이그 raw SQL에서 부여.

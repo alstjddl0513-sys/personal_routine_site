@@ -9,10 +9,7 @@ import type { QueryTimeBlocksDto } from './dto/query-time-blocks.dto';
 @Injectable()
 export class TimeBlocksService {
   async findAll(ownerId: string, query: QueryTimeBlocksDto) {
-    const q = db
-      .select()
-      .from(timeBlocks)
-      .orderBy(asc(timeBlocks.sortOrder));
+    const q = db.select().from(timeBlocks).orderBy(asc(timeBlocks.sortOrder));
     if (query.includeArchived) {
       return q.where(eq(timeBlocks.ownerId, ownerId));
     }

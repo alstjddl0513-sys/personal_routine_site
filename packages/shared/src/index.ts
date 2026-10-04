@@ -138,6 +138,103 @@ export interface DayNote {
   updatedAt: string;
 }
 
+// --- routine challenges (D-day) ---
+
+export const ROUTINE_CHALLENGE_STATUSES = [
+  'active',
+  'completed',
+  'abandoned',
+] as const;
+export type RoutineChallengeStatus = (typeof ROUTINE_CHALLENGE_STATUSES)[number];
+
+// 활성 챌린지 최대 개수. 1인 집중 트래커 성격이라 너무 많으면 흐지부지.
+// 완료/포기 상태는 카운트에서 제외.
+// 3개: 밀러의 법칙(4±1), GTD 류 "일일 중요 과제 3개" 룰, 데스크톱 3열 그리드
+// 한 줄 정확히 맞음, 희소성이 완주 가치 ↑. 사용자가 답답해하면 늘리기 쉬움.
+export const MAX_ACTIVE_CHALLENGES = 3;
+
+export const ROUTINE_CHALLENGE_STATUS_LABELS: Record<
+  RoutineChallengeStatus,
+  string
+> = {
+  active: '진행중',
+  completed: '완료',
+  abandoned: '포기',
+};
+
+export interface RoutineChallenge {
+  id: string;
+  title: string;
+  startDate: string; // YYYY-MM-DD
+  targetDays: number;
+  blockIds: string[];
+  status: RoutineChallengeStatus;
+  completedAt: string | null;
+  abandonedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// GET /routine-challenges가 반환하는 shape — 진행률 계산치 포함.
+export interface RoutineChallengeWithProgress extends RoutineChallenge {
+  // start_date부터 오늘까지 "모든 blockIds가 체크된 날"의 수.
+  successDays: number;
+  // targetDays - successDays (음수면 초과 달성 — 자동 completed 전환).
+  remainingDays: number;
+}
+
+// --- scheduler ---
+
+export const COMPANY_EVENT_TYPES = [
+  'deadline',
+  'test',
+  'interview',
+  'announcement',
+  'other',
+] as const;
+export type CompanyEventType = (typeof COMPANY_EVENT_TYPES)[number];
+
+export const COMPANY_EVENT_TYPE_LABELS: Record<CompanyEventType, string> = {
+  deadline: '마감',
+  test: '시험',
+  interview: '면접',
+  announcement: '발표',
+  other: '기타',
+};
+
+export interface CompanyEvent {
+  id: string;
+  companyId: string;
+  date: string; // YYYY-MM-DD
+  type: CompanyEventType;
+  note: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SchedulerMemo {
+  date: string;
+  content: string;
+  updatedAt: string;
+}
+
+// 스케쥴러 월간 뷰에 뿌리는 통합 이벤트 타입. 서버가 jobs + memos를 합쳐 반환.
+// 향후 'milestone', 'routine_streak' 등 추가 쉽게.
+export type SchedulerEvent =
+  | {
+      kind: 'job';
+      date: string;
+      type: CompanyEventType;
+      companyId: string;
+      companyName: string;
+      note: string | null;
+    }
+  | {
+      kind: 'memo';
+      date: string;
+      content: string;
+    };
+
 // --- workouts ---
 
 export interface Exercise {
@@ -294,6 +391,11 @@ export interface NotifPreferences {
   deadline: boolean;
   routineEvening: boolean;
   workoutSkip: WorkoutSkipPreferences;
+  // 캘린더 이벤트(면접/시험/발표) D-3/D-1/당일 임박 알림. optional —
+  // 기존 유저 preferences엔 없으므로 서버 복원 시 DEFAULT로 fallback.
+  event?: boolean;
+  // 챌린지 완주 당일 축하 알림.
+  challengeCelebrate?: boolean;
 }
 
 // /learn·/learn/review·favorites의 카테고리 chip 필터를 서버에 저장.
@@ -320,6 +422,8 @@ export const DEFAULT_PREFERENCES: Preferences = {
     deadline: true,
     routineEvening: true,
     workoutSkip: { enabled: true, skipDays: 3 },
+    event: true,
+    challengeCelebrate: true,
   },
 };
 

@@ -1,6 +1,10 @@
 'use client';
 
-import { type Company, type CompanyType } from '@repo/shared';
+import {
+  type Company,
+  type CompanyEvent,
+  type CompanyType,
+} from '@repo/shared';
 import { PrioritySelect } from './cells/PrioritySelect';
 import { StatusSelect } from './cells/StatusSelect';
 import { HiringToggle } from './cells/HiringToggle';
@@ -9,16 +13,19 @@ import { UrlPopover } from './cells/UrlPopover';
 import { TypeSelect } from './cells/TypeSelect';
 import { SizeSelect } from './cells/SizeSelect';
 import { DeadlinePopover } from './cells/DeadlinePopover';
+import { EventsPopover } from './cells/EventsPopover';
 import { FavoriteToggle } from './cells/FavoriteToggle';
 import { DeleteRowButton } from './cells/DeleteRowButton';
 
 export function JobsTable({
   rows,
   companyTypes,
+  eventsByCompany,
   highlightId,
 }: {
   rows: Company[];
   companyTypes: CompanyType[];
+  eventsByCompany: Map<string, CompanyEvent[]>;
   highlightId?: string;
 }) {
   return (
@@ -26,21 +33,22 @@ export function JobsTable({
       <table className="w-full text-sm">
         <thead className="bg-zinc-50 text-xs text-zinc-500 dark:bg-zinc-900/60 dark:text-zinc-400">
           <tr>
-            <Th className="w-8" srOnly>
+            <Th className="w-8 px-1" srOnly>
               즐겨찾기
             </Th>
-            <Th align="left" className="pr-1">
+            <Th align="left" className="pl-1 pr-1">
               회사명
             </Th>
-            <Th>유형</Th>
-            <Th>규모</Th>
-            <Th>우선순위</Th>
-            <Th>채용중</Th>
-            <Th>지원상태</Th>
+            <Th className="px-3">유형</Th>
+            <Th className="px-3">규모</Th>
+            <Th className="px-3">우선순위</Th>
+            <Th className="px-3">채용중</Th>
+            <Th className="px-3">지원상태</Th>
             <Th>마감일</Th>
-            <Th className="pr-0">공고 링크</Th>
-            <Th className="pl-0">메모</Th>
-            <Th className="w-8" srOnly>
+            <Th className="px-2">일정</Th>
+            <Th className="px-2">공고 링크</Th>
+            <Th>메모</Th>
+            <Th className="w-8 px-1" srOnly>
               액션
             </Th>
           </tr>
@@ -56,35 +64,35 @@ export function JobsTable({
                   : ''
               }`}
             >
-              <Td>
+              <Td className="w-8 px-1">
                 <Center>
                   <FavoriteToggle id={c.id} value={c.isFavorite} />
                 </Center>
               </Td>
-              <Td className="w-1 pr-1 font-medium whitespace-nowrap">
+              <Td className="w-1 pl-1 pr-1 font-medium whitespace-nowrap">
                 {c.name}
               </Td>
-              <Td>
+              <Td className="px-3">
                 <Center>
                   <TypeSelect id={c.id} value={c.type2} types={companyTypes} />
                 </Center>
               </Td>
-              <Td>
+              <Td className="px-3">
                 <Center>
                   <SizeSelect id={c.id} value={c.type1} />
                 </Center>
               </Td>
-              <Td>
+              <Td className="px-3">
                 <Center>
                   <PrioritySelect id={c.id} value={c.priority} />
                 </Center>
               </Td>
-              <Td>
+              <Td className="px-3">
                 <Center>
                   <HiringToggle id={c.id} value={c.isHiring} />
                 </Center>
               </Td>
-              <Td>
+              <Td className="px-3">
                 <Center>
                   <StatusSelect id={c.id} value={c.applicationStatus} />
                 </Center>
@@ -94,17 +102,25 @@ export function JobsTable({
                   <DeadlinePopover id={c.id} value={c.applicationDeadline} isRolling={c.isRolling} />
                 </Center>
               </Td>
-              <Td className="pr-0">
+              <Td className="px-2">
+                <Center>
+                  <EventsPopover
+                    companyId={c.id}
+                    events={eventsByCompany.get(c.id) ?? []}
+                  />
+                </Center>
+              </Td>
+              <Td className="px-2">
                 <Center>
                   <UrlPopover id={c.id} value={c.postingUrl} />
                 </Center>
               </Td>
-              <Td className="pl-0">
+              <Td>
                 <Center>
                   <NotePopover id={c.id} value={c.note} />
                 </Center>
               </Td>
-              <Td>
+              <Td className="w-8 px-1">
                 <Center>
                   <DeleteRowButton id={c.id} name={c.name} />
                 </Center>
@@ -129,8 +145,9 @@ function Th({
   align?: 'left' | 'center';
 }) {
   const alignClass = align === 'center' ? 'text-center' : 'text-left';
+  // 패딩은 caller가 지정 (중간 pill 열은 px-2, 가장자리/텍스트 열은 px-3 등 유연하게).
   return (
-    <th className={`px-3 py-2 font-medium ${alignClass} ${className ?? ''}`}>
+    <th className={`py-2 font-medium ${alignClass} ${className ?? 'px-3'}`}>
       {srOnly ? <span className="sr-only">{children}</span> : children}
     </th>
   );
@@ -144,7 +161,7 @@ function Td({
   className?: string;
 }) {
   return (
-    <td className={`px-3 py-2 align-middle ${className ?? ''}`}>{children}</td>
+    <td className={`py-2 align-middle ${className ?? 'px-3'}`}>{children}</td>
   );
 }
 

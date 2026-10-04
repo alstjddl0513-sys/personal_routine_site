@@ -1,19 +1,17 @@
 import { Suspense } from 'react';
 import {
   getDayNotes,
+  getRoutineChallenges,
   getRoutineChecks,
   getTimeBlocks,
 } from '../../lib/api';
-import { addDays, parseISODate, toISODate, weekOf, type WeekInfo } from '../../lib/routines-week';
-import { calcBestDailyStreak, calcDailyStreak } from '../../lib/streak';
+import { parseISODate, weekOf, type WeekInfo } from '../../lib/routines-week';
+import { ChallengesList } from '../../components/routines/challenges/ChallengesList';
 import { RoutineDayView } from '../../components/routines/RoutineDayView';
 import { RoutineRetro } from '../../components/routines/RoutineRetro';
 import { RoutineTable } from '../../components/routines/RoutineTable';
 import { RoutineWeekNav } from '../../components/routines/RoutineWeekNav';
 import { Skeleton } from '../../components/Skeleton';
-import { StreakBadge } from '../../components/StreakBadge';
-
-const STREAK_WINDOW_DAYS = 180;
 
 function first(raw: string | string[] | undefined): string | undefined {
   return Array.isArray(raw) ? raw[0] : raw;
@@ -43,45 +41,37 @@ export default async function RoutinesPage({
 }
 
 async function RoutinesContent({ week }: { week: WeekInfo }) {
-  const today = new Date();
-  const streakFrom = addDays(today, -(STREAK_WINDOW_DAYS - 1));
-
   // Retro is one note per week, stored in day_notes keyed by the week's Monday.
-  const [blocks, checks, retroNotes, streakChecks] = await Promise.all([
+  const [blocks, checks, retroNotes, challenges] = await Promise.all([
     getTimeBlocks(),
     getRoutineChecks({ from: week.from, to: week.to }),
     getDayNotes({ from: week.from, to: week.from }),
-    getRoutineChecks({ from: toISODate(streakFrom), to: toISODate(today) }),
+    getRoutineChallenges(),
   ]);
   const retroContent = retroNotes[0]?.content ?? '';
 
-  // A day counts as "done" if any block was checked. Row existence = checked.
-  const successDays = new Set(streakChecks.map((c) => c.date));
-  const currentStreak = calcDailyStreak(successDays, today);
-  const bestStreak = calcBestDailyStreak(successDays, streakFrom, today);
-
   return (
     <>
-      <StreakBadge
-        label="루틴 스트릭"
-        current={currentStreak}
-        best={bestStreak}
-        unit="일"
-      />
+      {/* 챌린지: 데스크톱 상단(order-1), 모바일 2번째(order-2).
+          "지금 뭐에 도전 중인지" 즉시 인지. */}
+      <div className="order-2 md:order-1">
+        <ChallengesList challenges={challenges} blocks={blocks} />
+      </div>
 
-      <RoutineTable blocks={blocks} checks={checks} days={week.days} />
-      <RoutineDayView blocks={blocks} checks={checks} days={week.days} />
-
-      <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          이번주 회고
-        </h2>
+      {/* 회고: 데스크톱 하단(order-3), 모바일 하단(order-3). 일주일 돌아보는 성격이라
+          체크/챌린지 끝낸 후 마지막에 쓰기 좋음. */}
+      <div className="order-3 md:order-3">
         <RoutineRetro
           key={week.from}
           weekStart={week.from}
           initialContent={retroContent}
         />
-      </section>
+      </div>
+
+      {/* 트래커 테이블/DayView — 데스크톱 2번째(md:order-2는 RoutineTable 루트에),
+          모바일 가장 위(order-1는 RoutineDayView 루트에). */}
+      <RoutineTable blocks={blocks} checks={checks} days={week.days} />
+      <RoutineDayView blocks={blocks} checks={checks} days={week.days} />
     </>
   );
 }
@@ -89,10 +79,9 @@ async function RoutinesContent({ week }: { week: WeekInfo }) {
 function RoutinesSkeleton() {
   return (
     <>
-      <Skeleton className="h-16" />
-      <Skeleton className="h-72" />
-      <Skeleton className="h-40" />
+      <Skeleton className="h-32" />
       <Skeleton className="h-28" />
+      <Skeleton className="h-72" />
     </>
   );
 }

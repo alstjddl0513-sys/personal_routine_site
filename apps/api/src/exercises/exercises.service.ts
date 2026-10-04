@@ -14,10 +14,7 @@ import type { QueryExercisesDto } from './dto/query-exercises.dto';
 @Injectable()
 export class ExercisesService {
   async findAll(ownerId: string, query: QueryExercisesDto) {
-    const q = db
-      .select()
-      .from(exercises)
-      .orderBy(asc(exercises.sortOrder));
+    const q = db.select().from(exercises).orderBy(asc(exercises.sortOrder));
     if (query.includeArchived) return q.where(eq(exercises.ownerId, ownerId));
     return q.where(
       and(eq(exercises.ownerId, ownerId), eq(exercises.isArchived, false)),
@@ -62,7 +59,11 @@ export class ExercisesService {
   }
 
   async update(ownerId: string, id: string, dto: UpdateExerciseDto) {
-    if (dto.repMin !== undefined && dto.repMax !== undefined && dto.repMin > dto.repMax) {
+    if (
+      dto.repMin !== undefined &&
+      dto.repMax !== undefined &&
+      dto.repMin > dto.repMax
+    ) {
       throw new BadRequestException('repMin must be <= repMax');
     }
     const [row] = await db

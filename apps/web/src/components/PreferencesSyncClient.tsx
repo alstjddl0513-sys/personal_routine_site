@@ -13,6 +13,8 @@ import { CHANGE_EVENT_NAME as MASTER_EVENT } from '@/lib/notif-master';
 import { CHANGE_EVENT_NAME as MORNING_EVENT } from '@/lib/morning-summary';
 import { CHANGE_EVENT_NAME as ROUTINE_EVENT } from '@/lib/routine-reminder';
 import { CHANGE_EVENT_NAME as DEADLINE_EVENT } from '@/lib/deadline-notifier';
+import { CHANGE_EVENT_NAME as EVENT_NOTIF_EVENT } from '@/lib/event-notifier';
+import { CHANGE_EVENT_NAME as CHALLENGE_CELEBRATE_EVENT } from '@/lib/challenge-notifier';
 import {
   ENABLED_CHANGE_EVENT_NAME as WORKOUT_SKIP_ENABLED_EVENT,
   SKIP_DAYS_CHANGE_EVENT_NAME as WORKOUT_SKIP_DAYS_EVENT,
@@ -25,6 +27,8 @@ const CHANGE_EVENTS = [
   DEADLINE_EVENT,
   WORKOUT_SKIP_ENABLED_EVENT,
   WORKOUT_SKIP_DAYS_EVENT,
+  EVENT_NOTIF_EVENT,
+  CHALLENGE_CELEBRATE_EVENT,
 ];
 
 const DEBOUNCE_MS = 800;

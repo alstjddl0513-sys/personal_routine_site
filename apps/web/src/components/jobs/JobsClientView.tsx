@@ -1,13 +1,14 @@
 'use client';
 
 import { usePathname, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   APPLICATION_STATUS_VALUES,
   COMPANY_TYPE_1_VALUES,
   PRIORITY_VALUES,
   type ApplicationStatus,
   type Company,
+  type CompanyEvent,
   type CompanyType,
   type CompanyType1,
   type Priority,
@@ -26,10 +27,12 @@ import { JobsTable } from './JobsTable';
 export function JobsClientView({
   allRows,
   companyTypes,
+  eventsByCompany,
   highlightId,
 }: {
   allRows: Company[];
   companyTypes: CompanyType[];
+  eventsByCompany: Map<string, CompanyEvent[]>;
   highlightId?: string;
 }) {
   const searchParams = useSearchParams();
@@ -50,15 +53,19 @@ export function JobsClientView({
 
   // External URL change (browser back, external nav) → resync. Internal
   // updates go through window.history.replaceState which does NOT re-trigger
-  // Next router state, so no ping-pong with the effect above.
-  useEffect(() => {
+  // Next router state, so no ping-pong. Render-phase diff pattern (React 공식):
+  // searchParams identity 변경을 감지해 render 중 setState — useEffect 쓰면
+  // react-hooks/set-state-in-effect 룰에 걸림.
+  const [prevSearchParams, setPrevSearchParams] = useState(searchParams);
+  if (searchParams !== prevSearchParams) {
+    setPrevSearchParams(searchParams);
     setType1Set(parseEnumSet(searchParams.get('type1'), COMPANY_TYPE_1_VALUES));
     setType2Set(parseCsvSet(searchParams.get('type2')));
     setPrioritySet(parseEnumSet(searchParams.get('priority'), PRIORITY_VALUES));
     setStatusSet(
       parseEnumSet(searchParams.get('status'), APPLICATION_STATUS_VALUES),
     );
-  }, [searchParams]);
+  }
 
   const clientFilters: JobsClientFilters = {
     type1: type1Set,
@@ -163,11 +170,13 @@ export function JobsClientView({
           <JobsTable
             rows={filteredRows}
             companyTypes={companyTypes}
+            eventsByCompany={eventsByCompany}
             highlightId={highlightId}
           />
           <JobsCards
             rows={filteredRows}
             companyTypes={companyTypes}
+            eventsByCompany={eventsByCompany}
             highlightId={highlightId}
           />
         </>

@@ -17,7 +17,9 @@ async function main() {
   }
   const ownerId = process.env.SEED_OWNER_ID;
   if (!ownerId) {
-    throw new Error('SEED_OWNER_ID is not set (Phase 12.4: owner_id NOT NULL).');
+    throw new Error(
+      'SEED_OWNER_ID is not set (Phase 12.4: owner_id NOT NULL).',
+    );
   }
 
   const client = postgres(url, { max: 1, prepare: false, ssl: 'require' });
@@ -36,7 +38,9 @@ async function main() {
 
     const missing = SEED.filter((s) => !existingUrls.has(s.rssUrl));
     if (missing.length === 0) {
-      console.log(`All ${SEED.length} seed sources already present. Nothing to do.`);
+      console.log(
+        `All ${SEED.length} seed sources already present. Nothing to do.`,
+      );
       return;
     }
 

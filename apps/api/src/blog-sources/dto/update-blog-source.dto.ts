@@ -20,13 +20,17 @@ export class UpdateBlogSourceDto {
 
   @IsOptional()
   @IsString()
-  @Matches(HTTP_URL_REGEX, { message: 'rssUrl must start with http:// or https://' })
+  @Matches(HTTP_URL_REGEX, {
+    message: 'rssUrl must start with http:// or https://',
+  })
   @MaxLength(500)
   rssUrl?: string;
 
   @IsOptional()
   @IsString()
-  @Matches(HTTP_URL_REGEX, { message: 'siteUrl must start with http:// or https://' })
+  @Matches(HTTP_URL_REGEX, {
+    message: 'siteUrl must start with http:// or https://',
+  })
   @MaxLength(500)
   siteUrl?: string | null;
 

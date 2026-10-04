@@ -120,6 +120,11 @@
 - 원인: `.next/` 캐시가 이전 브랜치의 라우트 기준 validator를 남겨둠
 - 해결: `rm -rf apps/web/.next` 후 다시 typecheck. 브랜치 자주 오갈 때 첫 typecheck에서 걸리면 의심
 
+### `@dnd-kit` `DndContext` SSR Hydration mismatch (`aria-describedby`)
+- 상황: 콘솔 "A tree hydrated but some attributes…" + diff가 `aria-describedby="DndDescribedBy-1"` ↔ `-2`
+- 원인: `DndContext`가 접근성 설명문 ID를 내부 counter로 생성 — 모듈 로드/렌더 순서가 서버/클라에서 미묘하게 달라지면 번호가 어긋남
+- 해결: `const id = useId(); <DndContext id={id} ...>` — React 19 `useId`로 안정적 ID 고정. 같은 페이지에 DndContext 여러 개(데스크톱/모바일 뷰)면 각각 넣기
+
 ### Turbopack: "next/headers를 client 번들에 include" 빌드 실패
 - 상황: `pnpm --filter web build` 시 `next/headers` 관련 에러 (App Router인데 Pages Router 언급은 오해 소지)
 - 원인: `lib/api.ts`의 `authHeaders()`에 dynamic import를 걸었지만 Turbopack이 dynamic import까지 모듈 그래프에 포함 → client 번들에 `next/headers` 딸려옴

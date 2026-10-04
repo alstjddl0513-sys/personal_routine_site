@@ -329,7 +329,9 @@ async function main() {
   }
   const ownerId = process.env.SEED_OWNER_ID;
   if (!ownerId) {
-    throw new Error('SEED_OWNER_ID is not set (Phase 12.4: owner_id NOT NULL).');
+    throw new Error(
+      'SEED_OWNER_ID is not set (Phase 12.4: owner_id NOT NULL).',
+    );
   }
 
   const rows = buildRows().map((r) => ({ ...r, ownerId }));
@@ -374,17 +376,94 @@ async function main() {
 }
 
 const EXERCISE_SEED = [
-  { name: '랫풀다운', targetMuscle: 'back', defaultSets: 3, repMin: 8, repMax: 12, sortOrder: 0 },
-  { name: '벤치프레스', targetMuscle: 'chest', defaultSets: 3, repMin: 8, repMax: 12, sortOrder: 1 },
-  { name: '숄더프레스', targetMuscle: 'shoulder', defaultSets: 3, repMin: 8, repMax: 12, sortOrder: 2 },
-  { name: '케이블·머신 로우', targetMuscle: 'back', defaultSets: 3, repMin: 8, repMax: 12, sortOrder: 3 },
-  { name: '레터럴 레이즈', targetMuscle: 'shoulder', defaultSets: 3, repMin: 12, repMax: 15, sortOrder: 4 },
-  { name: '바벨 스쿼트', targetMuscle: 'leg', defaultSets: 3, repMin: 6, repMax: 10, sortOrder: 5 },
-  { name: '레그프레스', targetMuscle: 'leg', defaultSets: 3, repMin: 10, repMax: 15, sortOrder: 6 },
-  { name: '루마니안 데드리프트', targetMuscle: 'leg', defaultSets: 3, repMin: 8, repMax: 12, sortOrder: 7 },
-  { name: '레그 익스텐션', targetMuscle: 'leg', defaultSets: 3, repMin: 12, repMax: 15, sortOrder: 8 },
-  { name: '레그 컬', targetMuscle: 'leg', defaultSets: 3, repMin: 12, repMax: 15, sortOrder: 9 },
-  { name: '스탠딩 카프 레이즈', targetMuscle: 'leg', defaultSets: 3, repMin: 15, repMax: 20, sortOrder: 10 },
+  {
+    name: '랫풀다운',
+    targetMuscle: 'back',
+    defaultSets: 3,
+    repMin: 8,
+    repMax: 12,
+    sortOrder: 0,
+  },
+  {
+    name: '벤치프레스',
+    targetMuscle: 'chest',
+    defaultSets: 3,
+    repMin: 8,
+    repMax: 12,
+    sortOrder: 1,
+  },
+  {
+    name: '숄더프레스',
+    targetMuscle: 'shoulder',
+    defaultSets: 3,
+    repMin: 8,
+    repMax: 12,
+    sortOrder: 2,
+  },
+  {
+    name: '케이블·머신 로우',
+    targetMuscle: 'back',
+    defaultSets: 3,
+    repMin: 8,
+    repMax: 12,
+    sortOrder: 3,
+  },
+  {
+    name: '레터럴 레이즈',
+    targetMuscle: 'shoulder',
+    defaultSets: 3,
+    repMin: 12,
+    repMax: 15,
+    sortOrder: 4,
+  },
+  {
+    name: '바벨 스쿼트',
+    targetMuscle: 'leg',
+    defaultSets: 3,
+    repMin: 6,
+    repMax: 10,
+    sortOrder: 5,
+  },
+  {
+    name: '레그프레스',
+    targetMuscle: 'leg',
+    defaultSets: 3,
+    repMin: 10,
+    repMax: 15,
+    sortOrder: 6,
+  },
+  {
+    name: '루마니안 데드리프트',
+    targetMuscle: 'leg',
+    defaultSets: 3,
+    repMin: 8,
+    repMax: 12,
+    sortOrder: 7,
+  },
+  {
+    name: '레그 익스텐션',
+    targetMuscle: 'leg',
+    defaultSets: 3,
+    repMin: 12,
+    repMax: 15,
+    sortOrder: 8,
+  },
+  {
+    name: '레그 컬',
+    targetMuscle: 'leg',
+    defaultSets: 3,
+    repMin: 12,
+    repMax: 15,
+    sortOrder: 9,
+  },
+  {
+    name: '스탠딩 카프 레이즈',
+    targetMuscle: 'leg',
+    defaultSets: 3,
+    repMin: 15,
+    repMax: 20,
+    sortOrder: 10,
+  },
 ];
 
 main().catch((err) => {

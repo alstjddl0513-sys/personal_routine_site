@@ -26,6 +26,16 @@ import {
   setEnabledSilent as setWorkoutSkipEnabledSilent,
   setSkipDaysSilent,
 } from './workout-skip';
+import {
+  getEnabled as getEventEnabled,
+  isApplyingRemote as isEventApplyingRemote,
+  setEnabledSilent as setEventEnabledSilent,
+} from './event-notifier';
+import {
+  getEnabled as getChallengeCelebrateEnabled,
+  isApplyingRemote as isChallengeCelebrateApplyingRemote,
+  setEnabledSilent as setChallengeCelebrateEnabledSilent,
+} from './challenge-notifier';
 
 // 5개 notif lib의 localStorage 값을 하나의 Preferences 객체로 조립.
 // SyncClient가 서버로 upload할 때, 또는 debounce PATCH payload를 만들 때 사용.
@@ -40,6 +50,8 @@ export function readLocalPreferences(): Preferences {
         enabled: getWorkoutSkipEnabled(),
         skipDays: getSkipDays(),
       },
+      event: getEventEnabled(),
+      challengeCelebrate: getChallengeCelebrateEnabled(),
     },
   };
 }
@@ -68,6 +80,12 @@ export function applyRemotePreferences(remote: Preferences): void {
   setSkipDaysSilent(
     ws.skipDays ?? DEFAULT_PREFERENCES.notif.workoutSkip.skipDays,
   );
+  setEventEnabledSilent(notif.event ?? DEFAULT_PREFERENCES.notif.event ?? true);
+  setChallengeCelebrateEnabledSilent(
+    notif.challengeCelebrate ??
+      DEFAULT_PREFERENCES.notif.challengeCelebrate ??
+      true,
+  );
 }
 
 // 서버가 신규 계정 시드 상태(`{}`)를 반환했는지 판정. notif 노드가 없거나
@@ -89,6 +107,8 @@ export function isAnyApplyingRemote(): boolean {
     isMorningApplyingRemote() ||
     isDeadlineApplyingRemote() ||
     isRoutineApplyingRemote() ||
-    isWorkoutSkipApplyingRemote()
+    isWorkoutSkipApplyingRemote() ||
+    isEventApplyingRemote() ||
+    isChallengeCelebrateApplyingRemote()
   );
 }

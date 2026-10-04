@@ -1,4 +1,10 @@
-import { IsDateString, IsOptional, IsString, Matches, MaxLength } from 'class-validator';
+import {
+  IsDateString,
+  IsOptional,
+  IsString,
+  Matches,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateWorkoutSessionDto {
   @IsString()

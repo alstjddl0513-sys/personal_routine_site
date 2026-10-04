@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { BottomNav } from '../components/BottomNav';
+import { ChallengeCelebrator } from '../components/ChallengeCelebrator';
 import { DeadlineNotifier } from '../components/DeadlineNotifier';
+import { EventsNotifier } from '../components/EventsNotifier';
 import { MorningSummary } from '../components/MorningSummary';
 import { NotifAuthSync } from '../components/NotifAuthSync';
 import { PreferencesSyncClient } from '../components/PreferencesSyncClient';
@@ -123,9 +125,11 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
         {/* auth state 변화 시 알림 sink 재fetch + 이전 사용자 흔적 정리 */}
         <NotifAuthSync />
         <DeadlineNotifier />
+        <EventsNotifier />
         <MorningSummary />
         <RoutineReminder />
         <WorkoutSkipReminder />
+        <ChallengeCelebrator />
       </body>
     </html>
   );

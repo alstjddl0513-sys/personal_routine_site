@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   BookOpen,
   Briefcase,
+  Calendar,
   CalendarCheck2,
   ChevronDown,
   ChevronRight,
@@ -36,13 +37,19 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   {
+    href: '/calendar',
+    label: '캘린더',
+    icon: Calendar,
+    matchPrefixes: ['/calendar'],
+  },
+  {
     href: '/jobs',
     label: '채용',
     icon: Briefcase,
     matchPrefixes: ['/jobs'],
     children: [
-      { href: '/jobs', label: '기업 분석' },
-      { href: '/jobs/statistics', label: '기업 통계' },
+      { href: '/jobs', label: '리스트' },
+      { href: '/jobs/statistics', label: '통계' },
     ],
   },
   {
@@ -52,7 +59,7 @@ const NAV: NavItem[] = [
     matchPrefixes: ['/routines'],
     children: [
       { href: '/routines', label: '트래커' },
-      { href: '/routines/calendar', label: '캘린더' },
+      { href: '/routines/statistics', label: '통계' },
     ],
   },
   {

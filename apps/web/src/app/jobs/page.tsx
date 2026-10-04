@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import { HighlightScroller } from '../../components/jobs/HighlightScroller';
 import { JobsClientView } from '../../components/jobs/JobsClientView';
 import { Skeleton } from '../../components/Skeleton';
-import { getCompanies, getCompanyTypes } from '../../lib/api';
+import { getCompanies, getCompanyEvents, getCompanyTypes } from '../../lib/api';
 
 type JobsSearchParams = Awaited<PageProps<'/jobs'>['searchParams']>;
 
@@ -35,20 +35,30 @@ async function JobsContent({ sp }: { sp: JobsSearchParams }) {
   const search = rawQ && rawQ.trim() ? rawQ.trim() : undefined;
   const highlightId = first(sp.highlight);
 
-  const [companyTypes, rows] = await Promise.all([
+  const [companyTypes, rows, allEvents] = await Promise.all([
     getCompanyTypes(),
     getCompanies({
       isFavorite: favorite ? true : undefined,
       isHiring,
       search,
     }),
+    getCompanyEvents(),
   ]);
+
+  // 회사별 이벤트 그룹핑. 각 행에 자기 이벤트만 전달해서 EventsPopover 바로 사용.
+  const eventsByCompany = new Map<string, typeof allEvents>();
+  for (const e of allEvents) {
+    const arr = eventsByCompany.get(e.companyId);
+    if (arr) arr.push(e);
+    else eventsByCompany.set(e.companyId, [e]);
+  }
 
   return (
     <>
       <JobsClientView
         allRows={rows}
         companyTypes={companyTypes}
+        eventsByCompany={eventsByCompany}
         highlightId={highlightId}
       />
       <Suspense fallback={null}>

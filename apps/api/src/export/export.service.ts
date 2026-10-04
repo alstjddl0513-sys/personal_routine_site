@@ -31,7 +31,10 @@ export class ExportService {
       db.select().from(routineChecks).where(eq(routineChecks.ownerId, ownerId)),
       db.select().from(dayNotes).where(eq(dayNotes.ownerId, ownerId)),
       db.select().from(exercises).where(eq(exercises.ownerId, ownerId)),
-      db.select().from(workoutSessions).where(eq(workoutSessions.ownerId, ownerId)),
+      db
+        .select()
+        .from(workoutSessions)
+        .where(eq(workoutSessions.ownerId, ownerId)),
       db.select().from(workoutSets).where(eq(workoutSets.ownerId, ownerId)),
     ]);
 
