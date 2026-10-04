@@ -276,6 +276,7 @@ pnpm.cmd --filter api db:migrate
 # → "Running migrations..." → "Migrations applied." 로그가 뜨면 성공
 
 # 세션 정리 (다음 명령이 로컬 dev DB를 안 건드리도록)
+Remove-Item env:DATABASE_URL
 ```
 
 `pnpm.ps1`은 PowerShell 실행 정책에 막히므로 `.cmd` 래퍼 사용. `migrate.ts`가 dotenv를 default 모드로 로드해서 이미 세팅된 `$env:DATABASE_URL`을 안 덮음.
