@@ -44,7 +44,7 @@ export function JobsTable({
             <Th className="w-8 px-1" srOnly>
               즐겨찾기
             </Th>
-            <Th align="left" className="w-[16%] min-w-[8rem] pl-1 pr-3">
+            <Th align="left" className="w-[16%] min-w-32 pl-1 pr-3">
               회사명
             </Th>
             <Th className="px-2">유형</Th>
@@ -78,7 +78,7 @@ export function JobsTable({
                   <FavoriteToggle id={c.id} value={c.isFavorite} />
                 </Center>
               </Td>
-              <Td className="w-[16%] min-w-[8rem] pl-1 pr-3 font-medium whitespace-nowrap">
+              <Td className="w-[16%] min-w-32 pl-1 pr-3 font-medium whitespace-nowrap">
                 {c.name}
               </Td>
               <Td className="px-2">

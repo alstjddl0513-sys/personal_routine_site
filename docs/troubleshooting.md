@@ -169,6 +169,7 @@
 - 상황: 회사 추가 / 운동 추가 모달에서 dropdown 옵션을 누르면 값 저장 없이 모달이 닫힘
 - 원인: 모달이 `useOutsideClick`으로 바깥 감지 → 프로젝트의 `Select` 컴포넌트는 popover를 `createPortal(document.body)`로 렌더링. cardRef의 DOM 자식이 아니라 outside로 판정
 - 해결: dialog wrapper의 `onMouseDown`에서 `e.target === e.currentTarget`(=진짜 backdrop) 조건일 때만 닫음
+- 재발(2026-10-24): `/jobs` 셀 팝오버(`useOutsideClick([anchorRef, popoverRef])`) 안에 Select를 넣어도 같은 이유로 닫힘 → `SubmittedDocsPopover`는 Select 대신 문서 목록을 버튼 리스트로 노출해 회피
 
 ### `AddTimeBlockRow` Enter로 저장 시 시간블록이 두 개 생성
 - 상황: `/routines`에서 "+ 블록 추가" → 이름 입력 → Enter → API 두 번 호출로 동일 label 2개 등록
@@ -179,6 +180,7 @@
 - 상황: `/jobs` 표 행의 Select를 열면 popover가 트리거에서 벗어난 위치(주로 뷰포트 상단)에 렌더링. 로컬 dev에선 재현 안 됨
 - 원인 추정: `usePopoverPosition`이 `POPOVER_MAX_HEIGHT=288` 추정값으로 `pos.top` 계산. 실제 popover가 훨씬 짧을 때 "above" 배치 시 앵커 위로 큰 공백. `useLayoutEffect`가 `leftPx`만 실측 보정하고 `top`은 방치
 - 해결: `Select.tsx`에서 popover mount 후 `getBoundingClientRect()`로 실측한 높이·너비 기준으로 top·left 둘 다 재계산. 첫 렌더는 `visibility: hidden`으로 flash 방지
+- 재발(2026-10-24): `/jobs` 셀 팝오버(제출본·메모·공고 링크)도 추정 높이로 위에 떠서 버튼과 벌어짐 → 같은 실측 로직을 `usePopoverPosition.ts`의 `useMeasuredTop`으로 공용화(+`ResizeObserver`로 열린 뒤 높이 변화도 추적). 새 팝오버 Body는 이 훅으로 top 계산
 
 ### 커스텀 Select 열린 상태에서 화살표 키가 1칸만 내려가고 다시 올라감
 - 상황: Select 열어놓고 ArrowDown 연타하면 첫 press는 이동하는데 두 번째부터 원래 위치로 되돌아옴
@@ -209,6 +211,11 @@
 - 상황: /signup 닉네임 필드가 401로 중복검사 실패. 백엔드에 `@Public()`이 있어도
 - 원인: 요청 경로는 브라우저 → Next `proxy.ts` middleware → `/api/proxy/[...path]` → NestJS. Middleware가 세션 없는 `/api/*` 요청을 401로 차단해서 NestJS의 `@Public()`은 도달 못 함
 - 해결: `proxy.ts`의 `PUBLIC_PATHS`에 `/api/proxy/profiles/check-nickname` 추가. **인증이 두 겹(Next middleware + NestJS Guard)이라 공용 엔드포인트는 양쪽 다 열어야 함**
+
+### 빌드 로그에 `Dynamic server usage: Route /today couldn't be rendered statically` 다수
+- 상황: `/today` 카드별 fetch를 `try/catch`(`settle()`)로 감싸 실패를 카드 안에 가뒀더니 `pnpm build`가 이 에러를 섹션마다 출력(빌드 자체는 성공)
+- 원인: Next는 `cookies()`·`no-store` fetch 같은 요청 시점 API를 만나면 내부 에러를 던져 동적 렌더로 전환하는데, 앱의 catch가 그걸 삼킴. 다른 곳의 비보호 `cookies()` 덕에 우연히 `ƒ`로 잡혔을 뿐, 아니면 에러 상태가 정적 HTML로 굳을 수 있음
+- 해결: catch 첫 줄에서 `unstable_rethrow(e)`(`next/navigation`) 후 처리(`lib/today-data.ts`의 `settle`). `.catch(() => null)` 패턴도 같은 문제라 함께 교체
 
 ## Windows 개발환경
 
@@ -249,7 +256,17 @@
 - 원인: (1) `truncate` 걸린 자식의 조상 flex에 `min-w-0` 없어 shrink 안 됨, (2) 편집 상태의 고정폭(`w-64`), (3) wrap 미허용
 - 해결: 조상 flex에 `min-w-0` 추가, 고정폭 제거, 필요시 `flex-wrap`
 
+### VS Code 문제 패널에 디자인 시안 HTML의 CSS 에러 90개
+- 상황: `docs/design/` 시안을 커밋한 뒤 "at-rule 또는 선택기가 필요함", "{ 필요" 에러가 대량 표시. 빌드·실행엔 영향 없음
+- 원인: 디자인 툴 포맷이라 `style="background: {{accent}}"`처럼 inline style에 템플릿 바인딩. VS Code 내장 CSS 검사기가 `{{ }}`를 CSS로 파싱
+- 해결: 확장자를 `.dc.html`로 바꾸고 `.vscode/settings.json`에 `"files.associations": { "*.dc.html": "handlebars" }`. `.vscode/`는 gitignore라 PC마다 로컬 설정 필요
+
 ## 설계 판단 (Advisor 경고 무시 등)
+
+### "오늘 메모"를 `day_notes`에 두면 월요일에 주간 회고를 덮어씀
+- 상황: `/today` 메모를 이름만 보고 `getDayNotes`/`upsertDayNote`로 구현하려 함
+- 원인: `day_notes`는 루틴 탭 "이번주 회고"(`RoutineRetro`) 전용 — 그 주 **월요일 날짜**를 키로 저장. 날짜별 메모로 쓰면 월요일 메모 = 회고 칸
+- 해결: 날짜별 메모는 캘린더와 같은 `scheduler_memos`(`upsertSchedulerMemo`, `getSchedulerEvents`의 `kind:'memo'`) 사용. `day_notes`는 회고 전용으로 유지
 
 ### Supabase Security Advisor: `announcement_targets` "RLS Enabled No Policy"
 - 상황: Advisors → Security 탭에 Info 1건. `public.announcement_targets`에 RLS 켜져있는데 정책 0개

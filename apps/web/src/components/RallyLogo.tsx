@@ -1,4 +1,4 @@
-// 라임 원 안의 코트 그린 삼각 깃발 (docs/design/rally-dashboard-design.html).
+// 라임 원 안의 코트 그린 삼각 깃발 (docs/design/rally-dashboard-design.dc.html).
 // 색은 브랜드 고정값이라 다크에서도 그대로 — 토큰 대신 court/lime 직접 사용.
 export function RallyLogo({ size = 28 }: { size?: number }) {
   const icon = Math.round(size * 0.6);
