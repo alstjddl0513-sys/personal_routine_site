@@ -39,6 +39,11 @@
 - 원인: Session Pooler는 유저명이 `postgres.<project-ref>` 형식이어야 함 (pooler가 여러 프로젝트를 라우팅하므로 tenant 지정 필요)
 - 해결: `.env`의 `DATABASE_URL` 유저 부분을 `postgres.<project-ref>`로. Supabase Connect 팝업의 pooler 문자열을 통째로 복사 후 `[YOUR-PASSWORD]`만 치환하는 게 안전
 
+### Session Pooler에서 `(ENOTFOUND) tenant/user postgres.<ref> not found`
+- 상황: `db:migrate`가 `CREATE SCHEMA "drizzle"`에서 FATAL. 연결 문자열은 그대로인데 REST(`<ref>.supabase.co/rest/v1/`)는 401로 정상 응답
+- 원인: 프로젝트 자체는 살아 있지만 pooler(Supavisor) 쪽에 tenant가 아직 안 잡힌 상태. Dashboard에서 프로젝트 상태 확인·복구 직후 발생
+- 해결: Dashboard에서 프로젝트 Healthy 확인 후 잠시 기다렸다 재시도 → 해결. 재시도 후 0029 DDL은 반영됐는데 트래킹 row만 빠진 상태였음 → `information_schema`/`pg_constraint`로 DDL 확인 후 트래킹 수동 INSERT(아래 "Prod 마이그레이션 실패 후..." 절차와 동일)
+
 ## NestJS
 
 ### `tsconfig.json`의 `baseUrl` deprecated 경고

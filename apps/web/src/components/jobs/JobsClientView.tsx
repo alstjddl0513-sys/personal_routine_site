@@ -11,6 +11,7 @@ import {
   type CompanyEvent,
   type CompanyType,
   type CompanyType1,
+  type Document,
   type Priority,
 } from '@repo/shared';
 import { JobsCards } from './JobsCards';
@@ -28,11 +29,13 @@ export function JobsClientView({
   allRows,
   companyTypes,
   eventsByCompany,
+  documents,
   highlightId,
 }: {
   allRows: Company[];
   companyTypes: CompanyType[];
   eventsByCompany: Map<string, CompanyEvent[]>;
+  documents: Document[];
   highlightId?: string;
 }) {
   const searchParams = useSearchParams();
@@ -171,12 +174,14 @@ export function JobsClientView({
             rows={filteredRows}
             companyTypes={companyTypes}
             eventsByCompany={eventsByCompany}
+            documents={documents}
             highlightId={highlightId}
           />
           <JobsCards
             rows={filteredRows}
             companyTypes={companyTypes}
             eventsByCompany={eventsByCompany}
+            documents={documents}
             highlightId={highlightId}
           />
         </>

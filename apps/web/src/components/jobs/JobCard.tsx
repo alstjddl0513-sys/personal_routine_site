@@ -7,6 +7,7 @@ import {
   type Company,
   type CompanyEvent,
   type CompanyType,
+  type Document,
 } from '@repo/shared';
 import { DeadlinePopover } from './cells/DeadlinePopover';
 import { DeleteRowButton } from './cells/DeleteRowButton';
@@ -19,16 +20,19 @@ import { SizeSelect } from './cells/SizeSelect';
 import { StatusSelect, STATUS_STYLE } from './cells/StatusSelect';
 import { TypeSelect } from './cells/TypeSelect';
 import { UrlPopover } from './cells/UrlPopover';
+import { SubmittedDocsPopover } from './cells/SubmittedDocsPopover';
 
 export function JobCard({
   company: c,
   companyTypes,
   events,
+  documents,
   highlighted,
 }: {
   company: Company;
   companyTypes: CompanyType[];
   events: CompanyEvent[];
+  documents: Document[];
   highlighted?: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -87,6 +91,14 @@ export function JobCard({
             </Row>
             <Row label="공고링크">
               <UrlPopover id={c.id} value={c.postingUrl} />
+            </Row>
+            <Row label="제출본">
+              <SubmittedDocsPopover
+                id={c.id}
+                resumeDocumentId={c.resumeDocumentId}
+                portfolioDocumentId={c.portfolioDocumentId}
+                documents={documents}
+              />
             </Row>
             <Row label="메모">
               <NotePopover id={c.id} value={c.note} />

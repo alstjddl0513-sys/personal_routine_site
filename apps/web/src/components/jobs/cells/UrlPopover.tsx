@@ -5,7 +5,10 @@ import { useRouter } from 'next/navigation';
 import { Check, Copy, ExternalLink, Link as LinkIcon, X } from 'lucide-react';
 import { patchCompany } from '../../../lib/api';
 import { useOutsideClick } from '../../../lib/useOutsideClick';
-import { usePopoverPosition } from '../../../lib/usePopoverPosition';
+import {
+  useMeasuredTop,
+  usePopoverPosition,
+} from '../../../lib/usePopoverPosition';
 import { Portal } from '../../ui/Portal';
 
 const POPOVER_WIDTH = 320; // w-80
@@ -85,6 +88,7 @@ export function UrlPopover({
             isPending={isPending}
             top={pos.top}
             left={pos.left}
+            anchorRef={anchorRef}
             popoverRef={popoverRef}
             onCommit={commit}
             onCancel={() => setOpen(false)}
@@ -101,6 +105,7 @@ interface BodyProps {
   isPending: boolean;
   top: number;
   left: number;
+  anchorRef: RefObject<HTMLButtonElement | null>;
   popoverRef: RefObject<HTMLDivElement | null>;
   onCommit: (next: string | null) => void;
   onCancel: () => void;
@@ -112,10 +117,13 @@ function UrlPopoverBody({
   isPending,
   top,
   left,
+  anchorRef,
   popoverRef,
   onCommit,
   onCancel,
 }: BodyProps) {
+  // 에러 문구·복사 버튼 유무로 높이가 달라져서 실제 높이로 버튼에 붙임.
+  const measuredTop = useMeasuredTop(anchorRef, popoverRef, top);
   const [draft, setDraft] = useState(initialUrl ?? '');
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -159,7 +167,7 @@ function UrlPopoverBody({
       ref={popoverRef}
       style={{
         position: 'fixed',
-        top,
+        top: measuredTop,
         left,
         width: POPOVER_WIDTH,
         zIndex: 50,

@@ -69,6 +69,9 @@ export interface Company {
   appliedAt: string | null;
   applicationDocUrl: string | null;
   progressNote: string | null;
+  // 이 회사에 낸 이력서 / 포폴(PDF 또는 링크) 버전. documents.id 참조.
+  resumeDocumentId: string | null;
+  portfolioDocumentId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -538,6 +541,8 @@ export interface Document {
   fileMime: string | null;
   isActive: boolean;
   notes: string | null;
+  // 이 문서를 제출본으로 연결한 회사 수. GET /documents 목록 응답에만 포함.
+  submittedCount?: number;
   createdAt: string;
   updatedAt: string;
 }

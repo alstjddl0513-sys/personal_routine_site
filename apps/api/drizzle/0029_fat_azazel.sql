@@ -1,0 +1,4 @@
+ALTER TABLE "companies" ADD COLUMN "resume_document_id" uuid;--> statement-breakpoint
+ALTER TABLE "companies" ADD COLUMN "portfolio_document_id" uuid;--> statement-breakpoint
+ALTER TABLE "companies" ADD CONSTRAINT "companies_resume_document_id_documents_id_fk" FOREIGN KEY ("resume_document_id") REFERENCES "public"."documents"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "companies" ADD CONSTRAINT "companies_portfolio_document_id_documents_id_fk" FOREIGN KEY ("portfolio_document_id") REFERENCES "public"."documents"("id") ON DELETE set null ON UPDATE no action;

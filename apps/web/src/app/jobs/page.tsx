@@ -2,7 +2,12 @@ import { Suspense } from 'react';
 import { HighlightScroller } from '../../components/jobs/HighlightScroller';
 import { JobsClientView } from '../../components/jobs/JobsClientView';
 import { Skeleton } from '../../components/Skeleton';
-import { getCompanies, getCompanyEvents, getCompanyTypes } from '../../lib/api';
+import {
+  getCompanies,
+  getCompanyEvents,
+  getCompanyTypes,
+  listDocuments,
+} from '../../lib/api';
 
 type JobsSearchParams = Awaited<PageProps<'/jobs'>['searchParams']>;
 
@@ -35,7 +40,7 @@ async function JobsContent({ sp }: { sp: JobsSearchParams }) {
   const search = rawQ && rawQ.trim() ? rawQ.trim() : undefined;
   const highlightId = first(sp.highlight);
 
-  const [companyTypes, rows, allEvents] = await Promise.all([
+  const [companyTypes, rows, allEvents, documents] = await Promise.all([
     getCompanyTypes(),
     getCompanies({
       isFavorite: favorite ? true : undefined,
@@ -43,6 +48,7 @@ async function JobsContent({ sp }: { sp: JobsSearchParams }) {
       search,
     }),
     getCompanyEvents(),
+    listDocuments(),
   ]);
 
   // 회사별 이벤트 그룹핑. 각 행에 자기 이벤트만 전달해서 EventsPopover 바로 사용.
@@ -59,6 +65,7 @@ async function JobsContent({ sp }: { sp: JobsSearchParams }) {
         allRows={rows}
         companyTypes={companyTypes}
         eventsByCompany={eventsByCompany}
+        documents={documents}
         highlightId={highlightId}
       />
       <Suspense fallback={null}>

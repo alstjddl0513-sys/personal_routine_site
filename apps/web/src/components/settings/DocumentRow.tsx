@@ -9,6 +9,7 @@ import {
   getDocumentDownloadUrl,
   patchDocument,
 } from '../../lib/api';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { DocumentPreviewModal } from './DocumentPreviewModal';
 
 interface Props {
@@ -23,12 +24,15 @@ function formatSize(bytes: number | null): string {
 }
 
 // 리스트 아이템 하나. 라디오로 대표 선택 + 다운로드/열기 + 삭제.
-// 삭제는 confirm 없이 바로 (다른 페이지들도 confirm 없는 게 다수).
+// 삭제는 confirm 없이 바로 (다른 페이지들도 confirm 없는 게 다수). 단, 회사에
+// 제출본으로 연결된 문서는 지우면 그 기록이 끊기므로 한 번 확인.
 export function DocumentRow({ document }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [downloading, setDownloading] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const submittedCount = document.submittedCount ?? 0;
 
   function handleSelectActive() {
     if (document.isActive) return; // 이미 대표
@@ -46,6 +50,7 @@ export function DocumentRow({ document }: Props) {
     startTransition(async () => {
       try {
         await deleteDocument(document.id);
+        setConfirmOpen(false);
         router.refresh();
       } catch (err) {
         console.error(err);
@@ -102,6 +107,11 @@ export function DocumentRow({ document }: Props) {
               업로드 미완료
             </span>
           ) : null}
+          {submittedCount > 0 ? (
+            <span className="inline-flex shrink-0 items-center rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+              {submittedCount}곳 제출
+            </span>
+          ) : null}
         </div>
         <p className="mt-0.5 truncate text-xs text-zinc-500 dark:text-zinc-500">
           {isLink
@@ -135,7 +145,9 @@ export function DocumentRow({ document }: Props) {
       </button>
       <button
         type="button"
-        onClick={handleDelete}
+        onClick={() =>
+          submittedCount > 0 ? setConfirmOpen(true) : handleDelete()
+        }
         disabled={pending}
         title="삭제"
         className="inline-flex h-8 w-8 items-center justify-center rounded text-rose-500 transition-colors hover:bg-rose-50 hover:text-rose-700 disabled:opacity-40 dark:hover:bg-rose-950/40 dark:hover:text-rose-300"
@@ -149,6 +161,22 @@ export function DocumentRow({ document }: Props) {
           onClose={() => setPreviewOpen(false)}
         />
       ) : null}
+      <ConfirmDialog
+        open={confirmOpen}
+        title="문서 삭제"
+        description={
+          <p>
+            <span className="font-medium text-zinc-900 dark:text-zinc-100">
+              {document.title}
+            </span>
+            {' '}을(를) {submittedCount}곳에 제출했어요. 지우면 그 회사들의
+            제출 기록에서도 빠져요.
+          </p>
+        }
+        pending={pending}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmOpen(false)}
+      />
     </li>
   );
 }

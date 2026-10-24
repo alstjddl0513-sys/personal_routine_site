@@ -54,3 +54,44 @@ export function usePopoverPosition(
   // useLayoutEffect overwrites it synchronously before paint.
   return open ? pos : null;
 }
+
+// usePopoverPosition은 추정 높이로 위/아래를 정해서, 실제 팝오버가 그보다
+// 낮으면 위로 뜰 때 앵커와 벌어짐. 팝오버 Body에서 호출해 마운트 후 실제
+// 높이로 앵커에 다시 붙인 top을 돌려줌 (측정 전엔 fallbackTop). Select의
+// 재측정 로직과 같은 기준.
+export function useMeasuredTop(
+  anchorRef: RefObject<HTMLElement | null>,
+  popoverRef: RefObject<HTMLElement | null>,
+  fallbackTop: number,
+): number {
+  const [measuredTop, setMeasuredTop] = useState<number | null>(null);
+
+  useLayoutEffect(() => {
+    function recompute() {
+      const popEl = popoverRef.current;
+      const anchorEl = anchorRef.current;
+      if (!popEl || !anchorEl) return;
+      const popH = popEl.getBoundingClientRect().height;
+      const a = anchorEl.getBoundingClientRect();
+      const margin = 16;
+      setMeasuredTop(
+        window.innerHeight - a.bottom >= popH + margin
+          ? a.bottom + 4
+          : Math.max(margin, a.top - popH - 4),
+      );
+    }
+    recompute();
+    // 열린 뒤 내용이 바뀌어 높이가 변해도(에러 문구 등) 다시 붙임.
+    const ro = popoverRef.current ? new ResizeObserver(recompute) : null;
+    if (ro && popoverRef.current) ro.observe(popoverRef.current);
+    window.addEventListener('scroll', recompute, true);
+    window.addEventListener('resize', recompute);
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener('scroll', recompute, true);
+      window.removeEventListener('resize', recompute);
+    };
+  }, [anchorRef, popoverRef]);
+
+  return measuredTop ?? fallbackTop;
+}
