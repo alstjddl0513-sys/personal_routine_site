@@ -114,6 +114,8 @@ Phase 12 이후 Postgres 호스팅 외에도 Supabase가 여러 층을 담당:
 | JWT verify | **jose** | jsonwebtoken (+jwks-rsa) | 프로젝트가 JWKS(ES256/ECC P-256)로 서명 → `createRemoteJWKSet`으로 공개키 자동 fetch·캐싱·회전 대응. jsonwebtoken은 HS256 콜백 API 시절 표준이지만 JWKS 쓰려면 별도 lib 조합 필요. jose는 zero-deps + native async + TS 우선 |
 | Rate limit | **@nestjs/throttler** | 수제 미들웨어, express-rate-limit, Redis 기반 | 공식 Nest 통합, 데코레이터로 엔드포인트별 세밀 제어(`@Throttle`). 인메모리라 무료 티어 재시작마다 초기화되지만 스크레이핑 방지 목적엔 충분. 다중 인스턴스 되면 Redis storage 어댑터로 교체 |
 | 배포 브랜치 전략 | **feat → develop → main** | trunk-based, GitFlow full | main은 배포 지점(자동 재배포), develop은 통합 줄기. 1인이라 무거운 GitFlow는 과함 |
+| 브랜드 폰트 | **Bricolage Grotesque**(숫자·로고) + **IBM Plex Sans KR**(본문), `next/font/google` | Pretendard(CDN/npm), Google Fonts `<link>` | 시안(`docs/design/rally-dashboard-design.html`) 기준. Bricolage는 D-day·카운트 같은 숫자가 크게 읽히는 디스플레이 서체, Plex KR은 한글·영문 폭이 고른 본문용. `next/font`는 빌드 때 셀프호스팅 + `size-adjust`로 CLS 방지, 외부 요청 없음(새 npm dep 아님). Plex KR은 한글 서브셋이 커서 `preload: false` |
+| 디자인 토큰 | **globals.css `--rally-*` 변수 → `@theme inline` 매핑** (`bg-court`, `text-ink` 등) | Tailwind 기본 팔레트 직접, CSS-in-JS | 라이트/다크를 변수 한 벌 교체로 처리(`.dark`에서 primary가 court→lime으로 뒤집힘). **현재는 /today 시험 적용** — 앱 전체 디자인 개편 때 토큰·폰트 구성 재검토 예정(기존 페이지는 zinc 하드코딩이라 그때 일괄 정리) |
 | 드래그 앤 드롭 | **@dnd-kit** (core/sortable/utilities) | react-beautiful-dnd(archived), react-dnd(HTML5 백엔드 중심·터치 어색), native HTML5 DnD(모바일 미지원) | React 19/Next 16 호환, 포인터·터치·키보드 센서 표준 제공, headless라 Tailwind 스타일 유지. `TimeBlocksManager`에서 ↑/↓ 버튼 대신 드래그로 재정렬 — 블록 10개 넘어가면 클릭 왕복보다 훨씬 편함 |
 
 ## 관련 문서

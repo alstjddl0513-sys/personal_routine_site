@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Rally 오늘 대시보드 다크</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&amp;family=IBM+Plex+Sans+KR:wght@400;500;700&amp;display=swap">
+<style>
+body{margin:0;background:#0E1311}
+a{color:#D9F45B}a:hover{color:#EAFA9A}
+button{font-family:inherit;cursor:pointer}
+input{font-family:inherit}
+input::placeholder{color:#7F8A84}
+</style>
+</helmet>
+<div style="min-height: 100vh; box-sizing: border-box; display: flex; flex-wrap: wrap; background: #0E1311; color: #ECEFEC; font-family: 'IBM Plex Sans KR', system-ui, sans-serif; font-size: 15px; line-height: 1.55; word-break: keep-all">
+
+  <aside style="flex: 1 1 232px; max-width: 100%; box-sizing: border-box; padding: 24px 16px; display: flex; flex-direction: column; gap: 24px; background: #0F241B; border-right: 1px solid #1E3A2D; color: #E9EFEA">
+    <a href="#" style="display: flex; align-items: center; gap: 10px; padding: 0 8px; text-decoration: none; color: #FFFFFF">
+      <span style="width: 30px; height: 30px; border-radius: 50%; background: {{accent}}; display: flex; align-items: center; justify-content: center">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#17382B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V3.5"></path><path d="M6 3.5L19 8.25L6 13Z" fill="#17382B"></path></svg>
+      </span>
+      <span style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 23px; letter-spacing: -0.03em">Rally</span>
+    </a>
+
+    <nav aria-label="주 메뉴" style="display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto">
+      <a href="#" aria-current="page" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 10px; background: {{accent}}; color: #17382B; text-decoration: none; font-weight: 700">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+        오늘
+      </a>
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 10px; color: #B9C7BE; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg>
+        캘린더
+      </a>
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 10px; color: #B9C7BE; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"></rect><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>
+        채용
+      </a>
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 10px; color: #B9C7BE; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"></rect><path d="M3.5 10h17M8 3v4M16 3v4M9 15l2 2 4-4"></path></svg>
+        루틴
+      </a>
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 10px; color: #B9C7BE; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5v11M17.5 6.5v11M3 9.5v5M21 9.5v5M6.5 12h11"></path></svg>
+        운동
+      </a>
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 10px; color: #B9C7BE; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5z"></path></svg>
+        학습
+      </a>
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 10px; color: #B9C7BE; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"></path></svg>
+        블로그
+      </a>
+    </nav>
+
+    <div style="display: flex; align-items: center; gap: 8px; padding: 12px 8px 0; border-top: 1px solid #1E3A2D; font-size: 13px; color: #9FB0A5">
+      <span style="flex: 1 1 auto; min-width: 0">[닉네임]</span>
+      <a href="#" aria-label="설정" style="width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; color: #B9C7BE">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>
+      </a>
+    </div>
+  </aside>
+
+  <main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 32px 40px 64px">
+    <div style="max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px">
+
+      <header style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 14px; color: #9BA59F">10월 24일 토요일</span>
+          <h1 style="margin: 0; font-size: 30px; line-height: 1.25; font-weight: 700; letter-spacing: -0.02em; color: #FFFFFF">좋은 아침이에요, [닉네임]님</h1>
+          <p style="margin: 0; font-size: 15px; color: #C3CBC6">오늘 마감 <strong style="color: #FFFFFF">1건</strong> · 일정 <strong style="color: #FFFFFF">3건</strong> · 아직 체크 안 한 루틴 <strong style="color: #FFFFFF">{{uncheckedCount}}개</strong></p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px">
+          <span style="display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px; border-radius: 999px; background: #171D1A; border: 1px solid #2E3833; font-size: 14px; font-weight: 500">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF9A73" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-6 1-9z"></path></svg>
+            루틴 <span style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800">12</span>일 연속
+          </span>
+          <button type="button" aria-label="알림" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid #2E3833; background: #171D1A; display: inline-flex; align-items: center; justify-content: center; color: #ECEFEC; position: relative">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"></path></svg>
+            <span style="position: absolute; top: 9px; right: 10px; width: 8px; height: 8px; border-radius: 50%; background: #FF7A4D"></span>
+          </button>
+          <button type="button" aria-label="라이트 모드 전환" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid #2E3833; background: #171D1A; display: inline-flex; align-items: center; justify-content: center; color: #ECEFEC">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+          </button>
+        </div>
+      </header>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 24px">
+
+        <section aria-labelledby="learn-title" style="flex: 3 1 560px; min-width: 0; box-sizing: border-box; padding: 30px; border-radius: 22px; background: #17382B; border: 1px solid #2A5240; color: #FFFFFF; display: flex; flex-direction: column; gap: 18px">
+          <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+            <div style="display: flex; align-items: center; gap: 10px">
+              <h2 id="learn-title" style="margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; color: {{accent}}">오늘의 학습</h2>
+              <span style="padding: 3px 11px; border-radius: 999px; background: #24503D; color: #E3ECE6; font-size: 13px">CS 기초</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: #C9D6CD">
+              <span style="display: flex; gap: 5px" aria-hidden="true">
+                <span style="width: 22px; height: 6px; border-radius: 3px; background: {{accent}}"></span>
+                <span style="width: 22px; height: 6px; border-radius: 3px; background: {{accent}}"></span>
+                <span style="width: 22px; height: 6px; border-radius: 3px; background: #FFFFFF"></span>
+                <span style="width: 22px; height: 6px; border-radius: 3px; background: #2F5E49"></span>
+                <span style="width: 22px; height: 6px; border-radius: 3px; background: #2F5E49"></span>
+              </span>
+              <span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; color: #FFFFFF">3</span> / 5</span>
+            </div>
+          </div>
+
+          <p style="margin: 0; font-size: 30px; line-height: 1.35; font-weight: 700; letter-spacing: -0.02em">Stack과 Queue의 차이는?</p>
+
+          <sc-if value="{{showAnswer}}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; flex-direction: column; gap: 14px">
+              <div style="padding: 18px 20px; border-radius: 14px; background: #0F2A1F; color: #DCE6DF; line-height: 1.75">Stack은 LIFO(Last In First Out) — 마지막에 넣은 걸 먼저 뺀다. Queue는 FIFO(First In First Out) — 먼저 넣은 걸 먼저 뺀다. Stack은 함수 호출 스택·되돌리기 등에, Queue는 작업 대기열·BFS 탐색 등에 쓰인다.</div>
+              <div style="display: flex; flex-direction: column; gap: 6px; padding: 0 4px">
+                <span style="font-size: 12px; font-weight: 700; letter-spacing: 0.06em; color: #A9BBAF">꼬리 질문</span>
+                <span style="font-size: 14px; color: #E3ECE6">· 실제 프로젝트에서 Stack이나 Queue를 직접 써본 경험이 있나요?</span>
+                <span style="font-size: 14px; color: #E3ECE6">· 덱(Deque)은 어떤 상황에서 유용한가요?</span>
+              </div>
+            </div>
+          </sc-if>
+
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: auto">
+            <sc-if value="{{hideAnswer}}" hint-placeholder-val="{{ true }}">
+              <button type="button" onClick="{{reveal}}" style="min-height: 48px; padding: 0 26px; border: 0; border-radius: 999px; background: {{accent}}; color: #17382B; font-size: 15px; font-weight: 700">답 확인하기</button>
+            </sc-if>
+            <sc-if value="{{showAnswer}}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-wrap: wrap; gap: 10px">
+                <button type="button" onClick="{{markGot}}" aria-pressed="{{gotPressed}}" style="{{gotStyle}}">이해함</button>
+                <button type="button" onClick="{{markReview}}" aria-pressed="{{reviewPressed}}" style="{{reviewStyle}}">복습 필요</button>
+              </div>
+            </sc-if>
+            <a href="#" style="margin-left: auto; min-height: 44px; display: inline-flex; align-items: center; color: #C9D6CD; font-size: 14px; text-decoration: none">다음 문제 →</a>
+          </div>
+        </section>
+
+        <section aria-labelledby="events-title" style="flex: 2 1 340px; min-width: 0; box-sizing: border-box; padding: 26px; border-radius: 22px; background: #171D1A; border: 1px solid #26302B; display: flex; flex-direction: column; gap: 14px">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+            <h2 id="events-title" style="margin: 0; font-size: 17px; font-weight: 700">다가오는 일정</h2>
+            <a href="#" style="min-height: 44px; display: inline-flex; align-items: center; font-size: 13px">캘린더 →</a>
+          </div>
+          <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column">
+            <li style="display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid #252D29">
+              <span style="width: 54px; flex: none; text-align: center; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 17px; color: #FF9A73">D-DAY</span>
+              <span style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
+                <span style="font-weight: 500">[회사 A]</span>
+                <span style="font-size: 13px; color: #9BA59F">10.24 (토) · 서류 마감</span>
+              </span>
+              <span style="padding: 3px 10px; border-radius: 6px; background: #40200F; color: #FFB59A; font-size: 12px; font-weight: 700">마감</span>
+            </li>
+            <li style="display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid #252D29">
+              <span style="width: 54px; flex: none; text-align: center; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 17px">D-2</span>
+              <span style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
+                <span style="font-weight: 500">[회사 B]</span>
+                <span style="font-size: 13px; color: #9BA59F">10.26 (월) · 코딩테스트</span>
+              </span>
+              <span style="padding: 3px 10px; border-radius: 6px; background: #1C2748; color: #B3C6FF; font-size: 12px; font-weight: 700">시험</span>
+            </li>
+            <li style="display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid #252D29">
+              <span style="width: 54px; flex: none; text-align: center; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 17px">D-4</span>
+              <span style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
+                <span style="font-weight: 500">[회사 C]</span>
+                <span style="font-size: 13px; color: #9BA59F">10.28 (수) · 1차 면접</span>
+              </span>
+              <span style="padding: 3px 10px; border-radius: 6px; background: #2C2148; color: #D2BFFF; font-size: 12px; font-weight: 700">면접</span>
+            </li>
+            <li style="display: flex; align-items: center; gap: 14px; padding: 12px 0">
+              <span style="width: 54px; flex: none; text-align: center; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 17px">D-6</span>
+              <span style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
+                <span style="font-weight: 500">[회사 D]</span>
+                <span style="font-size: 13px; color: #9BA59F">10.30 (금) · 서류 결과</span>
+              </span>
+              <span style="padding: 3px 10px; border-radius: 6px; background: #12352E; color: #8FE3CF; font-size: 12px; font-weight: 700">발표</span>
+            </li>
+          </ul>
+          <div style="margin-top: auto; padding: 14px 16px; border-radius: 14px; background: #1F2622; display: flex; flex-direction: column; gap: 4px">
+            <label for="day-note-dark" style="font-size: 12px; font-weight: 700; color: #9BA59F">오늘 메모</label>
+            <input id="day-note-dark" type="text" placeholder="한 줄로 남기기" style="min-height: 40px; border: 0; background: transparent; padding: 0; font-size: 15px; color: #ECEFEC">
+          </div>
+        </section>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 24px">
+
+        <section aria-labelledby="routine-title" style="flex: 1 1 320px; min-width: 0; box-sizing: border-box; padding: 26px; border-radius: 22px; background: #171D1A; border: 1px solid #26302B; display: flex; flex-direction: column; gap: 14px">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+            <h2 id="routine-title" style="margin: 0; font-size: 17px; font-weight: 700">오늘 루틴</h2>
+            <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 15px; font-weight: 800">{{doneCount}}<span style="color: #8B958F; font-weight: 600"> / {{totalCount}}</span></span>
+          </div>
+          <div style="height: 6px; border-radius: 999px; background: #2A322E; overflow: hidden">
+            <div style="height: 100%; border-radius: 999px; background: {{accent}}; width: {{progress}}"></div>
+          </div>
+          <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column">
+            <sc-for list="{{routines}}" as="r" hint-placeholder-count="5">
+              <li>
+                <label style="display: flex; align-items: center; gap: 12px; min-height: 46px; cursor: pointer">
+                  <input type="checkbox" checked="{{r.done}}" onChange="{{r.toggle}}" style="width: 20px; height: 20px; margin: 0; flex: none; accent-color: #D9F45B">
+                  <span style="width: 86px; flex: none; font-family: 'Bricolage Grotesque', sans-serif; font-size: 13px; font-weight: 600; color: #9BA59F">{{r.time}}</span>
+                  <span style="{{r.textStyle}}">{{r.label}}</span>
+                </label>
+              </li>
+            </sc-for>
+          </ul>
+          <div style="margin-top: auto; padding: 14px 16px; border-radius: 14px; background: #1F2622; display: flex; flex-direction: column; gap: 8px">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px">
+              <span style="font-weight: 700">[챌린지 이름]</span>
+              <span style="color: #9BA59F">D+12 · 30일 목표</span>
+            </div>
+            <div style="height: 6px; border-radius: 999px; background: #2A322E; overflow: hidden">
+              <div style="height: 100%; width: 40%; border-radius: 999px; background: {{accent}}"></div>
+            </div>
+          </div>
+        </section>
+
+        <section aria-labelledby="workout-title" style="flex: 1 1 320px; min-width: 0; box-sizing: border-box; padding: 26px; border-radius: 22px; background: #171D1A; border: 1px solid #26302B; display: flex; flex-direction: column; gap: 16px">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+            <h2 id="workout-title" style="margin: 0; font-size: 17px; font-weight: 700">이번 주 운동</h2>
+            <span style="font-size: 13px; color: #9BA59F">부위별 세트 목표</span>
+          </div>
+          <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 14px">
+            <sc-for list="{{muscles}}" as="m" hint-placeholder-count="5">
+              <li style="display: grid; grid-template-columns: 40px minmax(0, 1fr) 56px; align-items: center; gap: 12px">
+                <span style="font-size: 14px; font-weight: 500">{{m.label}}</span>
+                <span style="height: 10px; border-radius: 999px; background: #2A322E; overflow: hidden">
+                  <span style="display: block; height: 100%; border-radius: 999px; background: {{m.bar}}; width: {{m.pct}}"></span>
+                </span>
+                <span style="text-align: right; font-family: 'Bricolage Grotesque', sans-serif; font-size: 14px; font-weight: 600">{{m.done}}<span style="color: #8B958F"> / {{m.target}}</span></span>
+              </li>
+            </sc-for>
+          </ul>
+          <a href="#" style="margin-top: auto; min-height: 48px; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 999px; background: {{accent}}; color: #17382B; font-weight: 700; text-decoration: none">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+            오늘 운동 기록하기
+          </a>
+        </section>
+
+        <section aria-labelledby="jobs-title" style="flex: 1 1 320px; min-width: 0; box-sizing: border-box; padding: 26px; border-radius: 22px; background: #171D1A; border: 1px solid #26302B; display: flex; flex-direction: column; gap: 16px">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+            <h2 id="jobs-title" style="margin: 0; font-size: 17px; font-weight: 700">채용 현황</h2>
+            <a href="#" style="min-height: 44px; display: inline-flex; align-items: center; font-size: 13px">리스트 →</a>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+            <div style="padding: 14px; border-radius: 14px; background: #1F2622; display: flex; flex-direction: column">
+              <span style="font-size: 12px; color: #9BA59F">지원</span>
+              <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 28px; font-weight: 800; line-height: 1.2">14</span>
+            </div>
+            <div style="padding: 14px; border-radius: 14px; background: #1F2622; display: flex; flex-direction: column">
+              <span style="font-size: 12px; color: #9BA59F">서류 합격</span>
+              <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 28px; font-weight: 800; line-height: 1.2">5</span>
+            </div>
+            <div style="padding: 14px; border-radius: 14px; background: #1F2622; display: flex; flex-direction: column">
+              <span style="font-size: 12px; color: #9BA59F">면접 진행</span>
+              <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 28px; font-weight: 800; line-height: 1.2">2</span>
+            </div>
+            <div style="padding: 14px; border-radius: 14px; background: #40200F; display: flex; flex-direction: column">
+              <span style="font-size: 12px; color: #FFB59A">D-7 임박</span>
+              <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 28px; font-weight: 800; line-height: 1.2; color: #FFB59A">3</span>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #9BA59F">
+              <span>서류 통과율</span>
+              <span style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; color: #ECEFEC">36%</span>
+            </div>
+            <div style="height: 8px; border-radius: 999px; background: #2A322E; overflow: hidden">
+              <div style="height: 100%; width: 36%; border-radius: 999px; background: {{accent}}"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section aria-labelledby="blog-title" style="box-sizing: border-box; padding: 26px; border-radius: 22px; background: #171D1A; border: 1px solid #26302B; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+          <h2 id="blog-title" style="margin: 0; font-size: 17px; font-weight: 700">새로 올라온 기술 블로그</h2>
+          <a href="#" style="min-height: 44px; display: inline-flex; align-items: center; font-size: 13px">블로그 →</a>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 12px">
+          <a href="#" style="flex: 1 1 260px; min-width: 0; padding: 16px; border-radius: 14px; background: #1F2622; text-decoration: none; color: #ECEFEC; display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 12px; font-weight: 700; color: #D9F45B">토스</span>
+            <span style="font-weight: 500">[글 제목]</span>
+          </a>
+          <a href="#" style="flex: 1 1 260px; min-width: 0; padding: 16px; border-radius: 14px; background: #1F2622; text-decoration: none; color: #ECEFEC; display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 12px; font-weight: 700; color: #D9F45B">카카오</span>
+            <span style="font-weight: 500">[글 제목]</span>
+          </a>
+          <a href="#" style="flex: 1 1 260px; min-width: 0; padding: 16px; border-radius: 14px; background: #1F2622; text-decoration: none; color: #ECEFEC; display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 12px; font-weight: 700; color: #D9F45B">당근</span>
+            <span style="font-weight: 500">[글 제목]</span>
+          </a>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#D9F45B","options":["#D9F45B","#FFC857","#8FE3CF","#FFA8C5"]},"$preview":{"width":1440,"height":1480}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { revealed: false, status: null, done: { 0: true, 1: true, 2: false, 3: false, 4: false } };
+  }
+  renderVals() {
+    var self = this;
+    var accent = this.props.accent ?? '#D9F45B';
+    var blocks = [
+      { time: '07:00–08:00', label: 'CS 학습' },
+      { time: '09:00–12:00', label: '코딩테스트 연습' },
+      { time: '14:00–18:00', label: '프로젝트' },
+      { time: '19:00–20:30', label: '운동' },
+      { time: '22:30–23:00', label: '하루 회고' }
+    ];
+    var done = this.state.done;
+    var doneCount = 0;
+    var routines = blocks.map(function (b, i) {
+      var isDone = !!done[i];
+      if (isDone) doneCount++;
+      return {
+        time: b.time,
+        label: b.label,
+        done: isDone,
+        textStyle: isDone ? 'color: #7F8A84; text-decoration: line-through' : 'color: #ECEFEC; font-weight: 500',
+        toggle: function () {
+          var next = Object.assign({}, self.state.done);
+          next[i] = !next[i];
+          self.setState({ done: next });
+        }
+      };
+    });
+    var goals = [
+      { label: '등', done: 6, target: 10 },
+      { label: '가슴', done: 10, target: 10 },
+      { label: '어깨', done: 4, target: 10 },
+      { label: '팔', done: 3, target: 8 },
+      { label: '다리', done: 0, target: 12 }
+    ];
+    var muscles = goals.map(function (g) {
+      var p = Math.min(100, Math.round(g.done / g.target * 100));
+      return { label: g.label, done: g.done, target: g.target, pct: p + '%', bar: p >= 100 ? accent : '#5E8A73' };
+    });
+    var base = 'min-height: 48px; padding: 0 24px; border-radius: 999px; font-size: 15px; font-weight: 700; ';
+    var on = base + 'border: 0; background: ' + accent + '; color: #17382B';
+    var off = base + 'border: 1px solid #4F7A66; background: transparent; color: #FFFFFF';
+    var st = this.state.status;
+    return {
+      accent: accent,
+      showAnswer: this.state.revealed,
+      hideAnswer: !this.state.revealed,
+      reveal: function () { self.setState({ revealed: true }); },
+      markGot: function () { self.setState({ status: 'understood' }); },
+      markReview: function () { self.setState({ status: 'review_needed' }); },
+      gotPressed: st === 'understood' ? 'true' : 'false',
+      reviewPressed: st === 'review_needed' ? 'true' : 'false',
+      gotStyle: st === 'understood' ? on : off,
+      reviewStyle: st === 'review_needed' ? on : off,
+      routines: routines,
+      doneCount: doneCount,
+      totalCount: blocks.length,
+      uncheckedCount: blocks.length - doneCount,
+      progress: Math.round(doneCount / blocks.length * 100) + '%',
+      muscles: muscles
+    };
+  }
+}
+</script>
+</body>
+</html>

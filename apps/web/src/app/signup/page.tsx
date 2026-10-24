@@ -123,7 +123,7 @@ export default function SignupPage() {
         setSubmitting(false);
         return;
       }
-      router.replace('/jobs');
+      router.replace('/today');
       router.refresh();
     } catch {
       setError('네트워크 오류가 발생했습니다. 다시 시도해주세요.');

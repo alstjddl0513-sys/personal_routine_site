@@ -1,5 +1,10 @@
 import type { Metadata, Viewport } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import {
+  Bricolage_Grotesque,
+  Geist,
+  Geist_Mono,
+  IBM_Plex_Sans_KR,
+} from 'next/font/google';
 import { BottomNav } from '../components/BottomNav';
 import { ChallengeCelebrator } from '../components/ChallengeCelebrator';
 import { DeadlineNotifier } from '../components/DeadlineNotifier';
@@ -21,6 +26,21 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
+});
+
+// Rally 브랜드 폰트 (/today부터 적용). 변수만 <html>에 등록되고 실제 파일은
+// font-display / font-plex 클래스를 쓰는 곳에서만 내려받음.
+const bricolage = Bricolage_Grotesque({
+  variable: '--font-bricolage',
+  subsets: ['latin'],
+  weight: ['600', '800'],
+});
+
+// 한글 서브셋이 커서 preload 끔 — unicode-range로 필요한 조각만 지연 로드.
+const plexKr = IBM_Plex_Sans_KR({
+  variable: '--font-plex-kr',
+  weight: ['400', '500', '700'],
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -86,7 +106,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html
       lang="ko"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${bricolage.variable} ${plexKr.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>

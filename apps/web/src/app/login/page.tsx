@@ -31,7 +31,7 @@ function LoginForm() {
   const nextPath =
     rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//')
       ? rawNext
-      : '/jobs';
+      : '/today';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -79,7 +79,7 @@ function LoginForm() {
       const supabase = createSupabaseBrowserClient();
       // nextPath는 origin/auth/callback으로 넘겨 콜백 라우트에서 다시 활용.
       const callback = new URL('/auth/callback', window.location.origin);
-      if (nextPath !== '/jobs') callback.searchParams.set('next', nextPath);
+      if (nextPath !== '/today') callback.searchParams.set('next', nextPath);
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo: callback.toString() },

@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Rss, Settings, X, type LucideIcon } from 'lucide-react';
+import { Calendar, Rss, Settings, X, type LucideIcon } from 'lucide-react';
 import { Portal } from './ui/Portal';
 
 interface Props {
@@ -19,6 +19,7 @@ interface MoreItem {
 }
 
 const MORE_ITEMS: MoreItem[] = [
+  { href: '/calendar', label: '캘린더', icon: Calendar, matchPrefixes: ['/calendar'] },
   { href: '/blog', label: '블로그', icon: Rss, matchPrefixes: ['/blog'] },
   {
     href: '/settings',
