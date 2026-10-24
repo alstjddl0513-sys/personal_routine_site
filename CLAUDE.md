@@ -11,6 +11,10 @@
 - **스택**: Next.js 16 App Router(프론트) + NestJS 11 + Drizzle ORM(백엔드) + Supabase(PostgreSQL, Auth, Storage) + `@repo/shared` 공용 타입
 - **배포**: Vercel(web) + Render(api) + Supabase(db) — 전부 무료 티어. 상세는 `docs/deployment.md`
 
+## 하위 디렉토리 규칙
+- `apps/api/CLAUDE.md` — DB/스키마, Drizzle 마이그레이션, Session Pooler 등. **API 작업 시 자동 로드**
+- `apps/web/CLAUDE.md` → `apps/web/AGENTS.md` — Next 16 주의사항. **Web 작업 시 자동 로드**
+
 ## 1. 계획 우선 (가장 중요)
 - 코드 작성/수정 전에 변경 계획을 먼저 요약해 보여주고 확인받은 후 진행한다.
 - 여러 파일에 걸치거나 DB 스키마를 바꾸는 작업은 반드시 plan mode로 설계안부터 제시한다.
@@ -26,15 +30,7 @@
 - TypeScript strict 유지, `any` 남용 금지.
 - 새 라이브러리/의존성 추가 전에는 이유를 먼저 설명하고 승인받는다.
 
-## 4. DB / 스키마 (Drizzle + Supabase)
-- 스키마 변경은 반드시 Drizzle 마이그레이션 파일로 관리한다. DB를 손으로 직접 고치지 않는다.
-- ERD 변경은 특히 계획을 먼저 공유하고 진행한다.
-- 스키마 변경 흐름: 스키마 편집 → `pnpm --filter api db:generate` → 생성된 SQL 사용자에게 보여주고 승인 → `pnpm --filter api db:migrate`. **자동 실행 금지**.
-- 로컬 dev는 Supabase **Session Pooler(port 5432)** 문자열 사용. Direct connection은 IPv6 전용이라 국내 환경에서 DNS 실패.
-- **Prod 마이그은 파일 하나씩**. `db:migrate`가 여러 개 미적용을 한 번에 돌리면 실패 시 부분 반영 상태에 빠질 수 있음(Phase 12.4에서 겪음). 파일별 실행이 필요하면 `apps/api/src/db/apply-sql-file.ts` 유틸 + 수동 트래킹 INSERT. deployment.md §6 · troubleshooting.md 참고.
-- **`defaults.ts`의 `DEFAULT_*`에 항목 추가하면 같은 파일의 `DEFAULTS_VERSION`을 반드시 +1**. `profiles.findMe`의 lazy sync가 이 값으로 기존 유저 backfill 여부를 판단. bump 누락 시 기존 유저는 새 시드를 못 받음. troubleshooting.md 참고.
-
-## 5. 검증
+## 4. 검증
 - 수정 후 빌드/테스트를 실행해 정상 동작을 확인한다.
 - UI 변경은 브라우저에서 실제로 눌러보고 확인한다. "돌아간다"만으로 끝내지 않는다.
 - 변경 후 무엇을/왜 바꿨는지 diff 요약을 남긴다.
@@ -43,39 +39,15 @@
   2. 성공 케이스만 확인했는가 — 최소 1개 실패/엣지 케이스도 검증했는가
   3. UI 변경이라면 사용자에게 브라우저 확인을 실제로 요청했는가 (HTTP status만 200 뜬 것은 통과 아님)
 
-## 6. 보안
+## 5. 보안
 - `.env`, API 키, DB 접속 정보, OAuth 시크릿 등은 절대 커밋하지 않는다.
 - 구글 로그인 등 인증 관련 작업은 특히 신중하게, 별도로 확인받는다.
 
-## 7. 커밋
+## 6. 커밋
 - 커밋 메시지는 무엇을/왜 바꿨는지 명확히. Conventional Commits(feat/fix/chore 등) 사용.
 - 커밋은 요청받았을 때만 만든다.
 
-## 8. 반복 작업은 Skill로 분리
-- 같은 패턴의 반복 작업(API 엔드포인트 추가, 테이블 컴포넌트 추가 등)은
-  `.claude/skills/<name>/SKILL.md`로 분리한다.
-- CLAUDE.md에는 프로젝트 전역 규칙만 남긴다.
-
-## 9. 문서는 짧게
-- 이 파일은 Claude가 자주 놓치는 규칙만 유지한다.
-- 잘 지켜지는 규칙은 오히려 지운다 (노이즈).
-- 포매팅/린트처럼 강제 가능한 건 Hook으로 옮기는 걸 검토한다.
-
-## 10. 모노레포 세팅
-- 새 env var 추가 시 `.env.example`도 반드시 함께 업데이트한다.
-- `packages/*`의 workspace 패키지를 앱에서 쓸 때는 그 앱의 `package.json` `dependencies`에 `"@repo/xxx": "workspace:*"`를 명시하고 `pnpm install` 재실행.
-- pnpm 11에서 새 dep의 postinstall 승인이 필요하면 `pnpm-workspace.yaml`의 `allowBuilds:`에 `<pkg>: true` 추가 (검증된 패키지만).
-
-## 11. 로드맵 동기화
-- 매 phase 완료 시, 그리고 커밋을 만들 때 `docs/todo.md`의 체크박스와 상태 마커(✅ ⏳)를 실제 진행 상황과 동기화한다.
-- 로컬 파일(`.gitignore` 처리)이지만 사용자와 다음 세션의 나에게 유일한 진행 상황 소스다. 실제와 어긋나기 시작하면 아무도 안 보게 되므로 반드시 즉시 갱신한다.
-
-## 12. 삽질 로그
-- 세션 중 만난 새 문제(에러 → 원인 → 해결)는 `docs/troubleshooting.md`에 항목 추가.
-- 형식: 증상 한 줄 헤딩 + 상황/원인/해결 3줄. 이미 있는 항목이면 skip.
-- 커밋 시점에 함께 정리해서 스테이징.
-
-## 13. 브랜치 전략
+## 7. 브랜치 전략
 - `main`: 배포 지점. 릴리스 시에만 `develop`에서 병합. **직접 커밋/푸시 금지**.
 - `develop`: 통합 줄기. feat 브랜치들이 PR로 병합되는 대상.
 - 작업 단위마다 새 브랜치를 판다. 네이밍: `<type>/phase-<N>/<주제>` 형식.
@@ -85,7 +57,31 @@
 - 코드 작성 전 항상 현재 브랜치 확인. `develop`/`main`이면 새 브랜치를 파고 시작한다.
 - 완료 후 GitHub PR로 develop에 병합. main으로는 릴리스 시에만.
 
-## 14. 기술 선택은 이유와 함께 문서화
+## 8. 로드맵 동기화
+- 매 phase 완료 시, 그리고 커밋을 만들 때 `docs/todo.md`의 체크박스와 상태 마커(✅ ⏳)를 실제 진행 상황과 동기화한다.
+- 로컬 파일(`.gitignore` 처리)이지만 사용자와 다음 세션의 나에게 유일한 진행 상황 소스다. 실제와 어긋나기 시작하면 아무도 안 보게 되므로 반드시 즉시 갱신한다.
+
+## 9. 삽질 로그
+- 세션 중 만난 새 문제(에러 → 원인 → 해결)는 `docs/troubleshooting.md`에 항목 추가.
+- 형식: 증상 한 줄 헤딩 + 상황/원인/해결 3줄. 이미 있는 항목이면 skip.
+- 커밋 시점에 함께 정리해서 스테이징.
+
+## 10. 모노레포 세팅
+- 새 env var 추가 시 `.env.example`도 반드시 함께 업데이트한다.
+- `packages/*`의 workspace 패키지를 앱에서 쓸 때는 그 앱의 `package.json` `dependencies`에 `"@repo/xxx": "workspace:*"`를 명시하고 `pnpm install` 재실행.
+- pnpm 11에서 새 dep의 postinstall 승인이 필요하면 `pnpm-workspace.yaml`의 `allowBuilds:`에 `<pkg>: true` 추가 (검증된 패키지만).
+
+## 11. 반복 작업은 Skill로 분리
+- 같은 패턴의 반복 작업(API 엔드포인트 추가, 테이블 컴포넌트 추가 등)은
+  `.claude/skills/<name>/SKILL.md`로 분리한다.
+- CLAUDE.md에는 프로젝트 전역 규칙만 남긴다.
+
+## 12. 기술 선택은 이유와 함께 문서화
 - 새 라이브러리·서비스·배포 플랫폼 도입, 기존 스택의 중요 업데이트가 있을 때 `docs/architecture.md`의 "선택 이유" 섹션(없으면 신설)에 **왜 이걸 골랐나** 한두 줄 추가.
 - 스킬 파일(`.claude/skills/*/SKILL.md`)에 나오는 도구/패턴도 처음 도입 시 이유 명시. 반복적으로 쓰이기 시작하면 skill로 승격.
 - 미래의 나(또는 팀)가 "왜 이걸 썼지?" 되물을 시간을 줄이는 게 목적. 대안 후보와 채택 이유를 함께 적어두면 회고 때도 편함.
+
+## 13. 문서는 짧게
+- 이 파일은 Claude가 자주 놓치는 규칙만 유지한다.
+- 잘 지켜지는 규칙은 오히려 지운다 (노이즈).
+- 포매팅/린트처럼 강제 가능한 건 Hook으로 옮기는 걸 검토한다.
