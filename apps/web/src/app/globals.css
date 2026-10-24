@@ -9,7 +9,7 @@
   --background: #ffffff;
   --foreground: #171717;
 
-  /* Rally 브랜드 토큰 (docs/design/rally-dashboard-design.html). 지금은
+  /* Rally 브랜드 토큰 (docs/design/rally-dashboard-design.dc.html). 지금은
      /today만 사용하고 나머지 페이지는 zinc 유지 — 점진 확산. */
   --rally-court: #17382b;
   --rally-court-deep: #0f2a1f; /* 학습 카드 답 박스 */
@@ -56,7 +56,7 @@
   --background: #0a0a0a;
   --foreground: #ededed;
 
-  /* docs/design/rally-dashboard-design-dark.html */
+  /* docs/design/rally-dashboard-design-dark.dc.html */
   --rally-court-border: #2a5240;
   --rally-cream: #0e1311;
   --rally-surface: #171d1a;

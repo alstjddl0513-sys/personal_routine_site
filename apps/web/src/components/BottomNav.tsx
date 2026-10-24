@@ -58,7 +58,7 @@ export function BottomNav() {
                 <Link
                   href={tab.href}
                   aria-current={active ? 'page' : undefined}
-                  className={`flex min-h-[3.25rem] flex-col items-center justify-center gap-0.5 py-1.5 text-[10px] leading-tight transition-colors ${
+                  className={`flex min-h-13 flex-col items-center justify-center gap-0.5 py-1.5 text-[10px] leading-tight transition-colors ${
                     active
                       ? 'text-zinc-900 dark:text-zinc-50'
                       : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200'
@@ -81,7 +81,7 @@ export function BottomNav() {
               aria-expanded={moreOpen}
               aria-label="더보기 메뉴 열기"
               aria-current={moreActive ? 'page' : undefined}
-              className={`flex min-h-[3.25rem] w-full flex-col items-center justify-center gap-0.5 py-1.5 text-[10px] leading-tight transition-colors ${
+              className={`flex min-h-13 w-full flex-col items-center justify-center gap-0.5 py-1.5 text-[10px] leading-tight transition-colors ${
                 moreActive
                   ? 'text-zinc-900 dark:text-zinc-50'
                   : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200'
