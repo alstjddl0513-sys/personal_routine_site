@@ -71,6 +71,8 @@ export type CompanyPatch = Partial<
     | 'appliedAt'
     | 'applicationDocUrl'
     | 'progressNote'
+    | 'resumeDocumentId'
+    | 'portfolioDocumentId'
   >
 >;
 

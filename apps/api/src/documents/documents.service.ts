@@ -5,9 +5,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { randomUUID } from 'crypto';
-import { and, asc, desc, eq } from 'drizzle-orm';
+import { and, asc, desc, eq, getTableColumns, or, sql } from 'drizzle-orm';
 import { db } from '../db/client';
-import { documents } from '../db/schema';
+import { companies, documents } from '../db/schema';
 import { getSupabaseAdmin } from '../supabase-admin';
 import { InitDocumentDto } from './dto/init-document.dto';
 import { CreateLinkDocumentDto } from './dto/create-link-document.dto';
@@ -27,9 +27,19 @@ export class DocumentsService {
   async findAll(ownerId: string, query: QueryDocumentsDto) {
     const conditions = [eq(documents.ownerId, ownerId)];
     if (query.kind) conditions.push(eq(documents.kind, query.kind));
+    // submittedCount: 이 문서를 제출본으로 연결한 회사 수. 행 뱃지 + 삭제
+    // 경고용(삭제하면 FK SET NULL로 그 회사들 연결이 끊김).
+    const submittedCount = sql<number>`(
+      select count(*)::int from ${companies}
+      where ${companies.ownerId} = ${documents.ownerId}
+        and ${or(
+          eq(companies.resumeDocumentId, documents.id),
+          eq(companies.portfolioDocumentId, documents.id),
+        )}
+    )`;
     return (
       db
-        .select()
+        .select({ ...getTableColumns(documents), submittedCount })
         .from(documents)
         .where(and(...conditions))
         // 대표 문서를 위로, 그 다음 최신순

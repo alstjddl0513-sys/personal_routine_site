@@ -7,6 +7,7 @@ import {
   date,
   timestamp,
 } from 'drizzle-orm/pg-core';
+import { documents } from './documents';
 
 export const companyType1Enum = pgEnum('company_type_1', [
   'big_tech',
@@ -79,6 +80,16 @@ export const companies = pgTable('companies', {
   isRolling: boolean('is_rolling').notNull().default(false),
   applicationDocUrl: text('application_doc_url'),
   progressNote: text('progress_note'),
+  // 이 회사에 낸 이력서/포폴 버전. 문서 삭제 시 연결만 끊김(SET NULL).
+  // kind 일치(resume ↔ resume, portfolio ↔ portfolio|link)와 같은 owner
+  // 여부는 FK로 못 막아서 서비스 레이어에서 검증.
+  resumeDocumentId: uuid('resume_document_id').references(() => documents.id, {
+    onDelete: 'set null',
+  }),
+  portfolioDocumentId: uuid('portfolio_document_id').references(
+    () => documents.id,
+    { onDelete: 'set null' },
+  ),
 
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
