@@ -8,11 +8,82 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Rally 브랜드 토큰 (docs/design/rally-dashboard-design.html). 지금은
+     /today만 사용하고 나머지 페이지는 zinc 유지 — 점진 확산. */
+  --rally-court: #17382b;
+  --rally-court-deep: #0f2a1f; /* 학습 카드 답 박스 */
+  --rally-court-soft: #24503d; /* 학습 카드 카테고리 chip */
+  --rally-court-line: #4f7a66; /* 학습 카드 outline 버튼 */
+  --rally-court-border: transparent;
+  /* 코트 그린 카드 위 글자·막대 (다크에서도 카드가 그린이라 고정) */
+  --rally-on-court: #e3ece6;
+  --rally-on-court-muted: #c9d6cd;
+  --rally-on-court-faint: #a9bbaf;
+  --rally-court-dot: #2f5e49;
+  --rally-lime: #d9f45b;
+  --rally-cream: #f4f3ee;
+  --rally-surface: #ffffff;
+  --rally-surface-muted: #f4f3ee;
+  --rally-line: #e3e2da;
+  --rally-divider: #efeee8;
+  --rally-track: #efeee8;
+  --rally-ink: #15171a;
+  --rally-ink-muted: #5a5f66;
+  --rally-ink-faint: #8a8e94;
+  /* 진행바·CTA·체크박스. 다크에선 court → lime으로 뒤집힘. */
+  --rally-primary: #17382b;
+  --rally-on-primary: #ffffff;
+  --rally-primary-soft: #6b8f7c; /* 운동 목표 미달 바 */
+  --rally-link: #17382b;
+  --rally-streak: #c2410c;
+
+  /* 일정 유형 뱃지 (마감/시험/면접/발표/기타) */
+  --rally-deadline-bg: #fde3d8;
+  --rally-deadline-fg: #8f2a0a;
+  --rally-deadline-strong: #b23a12; /* D-DAY 숫자 */
+  --rally-test-bg: #dde6fe;
+  --rally-test-fg: #1e3f9e;
+  --rally-interview-bg: #ece3fb;
+  --rally-interview-fg: #4b2a99;
+  --rally-announce-bg: #d4f1ea;
+  --rally-announce-fg: #0b5e4f;
+  --rally-other-bg: #ebeae4;
+  --rally-other-fg: #4a4f55;
 }
 
 .dark {
   --background: #0a0a0a;
   --foreground: #ededed;
+
+  /* docs/design/rally-dashboard-design-dark.html */
+  --rally-court-border: #2a5240;
+  --rally-cream: #0e1311;
+  --rally-surface: #171d1a;
+  --rally-surface-muted: #1f2622;
+  --rally-line: #26302b;
+  --rally-divider: #252d29;
+  --rally-track: #2a322e;
+  --rally-ink: #ecefec;
+  --rally-ink-muted: #9ba59f;
+  --rally-ink-faint: #8b958f;
+  --rally-primary: #d9f45b;
+  --rally-on-primary: #17382b;
+  --rally-primary-soft: #5e8a73;
+  --rally-link: #d9f45b;
+  --rally-streak: #ff9a73;
+
+  --rally-deadline-bg: #40200f;
+  --rally-deadline-fg: #ffb59a;
+  --rally-deadline-strong: #ff9a73;
+  --rally-test-bg: #1c2748;
+  --rally-test-fg: #b3c6ff;
+  --rally-interview-bg: #2c2148;
+  --rally-interview-fg: #d2bfff;
+  --rally-announce-bg: #12352e;
+  --rally-announce-fg: #8fe3cf;
+  --rally-other-bg: #262c29;
+  --rally-other-fg: #c3cbc6;
 }
 
 @theme inline {
@@ -20,6 +91,45 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  /* 숫자·로고 / 한글 본문. layout.tsx에서 next/font로 변수 등록. */
+  --font-display: var(--font-bricolage), var(--font-plex-kr), sans-serif;
+  --font-plex: var(--font-plex-kr), system-ui, sans-serif;
+
+  --color-court: var(--rally-court);
+  --color-court-deep: var(--rally-court-deep);
+  --color-court-soft: var(--rally-court-soft);
+  --color-court-line: var(--rally-court-line);
+  --color-court-border: var(--rally-court-border);
+  --color-on-court: var(--rally-on-court);
+  --color-on-court-muted: var(--rally-on-court-muted);
+  --color-on-court-faint: var(--rally-on-court-faint);
+  --color-court-dot: var(--rally-court-dot);
+  --color-lime: var(--rally-lime);
+  --color-cream: var(--rally-cream);
+  --color-surface: var(--rally-surface);
+  --color-surface-muted: var(--rally-surface-muted);
+  --color-line: var(--rally-line);
+  --color-divider: var(--rally-divider);
+  --color-track: var(--rally-track);
+  --color-ink: var(--rally-ink);
+  --color-ink-muted: var(--rally-ink-muted);
+  --color-ink-faint: var(--rally-ink-faint);
+  --color-primary: var(--rally-primary);
+  --color-on-primary: var(--rally-on-primary);
+  --color-primary-soft: var(--rally-primary-soft);
+  --color-link: var(--rally-link);
+  --color-streak: var(--rally-streak);
+  --color-deadline-bg: var(--rally-deadline-bg);
+  --color-deadline-fg: var(--rally-deadline-fg);
+  --color-deadline-strong: var(--rally-deadline-strong);
+  --color-test-bg: var(--rally-test-bg);
+  --color-test-fg: var(--rally-test-fg);
+  --color-interview-bg: var(--rally-interview-bg);
+  --color-interview-fg: var(--rally-interview-fg);
+  --color-announce-bg: var(--rally-announce-bg);
+  --color-announce-fg: var(--rally-announce-fg);
+  --color-other-bg: var(--rally-other-bg);
+  --color-other-fg: var(--rally-other-fg);
 }
 
 body {

@@ -14,9 +14,11 @@ import {
   Rss,
   Settings,
   Shield,
+  Sun,
 } from 'lucide-react';
 import { useEffect, useState, useSyncExternalStore, type ComponentType, type SVGProps } from 'react';
 import { NotifBell } from './NotifBell';
+import { RallyLogo } from './RallyLogo';
 import { ThemeToggle } from './ThemeToggle';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { getMyProfile } from '@/lib/api';
@@ -36,6 +38,12 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
+  {
+    href: '/today',
+    label: '오늘',
+    icon: Sun,
+    matchPrefixes: ['/today'],
+  },
   {
     href: '/calendar',
     label: '캘린더',
@@ -285,7 +293,11 @@ export function Sidebar() {
       className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-zinc-200 bg-zinc-50 md:flex dark:border-zinc-800 dark:bg-zinc-950"
     >
       <div className="px-5 pt-5 pb-4">
-        <Link href="/jobs" className="text-base font-semibold tracking-tight">
+        <Link
+          href="/today"
+          className="inline-flex items-center gap-2 text-base font-semibold tracking-tight"
+        >
+          <RallyLogo size={26} />
           Rally
         </Link>
       </div>

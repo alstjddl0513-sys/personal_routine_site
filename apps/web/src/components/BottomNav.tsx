@@ -6,10 +6,10 @@ import { usePathname } from 'next/navigation';
 import {
   BookOpen,
   Briefcase,
-  Calendar,
   CalendarCheck2,
   Dumbbell,
   MoreHorizontal,
+  Sun,
   type LucideIcon,
 } from 'lucide-react';
 import { isMoreMenuPath, MoreMenu } from './MoreMenu';
@@ -22,7 +22,8 @@ interface Tab {
 }
 
 const TABS: Tab[] = [
-  { href: '/calendar', label: '캘린더', icon: Calendar, matchPrefixes: ['/calendar'] },
+  // 캘린더는 '오늘'의 다가오는 일정 카드가 대신해서 더보기로 이동.
+  { href: '/today', label: '오늘', icon: Sun, matchPrefixes: ['/today'] },
   { href: '/jobs', label: '채용', icon: Briefcase, matchPrefixes: ['/jobs'] },
   { href: '/routines', label: '루틴', icon: CalendarCheck2, matchPrefixes: ['/routines'] },
   { href: '/workouts', label: '운동', icon: Dumbbell, matchPrefixes: ['/workouts'] },

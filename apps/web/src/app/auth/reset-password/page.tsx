@@ -84,9 +84,9 @@ export default function ResetPasswordPage() {
         return;
       }
       setPhase('done');
-      // 새 비번으로 세션이 유지되므로 잠시 안내 후 /jobs로 이동.
+      // 새 비번으로 세션이 유지되므로 잠시 안내 후 /today로 이동.
       setTimeout(() => {
-        router.replace('/jobs');
+        router.replace('/today');
         router.refresh();
       }, 1500);
     } catch {
