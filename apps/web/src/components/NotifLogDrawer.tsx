@@ -60,6 +60,38 @@ type MergedItem =
   | { kind: 'log'; entry: NotifLogEntry }
   | { kind: 'announcement'; entry: UserAnnouncement; firedAt: number };
 
+// 드로어 필터 칩. 알림 종류 9개를 사용자가 떠올리는 단위로 묶음.
+type FilterKey = 'all' | 'deadline' | 'event' | 'routine' | 'workout' | 'morning' | 'announcement';
+
+const FILTERS: { key: Exclude<FilterKey, 'all'>; label: string }[] = [
+  { key: 'deadline', label: '마감' },
+  { key: 'event', label: '일정' },
+  { key: 'routine', label: '루틴' },
+  { key: 'workout', label: '운동' },
+  { key: 'morning', label: '아침 요약' },
+  { key: 'announcement', label: '공지' },
+];
+
+const LOG_FILTER: Record<NotifType, Exclude<FilterKey, 'all' | 'announcement'>> = {
+  'deadline-d1': 'deadline',
+  'deadline-d3': 'deadline',
+  'event-d3': 'event',
+  'event-d1': 'event',
+  'event-today': 'event',
+  'routine-reminder': 'routine',
+  'challenge-completed': 'routine',
+  'workout-skip': 'workout',
+  'morning-summary': 'morning',
+};
+
+// localStorage에 남은 옛 버전 기록은 지금 없는 type일 수 있음 → undefined면
+// '전체'에서만 보임 (ICON_MAP의 `?? Bell`과 같은 방어)
+function filterOf(item: MergedItem): Exclude<FilterKey, 'all'> | undefined {
+  return item.kind === 'announcement'
+    ? 'announcement'
+    : (LOG_FILTER as Partial<Record<string, Exclude<FilterKey, 'all'>>>)[item.entry.type];
+}
+
 function formatRelative(ms: number, now: number = Date.now()): string {
   const diffSec = Math.max(0, Math.round((now - ms) / 1000));
   if (diffSec < 60) return '방금';
@@ -101,6 +133,30 @@ export function NotifLogDrawer({ open, onClose }: Props) {
       return bt - at;
     });
   }, [log, announcements]);
+
+  // 종류별 개수 — 0개인 종류의 칩은 숨김
+  const counts = useMemo(() => {
+    const c: Partial<Record<FilterKey, number>> = { all: items.length };
+    for (const item of items) {
+      const k = filterOf(item);
+      if (k) c[k] = (c[k] ?? 0) + 1;
+    }
+    return c;
+  }, [items]);
+
+  // 열 때마다 '전체'로 시작 (선택 저장 X). render-phase 비교로 리셋 —
+  // effect에서 setState하면 react-hooks/set-state-in-effect 룰에 걸림.
+  const [filter, setFilter] = useState<FilterKey>('all');
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) setFilter('all');
+  }
+  // 선택한 종류의 마지막 알림을 지워 0개가 되면 전체로
+  const activeFilter: FilterKey = filter === 'all' || counts[filter] ? filter : 'all';
+  const visibleItems =
+    activeFilter === 'all' ? items : items.filter((item) => filterOf(item) === activeFilter);
+  const visibleFilters = FILTERS.filter((f) => counts[f.key]);
 
   // 열릴 때 unread 카운트 클리어(로컬만). 서버 공지는 개별 클릭으로 read.
   useEffect(() => {
@@ -157,6 +213,38 @@ export function NotifLogDrawer({ open, onClose }: Props) {
           </button>
         </header>
 
+        {/* 종류가 2가지 이상일 때만 칩 노출 — 한 종류뿐이면 거를 의미가 없음 */}
+        {visibleFilters.length > 1 ? (
+          <div
+            role="tablist"
+            aria-label="알림 종류"
+            className="thin-scrollbar flex gap-1.5 overflow-x-auto border-b border-zinc-200 px-4 py-2 dark:border-zinc-800"
+          >
+            {[{ key: 'all' as const, label: '전체' }, ...visibleFilters].map((f) => {
+              const active = activeFilter === f.key;
+              return (
+                <button
+                  key={f.key}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setFilter(f.key)}
+                  className={`inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1 text-xs transition-colors ${
+                    active
+                      ? 'bg-zinc-900 font-medium text-white dark:bg-zinc-100 dark:text-zinc-900'
+                      : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800'
+                  }`}
+                >
+                  {f.label}
+                  <span className={active ? 'opacity-70' : 'text-zinc-400 dark:text-zinc-500'}>
+                    {counts[f.key]}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
+
         <div className="flex-1 overflow-y-auto">
           {items.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
@@ -171,9 +259,13 @@ export function NotifLogDrawer({ open, onClose }: Props) {
                 여기에 최근 알림이 쌓여요.
               </p>
             </div>
+          ) : visibleItems.length === 0 ? (
+            <p className="px-6 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">
+              이 종류 알림은 아직 없어요.
+            </p>
           ) : (
             <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
-              {items.map((item) =>
+              {visibleItems.map((item) =>
                 item.kind === 'log' ? (
                   <LogRow
                     key={`log-${item.entry.id}`}
