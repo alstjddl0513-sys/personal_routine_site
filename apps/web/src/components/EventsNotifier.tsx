@@ -32,7 +32,7 @@ function fireForDay(
   daysLeft: number,
   events: EventWithCompany[],
   todayIsoKst: string,
-  onClick: () => void,
+  navigate: (href: string) => void,
 ): void {
   const all = pickEventsByDaysLeft(events, daysLeft, todayIsoKst);
   if (all.length === 0) return;
@@ -42,13 +42,17 @@ function fireForDay(
   if (newItems.length === 0) return;
 
   const { title, body } = formatEventMessage(newItems, daysLeft);
+  // 같은 daysLeft로 묶였으니 날짜는 하나 — 캘린더 그 날 패널을 바로 열어
+  // 면접 시간·메모를 확인하게. 월 경계(D-3이 다음 달)도 month로 맞춤.
+  const date = newItems[0].date;
+  const href = `/calendar?month=${date.slice(0, 7)}&date=${date}`;
   try {
     const notif = new Notification(title, {
       body,
       tag: `rally-event-d${daysLeft}`,
       icon: '/flag-192.png',
     });
-    notif.onclick = onClick;
+    notif.onclick = () => navigate(href);
     addFiredIdsToday(
       daysLeft,
       newItems.map((e) => e.id),
@@ -57,7 +61,7 @@ function fireForDay(
       type: typeFromDaysLeft(daysLeft),
       title,
       body,
-      href: '/calendar',
+      href,
     });
   } catch {
     // 일부 브라우저 지원 제한. 무시.
@@ -104,15 +108,16 @@ export function EventsNotifier(): null {
         }))
         .filter((e) => e.companyName.length > 0);
 
-      const handleClick = () => {
+      // 알림 클릭 → fireForDay가 고른 캘린더 날짜로 이동.
+      const navigate = (href: string) => {
         try {
           window.focus();
         } catch {}
-        router.push('/calendar');
+        router.push(href);
       };
 
       for (const daysLeft of DAYS_LEFT_TARGETS) {
-        fireForDay(daysLeft, enriched, todayIsoKst, handleClick);
+        fireForDay(daysLeft, enriched, todayIsoKst, navigate);
       }
     }
 

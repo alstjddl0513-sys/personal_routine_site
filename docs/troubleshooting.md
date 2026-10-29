@@ -164,6 +164,7 @@
 - 상황: `/learn/review`에서 `[별표]` toggle 진입 시 카드의 ★가 첫 렌더에서 빈 ☆로 뜨고, F5 새로고침해야 채워짐. 카테고리 chip 변경도 같은 패턴
 - 원인: `<Link>`/`router.push`는 soft navigation이라 서버 컴포넌트만 재렌더, 하위 클라이언트 컴포넌트 인스턴스는 재사용됨. `useState(() => ...)` 초기값은 첫 마운트에만 계산되므로 새 props가 와도 shadow는 이전 값 그대로
 - 해결: 부모에서 `key={mode}:${categories}` 같은 네비 파라미터 조합을 걸어 재마운트 강제
+- 재발(2026-10-29): `/calendar`를 보던 중 일정 알림 클릭(`router.push('/calendar?date=…')`)해도 `CalendarView`의 `useState(initialSelectedIso)`가 이전 날짜 유지 → `key={initialSelectedIso}`. 셀 클릭은 `history.replaceState`라 라우터가 안 바뀌어 리마운트 안 됨(의도대로)
 
 ### Modal 안의 커스텀 Select가 옵션 선택 즉시 모달을 닫음
 - 상황: 회사 추가 / 운동 추가 모달에서 dropdown 옵션을 누르면 값 저장 없이 모달이 닫힘

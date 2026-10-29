@@ -224,6 +224,33 @@ body {
   }
 }
 
+/* 알림 → /calendar?date= 이동 시 그 날짜 칸에 호박색 외곽선이 두 번
+   깜빡이고 사라짐. 오늘 표시(초록 ring = box-shadow)와 안 겹치게 outline. */
+:root {
+  --date-flash: rgb(245, 158, 11); /* amber-500 */
+}
+.dark {
+  --date-flash: rgb(251, 191, 36); /* amber-400 */
+}
+@keyframes date-flash {
+  0%,
+  100% {
+    outline-color: transparent;
+  }
+  12%,
+  45% {
+    outline-color: var(--date-flash);
+  }
+  28% {
+    outline-color: transparent;
+  }
+}
+.date-flash {
+  outline: 3px solid transparent;
+  outline-offset: 2px;
+  animation: date-flash 2.4s ease-out 1;
+}
+
 /* 인쇄 전용 스타일 — /jobs/report에서 window.print() 호출 시 활성.
    앱 chrome(사이드바/서브내브/바텀내브)과 인쇄 무관 UI(.print:hidden)를
    숨기고 표는 얇은 검정 테두리 + 링크는 URL 각주로. */
