@@ -93,13 +93,6 @@ export const PRIORITY_LABELS: Record<Priority, string> = {
   normal: '하',
 };
 
-export const EMPLOYMENT_TYPE_LABELS: Record<EmploymentType, string> = {
-  intern_to_regular: '인턴→전환',
-  full_time: '정규직',
-  contract: '계약직',
-  etc: '기타',
-};
-
 export const APPLICATION_STATUS_LABELS: Record<ApplicationStatus, string> = {
   not_applied: '미지원',
   applied: '지원',
@@ -155,15 +148,6 @@ export type RoutineChallengeStatus = (typeof ROUTINE_CHALLENGE_STATUSES)[number]
 // 3개: 밀러의 법칙(4±1), GTD 류 "일일 중요 과제 3개" 룰, 데스크톱 3열 그리드
 // 한 줄 정확히 맞음, 희소성이 완주 가치 ↑. 사용자가 답답해하면 늘리기 쉬움.
 export const MAX_ACTIVE_CHALLENGES = 3;
-
-export const ROUTINE_CHALLENGE_STATUS_LABELS: Record<
-  RoutineChallengeStatus,
-  string
-> = {
-  active: '진행중',
-  completed: '완료',
-  abandoned: '포기',
-};
 
 export interface RoutineChallenge {
   id: string;
@@ -524,12 +508,6 @@ export interface QuestionStatsSummary {
 
 export const DOCUMENT_KIND_VALUES = ['resume', 'portfolio', 'link'] as const;
 export type DocumentKind = (typeof DOCUMENT_KIND_VALUES)[number];
-
-export const DOCUMENT_KIND_LABELS: Record<DocumentKind, string> = {
-  resume: '이력서',
-  portfolio: '포폴',
-  link: '외부 링크',
-};
 
 export interface Document {
   id: string;
