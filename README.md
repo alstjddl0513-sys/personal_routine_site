@@ -1,99 +1,86 @@
-# Rally — 개인 취준 트래커
+# Rally — 취준 루틴·커리어 트래커
 
-취준 기간에 채용 리스트·루틴·운동·기술 블로그·CS 학습을 한 곳에서 관리하는 웹앱.
-MVP는 1인 전용으로 시작했으나 Phase 12에서 Supabase Auth로 다인화 인프라를 얹었다. 상세 기획은 `docs/개인_루틴_커리어_관리_웹사이트_기획서.pdf`.
+취업 준비 기간의 **채용 지원 · 일정 · 루틴 · 운동 · CS 학습 · 기술 블로그**를 한 곳에서 관리하는 웹앱.
+1인용 MVP로 시작해 Supabase Auth로 다인화했다. 기획서: `docs/개인_루틴_커리어_관리_웹사이트_기획서.pdf`
 
-## 주요 기능
+**바로가기**: [기능](#기능) · [빠른 시작](#빠른-시작) · [자주 쓰는 명령](#자주-쓰는-명령) · [문서 지도](#문서-지도)
 
-- **오늘** (`/today`, 기본 착지) — 하루 요약 대시보드. 헤더(오늘 마감·일정·미체크 루틴 + 루틴 스트릭), 오늘의 학습 5문제(답·꼬리 질문·이해/복습 기록), 2주 내 일정(D-day·유형 뱃지) + 오늘 메모(캘린더 날짜 메모와 공유), 오늘 루틴 체크 + 활성 챌린지, 이번 주 부위별 세트, 채용 현황(지원·서류 합격·면접 진행·D-7, 서류 통과율), 기술 블로그 최신 3개. 카드별 스트리밍(Suspense)
-- **스케쥴러** (`/calendar`) — 월 그리드(6×7) + 날짜 패널. 채용 일정(마감/시험/면접/발표/기타, 타입별 색 뱃지)·회사 마감일·날짜 메모를 한 뷰에서. 모바일은 바텀시트 패널. 일정 CRUD는 `/jobs` 테이블의 '일정' 컬럼 팝오버
-- **채용 리스트** (`/jobs`) — 회사 · 유형/규모/우선순위 · 지원 상태 · 마감일 · 상시채용 뱃지 · 일정(마감/시험/면접/발표) CRUD · 제출본(이력서·포폴 버전) 연결 — 지원 시 대표 문서 자동 스냅샷 · 인라인 편집, 하트/즐겨찾기, `/jobs/statistics`(파이프라인, pass rate, D-7 임박, 놓친 공고), `/jobs/report` 취업활동 인쇄(A4 landscape)
-- **루틴 트래커** (`/routines`) — 시간블록 × 주간 체크표(드래그 재정렬), D-day 챌린지(목표 일수 달성 시 자동 완료 전환), 이번주 회고, 주간 네비게이션. `/routines/statistics` 블록 월간 카드·KPI 주/월 토글·요일 평균·완료율 랭킹
-- **운동 기록** (`/workouts`) — 세션/세트 단위 기록(kg×reps·RIR), 지난번 기록·PR 인라인 비교, 상체/하체 필터 탭, 부위별 주간 세트 목표 달성률(`muscle_goals`), 세션 여러 개(분할 훈련), 휴식 타이머, `/workouts/statistics` 무게 진행도·주간 잔디·주간 스트릭
-- **기술 블로그** (`/blog`) — 카카오/토스/라인/당근/쿠팡/카카오페이/네이버 D2 7개 소스 RSS 자동 수집(내부 `@nestjs/schedule` 크론), 소스 필터, 수동 새로고침
-- **CS 학습** (`/learn`) — 100+ 큐레이션 질문 하루 5문제 + 복습 모드(오래된 순), 카테고리 필터, `TipBlock` 꼬리 질문, `/learn/statistics` 잔디·KPI, 커스텀 질문 CRUD + 즐겨찾기
-- **문서 관리** (`/settings/documents`) — 이력서·포트폴리오 PDF 업로드(Supabase Storage, private 버킷, 2단계 signed URL) + 외부 링크 병용, 대표 문서 라디오, "N곳 제출" 뱃지(회사 제출본 연결 수)
-- **알림** — 브라우저 Notification API 기반. 채용 마감 D-1/D-3, 캘린더 이벤트 D-3/D-1/당일, 챌린지 완주 축하, 아침 요약(오늘 마감·이벤트·미체크 루틴), 저녁 루틴 리마인더, 운동 스킵 리마인더. 마감 알림은 회사 1곳이면 `/jobs` 해당 행으로 이동. 알림 로그 드로어 + 통합 설정 모달 + 마스터 on/off. 서버 sync는 `profiles.preferences` JSONB
-- **어드민** (`/admin`, env `ADMIN_USER_IDS` 게이트) — 사용자 목록/차단(Supabase `ban_duration`)/강제 탈퇴, 공지 인박스 CRUD(활성 기간·타겟·kind), `/admin/feedback` 피드백 리스트
-- **설정** (`/settings`) — 다크모드, JSON 백업, 닉네임/계정 탈퇴, 비밀번호 변경, 알림 통합, 피드백 모달, 기업 유형/시간블록/운동 종목/블로그 소스/CS 카테고리/질문/부위 목표 커스터마이징
-- **모바일** — 반응형 + PWA(manifest · iOS splash 15장). BottomNav 5탭(오늘/채용/루틴/운동/학습) + ⋯ 더보기 바텀시트(캘린더/블로그/설정)
+---
+
+## 기능
+
+| 화면 | 하는 일 |
+|--|--|
+| **오늘** `/today` | 로그인 후 첫 화면. 오늘 마감·일정·미체크 루틴 요약, 오늘의 CS 5문제, 2주 내 일정 + 오늘 메모, 루틴 체크, 이번 주 운동, 채용 현황, 새 기술 블로그 글 |
+| **캘린더** `/calendar` | 월 그리드 + 날짜 패널. 채용 일정(마감·시험·면접·발표)과 날짜 메모 |
+| **채용** `/jobs` | 회사 표(유형·우선순위·지원상태·마감·일정·공고 링크·제출본·메모 인라인 편집), `/jobs/statistics` 파이프라인·통과율·임박·놓친 공고, `/jobs/report` 인쇄 |
+| **루틴** `/routines` | 시간블록 × 주간 체크표, D-day 챌린지, 주간 회고, `/routines/statistics` |
+| **운동** `/workouts` | 세션·세트 기록(kg×reps·RIR), 지난 기록·PR 비교, 휴식 타이머, 부위별 주간 목표, `/workouts/statistics` |
+| **학습** `/learn` | CS 질문 하루 5문제 + 꼬리 질문, 복습·즐겨찾기, 카테고리, 커스텀 질문, `/learn/statistics` |
+| **블로그** `/blog` | 기술 블로그 7곳 RSS 자동 수집(하루 2회) + 수동 새로고침 |
+| **설정** `/settings` | 다크 모드, 알림, 이력서·포폴 문서(PDF·링크, 회사별 제출 기록), 각종 목록 커스터마이징, 백업, 계정 |
+| **어드민** `/admin` | 사용자 관리·차단, 공지, 피드백 (`ADMIN_USER_IDS`만) |
+
+- **알림**: 브라우저 알림(마감 D-3/D-1, 일정 D-3/D-1/당일, 아침 요약, 저녁 루틴, 운동 스킵, 챌린지 완주) + 종 아이콘 드로어(종류별 필터). 앱이 열려 있을 때 발송
+- **모바일**: 반응형 + PWA. 하단 탭 오늘·채용·루틴·운동·학습 + 더보기(캘린더·블로그·설정)
 
 ## 스택
 
-- **Frontend**: Next.js 16 (App Router) + React 19 + Tailwind CSS v4 (`apps/web`)
-- **Backend**: NestJS 11 + Drizzle ORM 0.45 (`apps/api`)
-- **DB**: Supabase (매니지드 PostgreSQL, Session Pooler)
-- **Auth**: Supabase Auth (JWKS/ES256, jose로 서버 검증) + Google OAuth (PKCE)
-- **Storage**: Supabase Storage (`documents` private 버킷)
-- **Monorepo**: pnpm workspaces (`pnpm -r --parallel`)
-- **Deploy**: Vercel (web) + Render (api) + Supabase (db) + cronjob.org (스케줄러). 절차는 `docs/deployment.md`
+| 영역 | 사용 |
+|--|--|
+| Web | Next.js 16 (App Router) · React 19 · Tailwind CSS v4 — `apps/web` |
+| API | NestJS 11 · Drizzle ORM — `apps/api` |
+| DB · 인증 · 파일 | Supabase (Postgres · Auth + Google OAuth · Storage) |
+| 공용 타입 | `packages/shared` (`@repo/shared`) |
+| 배포 | Vercel (web) · Render (api) · Supabase (db) · cronjob.org — 전부 무료 티어 |
 
-## 폴더 구조
+선택 이유는 [`docs/architecture.md`](docs/architecture.md#기술-선택-이유).
 
 ```
-apps/
-  web/       Next.js 앱 (localhost:3000)
-  api/       NestJS 앱 (localhost:3001)
-packages/
-  shared/    web/api 공용 타입
-docs/        기획 · 배포 · 아키텍처 · 삽질 로그
+apps/web        Next.js (localhost:3000)
+apps/api        NestJS  (localhost:3001)
+packages/shared web·api 공용 타입
+docs/           문서 (아래 문서 지도)
 ```
 
-## 개발 환경 준비
+## 빠른 시작
 
-요구 버전: **Node.js 22.11.0+**, pnpm 11.
-
-> Node 20은 의존 트리 중 `node:sqlite`(Node 22.5+ 요구) 패키지에 걸려 실패.
+필요: **Node.js 22.11+** (20은 `node:sqlite` 때문에 실패) · pnpm 11
 
 ```bash
-# 1) 의존성 설치
 pnpm install
-
-# 2) 환경 변수
-cp .env.example .env
-# .env 열어서 DATABASE_URL, SUPABASE_URL 등 채우기
-# (Supabase 대시보드 → Project Settings → Database → Session Pooler)
+cp .env.example .env     # DATABASE_URL · Supabase 키 채우기 → docs/supabase-usage.md
+pnpm --filter api db:migrate
+pnpm dev                 # web 3000 + api 3001 동시 실행
 ```
 
-## 실행
+Windows PowerShell에서 `pnpm`이 실행 정책에 막히면 `pnpm.cmd`로.
+
+## 자주 쓰는 명령
 
 ```bash
-# web(3000) + api(3001) 동시 기동
-pnpm dev
+pnpm dev | build | lint | typecheck      # 전체 (pnpm -r)
+pnpm --filter web dev                     # 하나만 실행
 
-# 개별 기동
-pnpm --filter web dev
-pnpm --filter api dev
+pnpm --filter api db:generate             # 스키마 변경 → 마이그 SQL 생성 (리뷰 후)
+pnpm --filter api db:migrate              # 마이그 적용 (로컬 DB)
+pnpm --filter api db:studio               # DB GUI
+
+pnpm --filter api db:seed:exercises       # 운동 종목 추가분만 upsert
+pnpm --filter api db:seed:blog-sources    # 블로그 소스 추가분만 upsert
+pnpm --filter api db:seed                 # ⚠️ 최초 세팅 전용 — 재실행 시 회사 데이터를 지우고 다시 넣음
 ```
 
-## 자주 쓰는 스크립트
+## 문서 지도
 
-```bash
-pnpm build                          # 전체 빌드
-pnpm lint                           # 전체 lint
-pnpm typecheck                      # 전체 타입 체크
-
-# DB (Drizzle)
-pnpm --filter api db:generate       # 스키마 변경 → 마이그레이션 SQL 생성
-pnpm --filter api db:migrate        # 생성된 SQL 적용 (승인 후 수동 실행)
-pnpm --filter api db:studio         # Drizzle Studio (브라우저 GUI)
-
-# 시드 (전용 스크립트로 분리, 이름 기준 upsert-if-missing)
-pnpm --filter api db:seed           # 최초 세팅용 (companies 대량 삽입 — 재실행 시 wipe 주의)
-pnpm --filter api db:seed:exercises    # 운동 종목 upsert
-pnpm --filter api db:seed:blog-sources # 블로그 RSS 소스 upsert
-```
-
-## 배포
-
-Render(API) + Vercel(Web) + Supabase(DB) + cronjob.org(스케줄러) 조합. 단계별 절차와 env 세팅은 `docs/deployment.md`.
-
-## 문서
-
-- `CLAUDE.md` — 작업 규칙 (계획 우선, 스코프 좁게, DB 손 X 등)
-- `docs/todo.md` — 로드맵 · 진행 상황 (로컬 파일)
-- `docs/architecture.md` — 3층 배포 아키텍처 + 스택 선택 이유
-- `docs/deployment.md` — 배포 절차 · Google OAuth · 스케줄러 · 릴리스 절차
-- `docs/troubleshooting.md` — 삽질 로그
-- `docs/supabase-usage.md` — Supabase 세팅
-- `docs/design/` — 디자인 시안(`*.dc.html`, 디자인 툴 포맷) · 레퍼런스(`references.md`)
+| 이럴 때 | 문서 |
+|--|--|
+| 작업 규칙 (계획 우선, 브랜치, 커밋) | [`CLAUDE.md`](CLAUDE.md) · API는 [`apps/api/CLAUDE.md`](apps/api/CLAUDE.md) |
+| 로컬 DB 연결·RLS·Supabase 사용법 | [`docs/supabase-usage.md`](docs/supabase-usage.md) |
+| **배포하기** (develop → main, prod 마이그) | [`docs/release.md`](docs/release.md) |
+| 서버 처음 세팅·env·스케줄러·OAuth | [`docs/deployment.md`](docs/deployment.md) |
+| 구조와 기술 선택 이유 | [`docs/architecture.md`](docs/architecture.md) |
+| 에러 해결 | [`docs/troubleshooting.md`](docs/troubleshooting.md) |
+| 인증 설계 기록 (Phase 12) | [`docs/phase-12-auth.md`](docs/phase-12-auth.md) |
+| 디자인 시안·레퍼런스 | [`docs/design/references.md`](docs/design/references.md) |
+| 로드맵·진행 상황 | `docs/todo.md` (로컬 전용, git 제외) |

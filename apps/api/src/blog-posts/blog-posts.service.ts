@@ -87,7 +87,7 @@ export class BlogPostsService {
 
   // 서버 프로세스 안에서 하루 2회 자동 refresh. 08:00 / 20:00 KST = 23:00 / 11:00 UTC.
   // Render 무료 티어는 15분 idle 시 슬립하므로, 외부 health ping이 서버를 깨워두는
-  // 것이 이 cron이 미스되지 않기 위한 전제 (deployment.md §5 참고).
+  // 것이 이 cron이 미스되지 않기 위한 전제 (docs/deployment.md "4. 스케줄러" 참고).
   //
   // No user context — refreshes every user's active sources. Each post gets
   // stamped with the parent source's owner_id in `refresh()`.

@@ -1,6 +1,7 @@
 # Phase 12 — Auth (Supabase Auth 다인화) ✅ 완료
 
-> 상태: 완료 (2026-09-10~19 진행). 이 문서는 주요 설계 결정과 결과만 요약. 상세는 코드(마이그 · service · guard)가 진실.
+> **언제 보나**: 인증·RLS·어드민을 고치기 전에 "왜 이렇게 설계했나"를 확인할 때. **완료된 설계 기록**(2026-09-10~19)이라 새 작업 절차는 없음.
+> 상세는 코드(마이그 · service · guard)가 진실.
 
 ## 목표 · 비목표
 
@@ -60,9 +61,9 @@
 
 ## Prod 마이그 실패 사례 (12.4)
 
-12.4의 4~5개 마이그를 prod에 한 번에 돌렸다가 컬럼만 반영되고 트래킹 row는 누락된 부분 반영 상태 발생. 원인·복구는 `docs/troubleshooting.md` "Prod 마이그레이션 실패 후 스키마-Drizzle 트래킹 불일치" 참고.
+12.4의 4~5개 마이그를 prod에 한 번에 돌렸다가 컬럼만 반영되고 트래킹 row는 누락된 부분 반영 상태 발생. 원인·복구는 [troubleshooting](./troubleshooting.md#prod-마이그레이션-실패-후-스키마-drizzle-트래킹-불일치).
 
-이후 원칙: **prod엔 미적용 마이그를 여러 개 쌓지 말 것.** 릴리스마다 한 개씩. 여러 개 필요하면 `apps/api/src/db/apply-sql-file.ts` 유틸로 파일 하나씩 개별 적용 + 수동 트래킹 INSERT.
+이후 원칙: **prod엔 미적용 마이그를 여러 개 쌓지 말 것.** 쌓였으면 파일 하나씩 — [release.md](./release.md#마이그가-여러-개-쌓였을-때).
 
 ## 관련 코드
 
@@ -70,12 +71,12 @@
 - `apps/api/src/db/schema/profiles.ts`
 - `apps/api/drizzle/0010`~`0022` — auth/RLS 관련 마이그 (0013 RLS 정책, 0022 announcements)
 - `apps/web/src/proxy.ts` · `apps/web/src/lib/supabase/*.ts`
-- `apps/web/src/app/(auth)/*` · `/auth/callback`
+- `apps/web/src/app/login` · `signup` · `auth/callback` · `auth/reset-password`
 - `apps/api/src/admin/*` — Phase 12.5 어드민
 
 ## 관련 문서
 
-- `docs/architecture.md` — 배포 아키텍처 전체
-- `docs/deployment.md` — 실제 배포 절차 (env 세팅 · Google OAuth Console 등)
-- `docs/supabase-usage.md` — Supabase 사용법
-- `docs/troubleshooting.md` — 배포·인증 삽질 로그
+- [architecture.md](./architecture.md) — 요청 흐름 · 기술 선택 이유
+- [deployment.md](./deployment.md) — env 세팅 · Google OAuth 콘솔 설정
+- [supabase-usage.md](./supabase-usage.md) — 연결 문자열 · RLS 확인
+- [troubleshooting.md](./troubleshooting.md) — 삽질 로그
