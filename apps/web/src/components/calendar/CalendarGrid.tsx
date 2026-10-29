@@ -8,6 +8,8 @@ interface Props {
   month: MonthInfo;
   todayIso: string;
   selectedIso: string | null;
+  /** 진입 시 강조할 날짜 (알림·링크의 ?date=) */
+  flashIso?: string | null;
   eventsByDate: Map<string, SchedulerEvent[]>;
   onSelect: (iso: string) => void;
 }
@@ -19,6 +21,7 @@ export function CalendarGrid({
   month,
   todayIso,
   selectedIso,
+  flashIso,
   eventsByDate,
   onSelect,
 }: Props) {
@@ -41,6 +44,7 @@ export function CalendarGrid({
               inMonth={inMonth}
               isToday={iso === todayIso}
               isSelected={iso === selectedIso}
+              flash={iso === flashIso}
               events={eventsByDate.get(iso) ?? []}
               onClick={onSelect}
             />

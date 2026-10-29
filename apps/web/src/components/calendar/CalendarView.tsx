@@ -66,6 +66,9 @@ export function CalendarView({
             month={month}
             todayIso={todayIso}
             selectedIso={selectedIso}
+            // 들어올 때 지정된 날짜만 깜빡임 — 셀 클릭으로 바꾼 선택엔 안 함.
+            // 날짜가 바뀌는 이동은 page.tsx에서 key로 리마운트되어 다시 재생.
+            flashIso={initialSelectedIso}
             eventsByDate={eventsByDate}
             onSelect={onSelect}
           />

@@ -11,6 +11,8 @@ interface Props {
   inMonth: boolean;
   isToday: boolean;
   isSelected: boolean;
+  /** 알림·링크로 이 날짜를 지정해 들어왔을 때 한 번 깜빡임 */
+  flash?: boolean;
   events: SchedulerEvent[];
   onClick: (iso: string) => void;
 }
@@ -23,6 +25,7 @@ export function CalendarCell({
   inMonth,
   isToday,
   isSelected,
+  flash,
   events,
   onClick,
 }: Props) {
@@ -49,7 +52,7 @@ export function CalendarCell({
             ? 'border-zinc-900 bg-zinc-50 dark:border-zinc-100 dark:bg-zinc-900'
             : 'border-zinc-200 bg-white hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900'
           : 'border-zinc-100 bg-zinc-50/40 text-zinc-400 hover:bg-zinc-100 dark:border-zinc-900 dark:bg-zinc-900/40 dark:text-zinc-600 dark:hover:bg-zinc-900'
-      } ${isToday ? 'ring-1 ring-emerald-500 dark:ring-emerald-400' : ''}`}
+      } ${isToday ? 'ring-1 ring-emerald-500 dark:ring-emerald-400' : ''} ${flash ? 'date-flash' : ''}`}
     >
       <div className="flex items-start justify-between">
         <span
