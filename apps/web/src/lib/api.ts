@@ -263,19 +263,6 @@ export async function createCompanyEvent(input: {
   return (await res.json()) as CompanyEvent;
 }
 
-export async function patchCompanyEvent(
-  id: string,
-  patch: Partial<{ date: string; type: CompanyEventType; note: string | null }>,
-): Promise<CompanyEvent> {
-  const res = await fetch(apiUrl(`/company-events/${id}`), {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
-    body: JSON.stringify(patch),
-  });
-  if (!res.ok) throw new Error(`PATCH /company-events/${id} failed: HTTP ${res.status}`);
-  return (await res.json()) as CompanyEvent;
-}
-
 export async function deleteCompanyEvent(id: string): Promise<void> {
   const res = await fetch(apiUrl(`/company-events/${id}`), {
     method: 'DELETE',

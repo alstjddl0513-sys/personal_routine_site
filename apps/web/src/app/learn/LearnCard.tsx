@@ -156,7 +156,7 @@ export function LearnCard({ questions, initialIndex, mode = 'daily' }: Props) {
     >
       <div
         key={cardKey}
-        className={`flex min-h-[500px] flex-col rounded-2xl border border-zinc-200 bg-white p-8 shadow-lg md:p-12 dark:border-zinc-800 dark:bg-zinc-950 dark:shadow-zinc-900/40 ${cardAnim}`}
+        className={`flex min-h-125 flex-col rounded-2xl border border-zinc-200 bg-white p-8 shadow-lg md:p-12 dark:border-zinc-800 dark:bg-zinc-950 dark:shadow-zinc-900/40 ${cardAnim}`}
       >
         {/* Header: 좌측 라벨 + 우측 상태 pill/네비 화살표 */}
         <div className="flex items-center justify-between gap-3">

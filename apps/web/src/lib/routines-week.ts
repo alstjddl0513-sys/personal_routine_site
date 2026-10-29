@@ -134,13 +134,3 @@ export function parseISOMonth(s: string): Date | null {
   if (mon < 1 || mon > 12) return null;
   return new Date(year, mon - 1, 1);
 }
-
-export function toISOMonth(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  return `${y}-${m}`;
-}
-
-export function addMonths(d: Date, n: number): Date {
-  return new Date(d.getFullYear(), d.getMonth() + n, 1);
-}

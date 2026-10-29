@@ -241,7 +241,7 @@ export function JobsFilters({
           <SlidersHorizontal className="h-4 w-4" aria-hidden />
           필터
           {chipFilterCount > 0 ? (
-            <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-zinc-900 px-1.5 text-[10px] font-medium text-white dark:bg-zinc-100 dark:text-zinc-900">
+            <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-zinc-900 px-1.5 text-[10px] font-medium text-white dark:bg-zinc-100 dark:text-zinc-900">
               {chipFilterCount}
             </span>
           ) : null}

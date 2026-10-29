@@ -82,7 +82,7 @@ function CalendarSkeleton() {
         <Skeleton className="h-7 w-24" />
         <Skeleton className="h-7 w-40" />
       </header>
-      <Skeleton className="h-[32rem]" />
+      <Skeleton className="h-128" />
     </>
   );
 }

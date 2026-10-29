@@ -34,7 +34,7 @@ function isActive(pathname: string, prefixes: string[]) {
   return prefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
-// 모바일 하단 탭 — 5 메인 + '⋯ 더보기'(블로그/설정). 7탭은 좁은 폭에서 터치
+// 모바일 하단 탭 — 5 메인 + '⋯ 더보기'(캘린더/블로그/설정). 7탭은 좁은 폭에서 터치
 // 타겟이 44pt 하한에 근접해 iOS HIG 가이드라인에 어긋났음. iOS Mail /
 // Instagram More 패턴 미러.
 export function BottomNav() {

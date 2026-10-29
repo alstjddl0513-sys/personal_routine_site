@@ -185,7 +185,7 @@ export function SetInputs(props: Props) {
           ) : null}
         </div>
       ))}
-      <div className="min-h-[14px] text-right text-[10px]">
+      <div className="min-h-3.5 text-right text-[10px]">
         {saving ? (
           <span className="text-zinc-400">저장 중…</span>
         ) : error ? (
