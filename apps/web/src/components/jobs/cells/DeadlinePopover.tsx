@@ -2,7 +2,7 @@
 
 import { useEffect, useOptimistic, useRef, useState, useTransition, type RefObject } from 'react';
 import { useRouter } from 'next/navigation';
-import { Calendar } from 'lucide-react';
+import { Calendar, X } from 'lucide-react';
 import type { ApplicationStatus } from '@repo/shared';
 import { patchCompany } from '../../../lib/api';
 import { useOutsideClick } from '../../../lib/useOutsideClick';
@@ -13,10 +13,10 @@ import {
 import { Portal } from '../../ui/Portal';
 import {
   BUTTON_PRIMARY,
-  BUTTON_SECONDARY,
   BUTTON_TEXT,
   POPOVER_CARD,
   POPOVER_CHECKBOX_LABEL,
+  POPOVER_CLOSE,
   POPOVER_EDGE_MARGIN,
   POPOVER_INPUT_BASE,
   POPOVER_TITLE,
@@ -332,7 +332,12 @@ function DeadlinePopoverBody({
       }}
       className={POPOVER_CARD}
     >
-      <span className={POPOVER_TITLE}>마감일</span>
+      <div className="-my-2 flex items-center justify-between gap-2">
+        <span className={POPOVER_TITLE}>마감일</span>
+        <button type="button" onClick={onCancel} aria-label="닫기" className={POPOVER_CLOSE}>
+          <X className="h-4 w-4" aria-hidden />
+        </button>
+      </div>
       <div className="flex gap-2">
         <input
           ref={inputRef}
@@ -380,14 +385,9 @@ function DeadlinePopoverBody({
         >
           지우기
         </button>
-        <div className="flex items-center gap-1.5">
-          <button type="button" onClick={onCancel} className={BUTTON_SECONDARY}>
-            취소
-          </button>
-          <button type="button" onClick={save} className={BUTTON_PRIMARY}>
-            저장
-          </button>
-        </div>
+        <button type="button" onClick={save} className={BUTTON_PRIMARY}>
+          저장
+        </button>
       </div>
     </div>
   );

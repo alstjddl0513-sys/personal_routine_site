@@ -74,6 +74,11 @@ const THEME_INIT_SCRIPT = `
     var t = window.localStorage.getItem('rally.theme');
     if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     if (t === 'dark') document.documentElement.classList.add('dark');
+    // 채용 표 열 보기 (components/jobs/useJobsColumns.ts) — 어느 페이지로 처음
+    // 들어와도 /jobs 표가 저장값대로 바로 그려지게.
+    if (window.localStorage.getItem('rally.jobs.columns') === 'compact') {
+      document.documentElement.dataset.jobsColumns = 'compact';
+    }
   } catch (e) {}
 })();
 `;

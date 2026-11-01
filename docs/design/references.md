@@ -10,8 +10,8 @@
 |--|--|--|
 | `rally-dashboard.html` | '오늘' 대시보드 + 사이드바 라이트 | `/today`, `Sidebar.tsx` |
 | `rally-dashboard-dark.html` | 같은 화면 다크 | `globals.css` `.dark`의 `--rally-*` |
-| `rally-jobs.html` · `rally-jobs-dark.html` | 채용 리스트 '전체 열' | `/jobs` `JobsTable`·`JobsFilters` (1단계) |
-| `rally-jobs-compact(-dark).html` | 채용 리스트 '간단히' + 사이드 패널 | 2단계 |
+| `rally-jobs.html` · `rally-jobs-dark.html` | 채용 리스트 '자세히' | `/jobs` `JobsTable`·`JobsFilters` (1단계) |
+| `rally-jobs-compact(-dark).html` | 채용 리스트 '간단히' + 사이드 패널 | `JobsTable` 합친 열, `CompanyDetailPanel` |
 | `rally-jobs-parts.html` | 회사 추가 모달 · 셀 팝오버 5종 · 빈 상태 2종 (라이트만) | `components/jobs/cells/*`, `AddCompanyButton` |
 | `rally-stats(-dark).html` | 기업 통계 | `/jobs/statistics` (3단계) |
 
@@ -53,6 +53,9 @@
 - 마감일 칸: "D-2 10.26 월 23:59". 진행 중인 회사만 오늘·내일 `alert`, D-2~3 `warn`(호박색 #9A6700 / 다크 #E3B35C) — 끝난 회사(탈락·최종합격·지원취소)는 강조 X. 지난 건 "마감됨", 빈 칸은 "—"(행 hover 때 "+ 추가")
 - 마감일 팝오버: 날짜·시간 입력 분리, 시간 비우면 23:59
 - 일정 유형 선택은 커스텀 Select(점 아이콘)
+- 열 보기 토글 [간단히 | 자세히] (시안 '전체 열' → '자세히'), localStorage `rally.jobs.columns`, 기본 자세히. 새로고침 깜빡임 없게 `app/layout.tsx` 초기화 스크립트가 `<html data-jobs-columns>`를 달고 CSS로 열 선택
+- 간단히: 보조 4열 → "공고 · 일정 2 · 문서 2 · 메모"(없으면 "비어 있음") → 누르면 오른쪽 사이드 패널(시안에 없어서 새로 설계). 패널은 팝오버와 같은 Editor 재사용
+- 팝오버 버튼 정리(시안과 다름): 닫기는 5종 모두 제목 줄 ✕(입력형 [취소] 제거), 아래 줄은 [지우기] … [되돌리기(고쳤을 때만)][저장]. 지우기는 저장된 값이 있을 때만, 바로 삭제. 공고 링크의 열기·복사는 입력칸 아래 작은 글자 링크(시안의 [비우기]는 [지우기]로)
 
 **미정**: 모바일 레이아웃(하단 탭바 등) — 별도 시안. 지금 시안은 데스크톱만.
 

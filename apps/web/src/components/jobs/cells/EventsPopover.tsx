@@ -88,8 +88,7 @@ export function EventsPopover({
   events: CompanyEvent[];
   variant?: 'table';
 }) {
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const { isPending, onCreate, onDelete } = useCompanyEventActions(companyId);
   const [open, setOpen] = useState(false);
   const anchorRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -121,32 +120,6 @@ export function EventsPopover({
   }, [open]);
 
   const count = events.length;
-
-  function onDelete(id: string) {
-    startTransition(async () => {
-      try {
-        await deleteCompanyEvent(id);
-        router.refresh();
-      } catch (err) {
-        console.error(err);
-      }
-    });
-  }
-
-  function onCreate(input: {
-    date: string;
-    type: CompanyEventType;
-    note?: string;
-  }) {
-    startTransition(async () => {
-      try {
-        await createCompanyEvent({ companyId, ...input });
-        router.refresh();
-      } catch (err) {
-        console.error(err);
-      }
-    });
-  }
 
   const ariaLabel = count > 0 ? `일정 ${count}건` : '일정 추가';
 
@@ -190,56 +163,104 @@ export function EventsPopover({
       {open && pos ? (
         <Portal>
           <EventsPopoverBody
-            companyName={companyName}
-            events={events}
             top={pos.top}
             left={pos.left}
             anchorRef={anchorRef}
             popoverRef={popoverRef}
-            isPending={isPending}
-            onCreate={onCreate}
-            onDelete={onDelete}
-            onClose={() => setOpen(false)}
-          />
+          >
+            <EventsEditor
+              companyName={companyName}
+              events={events}
+              isPending={isPending}
+              onCreate={onCreate}
+              onDelete={onDelete}
+              onClose={() => setOpen(false)}
+            />
+          </EventsPopoverBody>
         </Portal>
       ) : null}
     </>
   );
 }
 
-interface BodyProps {
-  companyName?: string;
-  events: CompanyEvent[];
-  top: number;
-  left: number;
-  anchorRef: RefObject<HTMLButtonElement | null>;
-  popoverRef: RefObject<HTMLDivElement | null>;
-  isPending: boolean;
-  onCreate: (input: {
-    date: string;
-    type: CompanyEventType;
-    note?: string;
-  }) => void;
-  onDelete: (id: string) => void;
-  onClose: () => void;
+type EventInput = { date: string; type: CompanyEventType; note?: string };
+
+// 일정 추가·삭제 (즉시 저장 + refresh). 팝오버와 사이드 패널이 같이 씀.
+export function useCompanyEventActions(companyId: string) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
+  function onDelete(id: string) {
+    startTransition(async () => {
+      try {
+        await deleteCompanyEvent(id);
+        router.refresh();
+      } catch (err) {
+        console.error(err);
+      }
+    });
+  }
+
+  function onCreate(input: EventInput) {
+    startTransition(async () => {
+      try {
+        await createCompanyEvent({ companyId, ...input });
+        router.refresh();
+      } catch (err) {
+        console.error(err);
+      }
+    });
+  }
+
+  return { isPending, onCreate, onDelete };
 }
 
-// docs/design/rally-jobs-parts.html '일정'. 목록 + 항상 보이는 추가 폼.
-// 추가·삭제가 즉시 저장이라 버릴 초안이 없어서 [취소] 대신 제목 줄 ✕.
 function EventsPopoverBody({
-  companyName,
-  events,
   top,
   left,
   anchorRef,
   popoverRef,
+  children,
+}: {
+  top: number;
+  left: number;
+  anchorRef: RefObject<HTMLButtonElement | null>;
+  popoverRef: RefObject<HTMLDivElement | null>;
+  children: React.ReactNode;
+}) {
+  // 일정 수에 따라 높이가 달라서 실제 높이로 버튼에 다시 붙임(아래로 잘림 방지).
+  const measuredTop = useMeasuredTop(anchorRef, popoverRef, top);
+  return (
+    <div
+      ref={popoverRef}
+      role="dialog"
+      aria-label="회사 일정"
+      style={{ top: measuredTop, left, width: POPOVER_WIDTH }}
+      className={`fixed z-50 ${POPOVER_CARD}`}
+    >
+      {children}
+    </div>
+  );
+}
+
+// 일정 목록 + 추가 폼 — 팝오버와 사이드 패널(CompanyDetailPanel)이 같이 씀.
+// docs/design/rally-jobs-parts.html '일정'. 추가·삭제가 즉시 저장이라 버릴 초안이
+// 없어서 [취소] 대신 제목 줄 ✕ (onClose 없으면 ✕도 숨김).
+export function EventsEditor({
+  companyName,
+  events,
   isPending,
   onCreate,
   onDelete,
   onClose,
-}: BodyProps) {
-  // 일정 수에 따라 높이가 달라서 실제 높이로 버튼에 다시 붙임(아래로 잘림 방지).
-  const measuredTop = useMeasuredTop(anchorRef, popoverRef, top);
+}: {
+  companyName?: string;
+  events: CompanyEvent[];
+  isPending: boolean;
+  onCreate: (input: EventInput) => void;
+  onDelete: (id: string) => void;
+  onClose?: () => void;
+}) {
   const [date, setDate] = useState(todayIso());
   const [type, setType] = useState<CompanyEventType>('interview');
   const [note, setNote] = useState('');
@@ -258,23 +279,19 @@ function EventsPopoverBody({
   const title = `${companyName ? `${companyName} ` : ''}일정 ${sorted.length}건`;
 
   return (
-    <div
-      ref={popoverRef}
-      role="dialog"
-      aria-label={title}
-      style={{ top: measuredTop, left, width: POPOVER_WIDTH }}
-      className={`fixed z-50 ${POPOVER_CARD}`}
-    >
-      <div className="-my-2 flex items-center justify-between gap-2">
+    <>
+      <div className={`flex items-center justify-between gap-2 ${onClose ? '-my-2' : ''}`}>
         <span className={POPOVER_TITLE}>{title}</span>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="닫기"
-          className={POPOVER_CLOSE}
-        >
-          <X className="h-4 w-4" aria-hidden />
-        </button>
+        {onClose ? (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="닫기"
+            className={POPOVER_CLOSE}
+          >
+            <X className="h-4 w-4" aria-hidden />
+          </button>
+        ) : null}
       </div>
       {sorted.length === 0 ? (
         <p className="text-sm text-ink-muted">아직 등록된 일정이 없어요.</p>
@@ -340,6 +357,6 @@ function EventsPopoverBody({
           </button>
         </div>
       </form>
-    </div>
+    </>
   );
 }

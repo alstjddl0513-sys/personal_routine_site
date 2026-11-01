@@ -44,12 +44,7 @@ export function SubmittedDocsPopover({
   documents: Document[];
   variant?: 'table';
 }) {
-  const router = useRouter();
-  const [, startTransition] = useTransition();
-  const [linked, setLinked] = useOptimistic<Linked, Partial<Linked>>(
-    { resumeDocumentId, portfolioDocumentId },
-    (state, patch) => ({ ...state, ...patch }),
-  );
+  const { linked, count, commit } = useSubmittedDocs(id, resumeDocumentId, portfolioDocumentId);
   const [open, setOpen] = useState(false);
   const anchorRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -71,22 +66,6 @@ export function SubmittedDocsPopover({
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [open]);
-
-  function commit(slot: Slot, next: string | null) {
-    if (linked[slot] === next) return;
-    startTransition(async () => {
-      setLinked({ [slot]: next });
-      try {
-        await patchCompany(id, { [slot]: next });
-        router.refresh();
-      } catch (err) {
-        console.error(err);
-      }
-    });
-  }
-
-  const count =
-    (linked.resumeDocumentId ? 1 : 0) + (linked.portfolioDocumentId ? 1 : 0);
 
   return (
     <>
@@ -115,33 +94,50 @@ export function SubmittedDocsPopover({
       </button>
       {open && pos ? (
         <Portal>
-          <Body
-            top={pos.top}
-            left={pos.left}
-            anchorRef={anchorRef}
-            popoverRef={popoverRef}
-            linked={linked}
-            count={count}
-            documents={documents}
-            onCommit={commit}
-            onClose={() => setOpen(false)}
-          />
+          <Body top={pos.top} left={pos.left} anchorRef={anchorRef} popoverRef={popoverRef}>
+            <SubmittedDocsEditor
+              linked={linked}
+              count={count}
+              documents={documents}
+              onCommit={commit}
+              onClose={() => setOpen(false)}
+            />
+          </Body>
         </Portal>
       ) : null}
     </>
   );
 }
 
-interface BodyProps {
-  top: number;
-  left: number;
-  anchorRef: RefObject<HTMLButtonElement | null>;
-  popoverRef: RefObject<HTMLDivElement | null>;
-  linked: Linked;
-  count: number;
-  documents: Document[];
-  onCommit: (slot: Slot, next: string | null) => void;
-  onClose: () => void;
+// 제출본 연결 상태 + 슬롯 변경(즉시 저장, optimistic). 팝오버와 사이드 패널이 같이 씀.
+export function useSubmittedDocs(
+  id: string,
+  resumeDocumentId: string | null,
+  portfolioDocumentId: string | null,
+) {
+  const router = useRouter();
+  const [, startTransition] = useTransition();
+  const [linked, setLinked] = useOptimistic<Linked, Partial<Linked>>(
+    { resumeDocumentId, portfolioDocumentId },
+    (state, patch) => ({ ...state, ...patch }),
+  );
+
+  function commit(slot: Slot, next: string | null) {
+    if (linked[slot] === next) return;
+    startTransition(async () => {
+      setLinked({ [slot]: next });
+      try {
+        await patchCompany(id, { [slot]: next });
+        router.refresh();
+      } catch (err) {
+        console.error(err);
+      }
+    });
+  }
+
+  const count =
+    (linked.resumeDocumentId ? 1 : 0) + (linked.portfolioDocumentId ? 1 : 0);
+  return { linked, count, commit };
 }
 
 function Body({
@@ -149,22 +145,16 @@ function Body({
   left,
   anchorRef,
   popoverRef,
-  linked,
-  count,
-  documents,
-  onCommit,
-  onClose,
-}: BodyProps) {
+  children,
+}: {
+  top: number;
+  left: number;
+  anchorRef: RefObject<HTMLButtonElement | null>;
+  popoverRef: RefObject<HTMLDivElement | null>;
+  children: React.ReactNode;
+}) {
   // 문서 수에 따라 높이가 달라서 실제 높이로 버튼에 다시 붙임.
   const measuredTop = useMeasuredTop(anchorRef, popoverRef, top);
-
-  // 업로드 미완료(orphan) 파일은 열 수 없으니 후보에서 제외.
-  const usable = documents.filter((d) => d.kind === 'link' || d.storagePath);
-  const resumes = usable.filter((d) => d.kind === 'resume');
-  const portfolios = usable.filter(
-    (d) => d.kind === 'portfolio' || d.kind === 'link',
-  );
-
   return (
     <div
       ref={popoverRef}
@@ -177,17 +167,47 @@ function Body({
       }}
       className={`${POPOVER_CARD} max-h-96 overflow-y-auto`}
     >
-      {/* 고르는 즉시 저장이라 버릴 초안이 없어서 [취소] 대신 제목 줄 ✕. */}
-      <div className="-my-2 flex items-center justify-between gap-2">
+      {children}
+    </div>
+  );
+}
+
+// 제출본 고르기 — 팝오버와 사이드 패널(CompanyDetailPanel)이 같이 씀.
+// 고르는 즉시 저장이라 버릴 초안이 없어서 [취소] 대신 제목 줄 ✕ (onClose 없으면 숨김).
+export function SubmittedDocsEditor({
+  linked,
+  count,
+  documents,
+  onCommit,
+  onClose,
+}: {
+  linked: Linked;
+  count: number;
+  documents: Document[];
+  onCommit: (slot: Slot, next: string | null) => void;
+  onClose?: () => void;
+}) {
+  // 업로드 미완료(orphan) 파일은 열 수 없으니 후보에서 제외.
+  const usable = documents.filter((d) => d.kind === 'link' || d.storagePath);
+  const resumes = usable.filter((d) => d.kind === 'resume');
+  const portfolios = usable.filter(
+    (d) => d.kind === 'portfolio' || d.kind === 'link',
+  );
+
+  return (
+    <>
+      <div className={`flex items-center justify-between gap-2 ${onClose ? '-my-2' : ''}`}>
         <span className={POPOVER_TITLE}>이 회사에 낸 문서 {count}개</span>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="닫기"
-          className={POPOVER_CLOSE}
-        >
-          <X className="h-4 w-4" aria-hidden />
-        </button>
+        {onClose ? (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="닫기"
+            className={POPOVER_CLOSE}
+          >
+            <X className="h-4 w-4" aria-hidden />
+          </button>
+        ) : null}
       </div>
       {usable.length === 0 ? (
         <p className="text-sm text-ink-muted">
@@ -215,7 +235,7 @@ function Body({
       <span className="text-[13px] text-ink-muted">
         지원상태를 &lsquo;지원&rsquo;으로 바꾸면 그때 대표 문서가 여기 자동으로 담겨요.
       </span>
-    </div>
+    </>
   );
 }
 
