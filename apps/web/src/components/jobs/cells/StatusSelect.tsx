@@ -9,6 +9,8 @@ import {
 } from '@repo/shared';
 import { patchCompany } from '../../../lib/api';
 import { Select } from '../../ui/Select';
+import { StatusDot, statusTextClass } from '../StatusDot';
+import { HoverChevron, TABLE_TRIGGER } from './table-style';
 
 export const STATUS_STYLE: Record<ApplicationStatus, string> = {
   not_applied:
@@ -41,12 +43,22 @@ const OPTIONS = APPLICATION_STATUS_VALUES.map((v) => ({
   className: STATUS_STYLE[v],
 }));
 
+// 표(데스크톱): 칩 대신 점 + 글자.
+const TABLE_OPTIONS = APPLICATION_STATUS_VALUES.map((v) => ({
+  value: v,
+  label: APPLICATION_STATUS_LABELS[v],
+  className: statusTextClass(v),
+  icon: <StatusDot status={v} />,
+}));
+
 export function StatusSelect({
   id,
   value,
+  variant,
 }: {
   id: string;
   value: ApplicationStatus;
+  variant?: 'table';
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -63,6 +75,21 @@ export function StatusSelect({
         console.error(err);
       }
     });
+  }
+
+  if (variant === 'table') {
+    return (
+      <Select
+        value={current}
+        onChange={commit}
+        options={TABLE_OPTIONS}
+        disabled={isPending}
+        ariaLabel="지원상태"
+        tone="rally"
+        triggerClassName={`${TABLE_TRIGGER} gap-2 text-sm`}
+        triggerSuffix={<HoverChevron />}
+      />
+    );
   }
 
   return (

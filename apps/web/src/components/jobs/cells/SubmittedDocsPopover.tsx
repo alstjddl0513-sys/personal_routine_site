@@ -3,7 +3,7 @@
 import { useEffect, useOptimistic, useRef, useState, useTransition, type RefObject } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Check, ExternalLink, FileText } from 'lucide-react';
+import { Check, FileText, X } from 'lucide-react';
 import type { Document } from '@repo/shared';
 import { getDocumentDownloadUrl, patchCompany } from '../../../lib/api';
 import { useOutsideClick } from '../../../lib/useOutsideClick';
@@ -12,9 +12,16 @@ import {
   usePopoverPosition,
 } from '../../../lib/usePopoverPosition';
 import { Portal } from '../../ui/Portal';
+import {
+  POPOVER_CARD,
+  POPOVER_CLOSE,
+  POPOVER_EDGE_MARGIN,
+  POPOVER_TITLE,
+} from './popover-style';
+import { TABLE_ICON_BUTTON } from './table-style';
 
-const POPOVER_WIDTH = 288; // w-72
-const POPOVER_HEIGHT = 320;
+const POPOVER_WIDTH = 340;
+const POPOVER_HEIGHT = 340;
 
 type Slot = 'resumeDocumentId' | 'portfolioDocumentId';
 type Linked = Record<Slot, string | null>;
@@ -29,11 +36,13 @@ export function SubmittedDocsPopover({
   resumeDocumentId,
   portfolioDocumentId,
   documents,
+  variant,
 }: {
   id: string;
   resumeDocumentId: string | null;
   portfolioDocumentId: string | null;
   documents: Document[];
+  variant?: 'table';
 }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
@@ -44,7 +53,13 @@ export function SubmittedDocsPopover({
   const [open, setOpen] = useState(false);
   const anchorRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
-  const pos = usePopoverPosition(anchorRef, open, POPOVER_HEIGHT, POPOVER_WIDTH);
+  const pos = usePopoverPosition(
+    anchorRef,
+    open,
+    POPOVER_HEIGHT,
+    POPOVER_WIDTH,
+    POPOVER_EDGE_MARGIN,
+  );
 
   useOutsideClick([anchorRef, popoverRef], () => setOpen(false), open);
 
@@ -79,16 +94,24 @@ export function SubmittedDocsPopover({
         ref={anchorRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800 ${
-          count > 0
-            ? 'text-emerald-700 dark:text-emerald-400'
-            : 'text-zinc-400 dark:text-zinc-600'
-        }`}
+        className={
+          variant === 'table'
+            ? `${TABLE_ICON_BUTTON} hover:bg-row-hover ${count > 0 ? 'text-ink-soft' : 'text-icon-faint'}`
+            : `inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800 ${
+                count > 0
+                  ? 'text-emerald-700 dark:text-emerald-400'
+                  : 'text-zinc-400 dark:text-zinc-600'
+              }`
+        }
         aria-label={count > 0 ? `제출본 ${count}개` : '제출본 연결'}
         aria-expanded={open}
       >
-        <FileText className="h-3.5 w-3.5" aria-hidden />
-        {count > 0 ? count : null}
+        <FileText
+          className={variant === 'table' ? 'h-3.75 w-3.75' : 'h-3.5 w-3.5'}
+          strokeWidth={variant === 'table' ? 1.8 : undefined}
+          aria-hidden
+        />
+        {count > 0 ? <span>{count}</span> : null}
       </button>
       {open && pos ? (
         <Portal>
@@ -98,8 +121,10 @@ export function SubmittedDocsPopover({
             anchorRef={anchorRef}
             popoverRef={popoverRef}
             linked={linked}
+            count={count}
             documents={documents}
             onCommit={commit}
+            onClose={() => setOpen(false)}
           />
         </Portal>
       ) : null}
@@ -113,8 +138,10 @@ interface BodyProps {
   anchorRef: RefObject<HTMLButtonElement | null>;
   popoverRef: RefObject<HTMLDivElement | null>;
   linked: Linked;
+  count: number;
   documents: Document[];
   onCommit: (slot: Slot, next: string | null) => void;
+  onClose: () => void;
 }
 
 function Body({
@@ -123,8 +150,10 @@ function Body({
   anchorRef,
   popoverRef,
   linked,
+  count,
   documents,
   onCommit,
+  onClose,
 }: BodyProps) {
   // 문서 수에 따라 높이가 달라서 실제 높이로 버튼에 다시 붙임.
   const measuredTop = useMeasuredTop(anchorRef, popoverRef, top);
@@ -146,15 +175,24 @@ function Body({
         width: POPOVER_WIDTH,
         zIndex: 50,
       }}
-      className="flex max-h-80 flex-col gap-3 overflow-y-auto rounded-md border border-zinc-200 bg-white p-2 text-left shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
+      className={`${POPOVER_CARD} max-h-96 overflow-y-auto`}
     >
+      {/* 고르는 즉시 저장이라 버릴 초안이 없어서 [취소] 대신 제목 줄 ✕. */}
+      <div className="-my-2 flex items-center justify-between gap-2">
+        <span className={POPOVER_TITLE}>이 회사에 낸 문서 {count}개</span>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="닫기"
+          className={POPOVER_CLOSE}
+        >
+          <X className="h-4 w-4" aria-hidden />
+        </button>
+      </div>
       {usable.length === 0 ? (
-        <p className="px-1 py-2 text-xs text-zinc-500 dark:text-zinc-400">
+        <p className="text-sm text-ink-muted">
           이력서·포폴을 먼저 올려두면 여기서 고를 수 있어요.{' '}
-          <Link
-            href="/settings/documents"
-            className="text-blue-600 hover:underline dark:text-blue-400"
-          >
+          <Link href="/settings/documents" className="font-medium text-heading hover:underline">
             올리러 가기
           </Link>
         </p>
@@ -174,6 +212,9 @@ function Body({
           />
         </>
       )}
+      <span className="text-[13px] text-ink-muted">
+        지원상태를 &lsquo;지원&rsquo;으로 바꾸면 그때 대표 문서가 여기 자동으로 담겨요.
+      </span>
     </div>
   );
 }
@@ -191,13 +232,9 @@ function SlotList({
 }) {
   return (
     <section>
-      <h3 className="mb-1 px-1 text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
-        {label}
-      </h3>
+      <h3 className="mb-0.5 text-xs font-semibold text-ink-soft">{label}</h3>
       {options.length === 0 ? (
-        <p className="px-1 text-xs text-zinc-400 dark:text-zinc-600">
-          올린 {label}가 없어요.
-        </p>
+        <p className="text-sm text-ink-muted">올린 {label}가 없어요.</p>
       ) : (
         <ul className="flex flex-col">
           <Option
@@ -256,41 +293,49 @@ function Option({
     }
   }
 
+  const uploaded = document ? new Date(document.createdAt) : null;
+  const meta = document
+    ? [
+        uploaded && !isNaN(uploaded.getTime())
+          ? `${String(uploaded.getMonth() + 1).padStart(2, '0')}.${String(uploaded.getDate()).padStart(2, '0')} ${document.kind === 'link' ? '추가' : '업로드'}`
+          : null,
+        document.isActive ? '대표' : null,
+      ]
+        .filter(Boolean)
+        .join(' · ')
+    : '';
+
   return (
-    <li className="flex items-center gap-1">
+    <li className="flex min-h-11 items-center gap-2.5 border-b border-divider last:border-b-0">
       <button
         type="button"
         onClick={onSelect}
         aria-pressed={selected}
-        className={`flex min-w-0 flex-1 items-center gap-1.5 rounded px-1.5 py-1 text-left text-xs ${
-          selected
-            ? 'bg-emerald-50 font-medium text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300'
-            : 'text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800'
-        } ${document ? '' : 'text-zinc-500 dark:text-zinc-500'}`}
+        className="flex min-h-11 min-w-0 flex-1 cursor-pointer items-center gap-2.5 text-left"
       >
-        <Check
-          className={`h-3 w-3 shrink-0 ${selected ? '' : 'invisible'}`}
+        <span
           aria-hidden
-        />
-        <span className="truncate">{title}</span>
-        {document?.kind === 'link' ? (
-          <span className="shrink-0 text-[10px] text-zinc-400">링크</span>
-        ) : null}
-        {document?.isActive ? (
-          <span className="shrink-0 rounded bg-blue-100 px-1 text-[10px] text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
-            대표
+          className={`flex h-4.5 w-4.5 flex-none items-center justify-center rounded border ${
+            selected ? 'border-primary bg-primary text-surface' : 'border-btn-border'
+          }`}
+        >
+          {selected ? <Check className="h-3 w-3" strokeWidth={3} /> : null}
+        </span>
+        <span className="flex min-w-0 flex-col leading-tight">
+          <span className={`truncate text-sm ${document ? 'text-ink' : 'text-ink-muted'}`}>
+            {title}
           </span>
-        ) : null}
+          {meta ? <span className="text-xs text-ink-muted">{meta}</span> : null}
+        </span>
       </button>
       {document ? (
         <button
           type="button"
           onClick={handleOpen}
           disabled={opening}
-          title="열기"
-          className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 disabled:opacity-40 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+          className="inline-flex min-h-10 shrink-0 cursor-pointer items-center px-1 text-sm font-medium text-heading hover:underline disabled:opacity-40"
         >
-          <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+          열기
         </button>
       ) : null}
     </li>

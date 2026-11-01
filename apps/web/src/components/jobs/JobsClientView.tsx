@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import {
   APPLICATION_STATUS_VALUES,
@@ -14,6 +14,7 @@ import {
   type Document,
   type Priority,
 } from '@repo/shared';
+import { AddCompanyButton } from './AddCompanyButton';
 import { JobsCards } from './JobsCards';
 import { JobsFilters, type JobsClientFilters } from './JobsFilters';
 import { JobsTable } from './JobsTable';
@@ -40,6 +41,7 @@ export function JobsClientView({
 }) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const router = useRouter();
 
   const [type1Set, setType1Set] = useState<ReadonlySet<CompanyType1>>(() =>
     parseEnumSet(searchParams.get('type1'), COMPANY_TYPE_1_VALUES),
@@ -153,20 +155,35 @@ export function JobsClientView({
 
   return (
     <>
-      <div className="-mt-2 flex justify-end text-xs text-zinc-500">
-        {filteredRows.length}개
-      </div>
       <JobsFilters
         companyTypes={companyTypes}
         clientFilters={clientFilters}
         onClientFilterChange={handleClientFilterChange}
         onClientClearAll={handleClientClearAll}
+        resultCount={filteredRows.length}
       />
       {filteredRows.length === 0 ? (
-        <div className="rounded-md border border-dashed border-zinc-300 p-10 text-center text-sm text-zinc-500 dark:border-zinc-700">
-          {hasAnyFilter
-            ? '조건에 맞는 회사가 없어요. 필터를 조금 풀어보세요.'
-            : '아직 등록한 회사가 없어요. 위 [+ 추가하기] 버튼을 눌러 첫 회사를 담아보세요.'}
+        // docs/design/rally-jobs-parts.html 빈 상태 2종
+        <div className="flex flex-col items-center gap-4 rounded-lg border border-dashed border-btn-border bg-surface px-6 py-12 text-center">
+          <p className="text-[15px] text-ink-soft">
+            {hasAnyFilter
+              ? '조건에 맞는 회사가 없어요. 필터를 조금 풀어보세요.'
+              : '아직 등록한 회사가 없어요. [+ 추가하기] 버튼을 눌러 첫 회사를 담아보세요.'}
+          </p>
+          {hasAnyFilter ? (
+            <button
+              type="button"
+              onClick={() => {
+                handleClientClearAll();
+                router.push('/jobs');
+              }}
+              className="inline-flex min-h-10 cursor-pointer items-center rounded-md border border-btn-border bg-btn-bg px-4 text-sm font-medium text-heading hover:border-heading"
+            >
+              필터 초기화
+            </button>
+          ) : (
+            <AddCompanyButton companyTypes={companyTypes} />
+          )}
         </div>
       ) : (
         <>

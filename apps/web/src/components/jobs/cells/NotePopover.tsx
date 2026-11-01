@@ -2,7 +2,7 @@
 
 import { useEffect, useOptimistic, useRef, useState, useTransition, type RefObject } from 'react';
 import { useRouter } from 'next/navigation';
-import { StickyNote, X } from 'lucide-react';
+import { StickyNote } from 'lucide-react';
 import { patchCompany } from '../../../lib/api';
 import { useOutsideClick } from '../../../lib/useOutsideClick';
 import {
@@ -10,16 +10,28 @@ import {
   usePopoverPosition,
 } from '../../../lib/usePopoverPosition';
 import { Portal } from '../../ui/Portal';
+import {
+  BUTTON_PRIMARY,
+  BUTTON_SECONDARY,
+  BUTTON_TEXT,
+  POPOVER_CARD,
+  POPOVER_EDGE_MARGIN,
+  POPOVER_INPUT,
+  POPOVER_TITLE,
+} from './popover-style';
+import { TABLE_ICON_BUTTON } from './table-style';
 
-const POPOVER_WIDTH = 288; // w-72
-const POPOVER_HEIGHT = 210;
+const POPOVER_WIDTH = 320;
+const POPOVER_HEIGHT = 240;
 
 export function NotePopover({
   id,
   value,
+  variant,
 }: {
   id: string;
   value: string | null;
+  variant?: 'table';
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -27,7 +39,13 @@ export function NotePopover({
   const [open, setOpen] = useState(false);
   const anchorRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
-  const pos = usePopoverPosition(anchorRef, open, POPOVER_HEIGHT, POPOVER_WIDTH);
+  const pos = usePopoverPosition(
+    anchorRef,
+    open,
+    POPOVER_HEIGHT,
+    POPOVER_WIDTH,
+    POPOVER_EDGE_MARGIN,
+  );
 
   useOutsideClick([anchorRef, popoverRef], () => setOpen(false), open);
 
@@ -71,16 +89,24 @@ export function NotePopover({
         onClick={() => setOpen((v) => !v)}
         disabled={isPending}
         title={preview || undefined}
-        className={`inline-flex items-center justify-center gap-1 rounded px-1.5 py-0.5 text-xs hover:bg-zinc-100 disabled:opacity-50 dark:hover:bg-zinc-800 ${
-          preview
-            ? 'text-blue-600 dark:text-blue-400'
-            : 'text-zinc-400 dark:text-zinc-600'
-        }`}
+        className={
+          variant === 'table'
+            ? `${TABLE_ICON_BUTTON} hover:bg-row-hover ${preview ? 'text-ink-soft' : 'text-icon-faint'}`
+            : `inline-flex items-center justify-center gap-1 rounded px-1.5 py-0.5 text-xs hover:bg-zinc-100 disabled:opacity-50 dark:hover:bg-zinc-800 ${
+                preview
+                  ? 'text-blue-600 dark:text-blue-400'
+                  : 'text-zinc-400 dark:text-zinc-600'
+              }`
+        }
         aria-label={preview ? '메모 편집' : '메모 추가'}
         aria-expanded={open}
       >
-        <StickyNote className="h-3.5 w-3.5 shrink-0" aria-hidden />
-        {truncated ? (
+        <StickyNote
+          className={variant === 'table' ? 'h-3.75 w-3.75 shrink-0' : 'h-3.5 w-3.5 shrink-0'}
+          strokeWidth={variant === 'table' ? 1.8 : undefined}
+          aria-hidden
+        />
+        {truncated && variant !== 'table' ? (
           <span className="truncate md:hidden">{truncated}</span>
         ) : null}
       </button>
@@ -146,40 +172,34 @@ function NotePopoverBody({
         width: POPOVER_WIDTH,
         zIndex: 50,
       }}
-      className="rounded-md border border-zinc-200 bg-white p-2 text-left shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
+      className={POPOVER_CARD}
     >
+      <label htmlFor="company-note" className={POPOVER_TITLE}>
+        메모
+      </label>
       <textarea
+        id="company-note"
         ref={textareaRef}
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
-        rows={4}
+        rows={5}
         maxLength={2000}
-        placeholder="메모"
-        className="w-full resize-none rounded border border-zinc-200 bg-white p-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
+        className={`${POPOVER_INPUT} resize-none py-2 leading-relaxed`}
       />
-      <div className="mt-2 flex items-center justify-between gap-1">
+      <div className="flex items-center justify-between gap-2">
         <button
           type="button"
           onClick={() => onCommit(null)}
           disabled={!hasCurrent}
-          className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-rose-600 hover:bg-rose-50 disabled:opacity-40 dark:text-rose-400 dark:hover:bg-rose-950/40"
+          className={BUTTON_TEXT}
         >
-          <X className="h-3 w-3" aria-hidden />
-          삭제
+          지우기
         </button>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-          >
+        <div className="flex items-center gap-1.5">
+          <button type="button" onClick={onCancel} className={BUTTON_SECONDARY}>
             취소
           </button>
-          <button
-            type="button"
-            onClick={save}
-            className="rounded bg-zinc-900 px-2 py-1 text-xs text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-          >
+          <button type="button" onClick={save} className={BUTTON_PRIMARY}>
             저장
           </button>
         </div>

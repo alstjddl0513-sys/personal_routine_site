@@ -15,6 +15,8 @@ export function usePopoverPosition(
   open: boolean,
   estimatedHeight: number,
   popoverWidth: number,
+  /** 화면 좌우 끝과의 최소 간격. 기본 16. */
+  edgeMargin = 16,
 ): PopoverPosition | null {
   const [pos, setPos] = useState<PopoverPosition | null>(null);
 
@@ -33,10 +35,10 @@ export function usePopoverPosition(
           ? Math.max(margin, rect.top - estimatedHeight - 4)
           : rect.bottom + 4;
       let left = rect.left;
-      if (left + popoverWidth > window.innerWidth - margin) {
-        left = window.innerWidth - popoverWidth - margin;
+      if (left + popoverWidth > window.innerWidth - edgeMargin) {
+        left = window.innerWidth - popoverWidth - edgeMargin;
       }
-      if (left < margin) left = margin;
+      if (left < edgeMargin) left = edgeMargin;
       setPos({ top, left, placement });
     }
     compute();
@@ -46,7 +48,7 @@ export function usePopoverPosition(
       window.removeEventListener('scroll', compute, true);
       window.removeEventListener('resize', compute);
     };
-  }, [open, anchorRef, estimatedHeight, popoverWidth]);
+  }, [open, anchorRef, estimatedHeight, popoverWidth, edgeMargin]);
 
   // Derive to null while closed instead of calling setPos(null) in the effect
   // (react-hooks/set-state-in-effect). Stale pos from the previous open cycle
