@@ -2,8 +2,12 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Plus } from 'lucide-react';
 import type { WorkoutSet } from '@repo/shared';
 import { batchWorkoutSets, type WorkoutSetInput } from '../../lib/api';
+
+// BatchWorkoutSetsDto setNumber @Max(20)과 맞춤.
+const MAX_SETS = 20;
 
 interface Row {
   setNumber: number;
@@ -77,6 +81,16 @@ export function SetInputs(props: Props) {
 
   function update(idx: number, field: 'weight' | 'reps' | 'rir', value: string) {
     setRows((prev) => prev.map((r, i) => (i === idx ? { ...r, [field]: value } : r)));
+  }
+
+  // 그날만 한 세트 더 — 종목 기본 세트 수는 그대로. 빈 줄은 commit에서
+  // 걸러져 저장 안 되고, 다음 서버 resync 때 사라짐.
+  function addSet() {
+    setRows((prev) => {
+      const last = prev.at(-1)?.setNumber ?? 0;
+      if (last >= MAX_SETS) return prev;
+      return [...prev, { setNumber: last + 1, weight: '', reps: '', rir: '' }];
+    });
   }
 
   async function commit() {
@@ -185,7 +199,19 @@ export function SetInputs(props: Props) {
           ) : null}
         </div>
       ))}
-      <div className="min-h-3.5 text-right text-[10px]">
+      <div className="flex min-h-3.5 items-center justify-between gap-2 text-[10px]">
+        {(rows.at(-1)?.setNumber ?? 0) < MAX_SETS ? (
+          <button
+            type="button"
+            onClick={addSet}
+            className="inline-flex min-h-11 items-center gap-1 rounded px-1 text-xs text-zinc-500 hover:text-zinc-900 md:min-h-7 dark:hover:text-zinc-100"
+          >
+            <Plus className="h-3.5 w-3.5" aria-hidden />
+            세트 추가
+          </button>
+        ) : (
+          <span />
+        )}
         {saving ? (
           <span className="text-zinc-400">저장 중…</span>
         ) : error ? (

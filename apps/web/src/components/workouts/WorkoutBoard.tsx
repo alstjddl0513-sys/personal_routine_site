@@ -104,7 +104,7 @@ export function WorkoutBoard(props: Props) {
           에서 추가해보세요.
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 items-start gap-3 md:grid-cols-2 xl:grid-cols-3">
           {props.exercises.map((e, idx) => (
             <ExerciseCard
               key={`${props.activeSession?.id ?? 'empty'}:${e.id}`}
