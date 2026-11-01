@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Rally 오늘 대시보드 다크</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=Noto+Serif+KR:wght@600&amp;display=swap">
+<style>
+body{margin:0;background:#121514}
+a{color:#C9D3CC}a:hover{color:#FFFFFF}
+button{font-family:inherit;cursor:pointer}
+input{font-family:inherit}
+input::placeholder{color:#8C948F}
+[hidden]{display:none !important}
+</style>
+</head>
+<body>
+<div style="min-height: 100vh; box-sizing: border-box; display: flex; flex-wrap: wrap; background: #121514; color: #E9ECE9; font-family: 'IBM Plex Sans KR', system-ui, sans-serif; font-size: 15px; line-height: 1.6; word-break: keep-all; font-variant-numeric: tabular-nums">
+
+  <aside style="flex: 1 1 216px; max-width: 100%; box-sizing: border-box; padding: 28px 14px 20px; display: flex; flex-direction: column; gap: 32px; background: #16271F; border-right: 1px solid #22372D; color: #E8ECE6">
+    <a href="#" style="display: flex; align-items: center; gap: 9px; padding: 0 10px; text-decoration: none; color: #F4F2EC">
+      <svg width="20" height="22" viewBox="0 0 20 22" fill="none" aria-hidden="true"><path d="M3.5 21V1.8" stroke="#F4F2EC" stroke-width="2" stroke-linecap="round"></path><path d="M4.5 2.2L18 7.4L4.5 12.4Z" fill="#C8963E"></path></svg>
+      <span style="font-size: 20px; font-weight: 700; letter-spacing: -0.01em">Rally</span>
+    </a>
+
+    <nav aria-label="주 메뉴" style="display: flex; flex-direction: column; gap: 1px; flex: 1 1 auto">
+      <a href="#" aria-current="page" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 6px; background: #25443A; color: #FFFFFF; text-decoration: none; font-weight: 600">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.5L12 5l8 6.5V20h-5v-5.5H9V20H4z"></path></svg>
+        오늘
+      </a>
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 6px; color: #BAC6BE; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="1.5"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg>
+        캘린더
+      </a>
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 6px; color: #BAC6BE; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="1.5"></rect><path d="M9 7V4.5h6V7"></path></svg>
+        채용
+      </a>
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 6px; color: #BAC6BE; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h3M4 12h3M4 18h3M10 6h10M10 12h10M10 18h6"></path></svg>
+        루틴
+      </a>
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 6px; color: #BAC6BE; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5v11M17.5 6.5v11M3 9.5v5M21 9.5v5M6.5 12h11"></path></svg>
+        운동
+      </a>
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 6px; color: #BAC6BE; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h6a2 2 0 0 1 2 2v13a1.5 1.5 0 0 0-1.5-1.5H4zM20 5h-6a2 2 0 0 0-2 2v13a1.5 1.5 0 0 1 1.5-1.5H20z"></path></svg>
+        학습
+      </a>
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 6px; color: #BAC6BE; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5h14M5 10h14M5 15h9M5 20h6"></path></svg>
+        블로그
+      </a>
+    </nav>
+
+    <div style="display: flex; align-items: center; gap: 4px; padding: 14px 0 0 12px; border-top: 1px solid #2A4237; font-size: 14px; color: #A9B8AE">
+      <span style="flex: 1 1 auto; min-width: 0">[닉네임]</span>
+      <a href="#" aria-label="설정" style="width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; color: #BAC6BE">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"></path></svg>
+      </a>
+    </div>
+  </aside>
+
+  <main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 40px 48px 72px">
+    <div style="max-width: 1160px; margin: 0 auto; display: flex; flex-direction: column; gap: 36px">
+
+      <header style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 20px 32px; padding-bottom: 24px; border-bottom: 1px solid #2E3531">
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <h1 style="margin: 0; font-family: 'Noto Serif KR', serif; font-size: 34px; line-height: 1.2; font-weight: 600; letter-spacing: -0.01em; color: #F3F5F3">[닉네임]님 안녕하세요!</h1>
+          <p style="margin: 0; font-size: 15px; color: #C3CAC5">마감 <strong style="color: #E8957A; font-weight: 600">1건</strong>, 이번 주 일정 3건이 남았고 루틴은 3개 남았어요.</p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 4px">
+          <span style="margin-right: 12px; font-size: 14px; color: #C3CAC5"><span style="color: #F3F5F3; font-weight: 600">10월 24일 토요일</span><span aria-hidden="true" style="margin: 0 10px; color: #3A423E">|</span>루틴 연속 <strong style="color: #F3F5F3; font-weight: 600">12일</strong></span>
+          <button type="button" aria-label="알림, 새 알림 있음" style="width: 44px; height: 44px; border-radius: 6px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; color: #E9ECE9; position: relative">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 8 2.5 8h-17S6 15 6 9M10.3 20.5a1.9 1.9 0 0 0 3.4 0"></path></svg>
+            <span style="position: absolute; top: 11px; right: 12px; width: 6px; height: 6px; border-radius: 50%; background: #E8957A"></span>
+          </button>
+          <button type="button" aria-label="라이트 모드 전환" style="width: 44px; height: 44px; border-radius: 6px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; color: #E9ECE9">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"></path></svg>
+          </button>
+        </div>
+      </header>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 40px 48px; align-items: flex-start">
+
+        <div style="flex: 1.65 1 540px; min-width: 0; display: flex; flex-direction: column; gap: 32px">
+
+          <section aria-labelledby="events-title" style="background: #1A1E1C; border: 1px solid #2C3330; border-radius: 8px; padding: 24px 28px 20px">
+            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 8px">
+              <h2 id="events-title" style="margin: 0; font-size: 17px; font-weight: 700; color: #A9CBB7">다가오는 일정</h2>
+              <a href="#" style="font-size: 14px; font-weight: 500; color: #E9ECE9; min-height: 40px; padding: 0 14px; box-sizing: border-box; border: 1px solid #3D4541; border-radius: 6px; background: #1A1E1C; text-decoration: none; display: inline-flex; align-items: center">캘린더에서 보기</a>
+            </div>
+            <ul style="margin: 0; padding: 0; list-style: none">
+              <li style="display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; align-items: center; gap: 16px; padding: 14px 0; border-top: 1px solid #262C29">
+                <span style="display: flex; flex-direction: column; line-height: 1.3">
+                  <span style="font-size: 14px; font-weight: 600; color: #E8957A">오늘</span>
+                  <span style="font-size: 14px; color: #A9B1AC">10.24 토</span>
+                </span>
+                <span style="display: flex; flex-direction: column; min-width: 0; line-height: 1.4">
+                  <span style="font-weight: 600">[회사 A]</span>
+                  <span style="font-size: 14px; color: #A9B1AC">서류 마감 · 18:00</span>
+                </span>
+                <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: #E8957A"><span style="width: 7px; height: 7px; border-radius: 50%; background: #E8957A"></span>마감</span>
+              </li>
+              <li style="display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; align-items: center; gap: 16px; padding: 14px 0; border-top: 1px solid #262C29">
+                <span style="display: flex; flex-direction: column; line-height: 1.3">
+                  <span style="font-size: 14px; font-weight: 600">D-2</span>
+                  <span style="font-size: 14px; color: #A9B1AC">10.26 월</span>
+                </span>
+                <span style="display: flex; flex-direction: column; min-width: 0; line-height: 1.4">
+                  <span style="font-weight: 600">[회사 B]</span>
+                  <span style="font-size: 14px; color: #A9B1AC">코딩테스트</span>
+                </span>
+                <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: #9DB5D8"><span style="width: 7px; height: 7px; border-radius: 50%; background: #9DB5D8"></span>시험</span>
+              </li>
+              <li style="display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; align-items: center; gap: 16px; padding: 14px 0; border-top: 1px solid #262C29">
+                <span style="display: flex; flex-direction: column; line-height: 1.3">
+                  <span style="font-size: 14px; font-weight: 600">D-4</span>
+                  <span style="font-size: 14px; color: #A9B1AC">10.28 수</span>
+                </span>
+                <span style="display: flex; flex-direction: column; min-width: 0; line-height: 1.4">
+                  <span style="font-weight: 600">[회사 C]</span>
+                  <span style="font-size: 14px; color: #A9B1AC">1차 면접 · [시간]</span>
+                </span>
+                <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: #C3ABD1"><span style="width: 7px; height: 7px; border-radius: 50%; background: #C3ABD1"></span>면접</span>
+              </li>
+              <li style="display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; align-items: center; gap: 16px; padding: 14px 0; border-top: 1px solid #262C29">
+                <span style="display: flex; flex-direction: column; line-height: 1.3">
+                  <span style="font-size: 14px; font-weight: 600">D-6</span>
+                  <span style="font-size: 14px; color: #A9B1AC">10.30 금</span>
+                </span>
+                <span style="display: flex; flex-direction: column; min-width: 0; line-height: 1.4">
+                  <span style="font-weight: 600">[회사 D]</span>
+                  <span style="font-size: 14px; color: #A9B1AC">서류 결과 발표</span>
+                </span>
+                <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: #86C4B3"><span style="width: 7px; height: 7px; border-radius: 50%; background: #86C4B3"></span>발표</span>
+              </li>
+            </ul>
+            <div style="display: flex; align-items: center; gap: 14px; margin-top: 6px; padding-top: 14px; border-top: 1px solid #262C29">
+              <label for="day-note-dark" style="flex: none; font-size: 14px; font-weight: 600; color: #C3CAC5">오늘 메모</label>
+              <input id="day-note-dark" type="text" placeholder="오늘 하루를 한 줄로" style="flex: 1 1 auto; min-width: 0; min-height: 40px; border: 0; border-bottom: 1px solid #3A423E; background: transparent; padding: 0 2px; font-size: 15px; color: #E9ECE9">
+            </div>
+          </section>
+
+          <section aria-labelledby="routine-title" style="background: #1A1E1C; border: 1px solid #2C3330; border-radius: 8px; padding: 24px 28px">
+            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+              <h2 id="routine-title" style="margin: 0; font-size: 17px; font-weight: 700; color: #A9CBB7">오늘 루틴</h2>
+              <span style="font-size: 14px; color: #C3CAC5"><strong style="color: #F3F5F3; font-weight: 600"><span data-done>2</span></strong> / 5 완료</span>
+            </div>
+            <div style="height: 3px; margin: 14px 0 6px; background: #2C3330">
+              <div style="height: 100%; background: #8FB5A0; width: 40%" data-progress></div>
+            </div>
+            <ul style="margin: 0; padding: 0; list-style: none">
+              
+                <li style="border-bottom: 1px solid #262C29">
+                  <label style="display: flex; align-items: center; gap: 14px; min-height: 48px; cursor: pointer">
+                    <input type="checkbox" checked data-routine style="width: 18px; height: 18px; margin: 0; flex: none; accent-color: #8FB5A0">
+                    <span style="width: 96px; flex: none; font-size: 14px; color: #A9B1AC">07:00 – 08:00</span>
+                    <span style="color: #8C948F; text-decoration: line-through">CS 학습</span>
+                  </label>
+                </li>
+              
+                <li style="border-bottom: 1px solid #262C29">
+                  <label style="display: flex; align-items: center; gap: 14px; min-height: 48px; cursor: pointer">
+                    <input type="checkbox" checked data-routine style="width: 18px; height: 18px; margin: 0; flex: none; accent-color: #8FB5A0">
+                    <span style="width: 96px; flex: none; font-size: 14px; color: #A9B1AC">09:00 – 12:00</span>
+                    <span style="color: #8C948F; text-decoration: line-through">코딩테스트 연습</span>
+                  </label>
+                </li>
+              
+                <li style="border-bottom: 1px solid #262C29">
+                  <label style="display: flex; align-items: center; gap: 14px; min-height: 48px; cursor: pointer">
+                    <input type="checkbox" data-routine style="width: 18px; height: 18px; margin: 0; flex: none; accent-color: #8FB5A0">
+                    <span style="width: 96px; flex: none; font-size: 14px; color: #A9B1AC">14:00 – 18:00</span>
+                    <span style="color: #E9ECE9">프로젝트</span>
+                  </label>
+                </li>
+              
+                <li style="border-bottom: 1px solid #262C29">
+                  <label style="display: flex; align-items: center; gap: 14px; min-height: 48px; cursor: pointer">
+                    <input type="checkbox" data-routine style="width: 18px; height: 18px; margin: 0; flex: none; accent-color: #8FB5A0">
+                    <span style="width: 96px; flex: none; font-size: 14px; color: #A9B1AC">19:00 – 20:30</span>
+                    <span style="color: #E9ECE9">운동</span>
+                  </label>
+                </li>
+              
+                <li style="border-bottom: 1px solid #262C29">
+                  <label style="display: flex; align-items: center; gap: 14px; min-height: 48px; cursor: pointer">
+                    <input type="checkbox" data-routine style="width: 18px; height: 18px; margin: 0; flex: none; accent-color: #8FB5A0">
+                    <span style="width: 96px; flex: none; font-size: 14px; color: #A9B1AC">22:30 – 23:00</span>
+                    <span style="color: #E9ECE9">하루 회고</span>
+                  </label>
+                </li>
+              
+            </ul>
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 16px; font-size: 14px; color: #C3CAC5">
+              <span>진행 중인 챌린지</span>
+              <strong style="color: #F3F5F3; font-weight: 600">[챌린지 이름]</strong>
+              <span style="flex: 1 1 80px; height: 3px; background: #2C3330"><span style="display: block; height: 100%; width: 40%; background: #C8963E"></span></span>
+              <span>12 / 30일</span>
+            </div>
+          </section>
+        </div>
+
+        <div style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column">
+
+          <section aria-labelledby="jobs-title" style="padding: 4px 0 28px; border-bottom: 1px solid #2E3531; display: flex; flex-direction: column; gap: 16px">
+            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+              <h2 id="jobs-title" style="margin: 0; font-size: 17px; font-weight: 700; color: #A9CBB7">채용 현황</h2>
+              <a href="#" style="font-size: 14px; font-weight: 500; color: #E9ECE9; min-height: 40px; padding: 0 14px; box-sizing: border-box; border: 1px solid #3D4541; border-radius: 6px; background: #1A1E1C; text-decoration: none; display: inline-flex; align-items: center">채용 리스트</a>
+            </div>
+            <dl style="margin: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr))">
+              <div style="padding-right: 12px">
+                <dt style="font-size: 13px; color: #A9B1AC">지원</dt>
+                <dd style="margin: 2px 0 0; font-size: 24px; font-weight: 600; line-height: 1.2">14</dd>
+              </div>
+              <div style="padding: 0 12px; border-left: 1px solid #2E3531">
+                <dt style="font-size: 13px; color: #A9B1AC">서류 합격</dt>
+                <dd style="margin: 2px 0 0; font-size: 24px; font-weight: 600; line-height: 1.2">5</dd>
+              </div>
+              <div style="padding: 0 12px; border-left: 1px solid #2E3531">
+                <dt style="font-size: 13px; color: #A9B1AC">면접 중</dt>
+                <dd style="margin: 2px 0 0; font-size: 24px; font-weight: 600; line-height: 1.2">2</dd>
+              </div>
+              <div style="padding-left: 12px; border-left: 1px solid #2E3531">
+                <dt style="font-size: 13px; color: #E8957A">7일 내 마감</dt>
+                <dd style="margin: 2px 0 0; font-size: 24px; font-weight: 600; line-height: 1.2; color: #E8957A">3</dd>
+              </div>
+            </dl>
+            <p style="margin: 0; font-size: 14px; color: #C3CAC5">서류 통과율 <strong style="color: #F3F5F3; font-weight: 600">36%</strong> · 지원 14곳 중 5곳</p>
+          </section>
+
+          <section aria-labelledby="workout-title" style="padding: 28px 0; border-bottom: 1px solid #2E3531; display: flex; flex-direction: column; gap: 14px">
+            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+              <h2 id="workout-title" style="margin: 0; font-size: 17px; font-weight: 700; color: #A9CBB7">이번 주 운동</h2>
+              <a href="#" style="font-size: 14px; font-weight: 500; color: #E9ECE9; min-height: 40px; padding: 0 14px; box-sizing: border-box; border: 1px solid #3D4541; border-radius: 6px; background: #1A1E1C; text-decoration: none; display: inline-flex; align-items: center">기록하기</a>
+            </div>
+            <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px">
+              
+                <li style="display: grid; grid-template-columns: 36px minmax(0, 1fr) 52px; align-items: center; gap: 12px; font-size: 14px">
+                  <span>등</span>
+                  <span style="height: 4px; background: #2C3330"><span style="display: block; height: 100%; background: #5F8873; width: 60%"></span></span>
+                  <span style="text-align: right; color: #A9B1AC"><span style="color: #F3F5F3">6</span> / 10</span>
+                </li>
+              
+                <li style="display: grid; grid-template-columns: 36px minmax(0, 1fr) 52px; align-items: center; gap: 12px; font-size: 14px">
+                  <span>가슴</span>
+                  <span style="height: 4px; background: #2C3330"><span style="display: block; height: 100%; background: #A9CBB7; width: 100%"></span></span>
+                  <span style="text-align: right; color: #A9B1AC"><span style="color: #F3F5F3">10</span> / 10</span>
+                </li>
+              
+                <li style="display: grid; grid-template-columns: 36px minmax(0, 1fr) 52px; align-items: center; gap: 12px; font-size: 14px">
+                  <span>어깨</span>
+                  <span style="height: 4px; background: #2C3330"><span style="display: block; height: 100%; background: #5F8873; width: 40%"></span></span>
+                  <span style="text-align: right; color: #A9B1AC"><span style="color: #F3F5F3">4</span> / 10</span>
+                </li>
+              
+                <li style="display: grid; grid-template-columns: 36px minmax(0, 1fr) 52px; align-items: center; gap: 12px; font-size: 14px">
+                  <span>팔</span>
+                  <span style="height: 4px; background: #2C3330"><span style="display: block; height: 100%; background: #5F8873; width: 38%"></span></span>
+                  <span style="text-align: right; color: #A9B1AC"><span style="color: #F3F5F3">3</span> / 8</span>
+                </li>
+              
+                <li style="display: grid; grid-template-columns: 36px minmax(0, 1fr) 52px; align-items: center; gap: 12px; font-size: 14px">
+                  <span>다리</span>
+                  <span style="height: 4px; background: #2C3330"><span style="display: block; height: 100%; background: #5F8873; width: 0%"></span></span>
+                  <span style="text-align: right; color: #A9B1AC"><span style="color: #F3F5F3">0</span> / 12</span>
+                </li>
+              
+            </ul>
+            <span style="font-size: 13px; color: #A9B1AC">부위별 주간 세트 목표 대비</span>
+          </section>
+
+          <section aria-labelledby="learn-title" style="padding: 28px 0 0; display: flex; flex-direction: column; gap: 12px">
+            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+              <h2 id="learn-title" style="margin: 0; font-size: 17px; font-weight: 700; color: #A9CBB7">오늘의 학습</h2>
+              <span style="font-size: 14px; color: #A9B1AC">3 / 5 · CS 기초</span>
+            </div>
+            <p style="margin: 0; font-size: 18px; line-height: 1.45; font-weight: 600; color: #F3F5F3">Stack과 Queue의 차이는?</p>
+            <div data-answer hidden style="display: contents">
+              <p style="margin: 0; font-size: 14px; line-height: 1.7; color: #CDD3CF">Stack은 LIFO — 마지막에 넣은 걸 먼저 뺀다. Queue는 FIFO — 먼저 넣은 걸 먼저 뺀다. Stack은 함수 호출 스택·되돌리기에, Queue는 작업 대기열·BFS 탐색에 쓰인다.</p>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+              <div data-before-reveal style="display: contents">
+                <button type="button" data-reveal style="min-height: 40px; padding: 0 16px; border: 1px solid #2F5A47; border-radius: 6px; background: #2F5A47; color: #FFFFFF; font-size: 14px; font-weight: 600">답 보기</button>
+              </div>
+              <div data-answer hidden style="display: contents">
+                <span style="display: flex; gap: 8px">
+                  <button type="button" data-status aria-pressed="false" style="min-height: 40px; padding: 0 14px; border-radius: 6px; font-size: 14px; font-weight: 600; border: 1px solid #3D4541; background: transparent; color: #E9ECE9">이해함</button>
+                  <button type="button" data-status aria-pressed="false" style="min-height: 40px; padding: 0 14px; border-radius: 6px; font-size: 14px; font-weight: 600; border: 1px solid #3D4541; background: transparent; color: #E9ECE9">복습 필요</button>
+                </span>
+              </div>
+              <a href="#" style="margin-left: auto; font-size: 14px; font-weight: 500; color: #E9ECE9; min-height: 40px; padding: 0 14px; box-sizing: border-box; border: 1px solid #3D4541; border-radius: 6px; background: #1A1E1C; text-decoration: none; display: inline-flex; align-items: center">학습으로 이동</a>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <section aria-labelledby="blog-title" style="padding-top: 24px; border-top: 1px solid #2E3531">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 4px">
+          <h2 id="blog-title" style="margin: 0; font-size: 17px; font-weight: 700; color: #A9CBB7">새로 올라온 기술 블로그</h2>
+          <a href="#" style="font-size: 14px; font-weight: 500; color: #E9ECE9; min-height: 40px; padding: 0 14px; box-sizing: border-box; border: 1px solid #3D4541; border-radius: 6px; background: #1A1E1C; text-decoration: none; display: inline-flex; align-items: center">전체 보기</a>
+        </div>
+        <ul style="margin: 0; padding: 0; list-style: none">
+          <li style="border-bottom: 1px solid #262C29">
+            <a href="#" style="display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 16px; align-items: center; min-height: 48px; color: #E9ECE9; text-decoration: none">
+              <span style="font-size: 14px; color: #A9B1AC">토스</span>
+              <span style="font-weight: 500">[글 제목]</span>
+              <span style="font-size: 14px; color: #A9B1AC">10.24</span>
+            </a>
+          </li>
+          <li style="border-bottom: 1px solid #262C29">
+            <a href="#" style="display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 16px; align-items: center; min-height: 48px; color: #E9ECE9; text-decoration: none">
+              <span style="font-size: 14px; color: #A9B1AC">카카오</span>
+              <span style="font-weight: 500">[글 제목]</span>
+              <span style="font-size: 14px; color: #A9B1AC">10.23</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" style="display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 16px; align-items: center; min-height: 48px; color: #E9ECE9; text-decoration: none">
+              <span style="font-size: 14px; color: #A9B1AC">당근</span>
+              <span style="font-weight: 500">[글 제목]</span>
+              <span style="font-size: 14px; color: #A9B1AC">10.22</span>
+            </a>
+          </li>
+        </ul>
+      </section>
+
+    </div>
+  </main>
+</div>
+<script>
+(function () {
+  var on = 'min-height: 40px; padding: 0 14px; border-radius: 6px; font-size: 14px; font-weight: 600; border: 1px solid #2F5A47; background: #2F5A47; color: #FFFFFF', off = 'min-height: 40px; padding: 0 14px; border-radius: 6px; font-size: 14px; font-weight: 600; border: 1px solid #3D4541; background: transparent; color: #E9ECE9';
+  document.querySelector('[data-reveal]').addEventListener('click', function () {
+    document.querySelector('[data-answer]').hidden = false;
+    document.querySelector('[data-before-reveal]').hidden = true;
+  });
+  var sts = document.querySelectorAll('[data-status]');
+  sts.forEach(function (b) { b.addEventListener('click', function () {
+    sts.forEach(function (o) { o.setAttribute('aria-pressed', 'false'); o.style.cssText = off; });
+    b.setAttribute('aria-pressed', 'true'); b.style.cssText = on;
+  }); });
+  var boxes = document.querySelectorAll('[data-routine]');
+  function sync() {
+    var n = 0;
+    boxes.forEach(function (c) {
+      var label = c.parentNode.lastElementChild;
+      if (c.checked) { n++; label.style.cssText = 'color: #8C948F; text-decoration: line-through'; } else label.style.cssText = 'color: #E9ECE9';
+    });
+    document.querySelector('[data-done]').textContent = n;
+    document.querySelector('[data-progress]').style.width = Math.round(n / boxes.length * 100) + '%';
+  }
+  boxes.forEach(function (c) { c.addEventListener('change', sync); });
+})();
+</script>
+</body>
+</html>

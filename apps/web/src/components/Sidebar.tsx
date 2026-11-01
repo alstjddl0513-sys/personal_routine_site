@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import {
   BookOpen,
   Briefcase,
@@ -10,7 +10,6 @@ import {
   ChevronDown,
   ChevronRight,
   Dumbbell,
-  LogOut,
   Rss,
   Settings,
   Shield,
@@ -101,6 +100,13 @@ const NAV: NavItem[] = [
 
 const STORAGE_KEY = 'rally.sidebar.collapsed';
 
+// 숲색 사이드바(docs/design/rally-dashboard.html) — 전 페이지 공통이라
+// 본문이 zinc인 페이지에서도 이 톤.
+const SIDE_ICON_BTN =
+  'relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-side-fg transition-colors hover:bg-side-active hover:text-white';
+const SIDE_LINK_ACTIVE = 'bg-side-active font-semibold text-white';
+const SIDE_LINK_IDLE = 'text-side-fg hover:bg-side-active/60 hover:text-white';
+
 // localStorage-backed store for `useSyncExternalStore`. Avoids the
 // setState-in-effect anti-pattern (React 19 warns).
 type CollapsedMap = Record<string, boolean>;
@@ -152,15 +158,12 @@ function writeCollapsed(next: CollapsedMap) {
   collapsedListeners.forEach((fn) => fn());
 }
 
-function UserRow() {
-  const [label, setLabel] = useState<string | null>(null);
+// 어드민일 때만 설정 위에 '관리자 페이지' 줄. 로그인/로그아웃 때마다 다시 확인.
+// isAdmin(Phase 12.5)은 /admin 링크 조건부 렌더에만 사용 — 서버 진리치라
+// 클라 조작 시도해도 실제 API는 AdminGuard로 재검증.
+function AdminLink({ active }: { active: boolean }) {
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // Read the session on mount and whenever auth state flips (login/logout).
-  // Nickname is the display label; if the profile row hasn't been created
-  // yet (edge case) fall back to the email's local part.
-  // isAdmin(Phase 12.5)은 /admin 링크 조건부 렌더에만 사용 — 서버 진리치라
-  // 클라 조작 시도해도 실제 API는 AdminGuard로 재검증.
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
     let cancelled = false;
@@ -170,28 +173,11 @@ function UserRow() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
-        if (!cancelled) {
-          setLabel(null);
-          setIsAdmin(false);
-        }
+        if (!cancelled) setIsAdmin(false);
         return;
       }
-      try {
-        const profile = await getMyProfile();
-        if (cancelled) return;
-        if (profile) {
-          setLabel(profile.nickname);
-          setIsAdmin(profile.isAdmin);
-        } else {
-          setLabel(user.email?.split('@')[0] ?? '유저');
-          setIsAdmin(false);
-        }
-      } catch {
-        if (!cancelled) {
-          setLabel(user.email?.split('@')[0] ?? '유저');
-          setIsAdmin(false);
-        }
-      }
+      const profile = await getMyProfile().catch(() => null);
+      if (!cancelled) setIsAdmin(profile?.isAdmin ?? false);
     }
 
     refresh();
@@ -204,44 +190,18 @@ function UserRow() {
     };
   }, []);
 
-  if (!label) return null;
+  if (!isAdmin) return null;
   return (
-    <div className="flex items-center gap-2 border-t border-zinc-200 px-4 py-2 text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-500">
-      <span className="min-w-0 flex-1 truncate" title={label}>
-        {label}
-      </span>
-      {isAdmin ? (
-        <Link
-          href="/admin"
-          aria-label="관리자 페이지"
-          className="inline-flex h-6 w-6 items-center justify-center rounded-md text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
-        >
-          <Shield className="h-3.5 w-3.5" aria-hidden />
-        </Link>
-      ) : null}
-    </div>
-  );
-}
-
-function LogoutButton() {
-  const router = useRouter();
-
-  async function handleLogout() {
-    const supabase = createSupabaseBrowserClient();
-    await supabase.auth.signOut().catch(() => {});
-    router.replace('/login');
-    router.refresh();
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={handleLogout}
-      aria-label="로그아웃"
-      className="inline-flex h-7 w-7 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+    <Link
+      href="/admin"
+      aria-current={active ? 'page' : undefined}
+      className={`flex min-h-10 items-center gap-3 rounded-md px-3 text-[15px] transition-colors ${
+        active ? SIDE_LINK_ACTIVE : SIDE_LINK_IDLE
+      }`}
     >
-      <LogOut className="h-3.5 w-3.5" aria-hidden />
-    </button>
+      <Shield className="h-4.5 w-4.5" strokeWidth={1.7} aria-hidden />
+      관리자 페이지
+    </Link>
   );
 }
 
@@ -290,18 +250,19 @@ export function Sidebar() {
   return (
     <aside
       data-app-sidebar
-      className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-zinc-200 bg-zinc-50 md:flex dark:border-zinc-800 dark:bg-zinc-950"
+      className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col gap-5 border-r border-side-border bg-side-bg px-3.5 pt-6 pb-4 font-plex text-side-fg md:flex"
     >
-      <div className="px-5 pt-5 pb-4">
-        <Link
-          href="/today"
-          className="inline-flex items-center gap-2 text-base font-semibold tracking-tight"
-        >
-          <RallyLogo size={26} />
-          Rally
-        </Link>
-      </div>
-      <nav className="flex flex-1 flex-col gap-0.5 px-2">
+      <Link
+        href="/today"
+        className="inline-flex items-center gap-2.5 px-2.5 text-xl font-bold tracking-[-0.01em] text-side-strong"
+      >
+        <RallyLogo size={22} />
+        Rally
+      </Link>
+      <nav
+        aria-label="주 메뉴"
+        className="-mx-1 flex min-h-0 flex-1 flex-col gap-px overflow-y-auto px-1 scrollbar-none [&::-webkit-scrollbar]:hidden"
+      >
         {NAV.map((item) => {
           const { href, label, icon: Icon, children } = item;
           const parentActive = isParentActive(pathname, item);
@@ -311,16 +272,15 @@ export function Sidebar() {
             <div key={href} className="flex flex-col gap-0.5">
               <div
                 className={`flex items-center rounded-md transition-colors ${
-                  parentActive
-                    ? 'bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-50'
-                    : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100'
+                  parentActive ? SIDE_LINK_ACTIVE : SIDE_LINK_IDLE
                 }`}
               >
                 <Link
                   href={href}
-                  className="flex flex-1 items-center gap-3 px-3 py-2 text-sm"
+                  aria-current={pathname === href ? 'page' : undefined}
+                  className="flex min-h-10 flex-1 items-center gap-3 px-3 text-[15px]"
                 >
-                  <Icon className="h-4 w-4" aria-hidden />
+                  <Icon className="h-4.5 w-4.5" strokeWidth={1.7} aria-hidden />
                   <span>{label}</span>
                 </Link>
                 {children ? (
@@ -329,7 +289,7 @@ export function Sidebar() {
                     onClick={() => toggle(href)}
                     aria-expanded={!isCollapsed}
                     aria-label={`${label} 하위탭 ${isCollapsed ? '펼치기' : '접기'}`}
-                    className="mr-1.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded text-zinc-400 hover:bg-black/5 hover:text-zinc-700 dark:hover:bg-white/5 dark:hover:text-zinc-200"
+                    className="mr-1.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded text-side-muted hover:bg-white/10 hover:text-white"
                   >
                     {isCollapsed ? (
                       <ChevronRight className="h-3.5 w-3.5" aria-hidden />
@@ -340,17 +300,16 @@ export function Sidebar() {
                 ) : null}
               </div>
               {showChildren ? (
-                <div className="ml-6 flex flex-col gap-0.5 border-l border-zinc-200 pl-2 dark:border-zinc-800">
+                <div className="my-0.5 ml-5.5 flex flex-col gap-px border-l border-side-line pl-2">
                   {children!.map((child) => {
                     const active = isActive(pathname, child.href);
                     return (
                       <Link
                         key={child.href}
                         href={child.href}
-                        className={`rounded-md px-3 py-1.5 text-xs transition-colors ${
-                          active
-                            ? 'bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-50'
-                            : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-100'
+                        aria-current={active ? 'page' : undefined}
+                        className={`flex min-h-8 items-center rounded-md px-3 text-sm transition-colors ${
+                          active ? SIDE_LINK_ACTIVE : SIDE_LINK_IDLE
                         }`}
                       >
                         {child.label}
@@ -364,24 +323,23 @@ export function Sidebar() {
         })}
       </nav>
 
-      <UserRow />
-
-      <div className="flex items-center justify-between border-t border-zinc-200 px-3 py-2 dark:border-zinc-800">
-        <Link
-          href="/settings"
-          className={`inline-flex items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-colors ${
-            isActive(pathname, '/settings')
-              ? 'bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-50'
-              : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100'
-          }`}
-        >
-          <Settings className="h-3.5 w-3.5" aria-hidden />
-          <span>설정</span>
-        </Link>
-        <div className="flex items-center gap-1">
-          <ThemeToggle />
-          <NotifBell />
-          <LogoutButton />
+      {/* 왼쪽: 페이지 이동(관리자·설정) — 위 메뉴와 같은 모양 / 오른쪽: 바로 동작하는 버튼 */}
+      <div className="flex flex-col gap-px border-t border-side-line pt-3.5">
+        <AdminLink active={pathname === '/admin' || pathname.startsWith('/admin/')} />
+        <div className="flex items-center gap-0.5">
+          <Link
+            href="/settings"
+            aria-current={isActive(pathname, '/settings') ? 'page' : undefined}
+            className={`flex min-h-10 items-center gap-3 rounded-md px-3 text-[15px] transition-colors ${
+              isActive(pathname, '/settings') ? SIDE_LINK_ACTIVE : SIDE_LINK_IDLE
+            }`}
+          >
+            <Settings className="h-4.5 w-4.5" strokeWidth={1.7} aria-hidden />
+            설정
+          </Link>
+          <span className="flex-1" />
+          <ThemeToggle className={SIDE_ICON_BTN} />
+          <NotifBell className={SIDE_ICON_BTN} />
         </div>
       </div>
     </aside>

@@ -3,7 +3,7 @@
 import { useOptimistic, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toggleRoutineCheck } from '../../lib/api';
-import { ProgressBar } from './Card';
+import { ProgressBar, SectionHead } from './Card';
 
 interface Item {
   id: string;
@@ -13,11 +13,16 @@ interface Item {
 
 // 체크는 optimistic → toggleRoutineCheck → refresh. refresh로 헤더 '아직 체크
 // 안 한 루틴' 수·스트릭·챌린지 진행도 서버 값으로 다시 맞춰짐.
+// 제목 줄의 'N / M 완료'가 체크 상태를 따라가야 해서 섹션 제목도 여기서 그림.
 export function RoutineChecklist({
+  titleId,
+  title,
   date,
   items,
   initialChecked,
 }: {
+  titleId: string;
+  title: string;
   date: string;
   items: Item[];
   initialChecked: string[];
@@ -50,35 +55,30 @@ export function RoutineChecklist({
 
   return (
     <>
-      <div className="-mt-1 flex flex-col gap-3">
-        <div className="flex justify-end">
-          <span className="font-display text-[15px] font-extrabold text-ink">
-            {done}
-            <span className="font-semibold text-ink-faint"> / {items.length}</span>
+      <SectionHead
+        id={titleId}
+        title={title}
+        aside={
+          <span className="text-sm text-ink-soft">
+            <strong className="font-semibold text-ink-strong">{done}</strong> / {items.length} 완료
           </span>
-        </div>
-        <ProgressBar pct={items.length ? (done / items.length) * 100 : 0} />
-      </div>
+        }
+      />
+      <ProgressBar pct={items.length ? (done / items.length) * 100 : 0} className="mt-1 h-0.75" />
       <ul className="flex flex-col">
         {items.map((item) => {
           const on = checked.has(item.id);
           return (
-            <li key={item.id}>
-              <label className="flex min-h-11.5 cursor-pointer items-center gap-3">
+            <li key={item.id} className="border-b border-divider">
+              <label className="flex min-h-12 cursor-pointer items-center gap-3.5">
                 <input
                   type="checkbox"
                   checked={on}
                   onChange={(e) => toggle(item.id, e.target.checked)}
-                  className="h-5 w-5 flex-none accent-primary"
+                  className="h-4.5 w-4.5 flex-none accent-primary"
                 />
-                <span className="w-21.5 flex-none font-display text-[13px] font-semibold text-ink-muted">
-                  {item.time}
-                </span>
-                <span
-                  className={
-                    on ? 'text-ink-faint line-through' : 'font-medium text-ink'
-                  }
-                >
+                <span className="w-24 flex-none text-sm text-ink-muted">{item.time}</span>
+                <span className={on ? 'text-ink-faint line-through' : 'text-ink'}>
                   {item.label}
                 </span>
               </label>

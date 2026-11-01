@@ -1,7 +1,7 @@
 import type { ApplicationStatus } from '@repo/shared';
 import { computeKpi, computeUpcomingDeadlines } from '../../lib/jobs-stats';
 import { getToday, loadCompanies, settle } from '../../lib/today-data';
-import { CardLink, CardMessage, LOAD_ERROR_COPY, ProgressBar, TodayCard } from './Card';
+import { CardLink, CardMessage, LOAD_ERROR_COPY, TodayPanel } from './Card';
 
 // 서류를 통과한 적이 있는 상태 전부 — 이후 면접에서 떨어져도 서류는 통과.
 // (computePipeline은 탈락을 한 버킷으로 합쳐서 '서류 통과' 집계엔 못 씀)
@@ -26,9 +26,9 @@ export async function JobsSection() {
 
   if (!rows) {
     return (
-      <TodayCard id="jobs-title" title="채용 현황" className="flex-[1_1_320px]">
+      <TodayPanel id="jobs-title" title="채용 현황">
         <CardMessage>{LOAD_ERROR_COPY}</CardMessage>
-      </TodayCard>
+      </TodayPanel>
     );
   }
 
@@ -43,31 +43,25 @@ export async function JobsSection() {
   const passRate = decided > 0 ? Math.round((docPassed / decided) * 100) : null;
 
   return (
-    <TodayCard
+    <TodayPanel
       id="jobs-title"
       title="채용 현황"
-      className="flex-[1_1_320px]"
-      aside={<CardLink href="/jobs">리스트 →</CardLink>}
+      aside={<CardLink href="/jobs">채용 리스트</CardLink>}
     >
-      <div className="grid grid-cols-2 gap-2.5">
+      <dl className="grid grid-cols-4">
         <Stat label="지원" value={applied} />
         <Stat label="서류 합격" value={docPassed} />
-        <Stat label="면접 진행" value={interviewing} />
-        <Stat label="D-7 임박" value={upcoming} tone="alert" />
-      </div>
-      <div className="flex flex-col gap-1.5">
-        <div className="flex justify-between text-xs text-ink-muted">
-          <span>
-            서류 통과율
-            <span className="ml-1 text-ink-faint">· 결과 나온 {decided}곳 기준</span>
-          </span>
-          <span className="font-display font-semibold text-ink">
-            {passRate === null ? '—' : `${passRate}%`}
-          </span>
-        </div>
-        <ProgressBar pct={passRate ?? 0} className="h-2" />
-      </div>
-    </TodayCard>
+        <Stat label="면접 중" value={interviewing} />
+        <Stat label="7일 내 마감" value={upcoming} tone="alert" />
+      </dl>
+      <p className="text-sm text-ink-soft">
+        서류 통과율{' '}
+        <strong className="font-semibold text-ink-strong">
+          {passRate === null ? '—' : `${passRate}%`}
+        </strong>
+        {decided > 0 ? ` · 결과 나온 ${decided}곳 중 ${docPassed}곳` : ' · 아직 결과 나온 곳이 없어요'}
+      </p>
+    </TodayPanel>
   );
 }
 
@@ -82,19 +76,11 @@ function Stat({
 }) {
   const alert = tone === 'alert' && value > 0;
   return (
-    <div
-      className={`flex flex-col rounded-[14px] p-3.5 ${
-        alert ? 'bg-deadline-bg text-deadline-fg' : 'bg-surface-muted'
-      }`}
-    >
-      <span className={`text-xs ${alert ? '' : 'text-ink-muted'}`}>{label}</span>
-      <span
-        className={`font-display text-[28px] leading-[1.2] font-extrabold ${
-          alert ? '' : 'text-ink'
-        }`}
-      >
+    <div className="border-l border-rule px-3 first:border-l-0 first:pl-0 last:pr-0">
+      <dt className={`text-[13px] ${alert ? 'text-alert' : 'text-ink-muted'}`}>{label}</dt>
+      <dd className={`mt-0.5 text-2xl leading-[1.2] font-semibold ${alert ? 'text-alert' : ''}`}>
         {value}
-      </span>
+      </dd>
     </div>
   );
 }

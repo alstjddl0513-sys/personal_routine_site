@@ -10,18 +10,8 @@ import {
   loadTodayCompanyEvents,
   settle,
 } from '../../lib/today-data';
-import { StreakBadge } from '../StreakBadge';
 
 const SEOUL = 'Asia/Seoul';
-
-function greeting(now: Date): string {
-  const hour = Number(
-    new Intl.DateTimeFormat('en-US', { hour: 'numeric', hour12: false, timeZone: SEOUL }).format(now),
-  );
-  if (hour >= 5 && hour < 12) return '좋은 아침이에요';
-  if (hour >= 12 && hour < 18) return '좋은 오후예요';
-  return '오늘도 수고했어요';
-}
 
 export async function TodayHeader() {
   const { today } = getToday();
@@ -54,31 +44,45 @@ export async function TodayHeader() {
     : 0;
 
   return (
-    <header className="flex flex-wrap items-end justify-between gap-4">
-      <div className="flex flex-col gap-1.5">
-        <span className="text-sm text-ink-muted">{dateLabel}</span>
-        <h1 className="text-[26px] leading-tight font-bold tracking-[-0.02em] text-ink md:text-[30px]">
-          {greeting(now)}
-          {profile?.nickname ? `, ${profile.nickname}님` : ''}
+    <header className="flex flex-wrap items-end justify-between gap-x-8 gap-y-5 border-b border-rule pb-6">
+      <div className="flex flex-col gap-2.5">
+        <h1 className="font-serif-kr text-[28px] leading-[1.2] font-semibold tracking-[-0.01em] text-ink-strong md:text-[34px]">
+          {profile?.nickname ? (
+            <>
+              <span className="text-heading">{profile.nickname}</span>님 안녕하세요!
+            </>
+          ) : (
+            '안녕하세요!'
+          )}
         </h1>
         {summary ? (
-          <p className="text-[15px] text-ink-muted">
-            오늘 마감 <strong className="text-ink">{summary.todayDeadlines}건</strong>
-            {' · '}일정 <strong className="text-ink">{summary.todayEvents}건</strong>
-            {' · '}아직 체크 안 한 루틴{' '}
-            <strong className="text-ink">{summary.uncheckedRoutines}개</strong>
+          <p className="text-[15px] text-ink-soft">
+            오늘 마감{' '}
+            <strong
+              className={`font-semibold ${summary.todayDeadlines > 0 ? 'text-alert' : 'text-ink-strong'}`}
+            >
+              {summary.todayDeadlines}건
+            </strong>
+            , 일정 <strong className="font-semibold text-ink-strong">{summary.todayEvents}건</strong>이
+            있고 루틴은{' '}
+            <strong className="font-semibold text-ink-strong">{summary.uncheckedRoutines}개</strong>{' '}
+            남았어요.
           </p>
         ) : null}
       </div>
-      {streak !== null && streak > 0 ? (
-        <StreakBadge
-          variant="pill"
-          label="루틴"
-          current={streak}
-          best={bestStreak}
-          unit="일"
-        />
-      ) : null}
+      <p className="text-sm text-ink-soft">
+        <span className="font-semibold text-ink-strong">{dateLabel}</span>
+        {streak !== null && streak > 0 ? (
+          <>
+            <span aria-hidden className="mx-2.5 text-rule">
+              |
+            </span>
+            <span title={`최장 ${bestStreak}일`}>
+              루틴 연속 <strong className="font-semibold text-ink-strong">{streak}일</strong>
+            </span>
+          </>
+        ) : null}
+      </p>
     </header>
   );
 }

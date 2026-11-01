@@ -13,7 +13,11 @@ import { NotifLogDrawer } from './NotifLogDrawer';
 // SectionSubNav(모바일) 우측에 각각 마운트. md: 스위치로 동시 노출 X.
 // unread = 브라우저 로그(notif-log) + 서버 공지(announcements-sink).
 // 서버 공지 fetch는 RootLayout의 NotifAuthSync가 auth state 이벤트에서 트리거.
-export function NotifBell() {
+const DEFAULT_CLASS =
+  'relative inline-flex h-7 w-7 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-100';
+
+// className: 사이드바처럼 배경이 다른 곳에서 버튼 색만 바꿀 때 (relative 포함해서 넘길 것).
+export function NotifBell({ className = DEFAULT_CLASS }: { className?: string }) {
   const [open, setOpen] = useState(false);
   const localUnread = useSyncExternalStore<number>(
     subscribeLog,
@@ -36,7 +40,7 @@ export function NotifBell() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label={ariaLabel}
-        className="relative inline-flex h-7 w-7 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+        className={className}
       >
         <Bell className="h-3.5 w-3.5" aria-hidden />
         {unread > 0 ? (

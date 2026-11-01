@@ -1,26 +1,22 @@
-// 라임 원 안의 코트 그린 삼각 깃발 (docs/design/rally-dashboard-design.dc.html).
-// 색은 브랜드 고정값이라 다크에서도 그대로 — 토큰 대신 court/lime 직접 사용.
-export function RallyLogo({ size = 28 }: { size?: number }) {
-  const icon = Math.round(size * 0.6);
+// 깃대 + 메리골드 삼각 깃발 (docs/design/rally-dashboard.html). 숲색 사이드바
+// 위에 놓이는 전제라 색은 토큰(side-strong·marigold) 고정 — 라이트·다크 공통.
+export function RallyLogo({ size = 22 }: { size?: number }) {
   return (
-    <span
+    <svg
+      width={Math.round((size * 20) / 22)}
+      height={size}
+      viewBox="0 0 20 22"
+      fill="none"
       aria-hidden
-      className="inline-flex shrink-0 items-center justify-center rounded-full bg-lime"
-      style={{ width: size, height: size }}
+      className="shrink-0"
     >
-      <svg
-        width={icon}
-        height={icon}
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="#17382B"
-        strokeWidth={2.2}
+      <path
+        d="M3.5 21V1.8"
+        className="stroke-side-strong"
+        strokeWidth={2}
         strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M6 21V3.5" />
-        <path d="M6 3.5L19 8.25L6 13Z" fill="#17382B" />
-      </svg>
-    </span>
+      />
+      <path d="M4.5 2.2L18 7.4L4.5 12.4Z" className="fill-marigold" />
+    </svg>
   );
 }
