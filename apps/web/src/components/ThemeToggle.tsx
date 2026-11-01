@@ -37,7 +37,11 @@ function applyTheme(next: Theme) {
   themeListeners.forEach((fn) => fn());
 }
 
-export function ThemeToggle() {
+const DEFAULT_CLASS =
+  'inline-flex h-7 w-7 items-center justify-center rounded-md border border-zinc-200 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100';
+
+// className: 사이드바처럼 배경이 다른 곳에서 버튼 색만 바꿀 때.
+export function ThemeToggle({ className = DEFAULT_CLASS }: { className?: string }) {
   const theme = useSyncExternalStore(
     subscribeTheme,
     readThemeClient,
@@ -47,10 +51,7 @@ export function ThemeToggle() {
   // Same-size placeholder while SSR snapshot is null — keeps layout stable.
   if (theme === null) {
     return (
-      <div
-        aria-hidden
-        className="h-7 w-7 rounded-md border border-transparent"
-      />
+      <div aria-hidden className={`${className} invisible`} />
     );
   }
 
@@ -64,7 +65,7 @@ export function ThemeToggle() {
       onClick={toggle}
       aria-label={theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
       title={theme === 'dark' ? '라이트 모드' : '다크 모드'}
-      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-zinc-200 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+      className={className}
     >
       {theme === 'dark' ? (
         <Sun className="h-3.5 w-3.5" aria-hidden />

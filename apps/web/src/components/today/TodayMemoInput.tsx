@@ -50,32 +50,30 @@ export function TodayMemoInput({
   }
 
   return (
-    <div className="flex flex-col gap-1 rounded-[14px] bg-surface-muted px-4 py-3.5">
-      <div className="flex items-center justify-between gap-2">
-        <label htmlFor="today-memo" className="text-xs font-bold text-ink-muted">
-          오늘 메모
-        </label>
-        <span aria-live="polite" className="text-[11px] text-ink-faint">
-          {state === 'saving'
-            ? '저장 중…'
-            : state === 'saved'
-              ? '저장됨'
-              : state === 'error'
-                ? '저장하지 못했어요'
-                : ''}
-        </span>
-      </div>
+    <div className="flex items-center gap-3.5 border-t border-divider pt-3.5">
+      <label htmlFor="today-memo" className="flex-none text-sm font-semibold text-ink-soft">
+        오늘 메모
+      </label>
       <textarea
         id="today-memo"
-        rows={2}
+        rows={1}
         value={value}
         maxLength={MAX_LEN}
         disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
         onBlur={() => void save(value)}
-        placeholder={disabled ? '지금은 메모를 불러오지 못했어요' : '한 줄로 남기기'}
-        className="min-h-10 resize-none border-0 bg-transparent p-0 text-[15px] text-ink outline-none placeholder:text-ink-faint disabled:opacity-60"
+        placeholder={disabled ? '지금은 메모를 불러오지 못했어요' : '오늘 하루를 한 줄로'}
+        className="field-sizing-content min-h-10 min-w-0 flex-auto resize-none border-0 border-b border-rule bg-transparent px-0.5 py-2 text-[15px] leading-normal text-ink outline-none placeholder:text-ink-faint focus:border-heading disabled:opacity-60"
       />
+      <span aria-live="polite" className="flex-none text-xs text-ink-faint">
+        {state === 'saving'
+          ? '저장 중…'
+          : state === 'saved'
+            ? '저장됨'
+            : state === 'error'
+              ? '저장하지 못했어요'
+              : ''}
+      </span>
     </div>
   );
 }

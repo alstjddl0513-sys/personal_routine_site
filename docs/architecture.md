@@ -108,5 +108,5 @@ Render(15분 idle 슬립)와 Vercel(요청마다 다른 인스턴스) 모두 로
 
 ### UI
 - **@dnd-kit** (대안: react-beautiful-dnd(보관됨), react-dnd, HTML5 DnD) — React 19 호환, 포인터·터치·키보드 지원, headless라 Tailwind 그대로. 시간블록 드래그 재정렬
-- **Bricolage Grotesque + IBM Plex Sans KR** via `next/font` (대안: Pretendard, Google Fonts `<link>`) — 숫자가 잘 읽히는 디스플레이 서체 + 한글 본문용. `next/font`는 셀프호스팅 + CLS 방지, 새 npm 의존성 없음. Plex KR은 한글 서브셋이 커서 `preload: false`
+- **IBM Plex Sans KR + Noto Serif KR** via `next/font` (대안: Pretendard, Google Fonts `<link>`) — 한글 본문 + /today 인사말 한 줄용 세리프. `next/font`는 셀프호스팅 + CLS 방지, 새 npm 의존성 없음. 둘 다 한글 서브셋이 커서 `preload: false`. 2026-11 새 시안(숲색·메리골드)으로 바꾸며 숫자용 Bricolage Grotesque는 제거 — 시안이 본문 서체 tabular-nums로 숫자를 처리
 - **디자인 토큰 `globals.css --rally-*` → `@theme inline`** (대안: Tailwind 기본 팔레트, CSS-in-JS) — 라이트·다크를 변수 교체로 처리. **현재 `/today`에만 시험 적용**, 앱 전체 디자인 개편 때 재검토

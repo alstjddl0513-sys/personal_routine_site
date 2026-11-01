@@ -12,12 +12,13 @@ import { TodayMemoInput } from './TodayMemoInput';
 const WINDOW_DAYS = 14;
 const MAX_ITEMS = 5;
 
-const BADGE: Record<CompanyEventType, string> = {
-  deadline: 'bg-deadline-bg text-deadline-fg',
-  test: 'bg-test-bg text-test-fg',
-  interview: 'bg-interview-bg text-interview-fg',
-  announcement: 'bg-announce-bg text-announce-fg',
-  other: 'bg-other-bg text-other-fg',
+// 유형 점 + 글자색. [글자, 점]
+const TYPE_TONE: Record<CompanyEventType, [string, string]> = {
+  deadline: ['text-alert', 'bg-alert'],
+  test: ['text-ev-test', 'bg-ev-test'],
+  interview: ['text-ev-interview', 'bg-ev-interview'],
+  announcement: ['text-ev-announce', 'bg-ev-announce'],
+  other: ['text-ev-other', 'bg-ev-other'],
 };
 
 type JobEvent = Extract<SchedulerEvent, { kind: 'job' }>;
@@ -44,8 +45,7 @@ export async function UpcomingSection() {
     <TodayCard
       id="events-title"
       title="다가오는 일정"
-      className="flex-[2_1_340px]"
-      aside={<CardLink href="/calendar">캘린더 →</CardLink>}
+      aside={<CardLink href="/calendar">캘린더에서 보기</CardLink>}
     >
       {events === null ? (
         <CardMessage>{LOAD_ERROR_COPY}</CardMessage>
@@ -60,52 +60,45 @@ export async function UpcomingSection() {
               key={`${e.companyId}-${e.date}-${e.type}-${i}`}
               event={e}
               today={today}
-              last={i === jobs.length - 1}
             />
           ))}
         </ul>
       )}
 
-      <div className="mt-auto">
-        <TodayMemoInput
-          date={todayIso}
-          initial={memo?.content ?? ''}
-          disabled={events === null}
-        />
-      </div>
+      <TodayMemoInput
+        date={todayIso}
+        initial={memo?.content ?? ''}
+        disabled={events === null}
+      />
     </TodayCard>
   );
 }
 
-function EventRow({ event, today, last }: { event: JobEvent; today: Date; last: boolean }) {
+function EventRow({ event, today }: { event: JobEvent; today: Date }) {
   const d = parseISODate(event.date);
   const diff = d
     ? Math.round((d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
     : null;
-  const dday = diff === null ? '' : diff === 0 ? 'D-DAY' : `D-${diff}`;
   const label = COMPANY_EVENT_TYPE_LABELS[event.type];
   const dateText = d
-    ? `${d.getMonth() + 1}.${String(d.getDate()).padStart(2, '0')} (${dowLabel(d)})`
+    ? `${d.getMonth() + 1}.${String(d.getDate()).padStart(2, '0')} ${dowLabel(d)}`
     : event.date;
+  const [fg, dot] = TYPE_TONE[event.type];
 
   return (
-    <li
-      className={`flex items-center gap-3.5 py-3 ${last ? '' : 'border-b border-divider'}`}
-    >
-      <span
-        className={`w-13.5 flex-none text-center font-display text-[17px] font-extrabold ${
-          diff === 0 ? 'text-deadline-strong' : 'text-ink'
-        }`}
-      >
-        {dday}
-      </span>
-      <span className="flex min-w-0 flex-auto flex-col">
-        <span className="truncate font-medium text-ink">{event.companyName}</span>
-        <span className="truncate text-[13px] text-ink-muted">
-          {dateText} · {event.note || label}
+    <li className="grid grid-cols-[76px_minmax(0,1fr)_auto] items-center gap-4 border-t border-divider py-3.5">
+      <span className="flex flex-col text-sm leading-[1.3]">
+        <span className={`font-semibold ${diff === 0 ? 'text-alert' : ''}`}>
+          {diff === null ? '' : diff === 0 ? '오늘' : `D-${diff}`}
         </span>
+        <span className="text-ink-muted">{dateText}</span>
       </span>
-      <span className={`shrink-0 rounded-md px-2.5 py-0.75 text-xs font-bold ${BADGE[event.type]}`}>
+      <span className="flex min-w-0 flex-col leading-[1.4]">
+        <span className="truncate font-semibold">{event.companyName}</span>
+        <span className="truncate text-sm text-ink-muted">{event.note || label}</span>
+      </span>
+      <span className={`inline-flex items-center gap-1.5 text-sm ${fg}`}>
+        <span aria-hidden className={`h-1.75 w-1.75 rounded-full ${dot}`} />
         {label}
       </span>
     </li>

@@ -2,16 +2,16 @@
 
 스크린샷은 `./references/`에, 각 항목은 아래 형식으로 추가.
 
-## 시안 (`*.dc.html`)
+## 시안
 
-디자인 툴에서 뽑은 시안. style 속성 안에 `{{ }}` 바인딩, `sc-for`/`sc-if` 태그가 섞여 있어 **레이아웃·색·타이포만 참고**하고 마크업을 그대로 옮기지 않는다. 확장자를 `.dc.html`로 두는 건 VS Code가 일반 HTML로 검사해 가짜 CSS 에러를 띄우지 않게 하기 위함(`.vscode/settings.json`에서 Handlebars로 연결, 로컬 설정).
+디자인 툴에서 뽑은 정적 HTML — 브라우저로 바로 열어 비교. 인라인 style이라 **레이아웃·색·타이포만 참고**하고 마크업을 그대로 옮기지 않는다(토큰은 `globals.css --rally-*`).
 
 | 파일 | 내용 | 구현 |
 |--|--|--|
-| `rally-dashboard-design.dc.html` | '오늘' 대시보드 라이트 | `/today` (PR #162) |
-| `rally-dashboard-design-dark.dc.html` | 같은 화면 다크 | `globals.css` `.dark`의 `--rally-*` |
+| `rally-dashboard.html` | '오늘' 대시보드 + 사이드바 라이트 | `/today`, `Sidebar.tsx` |
+| `rally-dashboard-dark.html` | 같은 화면 다크 | `globals.css` `.dark`의 `--rally-*` |
 
-**현재 상태**: 코트 그린 `#17382B` · 라임 `#D9F45B` · 크림 `#F4F3EE`, Bricolage Grotesque + IBM Plex Sans KR은 `/today`에만 **시험 적용**. 앱 전체 디자인 개편 때 재검토(확정 아님) — 그때도 아래 레퍼런스 수집부터.
+**현재 상태**: 숲색 `#1F3D30` · 메리골드 `#E9B949`(로고·챌린지 포인트, 시안의 황토 `#C8963E`에서 변경) · 바탕 `#F6F7F5`, IBM Plex Sans KR + Noto Serif KR(인사말). 사이드바(전 페이지)와 `/today`에 적용. 다른 페이지 본문은 zinc — 페이지별로 개편할 때 같은 토큰으로 확산. 모바일(BottomNav)은 별도 시안 예정. 시안의 학습 '답 보기'는 구현에서 ‹ › 미리보기 + '답 보러 가기'(`/learn?q=`)로 바꿈.
 
 ## 사용법
 

@@ -2,12 +2,17 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import type { QuestionDetail, QuestionStatus, RandomQuestion } from '@repo/shared';
-import { getQuestionDetail, logQuestion } from '../../lib/api';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import type { QuestionStatus, RandomQuestion } from '@repo/shared';
+import { CardLink, TodayPanel } from './Card';
 
-// /today 상단 그린 카드. 오늘의 5문제를 한 장씩 — 답은 '답 확인하기' 때
-// getQuestionDetail로 지연 로드(answer·tip). 기록은 /learn과 같은
-// logQuestion이라 /learn·복습 탭에 그대로 반영.
+const STATUS_LABEL: Record<QuestionStatus, string> = {
+  understood: '이해함으로 기록했어요',
+  review_needed: '복습 필요로 기록했어요',
+};
+
+// /today 오른쪽 열 '오늘의 학습'. 오늘의 5문제를 ‹ ›로 훑어보기만 하고,
+// 답은 /learn에서 — '답 보러 가기'가 ?q=로 그 문제를 바로 연다.
 export function LearnCard({
   questions,
   categoryLabels,
@@ -16,205 +21,106 @@ export function LearnCard({
   categoryLabels: Record<string, string>;
 }) {
   const total = questions.length;
-  const [statuses, setStatuses] = useState<(QuestionStatus | null)[]>(() =>
-    questions.map((q) => q.status),
+  // 첫 미응답부터. 다 풀었으면 첫 문제.
+  const [index, setIndex] = useState(() =>
+    Math.max(0, questions.findIndex((q) => !q.status)),
   );
-  // 첫 미응답부터. 다 풀었으면 완료 화면(index === total).
-  const [index, setIndex] = useState(() => {
-    const i = questions.findIndex((q) => !q.status);
-    return i >= 0 ? i : total;
-  });
-  const [detail, setDetail] = useState<QuestionDetail | null>(null);
-  const [showAnswer, setShowAnswer] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const done = statuses.filter(Boolean).length;
-  const question = index < total ? questions[index] : null;
-  const status = question ? statuses[index] : null;
-  const categoryLabel = question?.categoryKey
+  const question = questions[index];
+  const categoryLabel = question.categoryKey
     ? categoryLabels[question.categoryKey]
     : undefined;
 
-  async function reveal() {
-    if (!question) return;
-    setError(null);
-    if (!detail || detail.id !== question.id) {
-      setLoading(true);
-      try {
-        setDetail(await getQuestionDetail(question.id));
-      } catch {
-        setError('답을 불러오지 못했어요. 다시 눌러보세요.');
-        setLoading(false);
-        return;
-      }
-      setLoading(false);
-    }
-    setShowAnswer(true);
-  }
-
-  async function mark(next: QuestionStatus) {
-    if (!question) return;
-    const prev = statuses[index];
-    const at = index;
-    setError(null);
-    setStatuses((s) => s.map((v, i) => (i === at ? next : v)));
-    try {
-      await logQuestion(question.id, next);
-    } catch {
-      setStatuses((s) => s.map((v, i) => (i === at ? prev : v)));
-      setError('기록하지 못했어요. 다시 눌러보세요.');
-    }
-  }
-
-  // 다음 미응답(뒤쪽 먼저, 없으면 앞쪽). 현재 말고 남은 게 없으면 -1.
-  const after = statuses.findIndex((s, i) => i > index && !s);
-  const nextOpen = after >= 0 ? after : statuses.findIndex((s, i) => i !== index && !s);
-  const allDone = done === total;
-
-  // 다른 미응답이 있으면 그 문제로, 다 풀었으면 완료 화면.
-  function goNext() {
-    setIndex(nextOpen >= 0 ? nextOpen : total);
-    setDetail(null);
-    setShowAnswer(false);
-    setError(null);
-  }
-
   return (
-    <section
-      aria-labelledby="learn-title"
-      className="flex min-w-0 flex-[3_1_560px] flex-col gap-4.5 rounded-[22px] border border-court-border bg-court p-6 text-white md:p-7.5"
+    <TodayPanel
+      id="learn-title"
+      title="오늘의 학습"
+      last
+      aside={
+        <span className="text-sm text-ink-muted">
+          {index + 1} / {total}
+          {categoryLabel ? ` · ${categoryLabel}` : ''}
+        </span>
+      }
     >
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <h2 id="learn-title" className="text-[13px] font-bold tracking-[0.08em] text-lime">
-            오늘의 학습
-          </h2>
-          {categoryLabel ? (
-            <span className="rounded-full bg-court-soft px-2.75 py-0.75 text-[13px] text-on-court">
-              {categoryLabel}
-            </span>
-          ) : null}
-        </div>
-        <div className="flex items-center gap-2.5 text-[13px] text-on-court-muted">
-          <span className="flex gap-1.25" aria-hidden>
-            {statuses.map((s, i) => (
-              <span
-                key={questions[i].id}
-                className={`h-1.5 w-5.5 rounded-[3px] ${
-                  s ? 'bg-lime' : i === index ? 'bg-white' : 'bg-court-dot'
-                }`}
-              />
-            ))}
-          </span>
-          <span>
-            <span className="font-display font-extrabold text-white">{done}</span> / {total}
-          </span>
-        </div>
-      </div>
-
-      {question ? (
-        <>
-          <p className="text-[22px] leading-[1.35] font-bold tracking-[-0.02em] md:text-[30px]">
-            {question.content}
-          </p>
-
-          {showAnswer && detail ? (
-            <div className="flex flex-col gap-3.5">
-              <div className="rounded-[14px] bg-court-deep px-5 py-4.5 leading-[1.75] whitespace-pre-wrap text-on-court">
-                {detail.answer}
-              </div>
-              {detail.tip ? (
-                <div className="flex flex-col gap-1.5 px-1">
-                  <span className="text-xs font-bold tracking-[0.06em] text-on-court-faint">
-                    꼬리 질문
-                  </span>
-                  <p className="text-sm whitespace-pre-wrap text-on-court">{detail.tip}</p>
-                </div>
-              ) : null}
-            </div>
-          ) : null}
-
-          {error ? (
-            <p role="alert" className="text-sm text-lime">
-              {error}
-            </p>
-          ) : null}
-
-          <div className="mt-auto flex flex-wrap items-center gap-2.5">
-            {showAnswer ? (
-              <>
-                <MarkButton pressed={status === 'understood'} onClick={() => mark('understood')}>
-                  이해함
-                </MarkButton>
-                <MarkButton
-                  pressed={status === 'review_needed'}
-                  onClick={() => mark('review_needed')}
-                >
-                  복습 필요
-                </MarkButton>
-              </>
-            ) : (
-              <button
-                type="button"
-                onClick={reveal}
-                disabled={loading}
-                className="min-h-12 rounded-full bg-lime px-6.5 text-[15px] font-bold text-court disabled:opacity-60"
-              >
-                {loading ? '불러오는 중…' : '답 확인하기'}
-              </button>
-            )}
-            {/* 남은 게 지금 문제뿐이면 숨김 — 풀어야 완료로 넘어감 */}
-            {nextOpen >= 0 || allDone ? (
-              <button
-                type="button"
-                onClick={goNext}
-                className="ml-auto inline-flex min-h-11 items-center text-sm text-on-court-muted hover:text-white"
-              >
-                {nextOpen >= 0 ? '다음 문제 →' : '다 풀었어요 →'}
-              </button>
+      {/* 5문제를 한 칸에 겹쳐 그리고 지금 문제만 보임 → 높이가 가장 긴 문제에
+          고정돼서 넘겨도 아래 블로그 섹션이 오르내리지 않음. */}
+      <div className="grid">
+        {questions.map((q, i) => (
+          <div
+            key={q.id}
+            aria-hidden={i !== index}
+            className={`col-start-1 row-start-1 flex flex-col gap-2 ${i === index ? '' : 'invisible'}`}
+          >
+            <p className="text-lg leading-[1.45] font-semibold">{q.content}</p>
+            {q.status ? (
+              <span className="text-[13px] text-ink-muted">{STATUS_LABEL[q.status]}</span>
             ) : null}
           </div>
-        </>
-      ) : (
-        <>
-          <p className="text-[22px] leading-[1.35] font-bold md:text-[26px]">
-            오늘 {total}문제를 다 풀었어요 🎉
-          </p>
-          <p className="text-[15px] text-on-court-muted">
-            헷갈렸던 문제는 복습 탭에서 다시 학습해보세요.
-          </p>
-          <Link
-            href="/learn/review"
-            className="mt-auto inline-flex min-h-12 w-fit items-center rounded-full bg-lime px-6.5 text-[15px] font-bold text-court"
-          >
-            복습하러 가기
-          </Link>
-        </>
-      )}
-    </section>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        {total > 1 ? (
+          <span className="flex gap-1">
+            <ArrowButton
+              label="이전 문제"
+              disabled={index === 0}
+              onClick={() => setIndex((i) => i - 1)}
+            >
+              <ChevronLeft className="h-4 w-4" aria-hidden />
+            </ArrowButton>
+            <ArrowButton
+              label="다음 문제"
+              disabled={index === total - 1}
+              onClick={() => setIndex((i) => i + 1)}
+            >
+              <ChevronRight className="h-4 w-4" aria-hidden />
+            </ArrowButton>
+          </span>
+        ) : null}
+        <Link
+          href={`/learn?q=${question.id}`}
+          className="ml-auto inline-flex min-h-10 items-center rounded-md border border-button bg-button px-4 text-sm font-semibold text-white hover:opacity-90"
+        >
+          답 보러 가기
+        </Link>
+      </div>
+    </TodayPanel>
   );
 }
 
-function MarkButton({
-  pressed,
+// 문제가 없거나 못 불러왔을 때도 같은 섹션 틀 유지 (레이아웃 점프 방지).
+export function LearnEmpty({ message }: { message: string }) {
+  return (
+    <TodayPanel
+      id="learn-title"
+      title="오늘의 학습"
+      last
+      aside={<CardLink href="/learn">학습으로 이동</CardLink>}
+    >
+      <p className="text-sm text-ink-muted">{message}</p>
+    </TodayPanel>
+  );
+}
+
+function ArrowButton({
+  label,
+  disabled,
   onClick,
   children,
 }: {
-  pressed: boolean;
+  label: string;
+  disabled: boolean;
   onClick: () => void;
   children: React.ReactNode;
 }) {
   return (
     <button
       type="button"
+      aria-label={label}
+      disabled={disabled}
       onClick={onClick}
-      aria-pressed={pressed}
-      className={`min-h-12 rounded-full px-6 text-[15px] font-bold ${
-        pressed
-          ? 'bg-lime text-court'
-          : 'border border-court-line bg-transparent text-white hover:bg-white/5'
-      }`}
+      className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-btn-border bg-btn-bg text-btn-fg hover:border-heading disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-btn-border"
     >
       {children}
     </button>
