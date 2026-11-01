@@ -8,7 +8,7 @@
 - **탭 구성**:
   - 데스크톱 사이드바(8): 오늘(`/today`, 기본 착지) · 스케쥴러(`/calendar`) · 채용 · 루틴[트래커·통계] · 운동 · 블로그 · 학습 · 설정
   - 모바일 BottomNav(5+): 오늘 / 채용 / 루틴 / 운동 / 학습 + ⋯ 더보기(캘린더 · 블로그 · 설정)
-- **디자인**: `globals.css --rally-*` 토큰·Bricolage/Plex 폰트는 `/today` 시험 적용. 다른 페이지는 zinc 유지, 임의 확산 금지(추후 전면 개편)
+- **디자인**: `globals.css --rally-*` 토큰·Bricolage/Plex 폰트는 `/today` 시험 적용. 다른 페이지는 zinc 유지, 임의 확산 금지(추후 전면 개편). 단 `RallyLogo`(브랜드 마크)는 예외 — 사이드바 등 전역 사용 OK
 - **스택**: Next.js 16 App Router(프론트) + NestJS 11 + Drizzle ORM(백엔드) + Supabase(PostgreSQL, Auth, Storage) + `@repo/shared` 공용 타입
 - **배포**: Vercel(web) + Render(api) + Supabase(db) — 전부 무료 티어. 릴리스·prod 마이그는 `docs/release.md`, 최초 세팅·env는 `docs/deployment.md`. 문서 목록은 README "문서 지도"
 

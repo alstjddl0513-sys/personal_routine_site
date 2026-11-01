@@ -6,6 +6,7 @@ import {
   boolean,
   date,
   timestamp,
+  index,
 } from 'drizzle-orm/pg-core';
 import { documents } from './documents';
 
@@ -49,52 +50,63 @@ export const applicationStatusEnum = pgEnum('application_status', [
   'withdrawn',
 ]);
 
-export const companies = pgTable('companies', {
-  id: uuid('id').defaultRandom().primaryKey(),
+export const companies = pgTable(
+  'companies',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
 
-  // Owner (Phase 12.4). FK to auth.users(id) ON DELETE CASCADE added via
-  // raw SQL in migration 0011 (Drizzle doesn't know Supabase's auth schema).
-  ownerId: uuid('owner_id').notNull(),
+    // Owner (Phase 12.4). FK to auth.users(id) ON DELETE CASCADE added via
+    // raw SQL in migration 0011 (Drizzle doesn't know Supabase's auth schema).
+    ownerId: uuid('owner_id').notNull(),
 
-  name: text('name').notNull(),
-  type1: companyType1Enum('type1').notNull(),
-  type2: text('type2').notNull(),
-  priority: priorityEnum('priority').notNull().default('normal'),
-  isHiring: boolean('is_hiring').notNull().default(false),
-  isFavorite: boolean('is_favorite').notNull().default(false),
-  note: text('note'),
-  postingUrl: text('posting_url'),
+    name: text('name').notNull(),
+    type1: companyType1Enum('type1').notNull(),
+    type2: text('type2').notNull(),
+    priority: priorityEnum('priority').notNull().default('normal'),
+    isHiring: boolean('is_hiring').notNull().default(false),
+    isFavorite: boolean('is_favorite').notNull().default(false),
+    note: text('note'),
+    postingUrl: text('posting_url'),
 
-  employmentType: employmentTypeEnum('employment_type'),
-  applicationDeadline: timestamp('application_deadline', {
-    withTimezone: true,
-    mode: 'string',
-  }),
-  applicationStatus: applicationStatusEnum('application_status')
-    .notNull()
-    .default('not_applied'),
-  appliedAt: date('applied_at'),
-  // 상시채용(rolling): 고정 마감일 없이 계속 뽑는 공고. true면
-  // applicationDeadline은 서비스 레이어에서 null로 강제되고, D-1/D-3 알림 ·
-  // 오늘 마감 카운트 · 놓친 공고 통계에서 제외됨.
-  isRolling: boolean('is_rolling').notNull().default(false),
-  applicationDocUrl: text('application_doc_url'),
-  progressNote: text('progress_note'),
-  // 이 회사에 낸 이력서/포폴 버전. 문서 삭제 시 연결만 끊김(SET NULL).
-  // kind 일치(resume ↔ resume, portfolio ↔ portfolio|link)와 같은 owner
-  // 여부는 FK로 못 막아서 서비스 레이어에서 검증.
-  resumeDocumentId: uuid('resume_document_id').references(() => documents.id, {
-    onDelete: 'set null',
-  }),
-  portfolioDocumentId: uuid('portfolio_document_id').references(
-    () => documents.id,
-    { onDelete: 'set null' },
-  ),
+    employmentType: employmentTypeEnum('employment_type'),
+    applicationDeadline: timestamp('application_deadline', {
+      withTimezone: true,
+      mode: 'string',
+    }),
+    applicationStatus: applicationStatusEnum('application_status')
+      .notNull()
+      .default('not_applied'),
+    appliedAt: date('applied_at'),
+    // 상시채용(rolling): 고정 마감일 없이 계속 뽑는 공고. true면
+    // applicationDeadline은 서비스 레이어에서 null로 강제되고, D-1/D-3 알림 ·
+    // 오늘 마감 카운트 · 놓친 공고 통계에서 제외됨.
+    isRolling: boolean('is_rolling').notNull().default(false),
+    applicationDocUrl: text('application_doc_url'),
+    progressNote: text('progress_note'),
+    // 이 회사에 낸 이력서/포폴 버전. 문서 삭제 시 연결만 끊김(SET NULL).
+    // kind 일치(resume ↔ resume, portfolio ↔ portfolio|link)와 같은 owner
+    // 여부는 FK로 못 막아서 서비스 레이어에서 검증.
+    resumeDocumentId: uuid('resume_document_id').references(
+      () => documents.id,
+      {
+        onDelete: 'set null',
+      },
+    ),
+    portfolioDocumentId: uuid('portfolio_document_id').references(
+      () => documents.id,
+      { onDelete: 'set null' },
+    ),
 
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    // 문서별 제출 회사 수(submittedCount)와 문서 삭제 시 SET NULL이 이 컬럼으로 조회.
+    index('companies_resume_document_idx').on(t.resumeDocumentId),
+    index('companies_portfolio_document_idx').on(t.portfolioDocumentId),
+  ],
+);

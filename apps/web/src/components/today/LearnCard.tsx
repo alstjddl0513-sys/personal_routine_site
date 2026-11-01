@@ -67,12 +67,14 @@ export function LearnCard({
     }
   }
 
-  // 다음 미응답으로. 뒤쪽에 없으면 앞쪽, 그래도 없으면 완료 화면.
+  // 다음 미응답(뒤쪽 먼저, 없으면 앞쪽). 현재 말고 남은 게 없으면 -1.
+  const after = statuses.findIndex((s, i) => i > index && !s);
+  const nextOpen = after >= 0 ? after : statuses.findIndex((s, i) => i !== index && !s);
+  const allDone = done === total;
+
+  // 다른 미응답이 있으면 그 문제로, 다 풀었으면 완료 화면.
   function goNext() {
-    const after = statuses.findIndex((s, i) => i > index && !s);
-    const before = statuses.findIndex((s) => !s);
-    const next = after >= 0 ? after : before >= 0 && before !== index ? before : total;
-    setIndex(next);
+    setIndex(nextOpen >= 0 ? nextOpen : total);
     setDetail(null);
     setShowAnswer(false);
     setError(null);
@@ -162,13 +164,14 @@ export function LearnCard({
                 {loading ? '불러오는 중…' : '답 확인하기'}
               </button>
             )}
-            {total > 1 ? (
+            {/* 남은 게 지금 문제뿐이면 숨김 — 풀어야 완료로 넘어감 */}
+            {nextOpen >= 0 || allDone ? (
               <button
                 type="button"
                 onClick={goNext}
                 className="ml-auto inline-flex min-h-11 items-center text-sm text-on-court-muted hover:text-white"
               >
-                다음 문제 →
+                {nextOpen >= 0 ? '다음 문제 →' : '다 풀었어요 →'}
               </button>
             ) : null}
           </div>

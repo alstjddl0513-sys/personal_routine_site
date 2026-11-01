@@ -239,11 +239,17 @@ function Option({
       window.open(document.url, '_blank', 'noopener,noreferrer');
       return;
     }
+    // 서명 URL을 await한 뒤 window.open하면 클릭 제스처가 끝나 iOS Safari 등에서
+    // 팝업이 막힘 → 클릭 즉시 빈 창부터 열고 URL은 나중에 채움.
+    const win = window.open('', '_blank');
+    if (win) win.opener = null;
     setOpening(true);
     try {
       const { url } = await getDocumentDownloadUrl(document.id);
-      window.open(url, '_blank', 'noopener,noreferrer');
+      if (win) win.location.href = url;
+      else window.open(url, '_blank', 'noopener,noreferrer');
     } catch (err) {
+      win?.close();
       console.error(err);
     } finally {
       setOpening(false);

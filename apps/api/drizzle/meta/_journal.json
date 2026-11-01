@@ -211,6 +211,13 @@
       "when": 1792830515016,
       "tag": "0029_fat_azazel",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1793518998143,
+      "tag": "0030_loud_lionheart",
+      "breakpoints": true
     }
   ]
 }

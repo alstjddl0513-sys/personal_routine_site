@@ -8,6 +8,8 @@ import { CalendarDayPanel } from './CalendarDayPanel';
 import { CalendarGrid } from './CalendarGrid';
 import { MonthNav } from './MonthNav';
 
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
 interface Props {
   month: MonthInfo;
   todayIso: string;
@@ -27,6 +29,23 @@ export function CalendarView({
   const [selectedIso, setSelectedIso] = useState<string | null>(
     initialSelectedIso,
   );
+  // 깜빡일 날짜 + 재생 횟수. n을 그리드 key로 써서 같은 날짜도 다시 재생.
+  const [flash, setFlash] = useState({ iso: initialSelectedIso, n: 0 });
+
+  // ?date= 변화 감지. 셀 클릭은 replaceState로 URL과 선택이 같이 바뀌어
+  // 걸리지 않고, 알림·월 이동처럼 밖에서 바뀐 경우만 선택을 따라감
+  // (replaceState도 useSearchParams에 반영됨 — Next 라우터 연동).
+  const rawUrlDate = searchParams.get('date');
+  const urlDate =
+    rawUrlDate && ISO_DATE_RE.test(rawUrlDate) ? rawUrlDate : null;
+  const [seenUrlDate, setSeenUrlDate] = useState(urlDate);
+  if (urlDate !== seenUrlDate) {
+    setSeenUrlDate(urlDate);
+    if (urlDate !== selectedIso) {
+      setSelectedIso(urlDate);
+      if (urlDate) setFlash((f) => ({ iso: urlDate, n: f.n + 1 }));
+    }
+  }
 
   function updateDateInUrl(nextIso: string | null) {
     const params = new URLSearchParams(searchParams.toString());
@@ -63,12 +82,12 @@ export function CalendarView({
       <div className="flex flex-col gap-4 md:flex-row md:items-start">
         <div className="flex-1">
           <CalendarGrid
+            // 밖에서 지정된 날짜만 깜빡임 — 셀 클릭으로 바꾼 선택엔 안 함.
+            key={flash.n}
             month={month}
             todayIso={todayIso}
             selectedIso={selectedIso}
-            // 들어올 때 지정된 날짜만 깜빡임 — 셀 클릭으로 바꾼 선택엔 안 함.
-            // 날짜가 바뀌는 이동은 page.tsx에서 key로 리마운트되어 다시 재생.
-            flashIso={initialSelectedIso}
+            flashIso={flash.iso}
             eventsByDate={eventsByDate}
             onSelect={onSelect}
           />
