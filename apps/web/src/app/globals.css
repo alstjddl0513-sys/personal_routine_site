@@ -30,6 +30,7 @@
   --rally-btn-bg: #ffffff;
   --rally-btn-border: #bfc4be;
   --rally-alert: #a33b20; /* 마감 */
+  --rally-warn: #9a6700; /* 마감 D-2~3 (alert보다 한 단계 약한 경고) */
   --rally-marigold: #e9b949; /* 포인트: 로고 깃발·챌린지 바·운동 목표 달성 바 (시안 황토 #C8963E에서 변경) */
 
   /* 일정 유형 점+글자 (마감은 alert) */
@@ -46,6 +47,25 @@
   --rally-side-muted: #a9b8ae; /* 하위탭 접기 화살표 */
   --rally-side-active: #2c4f40;
   --rally-side-line: #36594a;
+
+  /* 채용 리스트 (docs/design/rally-jobs.html) */
+  --rally-heart: #d23a2f; /* 즐겨찾기 채움 */
+  --rally-row-flash: #fbf2d9; /* ?highlight= 행 강조 피크 */
+  --rally-row-hover: #f2f4f1;
+  --rally-thead: #fafbf9;
+  --rally-icon-faint: #8e928d; /* 비어 있는 보조 열 아이콘 */
+  --rally-chip-on-bg: #e6eee8; /* 선택된 필터 칩 */
+  --rally-chip-on-fg: #1f3d30;
+  --rally-chip-on-border: #1f3d30;
+  /* 지원상태 점 — 마감색(alert)은 '급함'과 섞이지 않게 안 씀 */
+  --rally-st-not-applied: #8a8e89; /* 속 빈 점 */
+  --rally-st-applied: #3d5a80;
+  --rally-st-doc-passed: #5e8f7c;
+  --rally-st-int1-passed: #2f6b5e;
+  --rally-st-int2-passed: #24503f;
+  --rally-st-final-passed: #1f3d30; /* + 바깥 링 */
+  --rally-st-failed: #b4b7b2; /* 탈락 4종 */
+  --rally-st-withdrawn: #b4b7b2; /* 속 빈 점 */
 }
 
 .dark {
@@ -72,6 +92,7 @@
   --rally-btn-bg: #1a1e1c;
   --rally-btn-border: #3d4541;
   --rally-alert: #e8957a;
+  --rally-warn: #e3b35c;
 
   --rally-ev-test: #9db5d8;
   --rally-ev-interview: #c3abd1;
@@ -83,6 +104,23 @@
   --rally-side-fg: #bac6be;
   --rally-side-active: #25443a;
   --rally-side-line: #2a4237;
+
+  --rally-heart: #f0675b;
+  --rally-row-flash: #3a3322;
+  --rally-row-hover: #1f2422;
+  --rally-thead: #171b19;
+  --rally-icon-faint: #6e7672;
+  --rally-chip-on-bg: #1f3328;
+  --rally-chip-on-fg: #cfe3d6;
+  --rally-chip-on-border: #8fb5a0;
+  --rally-st-not-applied: #8c948f;
+  --rally-st-applied: #9db5d8;
+  --rally-st-doc-passed: #9cc7b5;
+  --rally-st-int1-passed: #86c4b3;
+  --rally-st-int2-passed: #a9cbb7;
+  --rally-st-final-passed: #cfe3d6;
+  --rally-st-failed: #59605c;
+  --rally-st-withdrawn: #59605c;
 }
 
 @theme inline {
@@ -113,6 +151,7 @@
   --color-btn-bg: var(--rally-btn-bg);
   --color-btn-border: var(--rally-btn-border);
   --color-alert: var(--rally-alert);
+  --color-warn: var(--rally-warn);
   --color-marigold: var(--rally-marigold);
   --color-ev-test: var(--rally-ev-test);
   --color-ev-interview: var(--rally-ev-interview);
@@ -125,6 +164,22 @@
   --color-side-muted: var(--rally-side-muted);
   --color-side-active: var(--rally-side-active);
   --color-side-line: var(--rally-side-line);
+  --color-heart: var(--rally-heart);
+  --color-row-flash: var(--rally-row-flash);
+  --color-row-hover: var(--rally-row-hover);
+  --color-thead: var(--rally-thead);
+  --color-icon-faint: var(--rally-icon-faint);
+  --color-chip-on-bg: var(--rally-chip-on-bg);
+  --color-chip-on-fg: var(--rally-chip-on-fg);
+  --color-chip-on-border: var(--rally-chip-on-border);
+  --color-st-not-applied: var(--rally-st-not-applied);
+  --color-st-applied: var(--rally-st-applied);
+  --color-st-doc-passed: var(--rally-st-doc-passed);
+  --color-st-int1-passed: var(--rally-st-int1-passed);
+  --color-st-int2-passed: var(--rally-st-int2-passed);
+  --color-st-final-passed: var(--rally-st-final-passed);
+  --color-st-failed: var(--rally-st-failed);
+  --color-st-withdrawn: var(--rally-st-withdrawn);
 }
 
 body {
@@ -206,6 +261,18 @@ body {
 }
 .dark {
   --highlight-flash-peak: rgba(133, 77, 14, 0.4); /* yellow-800 40% */
+}
+/* 채용 표 전용 행 강조 (모바일 카드는 위 highlight-flash 그대로) */
+@keyframes row-flash {
+  0% {
+    background-color: transparent;
+  }
+  15% {
+    background-color: var(--rally-row-flash);
+  }
+  100% {
+    background-color: transparent;
+  }
 }
 @keyframes highlight-flash {
   0% {

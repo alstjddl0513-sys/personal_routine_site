@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Trash2, X } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { deleteCompany } from '../../../lib/api';
 import { useOutsideClick } from '../../../lib/useOutsideClick';
 
@@ -54,9 +54,9 @@ export function DeleteRowButton({
         type="button"
         onClick={() => setOpen(true)}
         aria-label={`${name} 삭제`}
-        className="hidden h-6 w-6 items-center justify-center rounded text-zinc-400 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-rose-50 hover:text-rose-600 focus-visible:opacity-100 md:inline-flex dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
+        className="hidden h-10 w-10 cursor-pointer items-center justify-center rounded text-ink-muted opacity-0 transition-opacity group-hover:opacity-100 hover:bg-row-hover hover:text-alert focus-visible:opacity-100 md:inline-flex"
       >
-        <X className="h-4 w-4" aria-hidden />
+        <Trash2 className="h-4 w-4" strokeWidth={1.8} aria-hidden />
       </button>
 
       {open ? (

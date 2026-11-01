@@ -25,20 +25,7 @@ import {
   type Priority,
 } from '@repo/shared';
 import { AddCompanyButton } from './AddCompanyButton';
-
-const STATUS_CHIP_STYLE: Record<ApplicationStatus, string> = {
-  not_applied: 'border-zinc-300 bg-zinc-50 text-zinc-600',
-  applied: 'border-blue-300 bg-blue-50 text-blue-700',
-  document_passed: 'border-sky-300 bg-sky-50 text-sky-700',
-  document_failed: 'border-zinc-300 bg-zinc-50 text-zinc-400 line-through',
-  interview_1_passed: 'border-cyan-300 bg-cyan-50 text-cyan-700',
-  interview_1_failed: 'border-zinc-300 bg-zinc-50 text-zinc-400 line-through',
-  interview_2_passed: 'border-emerald-300 bg-emerald-100 text-emerald-800',
-  interview_2_failed: 'border-zinc-300 bg-zinc-50 text-zinc-400 line-through',
-  final_passed: 'border-amber-300 bg-amber-100 text-amber-800 font-semibold',
-  final_failed: 'border-zinc-300 bg-zinc-50 text-zinc-400 line-through',
-  withdrawn: 'border-zinc-300 bg-zinc-100 text-zinc-500 italic',
-};
+import { StatusDot } from './StatusDot';
 
 export interface JobsClientFilters {
   type1: ReadonlySet<CompanyType1>;
@@ -61,6 +48,8 @@ export function JobsFilters({
   clientFilters,
   onClientFilterChange,
   onClientClearAll,
+  resultCount,
+  countAside,
 }: {
   companyTypes: CompanyType[];
   clientFilters: JobsClientFilters;
@@ -69,6 +58,10 @@ export function JobsFilters({
     next: JobsClientFilters[K],
   ) => void;
   onClientClearAll: () => void;
+  /** 필터 적용 후 회사 수 ("N개"). */
+  resultCount: number;
+  /** "N개" 줄 오른쪽 끝 (열 보기 전환 등). */
+  countAside?: React.ReactNode;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -172,105 +165,90 @@ export function JobsFilters({
 
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  // 상단 도구 줄 + 필터 칩 (docs/design/rally-jobs.html). 모바일은 칩 묶음을
+  // '필터' 버튼으로 접어 두는 구조 그대로.
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative w-full sm:w-auto sm:max-w-sm sm:flex-1">
-          <Search
-            className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-zinc-400"
-            aria-hidden
-          />
-          <input
-            type="search"
-            value={searchInput}
-            onChange={(e) => updateSearch(e.target.value)}
-            placeholder="회사명 검색"
-            className="min-h-11 w-full rounded-md border border-zinc-300 bg-white py-2 pr-3 pl-9 text-base outline-none placeholder:text-zinc-400 focus:border-zinc-500 md:min-h-0 md:text-sm dark:border-zinc-700 dark:bg-zinc-900"
-          />
-        </div>
-        <AddCompanyButton companyTypes={companyTypes} />
-        <Link
-          href={`/jobs/report${searchParams.size ? `?${searchParams.toString()}` : ''}`}
-          className="inline-flex min-h-11 items-center gap-2 rounded-md border border-zinc-300 bg-white px-3 text-sm text-zinc-600 hover:bg-zinc-50 md:min-h-0 md:py-2 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
-          title="현재 필터 그대로 취업활동 표로 이동"
-        >
-          <Printer className="h-4 w-4" aria-hidden />
-          인쇄
-        </Link>
-        <button
-          type="button"
-          onClick={() => pushPatch({ favorite: currentFavorite ? null : '1' })}
-          onMouseEnter={() =>
-            prefetchPatch({ favorite: currentFavorite ? null : '1' })
-          }
-          onFocus={() =>
-            prefetchPatch({ favorite: currentFavorite ? null : '1' })
-          }
-          className={`inline-flex min-h-11 items-center gap-2 rounded-md border px-3 text-sm transition-colors md:min-h-0 md:py-2 ${
-            currentFavorite
-              ? 'border-rose-300 bg-rose-50 text-rose-700 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-300'
-              : 'border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800'
-          }`}
-          aria-pressed={currentFavorite}
-        >
-          <Heart
-            className={`h-4 w-4 ${currentFavorite ? 'fill-current' : ''}`}
-            aria-hidden
-          />
-          즐겨찾기
-        </button>
-        {anyActive ? (
+    <div className="flex flex-col gap-5">
+      <header className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="text-[26px] leading-tight font-bold tracking-[-0.01em]">채용 리스트</h1>
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+          <label className="relative flex w-full items-center sm:w-60">
+            <span className="sr-only">회사명 검색</span>
+            <Search
+              className="absolute left-3 h-4 w-4 text-ink-muted"
+              strokeWidth={2}
+              aria-hidden
+            />
+            <input
+              type="search"
+              value={searchInput}
+              onChange={(e) => updateSearch(e.target.value)}
+              placeholder="회사명으로 찾기"
+              className="min-h-11 w-full rounded-md border border-btn-border bg-surface py-2 pr-3 pl-9 text-base text-ink outline-none placeholder:text-ink-faint focus:border-heading md:min-h-10 md:text-sm"
+            />
+          </label>
           <button
             type="button"
-            onClick={clearAll}
-            className="inline-flex min-h-11 items-center gap-1 rounded-md px-2 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 md:min-h-0 md:py-2 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+            onClick={() => pushPatch({ favorite: currentFavorite ? null : '1' })}
+            onMouseEnter={() =>
+              prefetchPatch({ favorite: currentFavorite ? null : '1' })
+            }
+            onFocus={() =>
+              prefetchPatch({ favorite: currentFavorite ? null : '1' })
+            }
+            aria-pressed={currentFavorite}
+            className={`${TOOL_BUTTON} ${
+              currentFavorite ? 'border-chip-on-border bg-chip-on-bg font-semibold text-chip-on-fg' : ''
+            }`}
           >
-            <X className="h-3.5 w-3.5" aria-hidden />
-            필터 초기화
+            <Heart
+              className={`h-4 w-4 ${currentFavorite ? 'fill-heart text-heart' : ''}`}
+              strokeWidth={1.8}
+              aria-hidden
+            />
+            즐겨찾기
           </button>
-        ) : null}
-      </div>
-
-      <button
-        type="button"
-        onClick={() => setMobileOpen((o) => !o)}
-        aria-expanded={mobileOpen}
-        className="inline-flex min-h-11 items-center justify-between gap-2 rounded-md border border-zinc-200 bg-white px-3 text-sm text-zinc-700 hover:bg-zinc-50 md:hidden dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900"
-      >
-        <span className="inline-flex items-center gap-2">
-          <SlidersHorizontal className="h-4 w-4" aria-hidden />
-          필터
-          {chipFilterCount > 0 ? (
-            <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-zinc-900 px-1.5 text-[10px] font-medium text-white dark:bg-zinc-100 dark:text-zinc-900">
-              {chipFilterCount}
-            </span>
-          ) : null}
-        </span>
-        <ChevronDown
-          className={`h-4 w-4 text-zinc-400 transition-transform ${mobileOpen ? 'rotate-180' : ''}`}
-          aria-hidden
-        />
-      </button>
-
-      <div
-        className={`${mobileOpen ? '' : 'hidden'} md:block rounded-md border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950`}
-      >
-        <div className="mb-2 flex justify-end md:hidden">
           <Link
-            href="/settings/company-types"
-            className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+            href={`/jobs/report${searchParams.size ? `?${searchParams.toString()}` : ''}`}
+            className={TOOL_BUTTON}
+            title="현재 필터 그대로 취업활동 표로 이동"
           >
-            <Settings2 className="h-3.5 w-3.5" aria-hidden />
-            유형 관리
+            <Printer className="h-4 w-4" strokeWidth={1.8} aria-hidden />
+            인쇄
           </Link>
+          <AddCompanyButton companyTypes={companyTypes} />
         </div>
-        <div className="grid grid-cols-1 gap-x-3 gap-y-2 text-sm md:grid-cols-[auto_1fr] md:items-center">
-          <FilterRow
+      </header>
+
+      <section aria-label="필터" className="flex flex-col gap-2.5 border-y border-rule py-4">
+        <button
+          type="button"
+          onClick={() => setMobileOpen((o) => !o)}
+          aria-expanded={mobileOpen}
+          className="inline-flex min-h-11 cursor-pointer items-center justify-between gap-2 rounded-md border border-btn-border bg-surface px-3 text-sm text-ink-soft md:hidden"
+        >
+          <span className="inline-flex items-center gap-2">
+            <SlidersHorizontal className="h-4 w-4" aria-hidden />
+            필터
+            {chipFilterCount > 0 ? (
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-button px-1.5 text-[10px] font-medium text-white">
+                {chipFilterCount}
+              </span>
+            ) : null}
+          </span>
+          <ChevronDown
+            className={`h-4 w-4 text-ink-muted transition-transform ${mobileOpen ? 'rotate-180' : ''}`}
+            aria-hidden
+          />
+        </button>
+
+        <div className={`${mobileOpen ? 'flex' : 'hidden'} flex-col gap-2.5 md:flex`}>
+          <FilterGroup
             label="유형"
             trailing={
               <Link
                 href="/settings/company-types"
-                className="ml-auto hidden items-center gap-1 rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 md:inline-flex dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+                className="ml-auto inline-flex min-h-9 items-center gap-1 rounded px-2 text-[13px] text-ink-muted hover:text-ink"
               >
                 <Settings2 className="h-3.5 w-3.5" aria-hidden />
                 유형 관리
@@ -280,7 +258,7 @@ export function JobsFilters({
             {companyTypes.length === 0 ? (
               <Link
                 href="/settings/company-types"
-                className="text-xs text-zinc-400 underline-offset-2 hover:text-zinc-600 hover:underline dark:text-zinc-500 dark:hover:text-zinc-300"
+                className="text-sm text-ink-muted underline-offset-2 hover:text-ink hover:underline"
               >
                 아직 만든 유형이 없어요 — 유형 관리에서 추가해보세요
               </Link>
@@ -295,87 +273,104 @@ export function JobsFilters({
                 </Chip>
               ))
             )}
-          </FilterRow>
-          <FilterRow label="규모">
-            {COMPANY_TYPE_1_VALUES.map((v) => (
-              <Chip
-                key={v}
-                active={clientFilters.type1.has(v)}
-                onClick={() => toggleClient('type1', clientFilters.type1, v)}
-              >
-                {COMPANY_TYPE_1_LABELS[v]}
-              </Chip>
-            ))}
-          </FilterRow>
-          <FilterRow label="우선순위">
-            {PRIORITY_VALUES.map((v) => (
-              <Chip
-                key={v}
-                active={clientFilters.priority.has(v)}
-                onClick={() => toggleClient('priority', clientFilters.priority, v)}
-              >
-                {PRIORITY_LABELS[v]}
-              </Chip>
-            ))}
-          </FilterRow>
-          <FilterRow label="채용중">
-            <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400">
-              <input
-                type="checkbox"
-                checked={currentHiring}
-                onChange={(e) =>
-                  pushPatch({ hiring: e.target.checked ? '1' : null })
-                }
-                className="h-4 w-4 cursor-pointer rounded border-zinc-300 accent-zinc-900 dark:border-zinc-600 dark:accent-zinc-100"
-              />
-              채용중만 보기
-            </label>
-          </FilterRow>
-          <FilterRow label="지원상태">
-            {APPLICATION_STATUS_VALUES.map((v) => {
-              const active = clientFilters.status.has(v);
-              return (
-                <button
+          </FilterGroup>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2.5">
+            <FilterGroup label="규모">
+              {COMPANY_TYPE_1_VALUES.map((v) => (
+                <Chip
                   key={v}
-                  type="button"
-                  onClick={() => toggleClient('status', clientFilters.status, v)}
-                  aria-pressed={active}
-                  className={`rounded-full border px-3 py-1 text-xs transition-colors ${
-                    active
-                      ? STATUS_CHIP_STYLE[v] + ' ring-2 ring-zinc-900 dark:ring-zinc-100'
-                      : STATUS_CHIP_STYLE[v] + ' opacity-60 hover:opacity-100'
-                  }`}
+                  active={clientFilters.type1.has(v)}
+                  onClick={() => toggleClient('type1', clientFilters.type1, v)}
                 >
-                  {APPLICATION_STATUS_LABELS[v]}
-                </button>
-              );
-            })}
-          </FilterRow>
+                  {COMPANY_TYPE_1_LABELS[v]}
+                </Chip>
+              ))}
+            </FilterGroup>
+            <FilterGroup label="우선순위" divided>
+              {PRIORITY_VALUES.map((v) => (
+                <Chip
+                  key={v}
+                  active={clientFilters.priority.has(v)}
+                  onClick={() => toggleClient('priority', clientFilters.priority, v)}
+                >
+                  {PRIORITY_LABELS[v]}
+                </Chip>
+              ))}
+            </FilterGroup>
+            <FilterGroup label="채용여부" divided>
+              <Chip
+                active={currentHiring}
+                onClick={() => pushPatch({ hiring: currentHiring ? null : '1' })}
+              >
+                채용중
+              </Chip>
+            </FilterGroup>
+          </div>
+          <FilterGroup label="지원상태">
+            {APPLICATION_STATUS_VALUES.map((v) => (
+              <Chip
+                key={v}
+                active={clientFilters.status.has(v)}
+                onClick={() => toggleClient('status', clientFilters.status, v)}
+              >
+                <StatusDot status={v} />
+                {APPLICATION_STATUS_LABELS[v]}
+              </Chip>
+            ))}
+          </FilterGroup>
         </div>
-      </div>
+
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1">
+          <span className="text-sm text-ink-soft">
+            <strong className="font-semibold text-ink">{resultCount}</strong>개
+          </span>
+          {anyActive ? (
+            <button
+              type="button"
+              onClick={clearAll}
+              className="inline-flex min-h-9 cursor-pointer items-center gap-1 rounded-md px-2.5 text-sm font-medium text-heading hover:bg-row-hover"
+            >
+              <X className="h-3.5 w-3.5" aria-hidden />
+              필터 초기화
+            </button>
+          ) : null}
+          {countAside ? <div className="ml-auto">{countAside}</div> : null}
+        </div>
+      </section>
     </div>
   );
 }
 
-function FilterRow({
+const TOOL_BUTTON =
+  'inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-md border border-btn-border bg-btn-bg px-3.5 text-sm font-medium text-ink-soft hover:border-heading md:min-h-10';
+
+// 그룹 하나: 라벨 + 칩들. 줄 맨 앞 그룹은 라벨 폭을 고정해 칩 시작선을 맞추고,
+// divided(같은 줄 구분선 뒤) 그룹은 라벨을 글자 폭만큼만.
+function FilterGroup({
   label,
   children,
   trailing,
+  divided,
 }: {
   label: string;
   children: React.ReactNode;
   trailing?: React.ReactNode;
+  divided?: boolean;
 }) {
   return (
-    <>
-      <span className="mt-2 text-xs text-zinc-500 first:mt-0 md:mt-0 md:pt-1 dark:text-zinc-400">
+    <div
+      role="group"
+      aria-label={label}
+      className={`flex flex-wrap items-center gap-1.5 ${trailing ? 'w-full' : ''} ${divided ? 'md:border-l md:border-rule md:pl-6' : ''}`}
+    >
+      <span
+        className={`flex-none text-[13px] font-semibold text-ink-muted ${divided ? 'pr-1.5' : 'w-16'}`}
+      >
         {label}
       </span>
-      <div className="flex flex-wrap items-center gap-1.5">
-        {children}
-        {trailing}
-      </div>
-    </>
+      {children}
+      {trailing}
+    </div>
   );
 }
 
@@ -393,10 +388,10 @@ function Chip({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+      className={`inline-flex min-h-9 cursor-pointer items-center gap-1.75 rounded-full border px-3 text-sm transition-colors ${
         active
-          ? 'border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900'
-          : 'border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800'
+          ? 'border-chip-on-border bg-chip-on-bg font-semibold text-chip-on-fg'
+          : 'border-btn-border bg-btn-bg text-ink-soft hover:border-heading'
       }`}
     >
       {children}

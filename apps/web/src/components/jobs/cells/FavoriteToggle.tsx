@@ -4,13 +4,16 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Heart } from 'lucide-react';
 import { patchCompany } from '../../../lib/api';
+import { TABLE_ICON_BUTTON } from './table-style';
 
 export function FavoriteToggle({
   id,
   value,
+  variant,
 }: {
   id: string;
   value: boolean;
+  variant?: 'table';
 }) {
   const router = useRouter();
   const [current, setCurrent] = useState(value);
@@ -41,6 +44,24 @@ export function FavoriteToggle({
       .finally(() => {
         inFlightRef.current--;
       });
+  }
+
+  if (variant === 'table') {
+    return (
+      <button
+        type="button"
+        onClick={toggle}
+        aria-pressed={current}
+        aria-label={current ? '즐겨찾기 해제' : '즐겨찾기'}
+        className={`${TABLE_ICON_BUTTON} hover:bg-row-hover`}
+      >
+        <Heart
+          className={`h-4 w-4 ${current ? 'fill-heart text-heart' : 'text-icon-faint'}`}
+          strokeWidth={1.8}
+          aria-hidden
+        />
+      </button>
+    );
   }
 
   return (

@@ -2,7 +2,7 @@
 
 import { useEffect, useOptimistic, useRef, useState, useTransition, type RefObject } from 'react';
 import { useRouter } from 'next/navigation';
-import { Check, Copy, ExternalLink, Link as LinkIcon, X } from 'lucide-react';
+import { ExternalLink, Link as LinkIcon } from 'lucide-react';
 import { patchCompany } from '../../../lib/api';
 import { useOutsideClick } from '../../../lib/useOutsideClick';
 import {
@@ -10,16 +10,29 @@ import {
   usePopoverPosition,
 } from '../../../lib/usePopoverPosition';
 import { Portal } from '../../ui/Portal';
+import {
+  BUTTON_PRIMARY,
+  BUTTON_SECONDARY,
+  BUTTON_TEXT,
+  POPOVER_CARD,
+  POPOVER_EDGE_MARGIN,
+  POPOVER_INPUT,
+  POPOVER_TITLE,
+} from './popover-style';
+import { TABLE_ICON_BUTTON } from './table-style';
 
-const POPOVER_WIDTH = 320; // w-80
-const POPOVER_HEIGHT = 170;
+const POPOVER_WIDTH = 340;
+const POPOVER_HEIGHT = 190;
+const URL_ERROR = '주소가 https:// 로 시작하는지 확인해 주세요.';
 
 export function UrlPopover({
   id,
   value,
+  variant,
 }: {
   id: string;
   value: string | null;
+  variant?: 'table';
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -27,7 +40,13 @@ export function UrlPopover({
   const [open, setOpen] = useState(false);
   const anchorRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
-  const pos = usePopoverPosition(anchorRef, open, POPOVER_HEIGHT, POPOVER_WIDTH);
+  const pos = usePopoverPosition(
+    anchorRef,
+    open,
+    POPOVER_HEIGHT,
+    POPOVER_WIDTH,
+    POPOVER_EDGE_MARGIN,
+  );
 
   useOutsideClick([anchorRef, popoverRef], () => setOpen(false), open);
 
@@ -57,6 +76,42 @@ export function UrlPopover({
     });
   }
 
+  const body =
+    open && pos ? (
+      <Portal>
+        <UrlPopoverBody
+          initialUrl={current}
+          current={current}
+          isPending={isPending}
+          top={pos.top}
+          left={pos.left}
+          anchorRef={anchorRef}
+          popoverRef={popoverRef}
+          onCommit={commit}
+          onCancel={() => setOpen(false)}
+        />
+      </Portal>
+    ) : null;
+
+  // 표: 아이콘 하나 — 열기·복사·편집은 팝오버에서.
+  if (variant === 'table') {
+    return (
+      <>
+        <button
+          ref={anchorRef}
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-label={current ? '공고 링크' : '공고 링크 추가'}
+          aria-expanded={open}
+          className={`${TABLE_ICON_BUTTON} hover:bg-row-hover ${current ? 'text-ink-soft' : 'text-icon-faint'}`}
+        >
+          <LinkIcon className="h-3.75 w-3.75" strokeWidth={1.8} aria-hidden />
+        </button>
+        {body}
+      </>
+    );
+  }
+
   return (
     <div className="inline-flex items-center gap-1">
       {current ? (
@@ -80,21 +135,7 @@ export function UrlPopover({
       >
         <LinkIcon className="h-3.5 w-3.5" aria-hidden />
       </button>
-      {open && pos ? (
-        <Portal>
-          <UrlPopoverBody
-            initialUrl={current}
-            current={current}
-            isPending={isPending}
-            top={pos.top}
-            left={pos.left}
-            anchorRef={anchorRef}
-            popoverRef={popoverRef}
-            onCommit={commit}
-            onCancel={() => setOpen(false)}
-          />
-        </Portal>
-      ) : null}
+      {body}
     </div>
   );
 }
@@ -111,6 +152,8 @@ interface BodyProps {
   onCancel: () => void;
 }
 
+// docs/design/rally-jobs-parts.html '공고 링크'. 시안엔 저장·취소 버튼이 없지만
+// 저장 방식(명시적 저장·Enter)은 그대로 유지.
 function UrlPopoverBody({
   initialUrl,
   current,
@@ -122,7 +165,7 @@ function UrlPopoverBody({
   onCommit,
   onCancel,
 }: BodyProps) {
-  // 에러 문구·복사 버튼 유무로 높이가 달라져서 실제 높이로 버튼에 붙임.
+  // 에러 문구·버튼 유무로 높이가 달라져서 실제 높이로 버튼에 붙임.
   const measuredTop = useMeasuredTop(anchorRef, popoverRef, top);
   const [draft, setDraft] = useState(initialUrl ?? '');
   const [error, setError] = useState<string | null>(null);
@@ -151,11 +194,11 @@ function UrlPopoverBody({
       try {
         const u = new URL(next);
         if (u.protocol !== 'http:' && u.protocol !== 'https:') {
-          setError('http:// 또는 https:// URL만 가능');
+          setError(URL_ERROR);
           return;
         }
       } catch {
-        setError('올바른 URL 형식이 아닙니다');
+        setError(URL_ERROR);
         return;
       }
     }
@@ -172,13 +215,19 @@ function UrlPopoverBody({
         width: POPOVER_WIDTH,
         zIndex: 50,
       }}
-      className="rounded-md border border-zinc-200 bg-white p-2 text-left shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
+      className={POPOVER_CARD}
     >
-      <div className="flex items-center gap-1">
+      <label htmlFor="posting-url" className={POPOVER_TITLE}>
+        공고 링크
+      </label>
+      <div className="flex flex-col gap-1.5">
         <input
+          id="posting-url"
           ref={inputRef}
           type="url"
           value={draft}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? 'posting-url-error' : undefined}
           onChange={(e) => {
             setDraft(e.target.value);
             if (error) setError(null);
@@ -191,62 +240,35 @@ function UrlPopoverBody({
           }}
           maxLength={1000}
           placeholder="https://..."
-          className="flex-1 rounded border border-zinc-200 bg-white px-2 py-1 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
+          className={`${POPOVER_INPUT} ${error ? 'border-alert focus:border-alert' : ''}`}
         />
-        {draft ? (
-          <button
-            type="button"
-            onClick={() => setDraft('')}
-            className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800"
-            aria-label="비우기"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
+        {error ? (
+          <span id="posting-url-error" className="text-[13px] text-alert">
+            {error}
+          </span>
         ) : null}
       </div>
-      {error ? (
-        <p className="mt-1 text-xs text-rose-600 dark:text-rose-400">{error}</p>
-      ) : null}
-      <div className="mt-2 flex items-center justify-between gap-1">
+      <div className="flex flex-wrap items-center gap-1.5">
         {current ? (
-          <button
-            type="button"
-            onClick={copyUrl}
-            className={`inline-flex items-center gap-1 rounded px-2 py-1 text-xs transition-colors ${
-              copied
-                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
-                : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800'
-            }`}
-          >
-            {copied ? (
-              <>
-                <Check className="h-3 w-3" aria-hidden />
-                복사됨
-              </>
-            ) : (
-              <>
-                <Copy className="h-3 w-3" aria-hidden />
-                주소 복사
-              </>
-            )}
+          <>
+            <a href={current} target="_blank" rel="noreferrer" className={BUTTON_SECONDARY}>
+              공고 열기 ↗
+            </a>
+            <button type="button" onClick={copyUrl} className={BUTTON_SECONDARY}>
+              {copied ? '복사됨' : '주소 복사'}
+            </button>
+          </>
+        ) : null}
+        {draft ? (
+          <button type="button" onClick={() => setDraft('')} className={BUTTON_TEXT}>
+            비우기
           </button>
-        ) : (
-          <span />
-        )}
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-          >
+        ) : null}
+        <div className="ml-auto flex items-center gap-1.5">
+          <button type="button" onClick={onCancel} className={BUTTON_SECONDARY}>
             취소
           </button>
-          <button
-            type="button"
-            onClick={save}
-            disabled={isPending}
-            className="rounded bg-zinc-900 px-2 py-1 text-xs text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-          >
+          <button type="button" onClick={save} disabled={isPending} className={BUTTON_PRIMARY}>
             저장
           </button>
         </div>

@@ -1,14 +1,11 @@
-import { Skeleton } from '../../components/Skeleton';
+import { JobsSkeleton } from '../../components/jobs/JobsSkeleton';
 
 export default function Loading() {
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <header>
-        <h1 className="text-xl font-semibold">채용 리스트</h1>
-      </header>
-      <Skeleton className="h-11 max-w-sm" />
-      <Skeleton className="h-52" />
-      <Skeleton className="h-64" />
+    <div className="min-h-screen bg-paper font-plex text-[15px] leading-normal text-ink tabular-nums">
+      <div className="mx-auto flex max-w-310 flex-col gap-5 px-4 pt-6 pb-16 md:px-10 md:pt-9">
+        <JobsSkeleton />
+      </div>
     </div>
   );
 }
