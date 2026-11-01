@@ -15,9 +15,11 @@ import {
   type Priority,
 } from '@repo/shared';
 import { AddCompanyButton } from './AddCompanyButton';
+import { CompanyDetailPanel } from './CompanyDetailPanel';
 import { JobsCards } from './JobsCards';
 import { JobsFilters, type JobsClientFilters } from './JobsFilters';
 import { JobsTable } from './JobsTable';
+import { useJobsColumns, type JobsColumns } from './useJobsColumns';
 
 // /jobs 페이지의 클라 필터 wrapper. type1/type2/priority/status 4개는
 // 이미 데이터셋(~170행)이 로컬에 와있어 서버 재필터가 낭비였음. 이 컴포넌트가
@@ -42,6 +44,9 @@ export function JobsClientView({
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
+  const [columns, setColumns] = useJobsColumns();
+  // '간단히' 보기에서 사이드 패널로 연 회사.
+  const [detailId, setDetailId] = useState<string | null>(null);
 
   const [type1Set, setType1Set] = useState<ReadonlySet<CompanyType1>>(() =>
     parseEnumSet(searchParams.get('type1'), COMPANY_TYPE_1_VALUES),
@@ -144,6 +149,9 @@ export function JobsClientView({
     });
   }, [allRows, type1Set, type2Set, prioritySet, statusSet]);
 
+  // 필터로 목록에서 빠지거나 삭제되면 패널도 닫힘(찾을 수 없으면 null).
+  const detailCompany = detailId ? (filteredRows.find((c) => c.id === detailId) ?? null) : null;
+
   const hasAnyFilter =
     type1Set.size > 0 ||
     type2Set.size > 0 ||
@@ -161,6 +169,7 @@ export function JobsClientView({
         onClientFilterChange={handleClientFilterChange}
         onClientClearAll={handleClientClearAll}
         resultCount={filteredRows.length}
+        countAside={<ColumnsToggle value={columns} onChange={setColumns} />}
       />
       {filteredRows.length === 0 ? (
         // docs/design/rally-jobs-parts.html 빈 상태 2종
@@ -193,6 +202,8 @@ export function JobsClientView({
             eventsByCompany={eventsByCompany}
             documents={documents}
             highlightId={highlightId}
+            detailId={detailId}
+            onOpenDetail={setDetailId}
           />
           <JobsCards
             rows={filteredRows}
@@ -203,7 +214,63 @@ export function JobsClientView({
           />
         </>
       )}
+      {detailCompany && columns === 'compact' ? (
+        <CompanyDetailPanel
+          key={detailCompany.id}
+          company={detailCompany}
+          events={eventsByCompany.get(detailCompany.id) ?? []}
+          documents={documents}
+          onClose={() => setDetailId(null)}
+        />
+      ) : null}
     </>
+  );
+}
+
+// "N개" 줄 오른쪽 열 보기 전환 (데스크톱 표에만 의미 있어서 md 이상).
+function ColumnsToggle({
+  value,
+  onChange,
+}: {
+  value: JobsColumns;
+  onChange: (next: JobsColumns) => void;
+}) {
+  // 눌림 색은 <html data-jobs-columns> 기준 CSS — 새로고침 직후에도 맞게.
+  const options: { value: JobsColumns; label: string; on: string; off: string }[] = [
+    {
+      value: 'compact',
+      label: '간단히',
+      on: '[[data-jobs-columns=compact]_&]:bg-chip-on-bg [[data-jobs-columns=compact]_&]:font-semibold [[data-jobs-columns=compact]_&]:text-chip-on-fg',
+      off: '',
+    },
+    {
+      value: 'full',
+      label: '자세히',
+      on: 'bg-chip-on-bg font-semibold text-chip-on-fg',
+      off: '[[data-jobs-columns=compact]_&]:bg-btn-bg [[data-jobs-columns=compact]_&]:font-normal [[data-jobs-columns=compact]_&]:text-ink-soft',
+    },
+  ];
+  return (
+    <div
+      role="group"
+      aria-label="열 보기"
+      className="hidden overflow-hidden rounded-md border border-btn-border md:inline-flex"
+    >
+      {options.map((o, i) => {
+        const active = value === o.value;
+        return (
+          <button
+            key={o.value}
+            type="button"
+            aria-pressed={active}
+            onClick={() => onChange(o.value)}
+            className={`min-h-9 cursor-pointer bg-btn-bg px-3 text-[13px] text-ink-soft hover:text-ink ${i > 0 ? 'border-l border-btn-border' : ''} ${o.on} ${o.off}`}
+          >
+            {o.label}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 

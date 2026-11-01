@@ -2,7 +2,7 @@
 
 import { useEffect, useOptimistic, useRef, useState, useTransition, type RefObject } from 'react';
 import { useRouter } from 'next/navigation';
-import { ExternalLink, Link as LinkIcon } from 'lucide-react';
+import { ExternalLink, Link as LinkIcon, X } from 'lucide-react';
 import { patchCompany } from '../../../lib/api';
 import { useOutsideClick } from '../../../lib/useOutsideClick';
 import {
@@ -15,6 +15,7 @@ import {
   BUTTON_SECONDARY,
   BUTTON_TEXT,
   POPOVER_CARD,
+  POPOVER_CLOSE,
   POPOVER_EDGE_MARGIN,
   POPOVER_INPUT,
   POPOVER_TITLE,
@@ -80,16 +81,20 @@ export function UrlPopover({
     open && pos ? (
       <Portal>
         <UrlPopoverBody
-          initialUrl={current}
-          current={current}
-          isPending={isPending}
           top={pos.top}
           left={pos.left}
           anchorRef={anchorRef}
           popoverRef={popoverRef}
-          onCommit={commit}
-          onCancel={() => setOpen(false)}
-        />
+        >
+          <UrlEditor
+            current={current}
+            isPending={isPending}
+            onCommit={commit}
+            onCancel={() => setOpen(false)}
+            revertable
+            autoFocus
+          />
+        </UrlPopoverBody>
       </Portal>
     ) : null;
 
@@ -140,41 +145,67 @@ export function UrlPopover({
   );
 }
 
-interface BodyProps {
-  initialUrl: string | null;
-  current: string | null;
-  isPending: boolean;
-  top: number;
-  left: number;
-  anchorRef: RefObject<HTMLButtonElement | null>;
-  popoverRef: RefObject<HTMLDivElement | null>;
-  onCommit: (next: string | null) => void;
-  onCancel: () => void;
-}
-
-// docs/design/rally-jobs-parts.html '공고 링크'. 시안엔 저장·취소 버튼이 없지만
-// 저장 방식(명시적 저장·Enter)은 그대로 유지.
 function UrlPopoverBody({
-  initialUrl,
-  current,
-  isPending,
   top,
   left,
   anchorRef,
   popoverRef,
-  onCommit,
-  onCancel,
-}: BodyProps) {
+  children,
+}: {
+  top: number;
+  left: number;
+  anchorRef: RefObject<HTMLButtonElement | null>;
+  popoverRef: RefObject<HTMLDivElement | null>;
+  children: React.ReactNode;
+}) {
   // 에러 문구·버튼 유무로 높이가 달라져서 실제 높이로 버튼에 붙임.
   const measuredTop = useMeasuredTop(anchorRef, popoverRef, top);
-  const [draft, setDraft] = useState(initialUrl ?? '');
+  return (
+    <div
+      ref={popoverRef}
+      style={{
+        position: 'fixed',
+        top: measuredTop,
+        left,
+        width: POPOVER_WIDTH,
+        zIndex: 50,
+      }}
+      className={POPOVER_CARD}
+    >
+      {children}
+    </div>
+  );
+}
+
+// 공고 링크 편집 내용 — 팝오버와 사이드 패널(CompanyDetailPanel)이 같이 씀.
+// docs/design/rally-jobs-parts.html '공고 링크'. 시안엔 저장 버튼이 없지만 저장
+// 방식(명시적 저장·Enter)은 그대로 유지.
+export function UrlEditor({
+  current,
+  isPending,
+  onCommit,
+  onCancel,
+  revertable,
+  autoFocus,
+}: {
+  current: string | null;
+  isPending: boolean;
+  onCommit: (next: string | null) => void;
+  /** 팝오버: 제목 줄 ✕ = 닫기. */
+  onCancel?: () => void;
+  /** 입력을 바꿨을 때만 [되돌리기] = 저장된 값으로 (팝오버·패널 둘 다). */
+  revertable?: boolean;
+  autoFocus?: boolean;
+}) {
+  const [draft, setDraft] = useState(current ?? '');
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const inputId = autoFocus ? 'posting-url-pop' : 'posting-url-panel';
 
   useEffect(() => {
-    queueMicrotask(() => inputRef.current?.focus());
-  }, []);
+    if (autoFocus) queueMicrotask(() => inputRef.current?.focus());
+  }, [autoFocus]);
 
   async function copyUrl() {
     if (!current) return;
@@ -206,28 +237,25 @@ function UrlPopoverBody({
   }
 
   return (
-    <div
-      ref={popoverRef}
-      style={{
-        position: 'fixed',
-        top: measuredTop,
-        left,
-        width: POPOVER_WIDTH,
-        zIndex: 50,
-      }}
-      className={POPOVER_CARD}
-    >
-      <label htmlFor="posting-url" className={POPOVER_TITLE}>
-        공고 링크
-      </label>
+    <>
+      <div className={`flex items-center justify-between gap-2 ${onCancel ? '-my-2' : ''}`}>
+        <label htmlFor={inputId} className={POPOVER_TITLE}>
+          공고 링크
+        </label>
+        {onCancel ? (
+          <button type="button" onClick={onCancel} aria-label="닫기" className={POPOVER_CLOSE}>
+            <X className="h-4 w-4" aria-hidden />
+          </button>
+        ) : null}
+      </div>
       <div className="flex flex-col gap-1.5">
         <input
-          id="posting-url"
+          id={inputId}
           ref={inputRef}
           type="url"
           value={draft}
           aria-invalid={error ? true : undefined}
-          aria-describedby={error ? 'posting-url-error' : undefined}
+          aria-describedby={error ? `${inputId}-error` : undefined}
           onChange={(e) => {
             setDraft(e.target.value);
             if (error) setError(null);
@@ -243,36 +271,50 @@ function UrlPopoverBody({
           className={`${POPOVER_INPUT} ${error ? 'border-alert focus:border-alert' : ''}`}
         />
         {error ? (
-          <span id="posting-url-error" className="text-[13px] text-alert">
+          <span id={`${inputId}-error`} className="text-[13px] text-alert">
             {error}
           </span>
         ) : null}
       </div>
-      <div className="flex flex-wrap items-center gap-1.5">
+      {/* 저장된 링크 쓰기 — 보조 기능이라 작은 글자 링크로 (아래 [저장]과 안 겹치게). */}
+      {current ? (
+        <div className="-mt-1 flex items-center gap-2 text-[13px] text-ink-faint">
+          <a href={current} target="_blank" rel="noreferrer" className="inline-flex min-h-8 cursor-pointer items-center text-[13px] font-medium text-heading hover:underline">
+            공고 열기 ↗
+          </a>
+          <span aria-hidden>·</span>
+          <button type="button" onClick={copyUrl} className="inline-flex min-h-8 cursor-pointer items-center text-[13px] font-medium text-heading hover:underline">
+            {copied ? '복사됨' : '주소 복사'}
+          </button>
+        </div>
+      ) : null}
+      {/* 아래 줄은 마감일·메모와 같은 배치. 지우기(저장된 링크 바로 삭제)는 [저장]과 떨어뜨려 왼쪽. */}
+      <div className="flex items-center justify-between gap-2">
         {current ? (
-          <>
-            <a href={current} target="_blank" rel="noreferrer" className={BUTTON_SECONDARY}>
-              공고 열기 ↗
-            </a>
-            <button type="button" onClick={copyUrl} className={BUTTON_SECONDARY}>
-              {copied ? '복사됨' : '주소 복사'}
+          <button type="button" onClick={() => onCommit(null)} className={BUTTON_TEXT}>
+            지우기
+          </button>
+        ) : (
+          <span />
+        )}
+        <div className="flex items-center gap-1.5">
+          {revertable && draft !== (current ?? '') ? (
+            <button
+              type="button"
+              onClick={() => {
+                setDraft(current ?? '');
+                setError(null);
+              }}
+              className={BUTTON_SECONDARY}
+            >
+              되돌리기
             </button>
-          </>
-        ) : null}
-        {draft ? (
-          <button type="button" onClick={() => setDraft('')} className={BUTTON_TEXT}>
-            비우기
-          </button>
-        ) : null}
-        <div className="ml-auto flex items-center gap-1.5">
-          <button type="button" onClick={onCancel} className={BUTTON_SECONDARY}>
-            취소
-          </button>
+          ) : null}
           <button type="button" onClick={save} disabled={isPending} className={BUTTON_PRIMARY}>
             저장
           </button>
         </div>
       </div>
-    </div>
+    </>
   );
 }
