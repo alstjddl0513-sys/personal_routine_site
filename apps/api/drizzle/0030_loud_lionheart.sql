@@ -1,0 +1,2 @@
+CREATE INDEX "companies_resume_document_idx" ON "companies" USING btree ("resume_document_id");--> statement-breakpoint
+CREATE INDEX "companies_portfolio_document_idx" ON "companies" USING btree ("portfolio_document_id");

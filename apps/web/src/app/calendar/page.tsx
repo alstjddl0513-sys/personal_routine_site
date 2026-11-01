@@ -62,11 +62,9 @@ async function CalendarContent({
   const todayIso = toISODate(todayInSeoul());
 
   return (
-    // CalendarView는 선택 날짜를 useState 초기값으로만 읽음. 이미 /calendar에
-    // 있을 때 알림 클릭으로 ?date=가 바뀌면 다시 마운트해서 그 날 패널을 염.
-    // (셀 클릭은 history.replaceState라 라우터가 안 바뀌어 리마운트 안 됨)
+    // 이미 /calendar에 있을 때 ?date=가 바뀌는 이동(알림 클릭 등)은
+    // CalendarView가 useSearchParams로 직접 따라감.
     <CalendarView
-      key={initialSelectedIso ?? ''}
       month={month}
       todayIso={todayIso}
       initialSelectedIso={initialSelectedIso}

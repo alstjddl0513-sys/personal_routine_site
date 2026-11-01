@@ -1,3 +1,4 @@
+import { unstable_rethrow } from 'next/navigation';
 import { Suspense } from 'react';
 import { HighlightScroller } from '../../components/jobs/HighlightScroller';
 import { JobsClientView } from '../../components/jobs/JobsClientView';
@@ -48,7 +49,12 @@ async function JobsContent({ sp }: { sp: JobsSearchParams }) {
       search,
     }),
     getCompanyEvents(),
-    listDocuments(),
+    // 서류 API가 죽어도 채용 목록은 띄움 — 제출본 열만 빈 상태로.
+    listDocuments().catch((e: unknown) => {
+      unstable_rethrow(e);
+      console.error('[jobs] listDocuments', e);
+      return [];
+    }),
   ]);
 
   // 회사별 이벤트 그룹핑. 각 행에 자기 이벤트만 전달해서 EventsPopover 바로 사용.
