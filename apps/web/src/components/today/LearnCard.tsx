@@ -4,12 +4,16 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { QuestionStatus, RandomQuestion } from '@repo/shared';
-import { CardLink, TodayPanel } from './Card';
+import { CardLink, TodayCard } from './Card';
 
 const STATUS_LABEL: Record<QuestionStatus, string> = {
   understood: '이해함으로 기록했어요',
   review_needed: '복습 필요로 기록했어요',
 };
+
+// 오른쪽 열에서 유일하게 직접 하는 일이라 위 현황(선 섹션)과 달리 흰 카드 —
+// 왼쪽 일정·루틴 카드와 같은 '오늘 할 일' 무게. 위 운동 섹션과 간격만 둠.
+const LEARN_CARD_SPACING = 'mt-1';
 
 // /today 오른쪽 열 '오늘의 학습'. 오늘의 5문제를 ‹ ›로 훑어보기만 하고,
 // 답은 /learn에서 — '답 보러 가기'가 ?q=로 그 문제를 바로 연다.
@@ -31,10 +35,10 @@ export function LearnCard({
     : undefined;
 
   return (
-    <TodayPanel
+    <TodayCard
       id="learn-title"
       title="오늘의 학습"
-      last
+      className={LEARN_CARD_SPACING}
       aside={
         <span className="text-sm text-ink-muted">
           {index + 1} / {total}
@@ -85,21 +89,21 @@ export function LearnCard({
           답 보러 가기
         </Link>
       </div>
-    </TodayPanel>
+    </TodayCard>
   );
 }
 
 // 문제가 없거나 못 불러왔을 때도 같은 섹션 틀 유지 (레이아웃 점프 방지).
 export function LearnEmpty({ message }: { message: string }) {
   return (
-    <TodayPanel
+    <TodayCard
       id="learn-title"
       title="오늘의 학습"
-      last
+      className={LEARN_CARD_SPACING}
       aside={<CardLink href="/learn">학습으로 이동</CardLink>}
     >
       <p className="text-sm text-ink-muted">{message}</p>
-    </TodayPanel>
+    </TodayCard>
   );
 }
 

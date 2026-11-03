@@ -355,8 +355,8 @@ function KeyMetrics({
           muted={fewSamples}
           hint={
             rate === null
-              ? '아직 결과 나온 곳이 없어요'
-              : `결과 나온 ${decided}개 회사 중${fewSamples ? ' · 아직 표본이 적어요' : ''}`
+              ? '아직 서류 결과가 없어요'
+              : `서류 결과 ${decided}곳 중${fewSamples ? ' · 표본 적음' : ''}`
           }
           bar={
             <CompositionBar
