@@ -195,16 +195,24 @@ function AdminLink({ active }: { active: boolean }) {
     <Link
       href="/admin"
       aria-current={active ? 'page' : undefined}
-      // 일반 메뉴와 구분되는 관리자 청록(--rally-admin-*). 모양·크기는 메뉴와 같음,
-      // 테두리 1px만 더해서 활성(숲색 배경) 표시와 안 헷갈림.
-      className={`flex min-h-10 items-center gap-3 rounded-md border px-3 text-[15px] transition-colors ${
+      // 일반 메뉴와 구분되는 관리자 청록 버튼(--rally-admin-*). 모양·크기는 메뉴와 같음.
+      // hover는 색을 바꾸지 않고 › 가 나타나며 아이콘이 2px 밀림(150ms).
+      className={`group/admin flex min-h-10 items-center gap-3 rounded-md border px-3 text-[15px] transition-colors ${
         active
           ? 'border-admin-side-active-bg bg-admin-side-active-bg font-semibold text-admin-side-active-fg'
-          : 'border-admin-side-border text-admin-side-fg hover:bg-admin-side-hover-bg hover:text-admin-side-hover-fg'
+          : 'border-admin-side-border bg-admin-side-bg text-admin-side-fg'
       }`}
     >
-      <Shield className="h-4.5 w-4.5" strokeWidth={1.7} aria-hidden />
+      <Shield
+        className="h-4.5 w-4.5 transition-transform duration-150 group-hover/admin:translate-x-0.5 group-focus-visible/admin:translate-x-0.5"
+        strokeWidth={1.7}
+        aria-hidden
+      />
       관리자 페이지
+      <ChevronRight
+        className="ml-auto h-4 w-4 opacity-0 transition-opacity duration-150 group-hover/admin:opacity-100 group-focus-visible/admin:opacity-100"
+        aria-hidden
+      />
     </Link>
   );
 }

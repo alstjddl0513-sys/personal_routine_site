@@ -74,13 +74,13 @@ export function CalendarView({
 
   return (
     <>
-      <header className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-xl font-semibold">캘린더</h1>
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-[26px] leading-tight font-bold tracking-[-0.01em]">캘린더</h1>
         <MonthNav month={month} />
       </header>
 
-      <div className="flex flex-col gap-4 md:flex-row md:items-start">
-        <div className="flex-1">
+      <div className="flex flex-col gap-5 md:flex-row md:items-start">
+        <div className="min-w-0 flex-1">
           <CalendarGrid
             // 밖에서 지정된 날짜만 깜빡임 — 셀 클릭으로 바꾼 선택엔 안 함.
             key={flash.n}

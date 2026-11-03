@@ -37,7 +37,7 @@
   --rally-ev-test: #3d5a80;
   --rally-ev-interview: #6b4a7a;
   --rally-ev-announce: #2f6b5e;
-  --rally-ev-other: #4f5450;
+  --rally-ev-other: #6b6f6a;
 
   /* 사이드바 (전 페이지 공통) */
   --rally-side-bg: #1f3d30;
@@ -51,10 +51,9 @@
   /* 관리자 (사이드바 '관리자 페이지' 줄 + 관리자 페이지 내부 대표색) — 숲색·메리골드·
      마감 빨강과 겹치지 않는 청록 계열 */
   --rally-admin: #2e6e6b; /* 관리자 페이지 내부 대표색 */
-  --rally-admin-side-fg: #9fd0cc;
+  --rally-admin-side-bg: #24484a;
+  --rally-admin-side-fg: #d2ecea;
   --rally-admin-side-border: #3b6e6b;
-  --rally-admin-side-hover-bg: #24484a;
-  --rally-admin-side-hover-fg: #d2ecea;
   --rally-admin-side-active-bg: #9fd0cc;
   --rally-admin-side-active-fg: #12302f;
 
@@ -67,6 +66,7 @@
   --rally-chip-on-bg: #e6eee8; /* 선택된 필터 칩 */
   --rally-chip-on-fg: #1f3d30;
   --rally-chip-on-border: #1f3d30;
+  --rally-cell-outside: #f9faf8; /* 캘린더 이번 달 아닌 날 */
   /* 지원상태 점 — 마감색(alert)은 '급함'과 섞이지 않게 안 씀 */
   --rally-st-not-applied: #8a8e89; /* 속 빈 점 */
   --rally-st-applied: #3d5a80;
@@ -116,9 +116,8 @@
   --rally-side-line: #2a4237;
 
   --rally-admin: #8cc8c2;
-  --rally-admin-side-fg: #94c6c2;
+  --rally-admin-side-bg: #1c3a3b;
   --rally-admin-side-border: #30595a;
-  --rally-admin-side-hover-bg: #1c3a3b;
   --rally-admin-side-active-bg: #94c6c2;
   --rally-admin-side-active-fg: #0f2626;
 
@@ -130,6 +129,7 @@
   --rally-chip-on-bg: #1f3328;
   --rally-chip-on-fg: #cfe3d6;
   --rally-chip-on-border: #8fb5a0;
+  --rally-cell-outside: #161a18;
   --rally-st-not-applied: #8c948f;
   --rally-st-applied: #9db5d8;
   --rally-st-doc-passed: #9cc7b5;
@@ -182,10 +182,9 @@
   --color-side-active: var(--rally-side-active);
   --color-side-line: var(--rally-side-line);
   --color-admin: var(--rally-admin);
+  --color-admin-side-bg: var(--rally-admin-side-bg);
   --color-admin-side-fg: var(--rally-admin-side-fg);
   --color-admin-side-border: var(--rally-admin-side-border);
-  --color-admin-side-hover-bg: var(--rally-admin-side-hover-bg);
-  --color-admin-side-hover-fg: var(--rally-admin-side-hover-fg);
   --color-admin-side-active-bg: var(--rally-admin-side-active-bg);
   --color-admin-side-active-fg: var(--rally-admin-side-active-fg);
   --color-heart: var(--rally-heart);
@@ -196,6 +195,7 @@
   --color-chip-on-bg: var(--rally-chip-on-bg);
   --color-chip-on-fg: var(--rally-chip-on-fg);
   --color-chip-on-border: var(--rally-chip-on-border);
+  --color-cell-outside: var(--rally-cell-outside);
   --color-st-not-applied: var(--rally-st-not-applied);
   --color-st-applied: var(--rally-st-applied);
   --color-st-doc-passed: var(--rally-st-doc-passed);
@@ -310,30 +310,27 @@ body {
   }
 }
 
-/* 알림 → /calendar?date= 이동 시 그 날짜 칸에 호박색 외곽선이 두 번
-   깜빡이고 사라짐. 오늘 표시(초록 ring = box-shadow)와 안 겹치게 outline. */
-:root {
-  --date-flash: rgb(245, 158, 11); /* amber-500 */
-}
-.dark {
-  --date-flash: rgb(251, 191, 36); /* amber-400 */
-}
+/* 알림 → /calendar?date= 이동 시 그 날짜 칸에 호박색 안쪽 테두리가 두 번
+   깜빡이고 사라짐. 선택 표시(inset box-shadow)와 안 겹치게 ::after 오버레이.
+   칸에 position: relative 필요. */
 @keyframes date-flash {
   0%,
+  28%,
   100% {
-    outline-color: transparent;
+    opacity: 0;
   }
   12%,
   45% {
-    outline-color: var(--date-flash);
-  }
-  28% {
-    outline-color: transparent;
+    opacity: 1;
   }
 }
-.date-flash {
-  outline: 3px solid transparent;
-  outline-offset: 2px;
+.date-flash::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 2px var(--rally-warn);
+  opacity: 0;
   animation: date-flash 2.4s ease-out 1;
 }
 
