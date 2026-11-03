@@ -48,7 +48,7 @@ export async function JobsSection() {
         <strong className="font-semibold text-ink-strong">
           {passRate === null ? '—' : `${passRate}%`}
         </strong>
-        {decided > 0 ? ` · 결과 나온 ${decided}개 회사 중 ${docPassed}곳` : ' · 아직 결과 나온 곳이 없어요'}
+        {decided > 0 ? ` · ${decided}곳 중 ${docPassed}곳 통과` : ' · 아직 서류 결과가 없어요'}
       </p>
     </TodayPanel>
   );

@@ -29,10 +29,12 @@ export async function WorkoutSection() {
   });
 
   return (
+    // 아래 '오늘의 학습'이 카드라 구분선 없이 끝냄(last).
     <TodayPanel
       id="workout-title"
       title="이번 주 운동"
       aside={<CardLink href="/workouts">기록하기</CardLink>}
+      last
     >
       {sets === null || goals === null ? (
         <CardMessage>{LOAD_ERROR_COPY}</CardMessage>

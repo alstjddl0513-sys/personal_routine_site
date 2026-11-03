@@ -195,8 +195,12 @@ function AdminLink({ active }: { active: boolean }) {
     <Link
       href="/admin"
       aria-current={active ? 'page' : undefined}
-      className={`flex min-h-10 items-center gap-3 rounded-md px-3 text-[15px] transition-colors ${
-        active ? SIDE_LINK_ACTIVE : SIDE_LINK_IDLE
+      // 일반 메뉴와 구분되는 관리자 청록(--rally-admin-*). 모양·크기는 메뉴와 같음,
+      // 테두리 1px만 더해서 활성(숲색 배경) 표시와 안 헷갈림.
+      className={`flex min-h-10 items-center gap-3 rounded-md border px-3 text-[15px] transition-colors ${
+        active
+          ? 'border-admin-side-active-bg bg-admin-side-active-bg font-semibold text-admin-side-active-fg'
+          : 'border-admin-side-border text-admin-side-fg hover:bg-admin-side-hover-bg hover:text-admin-side-hover-fg'
       }`}
     >
       <Shield className="h-4.5 w-4.5" strokeWidth={1.7} aria-hidden />

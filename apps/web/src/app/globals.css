@@ -48,6 +48,16 @@
   --rally-side-active: #2c4f40;
   --rally-side-line: #36594a;
 
+  /* 관리자 (사이드바 '관리자 페이지' 줄 + 관리자 페이지 내부 대표색) — 숲색·메리골드·
+     마감 빨강과 겹치지 않는 청록 계열 */
+  --rally-admin: #2e6e6b; /* 관리자 페이지 내부 대표색 */
+  --rally-admin-side-fg: #9fd0cc;
+  --rally-admin-side-border: #3b6e6b;
+  --rally-admin-side-hover-bg: #24484a;
+  --rally-admin-side-hover-fg: #d2ecea;
+  --rally-admin-side-active-bg: #9fd0cc;
+  --rally-admin-side-active-fg: #12302f;
+
   /* 채용 리스트 (docs/design/rally-jobs.html) */
   --rally-heart: #d23a2f; /* 즐겨찾기 채움 */
   --rally-row-flash: #fbf2d9; /* ?highlight= 행 강조 피크 */
@@ -104,6 +114,13 @@
   --rally-side-fg: #bac6be;
   --rally-side-active: #25443a;
   --rally-side-line: #2a4237;
+
+  --rally-admin: #8cc8c2;
+  --rally-admin-side-fg: #94c6c2;
+  --rally-admin-side-border: #30595a;
+  --rally-admin-side-hover-bg: #1c3a3b;
+  --rally-admin-side-active-bg: #94c6c2;
+  --rally-admin-side-active-fg: #0f2626;
 
   --rally-heart: #f0675b;
   --rally-row-flash: #3a3322;
@@ -164,6 +181,13 @@
   --color-side-muted: var(--rally-side-muted);
   --color-side-active: var(--rally-side-active);
   --color-side-line: var(--rally-side-line);
+  --color-admin: var(--rally-admin);
+  --color-admin-side-fg: var(--rally-admin-side-fg);
+  --color-admin-side-border: var(--rally-admin-side-border);
+  --color-admin-side-hover-bg: var(--rally-admin-side-hover-bg);
+  --color-admin-side-hover-fg: var(--rally-admin-side-hover-fg);
+  --color-admin-side-active-bg: var(--rally-admin-side-active-bg);
+  --color-admin-side-active-fg: var(--rally-admin-side-active-fg);
   --color-heart: var(--rally-heart);
   --color-row-flash: var(--rally-row-flash);
   --color-row-hover: var(--rally-row-hover);

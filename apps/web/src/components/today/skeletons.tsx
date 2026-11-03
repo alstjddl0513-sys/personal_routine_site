@@ -11,9 +11,11 @@ export function HeaderSkeleton() {
   );
 }
 
-export function ListCardSkeleton({ rows = 4 }: { rows?: number }) {
+export function ListCardSkeleton({ rows = 4, className = '' }: { rows?: number; className?: string }) {
   return (
-    <div className="flex min-w-0 flex-col gap-3 rounded-lg border border-line bg-surface px-5 py-6 md:px-7">
+    <div
+      className={`flex min-w-0 flex-col gap-3 rounded-lg border border-line bg-surface px-5 py-6 md:px-7 ${className}`}
+    >
       <Skeleton className="h-6 w-28" />
       {Array.from({ length: rows }, (_, i) => (
         <Skeleton key={i} className="h-11 w-full" />

@@ -20,7 +20,7 @@ export const metadata = {
 // '오늘' 대시보드 (docs/design/rally-dashboard.html). 카드마다 따로
 // 스트리밍 — 느린 API 하나가 다른 카드를 붙잡지 않게. 같은 데이터를 쓰는
 // 카드끼리는 lib/today-data.ts의 React cache로 한 번만 fetch.
-// 왼쪽 열: 일정·루틴(흰 카드) / 오른쪽 열: 채용·운동·학습(구분선 섹션).
+// 왼쪽 열: 일정·루틴(흰 카드) / 오른쪽 열: 채용·운동(구분선 섹션) + 학습(흰 카드).
 export default function TodayPage() {
   return (
     <div className="min-h-screen bg-paper font-plex text-[15px] leading-[1.6] text-ink tabular-nums">
@@ -43,10 +43,10 @@ export default function TodayPage() {
             <Suspense fallback={<PanelSkeleton rows={2} />}>
               <JobsSection />
             </Suspense>
-            <Suspense fallback={<PanelSkeleton rows={5} />}>
+            <Suspense fallback={<PanelSkeleton rows={5} last />}>
               <WorkoutSection />
             </Suspense>
-            <Suspense fallback={<PanelSkeleton rows={2} last />}>
+            <Suspense fallback={<ListCardSkeleton rows={2} className="mt-1" />}>
               <LearnSection />
             </Suspense>
           </div>
