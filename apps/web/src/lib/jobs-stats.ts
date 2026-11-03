@@ -65,6 +65,104 @@ export function computePipeline(rows: Company[]): Record<PipelineKey, number> {
   return counts;
 }
 
+// 통계 페이지 핵심 지표 + /today 채용 현황 공용. 상태 이력이 없어서 "그 단계까지
+// 갔는지"는 추정이 필요한데(면접 횟수가 회사마다 다름), 추정 없이 현재 상태만으로
+// 셀 수 있는 숫자만 둠.
+// 화면 라벨 '면접 단계'에는 INTERVIEW_STAGE_HINT를 툴팁으로 붙임.
+export interface JobsSummary {
+  /** 지원한 곳: 미지원 제외, 지원일 없는 지원취소(= 지원 안 하고 취소)도 제외 */
+  applied: number;
+  /** 서류 통과: 서류합격 이후 상태 전부(면접 탈락·최종 포함) */
+  documentPassed: number;
+  documentFailed: number;
+  /** 서류 결과 대기: 지금 '지원' 상태 */
+  documentWaiting: number;
+  /** 서류 통과율 = 통과 ÷ (통과 + 탈락). 결과 나온 곳이 없으면 null */
+  documentPassRate: number | null;
+  /** 면접 단계: 서류합격·1차합격·2차합격 (서류는 붙고 최종 결과는 아직) */
+  interviewing: number;
+  /** 진행 중 = 서류 결과 대기 + 면접 단계 */
+  inProgress: number;
+  finalPassed: number;
+  /** 탈락 4종 합계 */
+  failed: number;
+  /** 지원한 뒤 취소 (지원일 있는 지원취소) */
+  withdrawn: number;
+  // applied = inProgress + finalPassed + failed + withdrawn
+}
+
+const DOCUMENT_PASSED: readonly ApplicationStatus[] = [
+  'document_passed',
+  'interview_1_passed',
+  'interview_1_failed',
+  'interview_2_passed',
+  'interview_2_failed',
+  'final_passed',
+  'final_failed',
+];
+export const INTERVIEW_STAGE_HINT = '서류합격 · 1차합격 · 2차합격';
+
+const INTERVIEWING: readonly ApplicationStatus[] = [
+  'document_passed',
+  'interview_1_passed',
+  'interview_2_passed',
+];
+
+export function computeJobsSummary(rows: Company[]): JobsSummary {
+  let applied = 0;
+  let documentPassed = 0;
+  let documentFailed = 0;
+  let documentWaiting = 0;
+  let interviewing = 0;
+  let finalPassed = 0;
+  let failed = 0;
+  let withdrawn = 0;
+  for (const c of rows) {
+    const s = c.applicationStatus;
+    if (s === 'not_applied') continue;
+    // 지원일은 실제로 지원 상태가 될 때만 자동 기록 — 없으면 미지원에서 바로 취소한 곳.
+    if (s === 'withdrawn' && c.appliedAt === null) continue;
+    applied += 1;
+    if (DOCUMENT_PASSED.includes(s)) documentPassed += 1;
+    if (s === 'document_failed') documentFailed += 1;
+    if (s === 'applied') documentWaiting += 1;
+    if (INTERVIEWING.includes(s)) interviewing += 1;
+    if (s === 'final_passed') finalPassed += 1;
+    if (FAILED_STATUSES.includes(s)) failed += 1;
+    if (s === 'withdrawn') withdrawn += 1;
+  }
+  const decided = documentPassed + documentFailed;
+  return {
+    applied,
+    documentPassed,
+    documentFailed,
+    documentWaiting,
+    documentPassRate: decided > 0 ? Math.round((documentPassed / decided) * 100) : null,
+    interviewing,
+    inProgress: documentWaiting + interviewing,
+    finalPassed,
+    failed,
+    withdrawn,
+  };
+}
+
+// 통계 기간 필터. 회사마다 기준 날짜 = 지원했으면 지원일, 아니면 담은 날(생성일) —
+// "최근 3개월에 지원한 곳 + 최근 3개월에 담은 곳". 날짜는 서울 기준 YYYY-MM-DD로 비교.
+const seoulDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' });
+
+/** 서울 기준 오늘에서 months개월 전 날짜 (YYYY-MM-DD). */
+export function periodStart(months: number, now: Date = new Date()): string {
+  const [y, m, d] = seoulDate.format(now).split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1 - months, d)).toISOString().slice(0, 10);
+}
+
+export function filterRecentCompanies(rows: Company[], start: string): Company[] {
+  return rows.filter((c) => {
+    const anchor = c.appliedAt ?? seoulDate.format(new Date(c.createdAt));
+    return anchor >= start;
+  });
+}
+
 export function computeType1Distribution(
   rows: Company[],
 ): Record<CompanyType1, number> {
