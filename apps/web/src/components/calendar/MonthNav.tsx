@@ -14,6 +14,9 @@ function nextMonth(year: number, month: number): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
 
+const NAV_ICON_BTN =
+  'inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-md border border-btn-border bg-btn-bg text-ink-soft hover:border-heading';
+
 export function MonthNav({ month }: { month: MonthInfo }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -34,25 +37,25 @@ export function MonthNav({ month }: { month: MonthInfo }) {
         type="button"
         onClick={() => goto(prevMonth(month.year, month.month))}
         aria-label="이전 달"
-        className="inline-flex h-7 w-7 items-center justify-center rounded border border-zinc-200 text-zinc-500 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+        className={NAV_ICON_BTN}
       >
         <ChevronLeft className="h-4 w-4" aria-hidden />
       </button>
-      <span className="min-w-20 text-center text-sm font-medium tabular-nums text-zinc-700 dark:text-zinc-300">
+      <h2 className="min-w-33 text-center text-lg font-semibold">
         {month.year}년 {month.month}월
-      </span>
+      </h2>
       <button
         type="button"
         onClick={() => goto(nextMonth(month.year, month.month))}
         aria-label="다음 달"
-        className="inline-flex h-7 w-7 items-center justify-center rounded border border-zinc-200 text-zinc-500 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+        className={NAV_ICON_BTN}
       >
         <ChevronRight className="h-4 w-4" aria-hidden />
       </button>
       <button
         type="button"
         onClick={() => goto(null)}
-        className="rounded border border-zinc-200 px-2 py-1 text-xs text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+        className="ml-1.5 inline-flex h-10 cursor-pointer items-center rounded-md border border-btn-border bg-btn-bg px-3.5 text-sm font-medium text-btn-fg hover:border-heading"
       >
         오늘
       </button>
