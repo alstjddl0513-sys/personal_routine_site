@@ -43,7 +43,7 @@ export function RoutineReminderRow() {
 
   const description = !isGranted
     ? '먼저 위의 알림 권한을 허용해주세요.'
-    : '저녁에 오늘 미체크 시간블록이 있으면 알려드릴게요.';
+    : '저녁에 오늘 아직 안 한 루틴이 있으면 알려드릴게요.';
 
   const showControls = enabled !== null && isGranted;
 

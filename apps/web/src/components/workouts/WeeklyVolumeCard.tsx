@@ -61,7 +61,7 @@ export function WeeklyVolumeCard({ entries, today, weeks = 12 }: Props) {
       <div className="mb-3 flex items-baseline justify-between">
         <div className="flex flex-col">
           <span className="text-xs text-zinc-500 dark:text-zinc-400">
-            이번주 총 볼륨
+            이번 주 총 볼륨
           </span>
           <span className="mt-0.5 text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
             {fmtKg(thisWeek)}

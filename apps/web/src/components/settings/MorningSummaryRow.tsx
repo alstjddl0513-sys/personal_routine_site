@@ -43,7 +43,7 @@ export function MorningSummaryRow() {
 
   const description = !isGranted
     ? '먼저 위의 알림 권한을 허용해주세요.'
-    : '아침에 오늘 마감과 미체크 루틴을 한번에 알려드릴게요.';
+    : '아침에 오늘 마감과 아직 안 한 루틴을 한 번에 알려드릴게요.';
 
   const showControls = enabled !== null && isGranted;
 

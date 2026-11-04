@@ -22,7 +22,7 @@ export function LinkForm() {
       return;
     }
     if (!/^https?:\/\/.+/i.test(u)) {
-      setError('http:// 또는 https:// 로 시작하는 URL을 입력하세요.');
+      setError('http:// 또는 https://로 시작하는 주소를 입력하세요.');
       return;
     }
     startTransition(async () => {
@@ -32,7 +32,8 @@ export function LinkForm() {
         setUrl('');
         router.refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : '추가에 실패했어요.');
+        console.error(err);
+        setError('추가하지 못했어요. 잠시 후 다시 해보세요.');
       }
     });
   }
@@ -44,7 +45,7 @@ export function LinkForm() {
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="제목 (예: 노션 포폴)"
+          placeholder="제목 (예: 노션 포트폴리오)"
           maxLength={200}
           className="min-h-9 rounded border border-zinc-300 bg-white px-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950 sm:w-40"
         />

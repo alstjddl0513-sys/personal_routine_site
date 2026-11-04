@@ -23,8 +23,8 @@ type NicknameStatus =
 const NICKNAME_REGEX = /^[\p{L}\p{N}_]+$/u;
 
 function validateNicknameShape(value: string): NicknameStatus | null {
-  if (value.length < 2) return { kind: 'invalid', message: '닉네임은 2자 이상이어야 합니다.' };
-  if (value.length > 20) return { kind: 'invalid', message: '닉네임은 20자 이내여야 합니다.' };
+  if (value.length < 2) return { kind: 'invalid', message: '닉네임은 2자 이상으로 적어주세요.' };
+  if (value.length > 20) return { kind: 'invalid', message: '닉네임은 20자 이내로 적어주세요.' };
   if (!NICKNAME_REGEX.test(value)) {
     return { kind: 'invalid', message: '한글·영문·숫자·언더바만 사용할 수 있어요.' };
   }
@@ -73,7 +73,7 @@ export default function SignupPage() {
       } catch (err) {
         setNicknameStatus({
           kind: 'error',
-          message: err instanceof Error ? err.message : '확인 실패',
+          message: err instanceof Error ? err.message : '닉네임을 확인하지 못했어요',
         });
       }
     }, 400);
@@ -106,7 +106,7 @@ export default function SignupPage() {
       } = await supabase.auth.getSession();
       if (!session) {
         setError(
-          '가입은 됐지만 이메일 확인이 필요해요. Console에서 Confirm email을 끄거나, 받은 메일의 링크를 눌러주세요.',
+          '가입 확인 메일을 보냈어요. 메일의 링크를 눌러 가입을 마쳐주세요.',
         );
         setSubmitting(false);
         return;
@@ -126,7 +126,7 @@ export default function SignupPage() {
       router.replace('/today');
       router.refresh();
     } catch {
-      setError('네트워크 오류가 발생했습니다. 다시 시도해주세요.');
+      setError('네트워크 오류가 발생했어요. 다시 시도해주세요.');
       setSubmitting(false);
     }
   }
@@ -220,7 +220,7 @@ export default function SignupPage() {
               />
               {passwordConfirm.length > 0 && password !== passwordConfirm ? (
                 <p className="mt-1 text-xs text-red-600 dark:text-red-400">
-                  비밀번호가 일치하지 않습니다.
+                  비밀번호가 일치하지 않아요.
                 </p>
               ) : null}
             </Field>
@@ -311,7 +311,7 @@ function NicknameStatusMessage({ status }: { status: NicknameStatus }) {
   }
   if (status.kind === 'taken') {
     return (
-      <p className="mt-1 text-xs text-red-600 dark:text-red-400">이미 사용 중인 닉네임입니다.</p>
+      <p className="mt-1 text-xs text-red-600 dark:text-red-400">이미 사용 중인 닉네임이에요.</p>
     );
   }
   if (status.kind === 'available') {
@@ -328,17 +328,17 @@ function NicknameStatusMessage({ status }: { status: NicknameStatus }) {
 function translateAuthError(message: string): string {
   const m = message.toLowerCase();
   if (m.includes('user already registered') || m.includes('already been registered')) {
-    return '이미 가입된 이메일입니다. 로그인해주세요.';
+    return '이미 가입된 이메일이에요. 로그인해주세요.';
   }
   if (m.includes('password should be at least')) {
-    return '비밀번호는 8자 이상이어야 합니다.';
+    return '비밀번호는 8자 이상이어야 해요.';
   }
   // Supabase "Prevent leaked passwords" (HIBP) 정책이 켜져있을 때 반환.
   if (m.includes('pwned') || m.includes('leaked') || m.includes('compromised')) {
-    return '유출된 것으로 알려진 비밀번호입니다. 다른 비밀번호를 사용해주세요.';
+    return '유출된 것으로 알려진 비밀번호예요. 다른 비밀번호를 써주세요.';
   }
   if (m.includes('invalid email') || m.includes('unable to validate email')) {
-    return '이메일 형식이 올바르지 않습니다.';
+    return '이메일 형식을 확인해주세요.';
   }
   return message;
 }

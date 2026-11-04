@@ -91,7 +91,7 @@ function ModalBody({
       return;
     }
     if (selected.size === 0) {
-      setError('블록을 1개 이상 선택하세요.');
+      setError('루틴을 하나 이상 선택해주세요.');
       return;
     }
     setError(null);
@@ -115,8 +115,8 @@ function ModalBody({
         console.error(err);
         setError(
           err instanceof Error && err.message.includes('400')
-            ? '진행 중 챌린지가 최대 개수에 도달했어요.'
-            : '생성에 실패했어요.',
+            ? '진행 중인 챌린지는 3개까지예요.'
+            : '만들지 못했어요. 잠시 후 다시 해보세요.',
         );
       }
     });
@@ -201,10 +201,10 @@ function ModalBody({
 
             <fieldset className="flex flex-col gap-1.5">
               <legend className="mb-1.5 text-sm font-semibold text-ink-soft">
-                포함할 블록 <span className="font-normal text-ink-muted">· 1개 이상</span>
+                포함할 루틴 <span className="font-normal text-ink-muted">· 1개 이상</span>
               </legend>
               {blocks.length === 0 ? (
-                <p className="text-sm text-ink-muted">먼저 트래커에서 블록을 추가해보세요.</p>
+                <p className="text-sm text-ink-muted">먼저 트래커에서 루틴을 추가해보세요.</p>
               ) : (
                 <div className="grid grid-cols-2 gap-x-3">
                   {blocks.map((b) => {
@@ -237,11 +237,11 @@ function ModalBody({
                 </div>
               )}
               {touchedBlocks && selected.size === 0 ? (
-                <p className="text-[13px] text-alert">블록을 하나 이상 선택해주세요.</p>
+                <p className="text-[13px] text-alert">루틴을 하나 이상 선택해주세요.</p>
               ) : null}
             </fieldset>
 
-            <p className="text-[13px] text-ink-muted">선택한 블록을 모두 체크한 날이 1일로 쌓여요.</p>
+            <p className="text-[13px] text-ink-muted">선택한 루틴을 모두 체크한 날이 1일로 쌓여요.</p>
 
             {error ? <p className="text-[13px] text-alert">{error}</p> : null}
 

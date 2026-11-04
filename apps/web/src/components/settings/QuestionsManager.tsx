@@ -107,7 +107,7 @@ export function QuestionsManager({
         router.refresh();
       } catch (err) {
         console.error(err);
-        setError('수정에 실패했습니다.');
+        setError('고치지 못했어요. 잠시 후 다시 해보세요.');
       }
     });
   }
@@ -121,7 +121,7 @@ export function QuestionsManager({
         router.refresh();
       } catch (err) {
         console.error(err);
-        setError('삭제에 실패했습니다.');
+        setError('삭제하지 못했어요. 잠시 후 다시 해보세요.');
         setConfirmDeleteRow(null);
       }
     });
@@ -204,7 +204,7 @@ export function QuestionsManager({
       </div>
 
       <p className="text-xs text-zinc-500 dark:text-zinc-400">
-        여기에 추가한 질문은 곧바로 <strong>오늘의 학습</strong> 풀에 섞여요.
+        여기에 추가한 질문은 바로 <strong>오늘의 학습</strong>에 같이 나와요.
         기본 제공 질문은 이 목록에 뜨지 않고 학습 페이지에서만 등장해요.
       </p>
 
@@ -367,7 +367,7 @@ function AddRow({
         router.refresh();
       } catch (err) {
         console.error(err);
-        onError('추가에 실패했습니다.');
+        onError('추가하지 못했어요. 잠시 후 다시 해보세요.');
       }
     });
   }

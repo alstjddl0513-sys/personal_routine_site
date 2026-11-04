@@ -47,7 +47,7 @@ export function ExerciseStatsCard({ exercise, stats }: Props) {
           <div className="flex items-center justify-between text-[10px] text-zinc-500">
             <span>{oldest?.sessionDate}</span>
             <span>
-              최근 {chartPoints.length}회 top set · 최신 {Number(latest.topWeightKg)}kg
+              최근 {chartPoints.length}회 최고 무게 · 최신 {Number(latest.topWeightKg)}kg
               {latest.topReps != null ? ` × ${latest.topReps}` : ''}
             </span>
             <span>{latest?.sessionDate}</span>

@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Lock } from 'lucide-react';
 
 export const metadata = {
-  title: '접근 거부 · Rally',
+  title: '볼 수 없는 페이지예요 · Rally',
 };
 
 // Safety-net page for unexpected 401s (e.g. upstream API rejects the request).

@@ -45,10 +45,10 @@ function validateDraft(d: Draft): string | null {
   const sets = Number(d.defaultSets);
   const rMin = Number(d.repMin);
   const rMax = Number(d.repMax);
-  if (!Number.isInteger(sets) || sets < 1 || sets > 20) return '세트는 1~20 정수여야 합니다.';
-  if (!Number.isInteger(rMin) || rMin < 1 || rMin > 100) return '최소 회수는 1~100 정수여야 합니다.';
-  if (!Number.isInteger(rMax) || rMax < 1 || rMax > 100) return '최대 회수는 1~100 정수여야 합니다.';
-  if (rMin > rMax) return '최소 회수는 최대 회수 이하여야 합니다.';
+  if (!Number.isInteger(sets) || sets < 1 || sets > 20) return '세트는 1~20 사이 숫자로 적어주세요.';
+  if (!Number.isInteger(rMin) || rMin < 1 || rMin > 100) return '최소 횟수는 1~100 사이 숫자로 적어주세요.';
+  if (!Number.isInteger(rMax) || rMax < 1 || rMax > 100) return '최대 횟수는 1~100 사이 숫자로 적어주세요.';
+  if (rMin > rMax) return '최소 횟수가 최대보다 클 수 없어요.';
   return null;
 }
 
@@ -103,7 +103,7 @@ export function ExercisesManager({ initial }: { initial: Exercise[] }) {
         router.refresh();
       } catch (err) {
         console.error(err);
-        setError('수정에 실패했습니다.');
+        setError('고치지 못했어요. 잠시 후 다시 해보세요.');
       }
     });
   }
@@ -117,7 +117,7 @@ export function ExercisesManager({ initial }: { initial: Exercise[] }) {
         router.refresh();
       } catch (err) {
         console.error(err);
-        setError(row.isArchived ? '숨김 해제에 실패했습니다.' : '숨김 처리에 실패했습니다.');
+        setError(row.isArchived ? '숨김을 풀지 못했어요. 잠시 후 다시 해보세요.' : '숨기지 못했어요. 잠시 후 다시 해보세요.');
       }
     });
   }
@@ -140,7 +140,7 @@ export function ExercisesManager({ initial }: { initial: Exercise[] }) {
           return;
         }
         console.error(err);
-        setError('삭제에 실패했습니다.');
+        setError('삭제하지 못했어요. 잠시 후 다시 해보세요.');
         setConfirm(null);
       }
     });
@@ -155,7 +155,7 @@ export function ExercisesManager({ initial }: { initial: Exercise[] }) {
         router.refresh();
       } catch (err) {
         console.error(err);
-        setError('숨김 처리에 실패했습니다.');
+        setError('숨기지 못했어요. 잠시 후 다시 해보세요.');
         setConfirm(null);
       }
     });
@@ -302,7 +302,7 @@ export function ExercisesManager({ initial }: { initial: Exercise[] }) {
             대신 <strong>숨김</strong>으로 목록에서만 감춰볼까요? 이력은 그대로 남아요.
           </p>
         }
-        confirmLabel={isPending ? '숨기는 중…' : '숨김 처리'}
+        confirmLabel={isPending ? '숨기는 중…' : '숨기기'}
         pending={isPending}
         onConfirm={() =>
           confirm?.kind === 'archive-fallback' &&
@@ -369,7 +369,7 @@ function EditForm({
               className="rounded border border-zinc-300 bg-white px-2 py-1 text-sm tabular-nums outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
             />
           </Field>
-          <Field label="최소 회">
+          <Field label="최소 횟수">
             <input
               type="number"
               inputMode="numeric"
@@ -381,7 +381,7 @@ function EditForm({
               className="rounded border border-zinc-300 bg-white px-2 py-1 text-sm tabular-nums outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
             />
           </Field>
-          <Field label="최대 회">
+          <Field label="최대 횟수">
             <input
               type="number"
               inputMode="numeric"
@@ -459,7 +459,7 @@ function AddRow({
         router.refresh();
       } catch (err) {
         console.error(err);
-        onError('추가에 실패했습니다.');
+        onError('추가하지 못했어요. 잠시 후 다시 해보세요.');
       }
     });
   }
@@ -519,7 +519,7 @@ function AddRow({
             className="rounded border border-zinc-300 bg-white px-2 py-1 text-sm tabular-nums outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
           />
         </Field>
-        <Field label="최소 회">
+        <Field label="최소 횟수">
           <input
             type="number"
             inputMode="numeric"
@@ -531,7 +531,7 @@ function AddRow({
             className="rounded border border-zinc-300 bg-white px-2 py-1 text-sm tabular-nums outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
           />
         </Field>
-        <Field label="최대 회">
+        <Field label="최대 횟수">
           <input
             type="number"
             inputMode="numeric"

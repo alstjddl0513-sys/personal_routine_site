@@ -210,7 +210,7 @@ export function formatMorningMessage(
   const deadlinePart = formatDeadlinePart(summary.todayDeadlineNames);
   if (deadlinePart) parts.push(deadlinePart);
   if (summary.uncheckedRoutines > 0)
-    parts.push(`미체크 루틴 ${summary.uncheckedRoutines}개`);
+    parts.push(`아직 안 한 루틴 ${summary.uncheckedRoutines}개`);
   return {
     title: '오늘의 하루',
     body: parts.length > 0 ? `${parts.join(' · ')} 남았어요.` : '',

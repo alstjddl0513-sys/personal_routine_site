@@ -214,7 +214,7 @@ export function RoutineDayView({ blocks, checks, days }: Props) {
     if (!editDraft) return;
     const label = editDraft.label.trim();
     if (!label) {
-      setEditError('라벨은 비어 있을 수 없어요.');
+      setEditError('이름을 입력하세요.');
       return;
     }
     let startTime: number | null = null;
@@ -244,7 +244,7 @@ export function RoutineDayView({ blocks, checks, days }: Props) {
         cancelEdit();
       } catch (err) {
         console.error(err);
-        setEditError('저장에 실패했어요.');
+        setEditError('저장하지 못했어요. 잠시 후 다시 해보세요.');
       }
     });
   }
@@ -326,7 +326,7 @@ export function RoutineDayView({ blocks, checks, days }: Props) {
 
       {rows.length === 0 ? (
         <div className="rounded-md border border-dashed border-zinc-300 p-6 text-center text-xs text-zinc-500 dark:border-zinc-700">
-          아직 만든 시간블록이 없어요.
+          아직 만든 루틴이 없어요.
         </div>
       ) : (
         <DndContext
@@ -377,13 +377,13 @@ export function RoutineDayView({ blocks, checks, days }: Props) {
 
       <ConfirmDialog
         open={!!deleteTarget}
-        title="시간블록 삭제"
+        title="루틴 삭제"
         description={
           <p>
             <span className="font-medium text-zinc-900 dark:text-zinc-100">
               {deleteTarget?.label}
             </span>
-            을(를) 삭제할까요? 이 블록의 체크 이력도 같이 사라져요.
+            을(를) 삭제할까요? 이 루틴의 체크 기록도 같이 사라져요.
           </p>
         }
         confirmLabel={isPending ? '삭제 중…' : '삭제'}
@@ -485,7 +485,7 @@ function SortableBlockItem({
               disabled={isPending}
               autoFocus
               maxLength={100}
-              aria-label="라벨"
+              aria-label="루틴 이름"
               className="min-w-0 flex-1 rounded border border-zinc-300 bg-white px-2 py-1 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
             />
             <IconButton

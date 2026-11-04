@@ -384,7 +384,7 @@ function CompletionBody({
         </span>
         {skipped > 0 ? (
           <span className="rounded-full bg-zinc-100 px-3 py-1 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-            미체크 {skipped}
+            표시 안 함 {skipped}
           </span>
         ) : null}
       </div>

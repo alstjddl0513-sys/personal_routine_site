@@ -54,7 +54,7 @@ export function AddTimeBlockRow({
     return (
       <label className="flex w-full max-w-90 items-center gap-2 rounded-md border border-dashed border-btn-border px-2.5 text-ink-muted focus-within:border-primary">
         <Plus className="h-3.5 w-3.5 shrink-0" strokeWidth={2.2} aria-hidden />
-        <span className="sr-only">새 블록 추가</span>
+        <span className="sr-only">새 루틴 추가</span>
         <input
           type="text"
           value={value}
@@ -70,7 +70,7 @@ export function AddTimeBlockRow({
           }}
           onBlur={submit}
           maxLength={100}
-          placeholder="블록 이름 (예: 아침 운동)"
+          placeholder="루틴 이름 (예: 아침 운동)"
           disabled={saving}
           className="h-9.5 min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-ink-faint"
         />
@@ -86,7 +86,7 @@ export function AddTimeBlockRow({
         className="inline-flex items-center gap-1.5 rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
       >
         <Plus className="h-3.5 w-3.5" aria-hidden />
-        블록 추가
+        루틴 추가
       </button>
     );
   }
@@ -108,7 +108,7 @@ export function AddTimeBlockRow({
         }}
         onBlur={submit}
         maxLength={100}
-        placeholder="블록 이름 (예: 아침 운동)"
+        placeholder="루틴 이름 (예: 아침 운동)"
         disabled={saving}
         className="min-w-0 flex-1 rounded border border-zinc-400 bg-white px-2 py-1 text-sm outline-none focus:border-zinc-600 md:max-w-64 dark:border-zinc-500 dark:bg-zinc-950"
       />

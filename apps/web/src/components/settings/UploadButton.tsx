@@ -59,7 +59,8 @@ export function UploadButton({ kind, maxBytes, title }: Props) {
         await uploadDocumentFile(uploadUrl, file);
         router.refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : '업로드에 실패했어요.');
+        console.error(err);
+        setError('올리지 못했어요. 잠시 후 다시 해보세요.');
       }
     });
   }
