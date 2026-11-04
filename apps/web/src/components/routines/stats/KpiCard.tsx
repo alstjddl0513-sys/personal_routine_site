@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 
 export interface KpiPeriod {
   // 총 체크 수.
@@ -19,53 +20,78 @@ interface Props {
   // 표시용 라벨 (예: "10월 1주차" / "10월"). 주차는 ISO 비슷 — 목요일 기준 소속 월.
   weekLabel: string;
   monthLabel: string;
+  // 라벨 옆 날짜 범위 (예: "11.02 – 11.08" / "11.01 – 11.30").
+  weekRange: string;
+  monthRange: string;
 }
 
 type Scope = 'week' | 'month';
 
-export function KpiCard({ weekly, monthly, weekLabel, monthLabel }: Props) {
+// 요약 띠 — 카드 없이 위아래 선. [주 | 월]은 이 띠의 지표 3개에만 영향이라 띠 머리 줄에.
+// 막대는 목표를 다 채웠을 때만 메리골드(완료한 날 = 전체 일수, 달성률 100%).
+export function KpiCard({
+  weekly,
+  monthly,
+  weekLabel,
+  monthLabel,
+  weekRange,
+  monthRange,
+}: Props) {
   const [scope, setScope] = useState<Scope>('week');
   const data = scope === 'week' ? weekly : monthly;
   const possible = data.blockCount * data.totalDays;
   const rate = possible > 0 ? Math.round((data.checkCount / possible) * 100) : 0;
   const titleLabel = scope === 'week' ? weekLabel : monthLabel;
+  const range = scope === 'week' ? weekRange : monthRange;
+  const allDone = data.totalDays > 0 && data.doneDays >= data.totalDays;
 
   return (
     <section
-      aria-label={`${titleLabel} 요약`}
-      className="rounded-md border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950 sm:p-4"
+      aria-labelledby="kpi-title"
+      className="flex flex-col gap-1.5 border-y border-rule pt-3.5 pb-5.5"
     >
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2 sm:mb-3">
-        <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          {titleLabel}
+      <div className="mb-2.5 flex flex-wrap items-center justify-between gap-3">
+        <h2 id="kpi-title" className="text-[17px] font-bold text-heading">
+          {titleLabel}{' '}
+          <span className="text-sm font-medium text-ink-muted">{range}</span>
         </h2>
         <div
-          role="tablist"
-          aria-label="기간 전환"
-          className="flex rounded-md border border-zinc-200 bg-zinc-50 p-0.5 text-[11px] dark:border-zinc-800 dark:bg-zinc-900"
+          role="group"
+          aria-label="기간"
+          className="inline-flex overflow-hidden rounded-md border border-btn-border"
         >
-          <ToggleButton
-            active={scope === 'week'}
-            onClick={() => setScope('week')}
-          >
+          <ToggleButton active={scope === 'week'} onClick={() => setScope('week')} edge="left">
             주
           </ToggleButton>
-          <ToggleButton
-            active={scope === 'month'}
-            onClick={() => setScope('month')}
-          >
+          <ToggleButton active={scope === 'month'} onClick={() => setScope('month')} edge="right">
             월
           </ToggleButton>
         </div>
       </div>
-      <div className="grid grid-cols-3 gap-2 sm:gap-3">
-        <Metric label="체크 수" value={data.checkCount} unit="회" />
+      <div className="grid grid-cols-3">
+        <Metric label="체크" value={data.checkCount} unit="회" />
         <Metric
-          label="완료 일수"
+          label="완료한 날"
           value={data.doneDays}
-          unit={`/${data.totalDays}일`}
+          unit={`/ ${data.totalDays}일`}
+          tip="블록을 전부 체크한 날만 세요"
+          pct={data.totalDays > 0 ? (data.doneDays / data.totalDays) * 100 : 0}
+          goal={allDone}
         />
-        <Metric label="평균 달성률" value={rate} unit="%" />
+        <Metric
+          label="평균 달성률"
+          value={rate}
+          unit="%"
+          tip={`${possible}칸 중 ${data.checkCount}칸 체크`}
+          pct={rate}
+          goal={rate >= 100}
+        >
+          {data.checkCount === 0 ? (
+            <Link href="/routines" className="text-[13px] text-heading hover:underline">
+              트래커에서 오늘 체크하기 ›
+            </Link>
+          ) : null}
+        </Metric>
       </div>
     </section>
   );
@@ -74,22 +100,25 @@ export function KpiCard({ weekly, monthly, weekLabel, monthLabel }: Props) {
 function ToggleButton({
   active,
   onClick,
+  edge,
   children,
 }: {
   active: boolean;
   onClick: () => void;
+  edge: 'left' | 'right';
   children: React.ReactNode;
 }) {
   return (
     <button
       type="button"
-      role="tab"
-      aria-selected={active}
+      aria-pressed={active}
       onClick={onClick}
-      className={`rounded px-2 py-0.5 transition-colors ${
+      className={`min-h-10 min-w-14 cursor-pointer px-3.5 text-sm text-heading ${
+        edge === 'right' ? 'border-l border-btn-border' : ''
+      } ${
         active
-          ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-100'
-          : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'
+          ? 'bg-chip-on-bg font-bold shadow-[inset_0_0_0_2px_var(--rally-chip-on-border)]'
+          : 'bg-btn-bg hover:bg-row-hover'
       }`}
     >
       {children}
@@ -101,24 +130,47 @@ function Metric({
   label,
   value,
   unit,
+  tip,
+  pct,
+  goal,
+  children,
 }: {
   label: string;
   value: number;
   unit: string;
+  tip?: string;
+  /** 있으면 6px 막대 */
+  pct?: number;
+  /** 목표를 다 채움 → 메리골드 */
+  goal?: boolean;
+  children?: React.ReactNode;
 }) {
+  const zero = value === 0;
   return (
-    <div className="flex flex-col items-center justify-center gap-0.5">
-      <span className="text-[10px] text-zinc-500 dark:text-zinc-400 sm:text-xs">
-        {label}
-      </span>
-      <span className="flex items-baseline gap-0.5">
-        <span className="text-xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-100 sm:text-2xl">
+    <div
+      title={tip}
+      className="flex flex-col gap-1.5 border-rule px-7 first:pl-0 not-first:border-l"
+    >
+      <span className="text-sm font-semibold text-ink-soft">{label}</span>
+      <span className="flex items-baseline gap-1">
+        <span
+          className={`text-[40px] leading-[1.1] font-semibold tracking-[-0.02em] ${
+            zero ? 'text-ink-muted' : 'text-ink-strong'
+          }`}
+        >
           {value}
         </span>
-        <span className="text-[10px] text-zinc-500 dark:text-zinc-400 sm:text-xs">
-          {unit}
-        </span>
+        <span className={`text-base ${zero ? 'text-ink-muted' : 'text-ink-soft'}`}>{unit}</span>
       </span>
+      {pct !== undefined ? (
+        <span className="block h-1.5 max-w-60 bg-track">
+          <span
+            className={`block h-full ${goal ? 'bg-marigold' : 'bg-primary'}`}
+            style={{ width: `${Math.max(0, Math.min(100, pct))}%` }}
+          />
+        </span>
+      ) : null}
+      {children}
     </div>
   );
 }

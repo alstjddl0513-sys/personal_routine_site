@@ -13,25 +13,18 @@ interface Props {
   today: Date;
 }
 
-// 블록 하나의 "이번달" 요약 카드:
-// 상단: 라벨 + 달성률 % 뱃지
-// 중앙: 요일 헤더 + 미니 월 격자 (체크/미체크/미래)
-// 하단: 완료 일수 + 현재 연속일수 (있을 때만)
+// 블록 하나의 "이번달" 카드: 왼쪽 이름 · 체크한 날 · 그 블록 연속 / 오른쪽 미니 달력.
+// 칸: 체크 primary · 안 한 날 track · 미래 divider 테두리 · 다른 달 비움 · 오늘 링.
 export function BlockMonthCard({ block, month, checks, today }: Props) {
   const todayIso = toISODate(today);
   const checkedSet = new Set(checks.map((c) => c.date));
 
-  // 분모: 이번달 전체 일수 (10월이면 31). "진행률" 개념 — 월 지날수록 자연스럽게 증가.
-  // 오늘까지만 세면 월 초에 1/1=100%가 되어 격자(1칸)와 숫자(100%)가 어긋남.
   const inMonthDates: string[] = [];
   for (const d of month.gridDays) {
     if (d.getMonth() + 1 !== month.month) continue;
     inMonthDates.push(toISODate(d));
   }
   const done = inMonthDates.filter((iso) => checkedSet.has(iso)).length;
-  const rate = inMonthDates.length > 0
-    ? Math.round((done / inMonthDates.length) * 100)
-    : 0;
 
   // 현재 연속일수: 오늘부터 뒤로 가며 세기. 오늘 아직 체크 안 됐으면 어제부터.
   let streak = 0;
@@ -44,78 +37,63 @@ export function BlockMonthCard({ block, month, checks, today }: Props) {
     cursor = addDays(cursor, -1);
   }
 
-  const rateColor =
-    rate >= 80
-      ? 'text-emerald-600 dark:text-emerald-400'
-      : rate >= 50
-        ? 'text-emerald-500 dark:text-emerald-400'
-        : 'text-zinc-500 dark:text-zinc-400';
-
   return (
-    <article className="flex flex-col gap-2 rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
-      <header className="flex items-start justify-between gap-2">
-        <h3
-          className="min-w-0 flex-1 truncate text-sm font-medium text-zinc-800 dark:text-zinc-200"
-          title={block.label}
-        >
+    <article className="flex items-stretch gap-4 rounded-lg border border-line bg-surface px-4.5 py-4">
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <h3 className="truncate text-[15px] font-bold text-ink" title={block.label}>
           {block.label}
         </h3>
-        <span className={`shrink-0 text-sm font-semibold tabular-nums ${rateColor}`}>
-          {rate}%
+        <span className="mt-1.5 flex items-baseline gap-0.75">
+          <span className="text-[26px] leading-[1.1] font-semibold text-ink">{done}</span>
+          <span className="text-[13px] text-ink-soft">일 체크</span>
         </span>
-      </header>
-
-      <div className="grid grid-cols-7 gap-0.5" aria-hidden>
-        {['월', '화', '수', '목', '금', '토', '일'].map((d) => (
-          <div
-            key={d}
-            className="text-center text-[9px] text-zinc-400 dark:text-zinc-600"
-          >
-            {d}
-          </div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-7 gap-0.5">
-        {month.gridDays.map((d) => {
-          const iso = toISODate(d);
-          const inMonth = d.getMonth() + 1 === month.month;
-          const isFuture = iso > todayIso;
-          const isToday = iso === todayIso;
-          const checked = checkedSet.has(iso);
-
-          if (!inMonth) {
-            return <div key={iso} className="h-5" aria-hidden />;
-          }
-
-          return (
-            <div
-              key={iso}
-              title={`${iso} ${checked ? '완료' : isFuture ? '예정' : '미완료'}`}
-              className={`h-4 rounded-sm ${
-                checked
-                  ? 'bg-emerald-500 dark:bg-emerald-400'
-                  : isFuture
-                    ? 'border border-dashed border-zinc-200 dark:border-zinc-700'
-                    : 'bg-zinc-100 dark:bg-zinc-800'
-              } ${isToday ? 'ring-1 ring-zinc-500 dark:ring-zinc-400' : ''}`}
-            />
-          );
-        })}
-      </div>
-
-      <footer className="flex items-center justify-between text-[10px] text-zinc-500 dark:text-zinc-400">
-        <span>
-          <span className="tabular-nums">{done}</span>일 완료
+        <span className="mt-auto text-[13px] leading-[1.4] text-ink-soft">
+          {streak > 0 ? (
+            `지금 ${streak}일째`
+          ) : (
+            <span className="text-ink-muted">오늘 체크하면 다시 시작해요</span>
+          )}
         </span>
-        {streak > 0 ? (
-          <span>
-            지금 <span className="tabular-nums">{streak}</span>일째
-          </span>
-        ) : (
-          <span>&nbsp;</span>
-        )}
-      </footer>
+      </div>
+      <div
+        role="img"
+        aria-label={`${block.label}, ${month.month}월에 ${done}일 체크`}
+        className="flex shrink-0 flex-col gap-1"
+      >
+        <div className="grid grid-cols-[repeat(7,16px)] gap-1 text-center text-[10px] leading-none text-ink-muted">
+          {['월', '화', '수', '목', '금', '토', '일'].map((d) => (
+            <span key={d}>{d}</span>
+          ))}
+        </div>
+        <div className="grid grid-cols-[repeat(7,16px)] gap-1">
+          {month.gridDays.map((d) => {
+            const iso = toISODate(d);
+            const inMonth = d.getMonth() + 1 === month.month;
+            if (!inMonth) return <span key={iso} className="h-4 w-4" />;
+            const isFuture = iso > todayIso;
+            const isToday = iso === todayIso;
+            const checked = checkedSet.has(iso);
+            return (
+              <span
+                key={iso}
+                className={`h-4 w-4 rounded-[3px] ${cellClass(checked, isFuture, isToday)}`}
+              />
+            );
+          })}
+        </div>
+      </div>
     </article>
   );
+}
+
+// 오늘 링: 라이트 button색, 다크 primary(다크 button색은 어두운 칸 위에서 안 보여서).
+function cellClass(checked: boolean, isFuture: boolean, isToday: boolean): string {
+  if (isToday) {
+    return checked
+      ? 'bg-primary shadow-[0_0_0_1.5px_var(--rally-surface),0_0_0_3px_var(--rally-button)] dark:shadow-[0_0_0_1.5px_var(--rally-surface),0_0_0_3px_var(--rally-primary)]'
+      : 'shadow-[inset_0_0_0_1.5px_var(--rally-button)] dark:shadow-[inset_0_0_0_1.5px_var(--rally-primary)]';
+  }
+  if (checked) return 'bg-primary';
+  if (isFuture) return 'shadow-[inset_0_0_0_1px_var(--rally-divider)]';
+  return 'bg-track';
 }
