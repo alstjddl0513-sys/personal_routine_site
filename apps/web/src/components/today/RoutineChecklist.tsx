@@ -64,7 +64,12 @@ export function RoutineChecklist({
           </span>
         }
       />
-      <ProgressBar pct={items.length ? (done / items.length) * 100 : 0} className="mt-1 h-0.75" />
+      <ProgressBar
+        pct={items.length ? (done / items.length) * 100 : 0}
+        className="mt-1 h-0.75"
+        // 오늘 블록을 전부 체크하면 목표 달성 — 메리골드
+        barClassName={items.length > 0 && done === items.length ? 'bg-marigold' : 'bg-primary'}
+      />
       <ul className="flex flex-col">
         {items.map((item) => {
           const on = checked.has(item.id);

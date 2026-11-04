@@ -45,7 +45,7 @@ description: Rally 페이지를 숲색·메리골드 시안(docs/design/rally-*.
 | #E6EEE8 + #1F3D30 | `bg-chip-on-bg` + `chip-on-border` | 선택 상태(칩·선택한 날) |
 | #F2F4F1 | `bg-row-hover` | 행 hover |
 | #A33B20 / #9A6700 | `text-alert` / `text-warn` | 마감 오늘·내일 / D-2~3, 변경사항 있음 |
-| #E9B949 | `bg-marigold` | 포인트만: 로고·챌린지 바·목표 달성 바 |
+| #E9B949 | `bg-marigold` | 포인트만: 로고·챌린지 바·**목표를 다 채운 막대**(평소 `bg-primary`, 100%면 `bg-marigold`). 비교용 막대는 100%여도 primary. 적용 현황·남은 곳은 references.md '색' |
 | 일정 유형 | `components/calendar/event-tone.ts` `EVENT_TONE` | 마감·시험·면접·발표·기타 점+글자 |
 | 지원 상태 | `bg-st-*` | 채용 상태 점 |
 
