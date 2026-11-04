@@ -7,6 +7,7 @@ import {
   type RoutineChallengeWithProgress,
   type TimeBlock,
 } from '@repo/shared';
+import { BUTTON_PRIMARY } from '../../jobs/cells/popover-style';
 import { ChallengeCard } from './ChallengeCard';
 import { CreateChallengeModal } from './CreateChallengeModal';
 
@@ -55,37 +56,38 @@ export function ChallengesList({ challenges, blocks }: Props) {
   const abandonedCount = pastList.filter((c) => c.status === 'abandoned').length;
   const atLimit = activeList.length >= MAX_ACTIVE_CHALLENGES;
 
+  const openCreate = () => setOpen(true);
+
   return (
-    <section className="flex flex-col gap-2">
-      <div className="flex items-center justify-between">
-        <div className="flex items-baseline gap-2">
-          <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-            챌린지
-          </h2>
-          <span className="text-[11px] tabular-nums text-zinc-500 dark:text-zinc-400">
-            진행 중 {activeList.length} / {MAX_ACTIVE_CHALLENGES}
+    <section aria-labelledby="challenge-title" className="flex flex-col gap-3.5">
+      <div className="flex items-center justify-between gap-3">
+        <h2 id="challenge-title" className="text-[17px] font-bold text-heading">
+          챌린지{' '}
+          <span className="font-medium text-ink-muted">
+            · 진행 중 {activeList.length}/{MAX_ACTIVE_CHALLENGES}
           </span>
-        </div>
+        </h2>
         <button
           type="button"
-          onClick={() => setOpen(true)}
+          onClick={openCreate}
           disabled={atLimit}
           title={atLimit ? `진행 중 최대 ${MAX_ACTIVE_CHALLENGES}개까지 가능` : undefined}
-          className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-zinc-500 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+          className="inline-flex min-h-10 cursor-pointer items-center gap-1.5 rounded-md border border-btn-border bg-btn-bg px-3.5 text-sm font-medium text-btn-fg hover:border-heading disabled:cursor-not-allowed disabled:border-divider disabled:bg-transparent disabled:text-icon-faint"
         >
-          <Plus className="h-3.5 w-3.5" aria-hidden />
+          <Plus className="h-3.5 w-3.5" strokeWidth={2.2} aria-hidden />
           추가
         </button>
       </div>
 
-      {activeList.length === 0 && pastList.length === 0 ? (
-        <div className="rounded-md border border-dashed border-zinc-300 p-6 text-center text-xs text-zinc-500 dark:border-zinc-700">
-          {'"100일 아침 운동" 같은 목표를 세워보세요.'}
+      {activeList.length === 0 ? (
+        <div className="flex flex-col items-center gap-3.5 rounded-lg border border-dashed border-btn-border bg-surface px-8 py-9 text-center">
+          <p className="text-ink-soft">{'"100일 아침 운동" 같은 목표를 세워보세요.'}</p>
+          <button type="button" onClick={openCreate} className={BUTTON_PRIMARY}>
+            + 챌린지 추가
+          </button>
         </div>
-      ) : null}
-
-      {activeList.length > 0 ? (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+      ) : (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {activeList.map((c) => (
             <ChallengeCard
               key={c.id}
@@ -96,41 +98,43 @@ export function ChallengesList({ challenges, blocks }: Props) {
             />
           ))}
         </div>
-      ) : null}
+      )}
 
       {pastList.length > 0 ? (
-        <div className="mt-1 flex flex-col gap-2 border-t border-zinc-100 pt-2 dark:border-zinc-800">
+        <div className="flex max-w-180 flex-col">
           <button
             type="button"
             onClick={() => setShowPast((v) => !v)}
             aria-expanded={showPast}
-            className="inline-flex items-center gap-1 self-start rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-200"
+            className="inline-flex min-h-10 cursor-pointer items-center gap-1.5 self-start px-1 text-sm font-medium text-ink-soft hover:text-ink"
           >
             <ChevronDown
               className={`h-3.5 w-3.5 shrink-0 transition-transform ${
-                showPast ? 'rotate-180' : ''
+                showPast ? '' : '-rotate-90'
               }`}
+              strokeWidth={2}
               aria-hidden
             />
             지난 챌린지
-            <span className="tabular-nums text-zinc-400 dark:text-zinc-600">
+            <span className="text-ink-muted">
               ({completedCount > 0 ? `완료 ${completedCount}` : ''}
               {completedCount > 0 && abandonedCount > 0 ? ' · ' : ''}
               {abandonedCount > 0 ? `포기 ${abandonedCount}` : ''})
             </span>
           </button>
           {showPast ? (
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+            <ul className="border-t border-divider">
               {pastList.map((c) => (
                 <ChallengeCard
                   key={c.id}
+                  variant="row"
                   challenge={c}
                   blocksById={blocksById}
                   onDeleted={onDeleted}
                   onPatched={onPatched}
                 />
               ))}
-            </div>
+            </ul>
           ) : null}
         </div>
       ) : null}

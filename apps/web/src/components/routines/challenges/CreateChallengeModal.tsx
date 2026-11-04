@@ -2,13 +2,22 @@
 
 import { useEffect, useState, useTransition, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { X } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import type {
   RoutineChallengeWithProgress,
   TimeBlock,
 } from '@repo/shared';
 import { createRoutineChallenge } from '../../../lib/api';
 import { Portal } from '../../ui/Portal';
+import {
+  BUTTON_PRIMARY,
+  BUTTON_SECONDARY,
+  POPOVER_CLOSE,
+} from '../../jobs/cells/popover-style';
+
+const FIELD_LABEL = 'flex flex-col gap-1.5 text-sm font-semibold text-ink-soft';
+const FIELD_INPUT =
+  'min-h-11 rounded-md border border-btn-border bg-surface px-3 text-[15px] font-normal text-ink outline-none placeholder:text-ink-faint focus:border-primary';
 
 interface Props {
   open: boolean;
@@ -49,6 +58,8 @@ function ModalBody({
   const [targetDays, setTargetDays] = useState(100);
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
   const [error, setError] = useState<string | null>(null);
+  // 블록을 한 번이라도 건드린 뒤 0개가 되면 경고 — 처음 열자마자 빨간 글자 X.
+  const [touchedBlocks, setTouchedBlocks] = useState(false);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -64,6 +75,7 @@ function ModalBody({
   }, [onClose]);
 
   function toggleBlock(id: string) {
+    setTouchedBlocks(true);
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -126,33 +138,28 @@ function ModalBody({
       >
         <div
           onClick={(e) => e.stopPropagation()}
-          className="flex max-h-[85vh] w-full flex-col overflow-hidden rounded-t-2xl border border-zinc-200 bg-white shadow-lg pb-[env(safe-area-inset-bottom)] md:max-h-[calc(100vh-2rem)] md:max-w-md md:rounded-lg md:pb-0 dark:border-zinc-800 dark:bg-zinc-950"
+          className="flex max-h-[85vh] w-full flex-col overflow-hidden rounded-t-2xl bg-surface font-plex text-ink shadow-lg pb-[env(safe-area-inset-bottom)] md:max-h-[calc(100vh-2rem)] md:max-w-120 md:rounded-lg md:pb-0"
         >
-          <header className="flex items-center justify-between border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
-            <h2
-              id="create-challenge-title"
-              className="text-sm font-semibold text-zinc-800 dark:text-zinc-200"
-            >
-              챌린지 추가
-            </h2>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="닫기"
-              className="inline-flex h-7 w-7 items-center justify-center rounded text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-            >
-              <X className="h-4 w-4" aria-hidden />
-            </button>
-          </header>
-
           <form
             onSubmit={submit}
-            className="flex flex-col gap-3 overflow-y-auto p-4"
+            className="flex flex-col gap-4.5 overflow-y-auto px-7 pt-6 pb-6"
           >
-            <label className="flex flex-col gap-1 text-xs">
-              <span className="font-medium text-zinc-700 dark:text-zinc-300">
-                제목
-              </span>
+            <header className="-mr-2.5 flex items-center justify-between gap-2">
+              <h2 id="create-challenge-title" className="text-xl font-bold">
+                새 챌린지
+              </h2>
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="닫기"
+                className={POPOVER_CLOSE.replace('-mr-2 ', '')}
+              >
+                <X className="h-4 w-4" aria-hidden />
+              </button>
+            </header>
+
+            <label className={FIELD_LABEL}>
+              제목
               <input
                 type="text"
                 value={title}
@@ -160,84 +167,97 @@ function ModalBody({
                 placeholder="예: 100일 아침 운동"
                 maxLength={100}
                 autoFocus
-                className="rounded border border-zinc-300 bg-white px-2 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                className={FIELD_INPUT}
               />
             </label>
 
-            <div className="grid grid-cols-2 gap-2">
-              <label className="flex flex-col gap-1 text-xs">
-                <span className="font-medium text-zinc-700 dark:text-zinc-300">
-                  시작일
-                </span>
+            <div className="grid grid-cols-2 gap-3">
+              <label className={FIELD_LABEL}>
+                시작일
                 <input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
                   required
-                  className="rounded border border-zinc-300 bg-white px-2 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                  className={FIELD_INPUT}
                 />
               </label>
-              <label className="flex flex-col gap-1 text-xs">
-                <span className="font-medium text-zinc-700 dark:text-zinc-300">
-                  목표 일수
+              <label className={FIELD_LABEL}>
+                목표 일수
+                <span className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    value={targetDays}
+                    onChange={(e) => setTargetDays(Number(e.target.value))}
+                    min={1}
+                    max={365}
+                    required
+                    className={`${FIELD_INPUT} w-full min-w-0`}
+                  />
+                  <span className="font-normal">일</span>
                 </span>
-                <input
-                  type="number"
-                  value={targetDays}
-                  onChange={(e) => setTargetDays(Number(e.target.value))}
-                  min={1}
-                  max={365}
-                  required
-                  className="rounded border border-zinc-300 bg-white px-2 py-1.5 text-sm tabular-nums dark:border-zinc-700 dark:bg-zinc-900"
-                />
               </label>
             </div>
 
-            <div className="flex flex-col gap-1">
-              <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
-                포함할 블록 (최소 1개)
-              </span>
+            <fieldset className="flex flex-col gap-1.5">
+              <legend className="mb-1.5 text-sm font-semibold text-ink-soft">
+                포함할 블록 <span className="font-normal text-ink-muted">· 1개 이상</span>
+              </legend>
               {blocks.length === 0 ? (
-                <p className="rounded border border-dashed border-zinc-300 p-3 text-center text-xs text-zinc-500 dark:border-zinc-700">
-                  먼저 트래커에서 블록을 추가해주세요.
-                </p>
+                <p className="text-sm text-ink-muted">먼저 트래커에서 블록을 추가해보세요.</p>
               ) : (
-                <div className="flex flex-col gap-1 rounded border border-zinc-200 p-2 dark:border-zinc-800">
-                  {blocks.map((b) => (
-                    <label
-                      key={b.id}
-                      className="flex items-center gap-2 rounded px-1.5 py-1 text-xs hover:bg-zinc-50 dark:hover:bg-zinc-900"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selected.has(b.id)}
-                        onChange={() => toggleBlock(b.id)}
-                        className="h-4 w-4 cursor-pointer rounded border-zinc-300 accent-zinc-900 dark:border-zinc-600 dark:accent-zinc-100"
-                      />
-                      <span className="min-w-0 flex-1 truncate">{b.label}</span>
-                    </label>
-                  ))}
+                <div className="grid grid-cols-2 gap-x-3">
+                  {blocks.map((b) => {
+                    const on = selected.has(b.id);
+                    return (
+                      <label
+                        key={b.id}
+                        className="flex min-h-10 min-w-0 cursor-pointer items-center gap-2.5"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={on}
+                          onChange={() => toggleBlock(b.id)}
+                          className="peer sr-only"
+                        />
+                        <span
+                          aria-hidden
+                          className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-[5px] peer-focus-visible:ring-2 peer-focus-visible:ring-primary/40 ${
+                            on ? 'bg-primary' : 'border-[1.5px] border-check-off'
+                          }`}
+                        >
+                          {on ? (
+                            <Check className="h-3.25 w-3.25 text-white dark:text-paper" strokeWidth={3.2} />
+                          ) : null}
+                        </span>
+                        <span className="min-w-0 flex-1 truncate">{b.label}</span>
+                      </label>
+                    );
+                  })}
                 </div>
               )}
-            </div>
+              {touchedBlocks && selected.size === 0 ? (
+                <p className="text-[13px] text-alert">블록을 하나 이상 선택해주세요.</p>
+              ) : null}
+            </fieldset>
 
-            {error ? (
-              <p className="text-xs text-rose-600 dark:text-rose-400">{error}</p>
-            ) : null}
+            <p className="text-[13px] text-ink-muted">선택한 블록을 모두 체크한 날이 1일로 쌓여요.</p>
 
-            <div className="flex items-center justify-end gap-2 border-t border-zinc-100 pt-3 dark:border-zinc-800">
+            {error ? <p className="text-[13px] text-alert">{error}</p> : null}
+
+            <div className="flex items-center justify-end gap-2">
               <button
                 type="button"
                 onClick={onClose}
                 disabled={isPending}
-                className="rounded border border-zinc-200 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                className={`${BUTTON_SECONDARY} min-h-11 px-4.5`}
               >
                 취소
               </button>
               <button
                 type="submit"
-                disabled={isPending || blocks.length === 0}
-                className="rounded bg-zinc-900 px-3 py-1.5 text-sm text-white hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+                disabled={isPending || selected.size === 0}
+                className={`${BUTTON_PRIMARY} min-h-11 disabled:cursor-not-allowed`}
               >
                 {isPending ? '만드는 중…' : '만들기'}
               </button>

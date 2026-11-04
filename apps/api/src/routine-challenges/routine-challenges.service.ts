@@ -63,13 +63,22 @@ export class RoutineChallengesService {
 
     for (const r of rows) {
       const blockIds = blocksByChallenge.get(r.id) ?? [];
+      // 끝난 챌린지는 끝난 날까지만 셈 — 포기·완료 뒤에 같은 블록을 체크해도
+      // "12 / 50일에서 멈춤" 같은 기록이 늘지 않게.
+      const endedAt =
+        r.status === 'completed'
+          ? r.completedAt
+          : r.status === 'abandoned'
+            ? r.abandonedAt
+            : null;
+      const until = endedAt ? isoDateInSeoul(new Date(endedAt)) : today;
       let successDays = 0;
       if (blockIds.length > 0) {
         successDays = await this.countSuccessDays(
           ownerId,
           blockIds,
           r.startDate,
-          today,
+          until,
         );
       }
 
@@ -121,7 +130,7 @@ export class RoutineChallengesService {
     return results;
   }
 
-  // 성공 일수 = start_date~today 범위에서 "모든 blockIds가 체크된 날"의 수.
+  // 성공 일수 = start_date~until(진행 중이면 오늘, 끝났으면 끝난 날) 범위에서 "모든 blockIds가 체크된 날"의 수.
   // 체크 count per date = blockIds.length면 성공.
   private async countSuccessDays(
     ownerId: string,
@@ -258,13 +267,17 @@ export class RoutineChallengesService {
 }
 
 function isoToday(): string {
-  // Seoul 기준 오늘. 서버가 UTC여도 KST 날짜로.
+  return isoDateInSeoul(new Date());
+}
+
+// Seoul 기준 날짜(YYYY-MM-DD). 서버가 UTC여도 KST 날짜로.
+function isoDateInSeoul(d: Date): string {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Asia/Seoul',
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
-  }).formatToParts(new Date());
+  }).formatToParts(d);
   const get = (t: string) => parts.find((p) => p.type === t)!.value;
   return `${get('year')}-${get('month')}-${get('day')}`;
 }

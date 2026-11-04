@@ -5,7 +5,15 @@ import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { createTimeBlock } from '../../lib/api';
 
-export function AddTimeBlockRow({ nextSortOrder }: { nextSortOrder: number }) {
+// variant 'table': 데스크톱 표 맨 아래 — 늘 보이는 점선 입력칸.
+// 기본(모바일 DayView): [+ 블록 추가] 버튼 → 누르면 입력칸.
+export function AddTimeBlockRow({
+  nextSortOrder,
+  variant,
+}: {
+  nextSortOrder: number;
+  variant?: 'table';
+}) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState('');
@@ -40,6 +48,34 @@ export function AddTimeBlockRow({ nextSortOrder }: { nextSortOrder: number }) {
         submittedRef.current = false;
       }
     });
+  }
+
+  if (variant === 'table') {
+    return (
+      <label className="flex w-full max-w-90 items-center gap-2 rounded-md border border-dashed border-btn-border px-2.5 text-ink-muted focus-within:border-primary">
+        <Plus className="h-3.5 w-3.5 shrink-0" strokeWidth={2.2} aria-hidden />
+        <span className="sr-only">새 블록 추가</span>
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              submit();
+            } else if (e.key === 'Escape') {
+              setValue('');
+              e.currentTarget.blur();
+            }
+          }}
+          onBlur={submit}
+          maxLength={100}
+          placeholder="블록 이름 (예: 아침 운동)"
+          disabled={saving}
+          className="h-9.5 min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-ink-faint"
+        />
+      </label>
+    );
   }
 
   if (!editing) {

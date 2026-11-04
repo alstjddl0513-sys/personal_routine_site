@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Flame, Target, Trophy, X } from 'lucide-react';
+import { Check, Trash2, X } from 'lucide-react';
 import type {
   RoutineChallengeWithProgress,
   TimeBlock,
@@ -15,6 +15,8 @@ import { ConfirmDialog } from '../../ui/ConfirmDialog';
 
 interface Props {
   challenge: RoutineChallengeWithProgress;
+  /** card = 진행 중 카드 / row = 지난 챌린지 목록 한 줄 */
+  variant?: 'card' | 'row';
   blocksById: Map<string, TimeBlock>;
   onDeleted: (id: string) => void;
   onPatched: (c: RoutineChallengeWithProgress) => void;
@@ -22,6 +24,7 @@ interface Props {
 
 export function ChallengeCard({
   challenge,
+  variant = 'card',
   blocksById,
   onDeleted,
   onPatched,
@@ -39,7 +42,6 @@ export function ChallengeCard({
       : 0;
 
   const isDone = challenge.status === 'completed';
-  const isAbandoned = challenge.status === 'abandoned';
   const isActive = challenge.status === 'active';
 
   const blocks = challenge.blockIds
@@ -82,109 +84,94 @@ export function ChallengeCard({
     });
   }
 
+  const deleteButton = (
+    <button
+      type="button"
+      onClick={() => setConfirm('delete')}
+      disabled={isPending}
+      aria-label={`${challenge.title} 삭제`}
+      className="inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-md text-ink-muted hover:text-alert disabled:opacity-50"
+    >
+      <Trash2 className="h-3.75 w-3.75" strokeWidth={1.8} aria-hidden />
+    </button>
+  );
+
   return (
     <>
-      <article
-        className={`flex flex-col gap-2 rounded-md border p-3 ${
-          isDone
-            ? 'border-emerald-200 bg-emerald-50/40 dark:border-emerald-900/40 dark:bg-emerald-950/20'
-            : isAbandoned
-              ? 'border-zinc-200 bg-zinc-50 opacity-60 dark:border-zinc-800 dark:bg-zinc-900/50'
-              : 'border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950'
-        }`}
-      >
-      <header className="flex items-start justify-between gap-2">
-        <div className="flex min-w-0 flex-1 items-start gap-1.5">
-          {isDone ? (
-            <Trophy
-              className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400"
-              aria-hidden
-            />
-          ) : isActive ? (
-            <Flame
-              className="h-4 w-4 shrink-0 text-amber-500"
-              aria-hidden
-            />
-          ) : (
-            <Target
-              className="h-4 w-4 shrink-0 text-zinc-400"
-              aria-hidden
-            />
-          )}
-          <h3 className="min-w-0 truncate text-sm font-medium text-zinc-800 dark:text-zinc-200">
-            {challenge.title}
-          </h3>
-        </div>
-        <DdayBadge
-          status={challenge.status}
-          remainingDays={challenge.remainingDays}
-        />
-      </header>
-
-      <div className="flex items-baseline justify-between gap-2 text-xs">
-        <span className="tabular-nums text-zinc-700 dark:text-zinc-300">
-          <span className="font-semibold text-base">{challenge.successDays}</span>
-          <span className="text-zinc-500 dark:text-zinc-400"> / {challenge.targetDays}일</span>
-        </span>
-        <span className="tabular-nums text-zinc-500 dark:text-zinc-400">
-          {pct}%
-        </span>
-      </div>
-
-      <div className="h-1.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
-        <div
-          className={`h-full rounded-full transition-all ${
-            isDone ? 'bg-emerald-500' : 'bg-emerald-400'
-          }`}
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-
-      <div className="flex flex-wrap gap-1">
-        {blocks.map((b) => (
+      {variant === 'row' ? (
+        // 상태 · 제목 · 기록 · 삭제 고정 열 — 기록이 제목 바로 옆에서 읽히게.
+        <li className="grid min-h-12 grid-cols-[52px_minmax(0,1fr)_auto_40px] items-center gap-x-3.5 border-b border-divider px-1">
           <span
-            key={b.id}
-            className="truncate rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
+            className={`inline-flex items-center gap-1.25 text-[13px] font-semibold ${
+              isDone ? 'text-heading' : 'text-ink-muted'
+            }`}
           >
-            {b.label}
+            {isDone ? (
+              <Check className="h-3.25 w-3.25" strokeWidth={2.4} aria-hidden />
+            ) : (
+              <X className="h-3.25 w-3.25" strokeWidth={2.4} aria-hidden />
+            )}
+            {isDone ? '완료' : '포기'}
           </span>
-        ))}
-      </div>
-
-      <footer className="flex items-center justify-between text-[11px] text-zinc-500 dark:text-zinc-400">
-        <span className="tabular-nums">시작 {challenge.startDate}</span>
-        <div className="flex items-center gap-1">
-          {isActive ? (
-            <button
-              type="button"
-              onClick={() => setConfirm('abandon')}
-              disabled={isPending}
-              className="rounded px-1.5 py-0.5 text-rose-600 hover:bg-rose-50 disabled:opacity-50 dark:text-rose-400 dark:hover:bg-rose-950/40"
-            >
-              포기
-            </button>
+          <span className={`min-w-0 flex-1 truncate text-sm ${isDone ? 'text-ink' : 'text-ink-muted'}`}>
+            {challenge.title}
+          </span>
+          <span className="text-[13px] text-ink-muted">{pastRecord(challenge)}</span>
+          {deleteButton}
+        </li>
+      ) : (
+        <article className="flex flex-col gap-2.5 rounded-lg border border-line bg-surface px-5 pt-4.5 pb-3">
+          <div className="flex items-baseline justify-between gap-2">
+            <h3 className="min-w-0 truncate text-base font-bold">{challenge.title}</h3>
+            <span className="shrink-0 text-[13px] font-semibold text-ink-soft">
+              {challenge.remainingDays <= 0 ? 'D-day' : `D-${challenge.remainingDays}`}
+            </span>
+          </div>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-[22px] leading-tight font-semibold">{challenge.successDays}</span>
+            <span className="text-sm text-ink-muted">
+              / {challenge.targetDays}일 · {pct}%
+            </span>
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-track">
+            <div className="h-full rounded-full bg-marigold" style={{ width: `${pct}%` }} />
+          </div>
+          {blocks.length > 0 ? (
+            <div className="flex flex-wrap gap-1">
+              {blocks.map((b) => (
+                <span
+                  key={b.id}
+                  className="max-w-full truncate rounded px-2 py-px text-xs text-ink-soft bg-tag-bg"
+                >
+                  {b.label}
+                </span>
+              ))}
+            </div>
           ) : null}
-          <button
-            type="button"
-            onClick={() => setConfirm('delete')}
-            disabled={isPending}
-            aria-label="챌린지 삭제"
-            className="inline-flex h-6 w-6 items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 disabled:opacity-50 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
-          >
-            <X className="h-3.5 w-3.5" aria-hidden />
-          </button>
-        </div>
-      </footer>
-      </article>
-
+          <div className="mt-0.5 flex items-center justify-between gap-2 border-t border-divider pt-1.5">
+            <span className="text-xs text-ink-muted">시작 {challenge.startDate}</span>
+            <span className="flex items-center">
+              {isActive ? (
+                <button
+                  type="button"
+                  onClick={() => setConfirm('abandon')}
+                  disabled={isPending}
+                  className="min-h-10 cursor-pointer rounded-md px-2.5 text-[13px] text-ink-muted hover:text-ink disabled:opacity-50"
+                >
+                  포기
+                </button>
+              ) : null}
+              {deleteButton}
+            </span>
+          </div>
+        </article>
+      )}
       <ConfirmDialog
         open={confirm !== null}
         title={confirm === 'abandon' ? '챌린지 포기' : '챌린지 삭제'}
         description={
           <p>
-            <span className="font-medium text-zinc-900 dark:text-zinc-100">
-              {challenge.title}
-            </span>
+            <span className="font-medium text-ink">{challenge.title}</span>
             {confirm === 'abandon'
               ? ' 챌린지를 포기할까요? 기록은 남아요.'
               : ' 챌린지를 삭제할까요? 되돌릴 수 없어요.'}
@@ -205,39 +192,22 @@ export function ChallengeCard({
   );
 }
 
-function DdayBadge({
-  status,
-  remainingDays,
-}: {
-  status: 'active' | 'completed' | 'abandoned';
-  remainingDays: number;
-}) {
-  if (status === 'completed') {
-    return (
-      <span className="shrink-0 rounded bg-emerald-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-        완료
-      </span>
-    );
+// 지난 챌린지 기록: "21 / 21일 · 10.10 달성" / "12 / 50일에서 멈춤 · 09.30".
+// 성공 일수는 서버가 끝난 날까지만 셈.
+function pastRecord(c: RoutineChallengeWithProgress): string {
+  const days = `${c.successDays} / ${c.targetDays}일`;
+  if (c.status === 'completed') {
+    return c.completedAt ? `${days} · ${seoulMonthDay(c.completedAt)} 달성` : `${days} 달성`;
   }
-  if (status === 'abandoned') {
-    return (
-      <span className="shrink-0 rounded bg-zinc-300 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-700 dark:bg-zinc-700 dark:text-zinc-300">
-        포기
-      </span>
-    );
-  }
-  const label = remainingDays <= 0 ? 'D-day' : `D-${remainingDays}`;
-  const color =
-    remainingDays <= 7
-      ? 'bg-rose-500 text-white'
-      : remainingDays <= 30
-        ? 'bg-amber-500 text-white'
-        : 'bg-zinc-800 text-white dark:bg-zinc-200 dark:text-zinc-900';
-  return (
-    <span
-      className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold tabular-nums ${color}`}
-    >
-      {label}
-    </span>
-  );
+  return c.abandonedAt ? `${days}에서 멈춤 · ${seoulMonthDay(c.abandonedAt)}` : `${days}에서 멈춤`;
+}
+
+function seoulMonthDay(iso: string): string {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Seoul',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date(iso));
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? '';
+  return `${get('month')}.${get('day')}`;
 }

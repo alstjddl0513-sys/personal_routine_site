@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>루틴 트래커 모달과 빈 상태</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#F6F7F5}
+</style>
+</head>
+<body>
+
+<div style="width: 1280px; box-sizing: border-box; padding: 48px; background: #F6F7F5; color: #1C1F1D; font-family: 'IBM Plex Sans KR', system-ui, sans-serif; font-size: 15px; line-height: 1.55; word-break: keep-all; display: flex; flex-direction: column; gap: 44px">
+
+  <section style="display: flex; flex-direction: column; gap: 16px">
+    <h2 style="margin: 0; font-size: 17px; font-weight: 700; color: #1F3D30">챌린지 추가 모달</h2>
+    <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start">
+      <div style="flex: none; width: 620px; box-sizing: border-box; padding: 40px 70px; border-radius: 8px; background: rgba(28,31,29,0.32)">
+        <div role="dialog" aria-labelledby="ch-add" style="background: #FFFFFF; border-radius: 8px; padding: 24px 28px 24px; display: flex; flex-direction: column; gap: 18px">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-right: -10px">
+            <h3 id="ch-add" style="margin: 0; font-size: 20px; font-weight: 700">새 챌린지</h3>
+            <button type="button" aria-label="닫기" style="width: 40px; height: 40px; border: 0; border-radius: 6px; background: transparent; color: #3F4441; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+            </button>
+          </div>
+          <label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600; color: #3F4441">
+            제목
+            <input type="text" value="30일 블로그 쓰기" style="min-height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #1F3D30; border-radius: 6px; font: inherit; font-weight: 400; font-size: 15px; color: #1C1F1D">
+          </label>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+            <label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600; color: #3F4441">
+              시작일
+              <input type="date" value="2026-11-04" style="min-height: 44px; box-sizing: border-box; padding: 0 10px; border: 1px solid #BFC4BE; border-radius: 6px; font: inherit; font-weight: 400; font-size: 15px; color: #1C1F1D">
+            </label>
+            <label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600; color: #3F4441">
+              목표 일수
+              <span style="display: flex; align-items: center; gap: 8px">
+                <input type="number" value="30" min="1" style="width: 100%; min-height: 44px; box-sizing: border-box; padding: 0 10px; border: 1px solid #BFC4BE; border-radius: 6px; font: inherit; font-weight: 400; font-size: 15px; color: #1C1F1D">
+                <span style="font-weight: 400; color: #3F4441">일</span>
+              </span>
+            </label>
+          </div>
+          <fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 6px">
+            <legend style="padding: 0; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #3F4441">포함할 블록 <span style="font-weight: 400; color: #4F5450">· 1개 이상</span></legend>
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 12px">
+              <label style="display: flex; align-items: center; gap: 10px; min-height: 40px; cursor: pointer"><span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; border: 1.5px solid #BFC4BE"></span>기상</label>
+              <label style="display: flex; align-items: center; gap: 10px; min-height: 40px; cursor: pointer"><span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; border: 1.5px solid #BFC4BE"></span>아침 운동</label>
+              <label style="display: flex; align-items: center; gap: 10px; min-height: 40px; cursor: pointer"><span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; border: 1.5px solid #BFC4BE"></span>코테 공부</label>
+              <label style="display: flex; align-items: center; gap: 10px; min-height: 40px; cursor: pointer"><span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; border: 1.5px solid #BFC4BE"></span>자소서</label>
+              <label style="display: flex; align-items: center; gap: 10px; min-height: 40px; cursor: pointer"><span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; border: 1.5px solid #BFC4BE"></span>CS 복습</label>
+              <label style="display: flex; align-items: center; gap: 10px; min-height: 40px; cursor: pointer"><span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; background: #1F3D30; display: inline-flex; align-items: center; justify-content: center"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>블로그</label>
+              <label style="display: flex; align-items: center; gap: 10px; min-height: 40px; cursor: pointer"><span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; border: 1.5px solid #BFC4BE"></span>물 2L</label>
+            </div>
+          </fieldset>
+          <!-- 제안: 하루가 언제 인정되는지는 만들 때 꼭 알아야 해서 한 줄로 남김(실제 계산: 고른 블록 전부 체크한 날만 1일).
+               다른 후보 A: 문장 빼고 '포함할 블록' 옆 ⓘ 툴팁으로 / B: "고른 블록을 모두 한 날만 1일로 세요." -->
+          <p style="margin: 0; display: flex; align-items: center; gap: 8px; font-size: 13px; color: #4F5450">고른 블록을 모두 체크한 날이 1일로 쌓여요.<span style="padding: 0 6px; border: 1px dashed #BFC4BE; border-radius: 4px; font-size: 11px">제안</span></p>
+          <div style="display: flex; justify-content: flex-end; gap: 8px">
+            <button type="button" style="min-height: 44px; padding: 0 18px; border: 1px solid #BFC4BE; border-radius: 6px; background: #FFFFFF; color: #1C1F1D; font: inherit; font-size: 15px; font-weight: 500; cursor: pointer">취소</button>
+            <button type="button" style="min-height: 44px; padding: 0 20px; border: 1px solid #1F3D30; border-radius: 6px; background: #1F3D30; color: #FFFFFF; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer">만들기</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="flex: 1 1 300px; display: flex; flex-direction: column; gap: 12px">
+        <span style="font-size: 14px; font-weight: 600; color: #3F4441">블록을 하나도 안 골랐을 때</span>
+        <div style="padding: 16px 18px; border: 1px solid #D9DCD8; border-radius: 8px; background: #FFFFFF; display: flex; flex-direction: column; gap: 10px">
+          <span style="font-size: 14px; font-weight: 600; color: #3F4441">포함할 블록</span>
+          <span style="font-size: 13px; color: #A33B20">블록을 하나 이상 골라주세요.</span>
+          <button type="button" disabled aria-disabled="true" style="align-self: flex-end; min-height: 44px; padding: 0 20px; border: 1px solid #E7E9E6; border-radius: 6px; background: #E7E9E6; color: #6B6F6A; font: inherit; font-size: 15px; font-weight: 600; cursor: not-allowed">만들기</button>
+        </div>
+        <span style="font-size: 14px; font-weight: 600; color: #3F4441; margin-top: 8px">진행 중이 3개일 때 [추가]</span>
+        <div style="padding: 16px 18px; border: 1px solid #D9DCD8; border-radius: 8px; background: #FFFFFF; display: flex; align-items: center; gap: 12px">
+          <button type="button" disabled aria-disabled="true" style="min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border: 1px solid #E7E9E6; border-radius: 6px; background: transparent; color: #8E928D; font: inherit; font-size: 14px; cursor: not-allowed">+ 추가</button>
+          <span style="padding: 6px 10px; border-radius: 6px; background: #1C1F1D; color: #FFFFFF; font-size: 12px">진행 중 최대 3개까지 가능</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="display: flex; flex-direction: column; gap: 16px">
+    <h2 style="margin: 0; font-size: 17px; font-weight: 700; color: #1F3D30">빈 상태</h2>
+    <div style="display: flex; flex-wrap: wrap; gap: 20px">
+      <div style="flex: 1 1 400px; box-sizing: border-box; padding: 36px 32px; border: 1px dashed #BFC4BE; border-radius: 8px; background: #FFFFFF; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center">
+        <span style="font-size: 13px; font-weight: 600; color: #4F5450">챌린지</span>
+        <p style="margin: 0; font-size: 15px; color: #3F4441">"100일 아침 운동" 같은 목표를 세워보세요.</p>
+        <button type="button" style="min-height: 40px; padding: 0 16px; border: 1px solid #1F3D30; border-radius: 6px; background: #1F3D30; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">+ 챌린지 추가</button>
+      </div>
+      <div style="flex: 1 1 400px; box-sizing: border-box; padding: 36px 32px; border: 1px dashed #BFC4BE; border-radius: 8px; background: #FFFFFF; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center">
+        <span style="font-size: 13px; font-weight: 600; color: #4F5450">주간 트래커</span>
+        <p style="margin: 0; font-size: 15px; color: #3F4441">아직 만든 시간블록이 없어요. 아래에서 하나 추가해보세요.</p>
+        <label style="display: flex; align-items: center; gap: 8px; width: 320px; min-height: 40px; padding: 0 10px; border: 1px dashed #BFC4BE; border-radius: 6px; color: #4F5450; text-align: left">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+          <input type="text" aria-label="새 블록 추가" placeholder="블록 이름 (예: 아침 운동)" style="flex: 1 1 auto; min-width: 0; height: 38px; border: 0; background: transparent; font: inherit; font-size: 14px">
+        </label>
+      </div>
+    </div>
+  </section>
+</div>
+</body>
+</html>
