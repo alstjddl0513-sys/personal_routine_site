@@ -109,4 +109,5 @@ Render(15분 idle 슬립)와 Vercel(요청마다 다른 인스턴스) 모두 로
 ### UI
 - **@dnd-kit** (대안: react-beautiful-dnd(보관됨), react-dnd, HTML5 DnD) — React 19 호환, 포인터·터치·키보드 지원, headless라 Tailwind 그대로. 시간블록 드래그 재정렬
 - **IBM Plex Sans KR + Noto Serif KR** via `next/font` (대안: Pretendard, Google Fonts `<link>`) — 한글 본문 + /today 인사말 한 줄용 세리프. `next/font`는 셀프호스팅 + CLS 방지, 새 npm 의존성 없음. 둘 다 한글 서브셋이 커서 `preload: false`. 2026-11 새 시안(숲색·메리골드)으로 바꾸며 숫자용 Bricolage Grotesque는 제거 — 시안이 본문 서체 tabular-nums로 숫자를 처리
-- **디자인 토큰 `globals.css --rally-*` → `@theme inline`** (대안: Tailwind 기본 팔레트, CSS-in-JS) — 라이트·다크를 변수 교체로 처리. **현재 `/today`에만 시험 적용**, 앱 전체 디자인 개편 때 재검토
+- **디자인 토큰 `globals.css --rally-*` → `@theme inline`** (대안: Tailwind 기본 팔레트, CSS-in-JS) — 라이트·다크를 변수 교체로 처리. 사이드바·`/today`·채용·캘린더에 적용, 나머지 페이지는 개편 때 확산
+- **디자인 skill 두 개** (대안: 매번 프롬프트에 규칙 붙여넣기, references.md만 첨부) — 페이지 개편을 4번 반복하며 같은 규칙을 계속 다시 설명해서 분리. `.claude/skills/rally-page-redesign`은 시안 → 코드(토큰 대응·재사용 코드·순서), `docs/design/skill/rally-design`은 디자인 세션 Claude용(저장소를 못 보니 색 hex·컴포넌트·문구 규칙을 자체 포함, claude.ai에 zip 업로드). 페이지별 시안 대비 변경점은 계속 `references.md` 한 곳
