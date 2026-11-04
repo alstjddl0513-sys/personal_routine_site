@@ -5,11 +5,21 @@ import { useTransition } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   addDays,
-  formatWeekRange,
   mondayOf,
   toISODate,
   type WeekInfo,
 } from '../../lib/routines-week';
+
+// 모바일은 기존 44px 터치 크기, 데스크톱 40px.
+const NAV_BTN =
+  'inline-flex h-11 cursor-pointer items-center justify-center rounded-md border border-btn-border bg-btn-bg text-ink-soft hover:border-heading md:h-10';
+
+// "11월 2일 – 11월 8일"
+function formatRange(week: WeekInfo): string {
+  const a = week.monday;
+  const b = week.days[6];
+  return `${a.getMonth() + 1}월 ${a.getDate()}일 – ${b.getMonth() + 1}월 ${b.getDate()}일`;
+}
 
 export function RoutineWeekNav({ week }: { week: WeekInfo }) {
   const router = useRouter();
@@ -34,13 +44,14 @@ export function RoutineWeekNav({ week }: { week: WeekInfo }) {
   const isThisWeek = toISODate(week.monday) === toISODate(todayMon);
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-1.5">
+      <span className="mr-2.5 text-[15px] font-semibold">{formatRange(week)}</span>
       <button
         type="button"
         onClick={() => goto(addDays(week.monday, -7))}
         onMouseEnter={() => prefetch(addDays(week.monday, -7))}
         onFocus={() => prefetch(addDays(week.monday, -7))}
-        className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-50 md:h-8 md:w-8 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
+        className={`${NAV_BTN} w-11 md:w-10`}
         aria-label="이전 주"
       >
         <ChevronLeft className="h-4 w-4" aria-hidden />
@@ -51,7 +62,7 @@ export function RoutineWeekNav({ week }: { week: WeekInfo }) {
         onMouseEnter={() => prefetch(null)}
         onFocus={() => prefetch(null)}
         disabled={isThisWeek}
-        className="inline-flex min-h-11 items-center rounded-md border border-zinc-300 bg-white px-3 text-xs text-zinc-700 hover:bg-zinc-50 disabled:cursor-default disabled:opacity-50 md:min-h-0 md:py-1.5 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+        className={`${NAV_BTN} px-3.5 text-sm font-medium text-btn-fg disabled:cursor-default disabled:border-divider disabled:text-ink-faint`}
       >
         이번 주
       </button>
@@ -60,14 +71,11 @@ export function RoutineWeekNav({ week }: { week: WeekInfo }) {
         onClick={() => goto(addDays(week.monday, 7))}
         onMouseEnter={() => prefetch(addDays(week.monday, 7))}
         onFocus={() => prefetch(addDays(week.monday, 7))}
-        className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-50 md:h-8 md:w-8 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
+        className={`${NAV_BTN} w-11 md:w-10`}
         aria-label="다음 주"
       >
         <ChevronRight className="h-4 w-4" aria-hidden />
       </button>
-      <span className="ml-2 text-sm tabular-nums text-zinc-600 dark:text-zinc-400">
-        {formatWeekRange(week)}
-      </span>
     </div>
   );
 }

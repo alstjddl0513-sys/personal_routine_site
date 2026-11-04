@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { Trash2 } from 'lucide-react';
 import { upsertDayNote } from '../../lib/api';
+import { BUTTON_PRIMARY, BUTTON_TEXT } from '../jobs/cells/popover-style';
 
 interface Props {
   // ISO date (YYYY-MM-DD) of the visible week's Monday — used as the storage key
@@ -60,11 +62,27 @@ export function RoutineRetro({ weekStart, initialContent }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-2 rounded-md border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-      <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-        이번주 회고
-      </h2>
+    <section
+      aria-labelledby="retro-title"
+      className="flex flex-col gap-2.5 rounded-lg border border-line bg-surface px-6 pt-5 pb-4.5"
+    >
+      <div className="flex items-baseline justify-between gap-2">
+        <h2 id="retro-title" className="text-[17px] font-bold text-heading">
+          <label htmlFor="retro">이번 주 회고</label>
+        </h2>
+        <span role="status" className="text-[13px]">
+          {dirty ? (
+            <span className="inline-flex items-center gap-1.5 text-warn">
+              <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-warn" />
+              변경사항 있음
+            </span>
+          ) : flash === 'saved' || hasSavedContent ? (
+            <span className="text-ink-faint">저장됨</span>
+          ) : null}
+        </span>
+      </div>
       <textarea
+        id="retro"
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => {
@@ -73,34 +91,42 @@ export function RoutineRetro({ weekStart, initialContent }: Props) {
             onSave();
           }
         }}
-        placeholder="이주의 회고를 남겨보세요..."
+        placeholder="이 주의 회고를 남겨보세요..."
         maxLength={2000}
-        rows={3}
-        className="w-full resize-y rounded border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 outline-none focus:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200 dark:focus:border-zinc-500"
+        rows={4}
+        className="w-full resize-y rounded-md border border-btn-border bg-surface px-3 py-2.5 text-sm leading-[1.65] text-ink outline-none placeholder:text-ink-faint focus:border-heading"
       />
-      <div className="flex items-center justify-end gap-2">
-        <span className="text-[11px] text-zinc-400 dark:text-zinc-500">
-          {flash === 'saved' ? '저장됨' : dirty ? '변경사항 있음' : ' '}
-        </span>
+      <div className="flex items-center justify-between gap-2">
         {hasSavedContent ? (
           <button
             type="button"
             onClick={onDelete}
             disabled={deleting}
-            className="rounded px-2 py-1 text-xs text-rose-600 hover:bg-rose-50 disabled:opacity-40 dark:text-rose-400 dark:hover:bg-rose-950/40"
+            className={`${BUTTON_TEXT} gap-1.5`}
           >
+            <Trash2 className="h-3.75 w-3.75" strokeWidth={1.8} aria-hidden />
             {deleting ? '삭제 중…' : '삭제'}
           </button>
-        ) : null}
-        <button
-          type="button"
-          onClick={onSave}
-          disabled={!dirty || saving}
-          className="rounded bg-zinc-900 px-3 py-1 text-xs text-white hover:bg-zinc-800 disabled:cursor-default disabled:opacity-40 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-        >
-          {saving ? '저장 중…' : '저장'}
-        </button>
+        ) : (
+          <span />
+        )}
+        <div className="flex items-center gap-2">
+          {dirty ? (
+            <button type="button" onClick={() => setValue(savedContent)} className={BUTTON_TEXT}>
+              되돌리기
+            </button>
+          ) : null}
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={!dirty || saving}
+            aria-keyshortcuts="Meta+Enter Control+Enter"
+            className={BUTTON_PRIMARY}
+          >
+            {saving ? '저장 중…' : '저장'}
+          </button>
+        </div>
       </div>
-    </div>
+    </section>
   );
 }

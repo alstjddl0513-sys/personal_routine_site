@@ -67,6 +67,10 @@
   --rally-chip-on-fg: #1f3d30;
   --rally-chip-on-border: #1f3d30;
   --rally-cell-outside: #f9faf8; /* 캘린더 이번 달 아닌 날 */
+  /* 루틴 트래커 (docs/design/rally-routines.html) */
+  --rally-today-col: #f2f5f1; /* 오늘 열 — row-hover보다 녹색 기 살짝 더해 hover 행에서도 보이게 */
+  --rally-tag-bg: #f0f2ef; /* 챌린지 블록 태그 — 선택 상태(chip-on)와 안 헷갈리게 무채색 */
+  --rally-check-off: #bfc4be; /* 꺼진 체크박스 테두리 (다크는 btn-border보다 한 단계 밝게) */
   /* 지원상태 점 — 마감색(alert)은 '급함'과 섞이지 않게 안 씀 */
   --rally-st-not-applied: #8a8e89; /* 속 빈 점 */
   --rally-st-applied: #3d5a80;
@@ -130,6 +134,9 @@
   --rally-chip-on-fg: #cfe3d6;
   --rally-chip-on-border: #8fb5a0;
   --rally-cell-outside: #161a18;
+  --rally-today-col: #1d2320;
+  --rally-tag-bg: #232926;
+  --rally-check-off: #4a534e;
   --rally-st-not-applied: #8c948f;
   --rally-st-applied: #9db5d8;
   --rally-st-doc-passed: #9cc7b5;
@@ -196,6 +203,9 @@
   --color-chip-on-fg: var(--rally-chip-on-fg);
   --color-chip-on-border: var(--rally-chip-on-border);
   --color-cell-outside: var(--rally-cell-outside);
+  --color-today-col: var(--rally-today-col);
+  --color-tag-bg: var(--rally-tag-bg);
+  --color-check-off: var(--rally-check-off);
   --color-st-not-applied: var(--rally-st-not-applied);
   --color-st-applied: var(--rally-st-applied);
   --color-st-doc-passed: var(--rally-st-doc-passed);

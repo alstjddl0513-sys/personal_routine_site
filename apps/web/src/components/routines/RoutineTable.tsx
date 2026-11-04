@@ -10,7 +10,7 @@ import {
   useTransition,
 } from 'react';
 import { useRouter } from 'next/navigation';
-import { GripVertical, Trash2, X } from 'lucide-react';
+import { Check, GripVertical, Trash2 } from 'lucide-react';
 import {
   DndContext,
   KeyboardSensor,
@@ -35,7 +35,7 @@ import {
   patchTimeBlock,
   toggleRoutineCheck,
 } from '../../lib/api';
-import { dowLabel, toISODate } from '../../lib/routines-week';
+import { toISODate } from '../../lib/routines-week';
 import { useOutsideClick } from '../../lib/useOutsideClick';
 import { AddTimeBlockRow } from './AddTimeBlockRow';
 import { TimeCell } from './TimeCell';
@@ -46,7 +46,13 @@ interface Props {
   blocks: TimeBlock[];
   checks: RoutineCheck[];
   days: Date[];
+  /** 서울 기준 오늘 — 오늘 열 강조·미래 날짜 판단 */
+  todayIso: string;
 }
+
+const DOW_SHORT = ['일', '월', '화', '수', '목', '금', '토'];
+const DOW_LONG = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+const DAY_COUNT_TIP = '그날 체크한 블록 수 · 전부 체크한 날만 ✓';
 
 export function checkKey(blockId: string, date: string): string {
   return `${blockId}|${date}`;
@@ -55,7 +61,7 @@ export function checkKey(blockId: string, date: string): string {
 // 서버 확정 상태 + 낙관 overlay. useEffect로 sync하면 새 룰 위반이라
 // React 공식 "store info from previous renders" 관용구(render-time setState +
 // identity compare)로 checks reference 변경 시 overlay 통째로 clear.
-export function RoutineTable({ blocks, checks, days }: Props) {
+export function RoutineTable({ blocks, checks, days, todayIso }: Props) {
   const router = useRouter();
 
   const serverCheckedSet = useMemo(
@@ -180,76 +186,159 @@ export function RoutineTable({ blocks, checks, days }: Props) {
     (rows.length ? Math.max(...rows.map((b) => b.sortOrder)) : -1) + 1;
 
   return (
-    <div className="hidden overflow-x-auto rounded-md border border-zinc-200 md:order-2 md:block dark:border-zinc-800">
-      <DndContext
-        id={dndContextId}
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
-        <table className="w-full text-sm">
-          <thead className="bg-zinc-50 text-xs text-zinc-500 dark:bg-zinc-900/60 dark:text-zinc-400">
-            <tr>
-              <th className="w-8 px-1 py-2 align-middle" aria-label="순서 손잡이" />
-              <th className="w-24 px-2 py-2 text-center align-middle font-normal">시간</th>
-              <th className="w-48 px-3 py-2 text-center align-middle font-normal">내용</th>
-              {days.map((d) => (
-                <th
-                  key={toISODate(d)}
-                  className="min-w-16 px-2 py-2 text-center align-middle text-sm font-semibold tabular-nums text-zinc-700 dark:text-zinc-200"
+    <section
+      aria-labelledby="routine-week-title"
+      className="hidden flex-col gap-3 md:order-2 md:flex"
+    >
+      <h2 id="routine-week-title" className="text-[17px] font-bold text-heading">
+        이번 주 루틴
+      </h2>
+      {rows.length === 0 ? (
+        <div className="flex flex-col items-center gap-3.5 rounded-lg border border-dashed border-btn-border bg-surface px-8 py-9 text-center">
+          <p className="text-ink-soft">아직 만든 시간블록이 없어요. 아래에서 하나 추가해보세요.</p>
+          <AddTimeBlockRow nextSortOrder={nextSortOrder} variant="table" />
+        </div>
+      ) : (
+        <div className="overflow-x-auto rounded-lg border border-line bg-surface">
+          <DndContext
+            id={dndContextId}
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-line bg-thead">
+                  <th scope="col" className="w-7 p-0">
+                    <span className="sr-only">순서</span>
+                  </th>
+                  <th scope="col" className="w-37.5 px-2 py-2.5 text-left text-[13px] font-semibold text-ink-muted">
+                    시간
+                  </th>
+                  <th scope="col" className="px-2 py-2.5 text-left text-[13px] font-semibold text-ink-muted">
+                    내용
+                  </th>
+                  {days.map((d) => (
+                    <DayHeader
+                      key={toISODate(d)}
+                      date={d}
+                      todayIso={todayIso}
+                      done={rows.filter((b) => isChecked(checkKey(b.id, toISODate(d)))).length}
+                      total={rows.length}
+                    />
+                  ))}
+                  <th scope="col" className="w-11 p-0">
+                    <span className="sr-only">삭제</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <SortableContext
+                  items={rows.map((r) => r.id)}
+                  strategy={verticalListSortingStrategy}
                 >
-                  {d.getDate()} ({dowLabel(d)})
-                </th>
-              ))}
-              <th className="w-16 px-2 py-2 align-middle" aria-label="액션" />
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
-            {rows.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={days.length + 4}
-                  className="px-4 py-8 text-center text-sm text-zinc-500"
-                >
-                  아직 만든 시간블록이 없어요. 아래에서 하나 추가해보세요.
-                </td>
-              </tr>
-            ) : (
-              <SortableContext
-                items={rows.map((r) => r.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                {rows.map((block) => (
-                  <SortableBlockRow
-                    key={block.id}
-                    block={block}
-                    days={days}
-                    isChecked={isChecked}
-                    onToggle={onToggle}
-                  />
-                ))}
-              </SortableContext>
-            )}
-            <tr>
-              <td colSpan={days.length + 4} className="p-2">
-                <AddTimeBlockRow nextSortOrder={nextSortOrder} />
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </DndContext>
-    </div>
+                  {rows.map((block) => (
+                    <SortableBlockRow
+                      key={block.id}
+                      block={block}
+                      days={days}
+                      todayIso={todayIso}
+                      isChecked={isChecked}
+                      onToggle={onToggle}
+                    />
+                  ))}
+                </SortableContext>
+                <tr>
+                  <td className="p-0" />
+                  <td colSpan={days.length + 3} className="px-1 pt-2 pb-2.5">
+                    <AddTimeBlockRow nextSortOrder={nextSortOrder} variant="table" />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </DndContext>
+        </div>
+      )}
+    </section>
+  );
+}
+
+// 요일 머리: 요일 / 날짜(오늘 = 원) / 그날 체크 수. '완료'(✓)는 전부 체크한 날만.
+function DayHeader({
+  date,
+  todayIso,
+  done,
+  total,
+}: {
+  date: Date;
+  todayIso: string;
+  done: number;
+  total: number;
+}) {
+  const iso = toISODate(date);
+  const isToday = iso === todayIso;
+  const isFuture = iso > todayIso;
+  const weekend = date.getDay() === 0 || date.getDay() === 6;
+  const all = total > 0 && done === total;
+
+  const label = [
+    `${date.getMonth() + 1}월 ${date.getDate()}일 ${DOW_LONG[date.getDay()]}`,
+    isToday ? '오늘' : null,
+    `${total}개 중 ${done}개`,
+  ]
+    .filter(Boolean)
+    .join(', ');
+
+  return (
+    <th
+      scope="col"
+      aria-label={label}
+      className={`w-15.5 px-0.5 pt-2 pb-2.25 text-center ${isToday ? 'bg-today-col' : ''}`}
+    >
+      <span className="flex flex-col items-center gap-0.5">
+        <span className={`text-xs font-semibold ${weekend ? 'text-ink-muted' : 'text-ink-soft'}`}>
+          {DOW_SHORT[date.getDay()]}
+        </span>
+        {isToday ? (
+          <span className="inline-flex h-6.5 w-6.5 items-center justify-center rounded-full bg-button text-[13px] font-bold text-white">
+            {date.getDate()}
+          </span>
+        ) : (
+          <span
+            className={`inline-flex h-6.5 items-center text-[15px] font-semibold ${
+              isFuture ? 'text-ink-muted' : 'text-ink'
+            }`}
+          >
+            {date.getDate()}
+          </span>
+        )}
+        <span
+          title={DAY_COUNT_TIP}
+          className={`text-xs ${
+            all
+              ? 'font-bold text-heading'
+              : done === 0 && isFuture
+                ? 'font-medium text-ink-faint'
+                : 'font-medium text-ink-muted'
+          }`}
+        >
+          {all ? `✓ ${done}/${total}` : done === 0 && isFuture ? '—' : `${done}/${total}`}
+        </span>
+      </span>
+    </th>
   );
 }
 
 function SortableBlockRow({
   block,
   days,
+  todayIso,
   isChecked,
   onToggle,
 }: {
   block: TimeBlock;
   days: Date[];
+  todayIso: string;
   isChecked: (key: string) => boolean;
   onToggle: (blockId: string, date: string) => void;
 }) {
@@ -267,46 +356,67 @@ function SortableBlockRow({
     transition,
     position: 'relative',
     zIndex: isDragging ? 10 : undefined,
-    opacity: isDragging ? 0.4 : 1,
   };
 
   return (
-    <tr ref={setNodeRef} style={style} className="group">
-      <td className="w-8 px-1 py-2 align-middle">
+    <tr
+      ref={setNodeRef}
+      style={style}
+      className={`group border-b border-divider ${
+        isDragging
+          ? 'bg-surface opacity-95 shadow-[0_10px_24px_rgba(28,31,29,0.14),inset_0_0_0_1.5px_var(--rally-primary)]'
+          : 'hover:bg-row-hover'
+      }`}
+    >
+      <td className="p-0 text-center">
         <button
           type="button"
           {...attributes}
           {...listeners}
-          aria-label={`${block.label} 순서 변경 손잡이`}
-          className="inline-flex h-6 w-6 touch-none cursor-grab items-center justify-center rounded text-zinc-300 opacity-0 transition-opacity hover:bg-zinc-100 hover:text-zinc-500 focus:opacity-100 active:cursor-grabbing group-hover:opacity-100 group-focus-within:opacity-100 dark:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-400"
+          aria-label={`${block.label} 순서 바꾸기`}
+          title="끌어서 순서 바꾸기"
+          className="inline-flex h-10 w-7 touch-none cursor-grab items-center justify-center text-divider transition-colors group-hover:text-ink-muted focus-visible:text-ink-muted active:cursor-grabbing"
         >
           <GripVertical className="h-4 w-4" aria-hidden />
         </button>
       </td>
-      <td className="px-2 py-2 align-middle">
+      <td className="px-1">
         <TimeCell block={block} />
       </td>
-      <td className="px-3 py-2 text-center align-middle">
+      <td className="px-1">
         <LabelCell block={block} />
       </td>
       {days.map((d) => {
         const iso = toISODate(d);
-        const key = checkKey(block.id, iso);
-        const checked = isChecked(key);
+        const checked = isChecked(checkKey(block.id, iso));
         return (
-          <td key={iso} className="px-2 py-2 text-center align-middle">
-            <input
-              type="checkbox"
-              checked={checked}
-              onChange={() => onToggle(block.id, iso)}
-              aria-label={`${block.label} ${iso}`}
-              className="h-4 w-4 cursor-pointer rounded border-zinc-300 accent-zinc-900 dark:border-zinc-600 dark:accent-zinc-100"
-            />
+          <td
+            key={iso}
+            className={`p-0 text-center ${iso === todayIso ? 'bg-today-col' : ''}`}
+          >
+            <button
+              type="button"
+              role="checkbox"
+              aria-checked={checked}
+              aria-label={`${block.label}, ${DOW_LONG[d.getDay()]}`}
+              onClick={() => onToggle(block.id, iso)}
+              className="inline-flex h-10 w-10 cursor-pointer items-center justify-center"
+            >
+              <span
+                className={`inline-flex h-5 w-5 items-center justify-center rounded-[5px] ${
+                  checked ? 'bg-primary' : 'border-[1.5px] border-check-off'
+                }`}
+              >
+                {checked ? (
+                  <Check className="h-3.25 w-3.25 text-white dark:text-paper" strokeWidth={3.2} aria-hidden />
+                ) : null}
+              </span>
+            </button>
           </td>
         );
       })}
-      <td className="px-2 py-2 align-middle">
-        <div className="flex items-center justify-end opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+      <td className="p-0 text-center">
+        <div className="opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
           <DeleteBlockButton block={block} />
         </div>
       </td>
@@ -356,8 +466,8 @@ function LabelCell({ block }: { block: TimeBlock }) {
       <button
         type="button"
         onClick={() => setEditing(true)}
-        className="w-full truncate rounded px-1 py-0.5 text-center text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
-        title="클릭해서 편집"
+        className="min-h-10 max-w-full cursor-pointer truncate px-1.5 text-left font-medium text-ink"
+        title="눌러서 이름 고치기"
       >
         {block.label}
       </button>
@@ -381,7 +491,8 @@ function LabelCell({ block }: { block: TimeBlock }) {
       }}
       disabled={saving}
       maxLength={100}
-      className="w-full rounded border border-zinc-400 bg-white px-1.5 py-0.5 text-center text-sm outline-none focus:border-zinc-600 dark:border-zinc-500 dark:bg-zinc-950"
+      aria-label="블록 이름"
+      className="h-9 w-full max-w-55 rounded-md border border-btn-border bg-surface px-2.5 text-sm text-ink outline-none focus:border-primary"
     />
   );
 }
@@ -420,9 +531,9 @@ function DeleteBlockButton({ block }: { block: TimeBlock }) {
         type="button"
         onClick={() => setOpen(true)}
         aria-label={`${block.label} 삭제`}
-        className="inline-flex h-6 w-6 items-center justify-center rounded text-zinc-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
+        className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-md text-ink-muted hover:text-alert"
       >
-        <X className="h-4 w-4" aria-hidden />
+        <Trash2 className="h-3.75 w-3.75" strokeWidth={1.8} aria-hidden />
       </button>
       {open ? (
         <div

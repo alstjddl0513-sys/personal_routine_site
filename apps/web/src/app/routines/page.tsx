@@ -5,7 +5,13 @@ import {
   getRoutineChecks,
   getTimeBlocks,
 } from '../../lib/api';
-import { parseISODate, weekOf, type WeekInfo } from '../../lib/routines-week';
+import {
+  parseISODate,
+  todayInSeoul,
+  toISODate,
+  weekOf,
+  type WeekInfo,
+} from '../../lib/routines-week';
 import { ChallengesList } from '../../components/routines/challenges/ChallengesList';
 import { RoutineDayView } from '../../components/routines/RoutineDayView';
 import { RoutineRetro } from '../../components/routines/RoutineRetro';
@@ -27,15 +33,17 @@ export default async function RoutinesPage({
   const week = weekOf(anchor);
 
   return (
-    <div className="flex flex-col gap-4 p-6">
-      <header className="flex flex-col gap-2 md:flex-row md:items-baseline md:justify-between">
-        <h1 className="text-xl font-semibold">루틴 트래커</h1>
-        <RoutineWeekNav week={week} />
-      </header>
+    <div className="min-h-screen bg-paper font-plex text-[15px] leading-normal text-ink tabular-nums">
+      <div className="mx-auto flex max-w-310 flex-col gap-7 px-4 pt-6 pb-16 md:px-10 md:pt-9">
+        <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+          <h1 className="text-[26px] leading-tight font-bold tracking-[-0.01em]">루틴 트래커</h1>
+          <RoutineWeekNav week={week} />
+        </header>
 
-      <Suspense fallback={<RoutinesSkeleton />}>
-        <RoutinesContent week={week} />
-      </Suspense>
+        <Suspense fallback={<RoutinesSkeleton />}>
+          <RoutinesContent week={week} />
+        </Suspense>
+      </div>
     </div>
   );
 }
@@ -49,6 +57,8 @@ async function RoutinesContent({ week }: { week: WeekInfo }) {
     getRoutineChallenges(),
   ]);
   const retroContent = retroNotes[0]?.content ?? '';
+  // 오늘 열·미래 날짜 판단은 서울 기준.
+  const todayIso = toISODate(todayInSeoul());
 
   return (
     <>
@@ -70,7 +80,12 @@ async function RoutinesContent({ week }: { week: WeekInfo }) {
 
       {/* 트래커 테이블/DayView — 데스크톱 2번째(md:order-2는 RoutineTable 루트에),
           모바일 가장 위(order-1는 RoutineDayView 루트에). */}
-      <RoutineTable blocks={blocks} checks={checks} days={week.days} />
+      <RoutineTable
+        blocks={blocks}
+        checks={checks}
+        days={week.days}
+        todayIso={todayIso}
+      />
       <RoutineDayView blocks={blocks} checks={checks} days={week.days} />
     </>
   );
@@ -79,9 +94,9 @@ async function RoutinesContent({ week }: { week: WeekInfo }) {
 function RoutinesSkeleton() {
   return (
     <>
-      <Skeleton className="h-32" />
-      <Skeleton className="h-28" />
-      <Skeleton className="h-72" />
+      <Skeleton className="h-52" />
+      <Skeleton className="h-96" />
+      <Skeleton className="h-48" />
     </>
   );
 }
