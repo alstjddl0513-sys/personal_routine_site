@@ -83,7 +83,7 @@ async function WorkoutsStatisticsContent() {
       <MuscleGoalsCard
         goals={muscleGoals}
         entries={muscleSets}
-        rangeLabel="이번주"
+        rangeLabel="이번 주"
       />
 
       {exercises.length === 0 ? (

@@ -62,19 +62,19 @@ function AddExerciseModal({ onRequestClose }: { onRequestClose: () => void }) {
     const rMin = Number(repMin);
     const rMax = Number(repMax);
     if (!Number.isInteger(sets) || sets < 1 || sets > 20) {
-      setError('세트 수는 1~20 정수');
+      setError('세트 수는 1~20 사이 숫자로 적어주세요.');
       return;
     }
     if (!Number.isInteger(rMin) || rMin < 1 || rMin > 100) {
-      setError('최소 횟수는 1~100 정수');
+      setError('최소 횟수는 1~100 사이 숫자로 적어주세요.');
       return;
     }
     if (!Number.isInteger(rMax) || rMax < 1 || rMax > 100) {
-      setError('최대 횟수는 1~100 정수');
+      setError('최대 횟수는 1~100 사이 숫자로 적어주세요.');
       return;
     }
     if (rMin > rMax) {
-      setError('최소 횟수는 최대 횟수 이하여야 합니다');
+      setError('최소 횟수가 최대보다 클 수 없어요.');
       return;
     }
 
@@ -91,7 +91,7 @@ function AddExerciseModal({ onRequestClose }: { onRequestClose: () => void }) {
         onRequestClose();
       } catch (err) {
         console.error(err);
-        setError('추가에 실패했습니다');
+        setError('추가하지 못했어요. 잠시 후 다시 해보세요.');
       }
     });
   }
@@ -215,7 +215,7 @@ function AddExerciseModal({ onRequestClose }: { onRequestClose: () => void }) {
           ) : null}
 
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            순서는 카드 hover ↑↓ 버튼으로 조정하세요.
+            순서는 카드의 ↑↓ 버튼으로 바꿀 수 있어요.
           </p>
 
           <div className="mt-1 flex items-center justify-end gap-2">

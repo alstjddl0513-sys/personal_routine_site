@@ -48,7 +48,7 @@ export function WeekdayAvgBars({ checks, blockCount, weeks }: Props) {
           요일별 평균
         </h2>
         <span
-          title={`최근 ${weeks}주 동안 그 요일마다 체크한 칸 ÷ (블록 수 × 그 요일 수)`}
+          title={`최근 ${weeks}주 동안 그 요일마다 체크한 칸 ÷ (루틴 수 × 그 요일 수)`}
           className="text-[13px] text-ink-muted"
         >
           최근 {weeks}주

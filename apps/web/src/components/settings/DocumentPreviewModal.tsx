@@ -25,8 +25,9 @@ export function DocumentPreviewModal({ documentId, title, onClose }: Props) {
         const res = await getDocumentDownloadUrl(documentId);
         if (!cancelled) setUrl(res.url);
       } catch (err) {
+        console.error(err);
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : '미리보기 준비에 실패했어요.');
+          setError('미리보기를 열지 못했어요. 잠시 후 다시 해보세요.');
         }
       }
     })();

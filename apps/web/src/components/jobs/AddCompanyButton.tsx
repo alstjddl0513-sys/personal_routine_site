@@ -101,7 +101,7 @@ function AddCompanyModal({
         onRequestClose();
       } catch (err) {
         console.error(err);
-        setError('추가에 실패했습니다');
+        setError('추가하지 못했어요. 잠시 후 다시 해보세요.');
       }
     });
   }
@@ -231,7 +231,7 @@ function AddCompanyModal({
             type="button"
             onClick={submit}
             disabled={isPending || companyTypes.length === 0}
-            title={companyTypes.length === 0 ? '유형을 먼저 추가하세요' : undefined}
+            title={companyTypes.length === 0 ? '설정에서 유형을 먼저 추가해보세요' : undefined}
             className={`${BUTTON_PRIMARY} min-h-11 px-5 text-[15px]`}
           >
             {isPending ? '추가 중...' : '추가하기'}

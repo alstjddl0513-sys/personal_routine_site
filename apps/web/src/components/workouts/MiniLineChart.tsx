@@ -65,7 +65,7 @@ export function MiniLineChart({
       height={height}
       preserveAspectRatio="none"
       role="img"
-      aria-label={ariaLabel ?? `최근 ${points.length}회 top set 무게 추이`}
+      aria-label={ariaLabel ?? `최근 ${points.length}회 최고 무게 추이`}
     >
       {path ? (
         <path

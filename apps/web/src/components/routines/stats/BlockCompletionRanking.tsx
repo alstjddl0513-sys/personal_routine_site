@@ -42,7 +42,7 @@ export function BlockCompletionRanking({
           요즘 꾸준한 루틴
         </h2>
         <span
-          title={`지난 ${weeks}주(${windowDays}일) 중 그 블록을 체크한 날`}
+          title={`지난 ${weeks}주(${windowDays}일) 중 그 루틴을 체크한 날`}
           className="text-[13px] text-ink-muted"
         >
           지난 {weeks}주 · {windowDays}일 중

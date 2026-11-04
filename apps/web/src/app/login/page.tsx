@@ -67,7 +67,7 @@ function LoginForm() {
       router.replace(nextPath);
       router.refresh();
     } catch {
-      setError('네트워크 오류가 발생했습니다. 다시 시도해주세요.');
+      setError('네트워크 오류가 발생했어요. 다시 시도해주세요.');
       setSubmitting(false);
     }
   }
@@ -90,7 +90,7 @@ function LoginForm() {
       }
       // 성공 시 브라우저가 Google로 redirect됨.
     } catch {
-      setError('네트워크 오류가 발생했습니다. 다시 시도해주세요.');
+      setError('네트워크 오류가 발생했어요. 다시 시도해주세요.');
       setSubmitting(false);
     }
   }
@@ -237,10 +237,10 @@ function GoogleIcon() {
 function translateAuthError(message: string): string {
   const m = message.toLowerCase();
   if (m.includes('invalid login credentials')) {
-    return '이메일 또는 비밀번호가 올바르지 않습니다.';
+    return '이메일 또는 비밀번호가 맞지 않아요.';
   }
   if (m.includes('email not confirmed')) {
-    return '이메일 확인이 필요합니다. Console에서 Confirm email을 꺼두세요.';
+    return '이메일 인증이 아직 안 됐어요. 받은 메일의 링크를 눌러주세요.';
   }
   return message;
 }

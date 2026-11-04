@@ -177,7 +177,7 @@ export function JobsClientView({
           <p className="text-[15px] text-ink-soft">
             {hasAnyFilter
               ? '조건에 맞는 회사가 없어요. 필터를 조금 풀어보세요.'
-              : '아직 등록한 회사가 없어요. [+ 추가하기] 버튼을 눌러 첫 회사를 담아보세요.'}
+              : '아직 담아둔 회사가 없어요. 첫 회사를 담아보세요.'}
           </p>
           {hasAnyFilter ? (
             <button

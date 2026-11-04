@@ -7,8 +7,8 @@ import type { QuestionStatus, RandomQuestion } from '@repo/shared';
 import { CardLink, TodayCard } from './Card';
 
 const STATUS_LABEL: Record<QuestionStatus, string> = {
-  understood: '이해함으로 기록했어요',
-  review_needed: '복습 필요로 기록했어요',
+  understood: '‘이해완료’로 기록했어요',
+  review_needed: '‘복습필요’로 기록했어요',
 };
 
 // 오른쪽 열에서 유일하게 직접 하는 일이라 위 현황(선 섹션)과 달리 흰 카드 —

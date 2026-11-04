@@ -25,7 +25,7 @@ export default async function QuestionsSettingsPage() {
         </Link>
         <h1 className="text-xl font-semibold">학습 질문 관리</h1>
         <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          면접 준비 중 만난 질문을 여기에 모아두세요. 등록한 순간부터 오늘의 학습·복습 풀에 자동으로 섞여요.
+          면접 준비 중 만난 질문을 여기에 모아두세요. 추가하면 바로 오늘의 학습·복습에 같이 나와요.
         </p>
       </header>
 

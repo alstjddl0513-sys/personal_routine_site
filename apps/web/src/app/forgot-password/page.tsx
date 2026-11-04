@@ -141,7 +141,7 @@ function translateAuthError(message: string): string {
     return '너무 자주 시도했어요. 잠시 후 다시 해주세요.';
   }
   if (m.includes('invalid email') || m.includes('unable to validate email')) {
-    return '이메일 형식이 올바르지 않아요.';
+    return '이메일 형식을 확인해주세요.';
   }
   return message;
 }

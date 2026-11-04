@@ -211,7 +211,7 @@ export function SubmittedDocsEditor({
       </div>
       {usable.length === 0 ? (
         <p className="text-sm text-ink-muted">
-          이력서·포폴을 먼저 올려두면 여기서 고를 수 있어요.{' '}
+          이력서·포트폴리오를 먼저 올려두면 여기서 고를 수 있어요.{' '}
           <Link href="/settings/documents" className="font-medium text-heading hover:underline">
             올리러 가기
           </Link>

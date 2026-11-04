@@ -23,7 +23,7 @@ import {
 } from '../../../lib/jobs-stats';
 
 export const metadata = {
-  title: '기업 통계 · Rally',
+  title: '회사 통계 · Rally',
 };
 
 // 기업 통계 (docs/design/rally-stats.html). 숫자 정의는 lib/jobs-stats.ts 한 곳:
@@ -114,12 +114,13 @@ export default async function JobsStatisticsPage({
       <div className="mx-auto flex max-w-275 flex-col gap-8 px-4 pt-6 pb-16 md:px-10 md:pt-9">
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div className="flex flex-col gap-1.5">
-            <h1 className="text-[26px] leading-tight font-bold tracking-[-0.01em]">기업 통계</h1>
-            <p className="text-[15px] text-ink-soft">
-              {start
-                ? `최근 ${RECENT_MONTHS}개월(${shortDay(start)} ~ 오늘) 동안 담거나 지원한 기업들이에요.`
-                : '지금까지 담아둔 기업들을 한눈에 살펴봐요.'}
-            </p>
+            <h1 className="text-[26px] leading-tight font-bold tracking-[-0.01em]">회사 통계</h1>
+            {/* 기간을 좁혔을 때만 기준을 알려줌 — 전체일 땐 설명이 필요 없어서 뺌 */}
+            {start ? (
+              <p className="text-[15px] text-ink-soft">
+                {`최근 ${RECENT_MONTHS}개월(${shortDay(start)} ~ 오늘) 동안 담거나 지원한 회사예요.`}
+              </p>
+            ) : null}
           </div>
           <PeriodToggle recent={recent} />
         </header>

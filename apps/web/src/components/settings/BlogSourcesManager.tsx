@@ -30,10 +30,10 @@ function draftFromSource(s: BlogSource): Draft {
 function validateDraft(d: Draft): string | null {
   if (!d.name.trim()) return '이름을 입력하세요.';
   const url = d.rssUrl.trim();
-  if (!url) return 'RSS URL을 입력하세요.';
-  if (!/^https?:\/\//i.test(url)) return 'RSS URL은 http(s):// 로 시작해야 합니다.';
+  if (!url) return 'RSS 주소를 입력하세요.';
+  if (!/^https?:\/\//i.test(url)) return 'RSS 주소는 http:// 또는 https://로 시작해야 해요.';
   const site = d.siteUrl.trim();
-  if (site && !/^https?:\/\//i.test(site)) return '사이트 URL은 http(s):// 로 시작해야 합니다.';
+  if (site && !/^https?:\/\//i.test(site)) return '사이트 주소는 http:// 또는 https://로 시작해야 해요.';
   return null;
 }
 
@@ -79,7 +79,7 @@ export function BlogSourcesManager({ initial }: { initial: BlogSource[] }) {
         router.refresh();
       } catch (err) {
         console.error(err);
-        setError('수정에 실패했습니다. (RSS URL 중복일 수 있음)');
+        setError('고치지 못했어요. 이미 등록된 RSS 주소인지 확인해보세요.');
       }
     });
   }
@@ -93,7 +93,7 @@ export function BlogSourcesManager({ initial }: { initial: BlogSource[] }) {
         router.refresh();
       } catch (err) {
         console.error(err);
-        setError('상태 변경에 실패했습니다.');
+        setError('바꾸지 못했어요. 잠시 후 다시 해보세요.');
       }
     });
   }
@@ -107,7 +107,7 @@ export function BlogSourcesManager({ initial }: { initial: BlogSource[] }) {
         router.refresh();
       } catch (err) {
         console.error(err);
-        setError('삭제에 실패했습니다.');
+        setError('삭제하지 못했어요. 잠시 후 다시 해보세요.');
         setConfirmDeleteRow(null);
       }
     });
@@ -341,7 +341,7 @@ function AddRow({
         router.refresh();
       } catch (err) {
         console.error(err);
-        onError('추가에 실패했습니다. (RSS URL 중복일 수 있음)');
+        onError('추가하지 못했어요. 이미 등록된 RSS 주소인지 확인해보세요.');
       }
     });
   }

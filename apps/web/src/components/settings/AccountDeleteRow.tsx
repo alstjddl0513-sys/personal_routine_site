@@ -68,8 +68,8 @@ function AccountDeleteModal({ onRequestClose }: { onRequestClose: () => void }) 
         console.error(err);
         setError(
           err instanceof Error
-            ? `삭제에 실패했습니다: ${err.message}`
-            : '삭제에 실패했습니다.',
+            ? '계정을 삭제하지 못했어요. 잠시 후 다시 해보세요.'
+            : '계정을 삭제하지 못했어요. 잠시 후 다시 해보세요.',
         );
       }
     });
@@ -113,11 +113,11 @@ function AccountDeleteModal({ onRequestClose }: { onRequestClose: () => void }) 
         <div className="flex flex-col gap-3 text-sm text-zinc-700 dark:text-zinc-300">
           <p>
             계정을 삭제하면 아래 데이터가 <strong>영구히 삭제</strong>되며{' '}
-            <strong>복구할 수 없습니다.</strong>
+            <strong>되돌릴 수 없어요.</strong>
           </p>
           <ul className="ml-4 list-disc space-y-0.5 text-xs text-zinc-600 dark:text-zinc-400">
             <li>채용 리스트 · 회사 유형</li>
-            <li>루틴 체크 · 시간블록 · 회고</li>
+            <li>루틴 · 루틴 체크 · 회고</li>
             <li>운동 기록 · 세션 · 종목</li>
             <li>블로그 소스 · 수집된 글</li>
             <li>닉네임 · 프로필</li>

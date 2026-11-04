@@ -63,7 +63,7 @@ export function MuscleGoalsManager({ initial }: { initial: MuscleGoal[] }) {
     if (!row) return;
     const n = row.value;
     if (!Number.isInteger(n) || n < 1 || n > 50) {
-      setError('세트 수는 1~50 사이의 정수여야 합니다.');
+      setError('세트 수는 1~50 사이 숫자로 적어주세요.');
       return;
     }
     setError(null);
@@ -87,7 +87,7 @@ export function MuscleGoalsManager({ initial }: { initial: MuscleGoal[] }) {
         router.refresh();
       } catch (err) {
         console.error(err);
-        setError('저장에 실패했습니다.');
+        setError('저장하지 못했어요. 잠시 후 다시 해보세요.');
       } finally {
         setPendingKey(null);
       }

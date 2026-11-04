@@ -52,7 +52,7 @@ interface Props {
 
 const DOW_SHORT = ['일', '월', '화', '수', '목', '금', '토'];
 const DOW_LONG = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
-const DAY_COUNT_TIP = '그날 체크한 블록 수 · 전부 체크한 날만 ✓';
+const DAY_COUNT_TIP = '그날 체크한 루틴 수 · 전부 체크한 날만 ✓';
 
 export function checkKey(blockId: string, date: string): string {
   return `${blockId}|${date}`;
@@ -195,7 +195,7 @@ export function RoutineTable({ blocks, checks, days, todayIso }: Props) {
       </h2>
       {rows.length === 0 ? (
         <div className="flex flex-col items-center gap-3.5 rounded-lg border border-dashed border-btn-border bg-surface px-8 py-9 text-center">
-          <p className="text-ink-soft">아직 만든 시간블록이 없어요. 아래에서 하나 추가해보세요.</p>
+          <p className="text-ink-soft">아직 만든 루틴이 없어요. 아래에서 하나 추가해보세요.</p>
           <AddTimeBlockRow nextSortOrder={nextSortOrder} variant="table" />
         </div>
       ) : (
@@ -491,7 +491,7 @@ function LabelCell({ block }: { block: TimeBlock }) {
       }}
       disabled={saving}
       maxLength={100}
-      aria-label="블록 이름"
+      aria-label="루틴 이름"
       className="h-9 w-full max-w-55 rounded-md border border-btn-border bg-surface px-2.5 text-sm text-ink outline-none focus:border-primary"
     />
   );
@@ -547,13 +547,13 @@ function DeleteBlockButton({ block }: { block: TimeBlock }) {
           >
             <div className="mb-3 flex items-center gap-2">
               <Trash2 className="h-5 w-5 text-rose-600 dark:text-rose-400" aria-hidden />
-              <h2 className="text-base font-semibold">시간블록 삭제</h2>
+              <h2 className="text-base font-semibold">루틴 삭제</h2>
             </div>
             <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
               <span className="font-medium text-zinc-900 dark:text-zinc-100">
                 {block.label}
               </span>
-              을(를) 삭제할까요? 이 블록의 체크 이력도 같이 사라져요.
+              을(를) 삭제할까요? 이 루틴의 체크 기록도 같이 사라져요.
             </p>
             <div className="flex items-center justify-end gap-2">
               <button

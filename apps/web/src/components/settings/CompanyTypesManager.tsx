@@ -42,7 +42,7 @@ export function CompanyTypesManager({ initial }: { initial: CompanyType[] }) {
     if (!state) return;
     const label = state.label.trim();
     if (!label) {
-      setError('라벨은 비어 있을 수 없습니다.');
+      setError('이름을 입력하세요.');
       return;
     }
     if (label === row.label) {
@@ -58,7 +58,7 @@ export function CompanyTypesManager({ initial }: { initial: CompanyType[] }) {
         router.refresh();
       } catch (err) {
         console.error(err);
-        setError('수정에 실패했습니다.');
+        setError('고치지 못했어요. 잠시 후 다시 해보세요.');
       }
     });
   }
@@ -75,7 +75,7 @@ export function CompanyTypesManager({ initial }: { initial: CompanyType[] }) {
         router.refresh();
       } catch (err) {
         console.error(err);
-        setError('삭제에 실패했습니다.');
+        setError('삭제하지 못했어요. 잠시 후 다시 해보세요.');
         setDeleteTarget(null);
       }
     });
@@ -100,9 +100,6 @@ export function CompanyTypesManager({ initial }: { initial: CompanyType[] }) {
             const isEditing = !!state?.editing;
             return (
               <li key={row.id} className="flex items-center gap-2 px-3 py-2 text-sm">
-                <code className="w-20 shrink-0 truncate text-xs text-zinc-500 sm:w-24 dark:text-zinc-500">
-                  {row.key}
-                </code>
                 {isEditing ? (
                   <input
                     type="text"
@@ -167,14 +164,10 @@ export function CompanyTypesManager({ initial }: { initial: CompanyType[] }) {
         />
       </div>
 
-      <p className="text-xs text-zinc-500 dark:text-zinc-400">
-        회사 데이터와 연결되는 <strong>key</strong>는 만든 뒤에는 바꿀 수 없어요. 라벨은 언제든 다시 지어도 괜찮아요.
-        새 key는 소문자·숫자·언더스코어(<code>_</code>)만 써주세요.
-      </p>
 
       <ConfirmDialog
         open={!!deleteTarget}
-        title="기업 유형 삭제"
+        title="회사 유형 삭제"
         description={
           <p>
             <span className="font-medium text-zinc-900 dark:text-zinc-100">
@@ -201,12 +194,10 @@ function AddRow({
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [key, setKey] = useState('');
   const [label, setLabel] = useState('');
   const [isPending, startTransition] = useTransition();
 
   function reset() {
-    setKey('');
     setLabel('');
     setOpen(false);
     onError(null);
@@ -214,26 +205,21 @@ function AddRow({
 
   function submit(e: FormEvent) {
     e.preventDefault();
-    const k = key.trim().toLowerCase();
     const l = label.trim();
-    if (!/^[a-z0-9_]+$/.test(k)) {
-      onError('key는 소문자/숫자/언더스코어만 사용 (예: my_type)');
-      return;
-    }
     if (!l) {
-      onError('라벨을 입력하세요.');
+      onError('이름을 입력하세요.');
       return;
     }
     onError(null);
     startTransition(async () => {
       try {
-        const created = await createCompanyType({ key: k, label: l });
+        const created = await createCompanyType({ key: newKey('type'), label: l });
         onAdd(created);
         reset();
         router.refresh();
       } catch (err) {
         console.error(err);
-        onError('추가에 실패했습니다. (중복 key일 수 있음)');
+        onError('추가하지 못했어요. 잠시 후 다시 해보세요.');
       }
     });
   }
@@ -260,24 +246,16 @@ function AddRow({
     >
       <input
         type="text"
-        value={key}
-        onChange={(e) => setKey(e.target.value)}
-        placeholder="key (예: my_type)"
-        disabled={isPending}
-        autoFocus
-        className="w-40 rounded border border-zinc-300 bg-white px-2 py-1 font-mono text-xs outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
-      />
-      <input
-        type="text"
         value={label}
         onChange={(e) => setLabel(e.target.value)}
-        placeholder="라벨 (예: 내 유형)"
+        placeholder="이름 (예: 내 유형)"
         disabled={isPending}
+        autoFocus
         className="flex-1 rounded border border-zinc-300 bg-white px-2 py-1 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
       />
       <button
         type="submit"
-        disabled={isPending || !key || !label}
+        disabled={isPending || !label.trim()}
         className="rounded bg-zinc-900 px-3 py-1 text-xs text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
       >
         {isPending ? '추가 중…' : '추가'}
@@ -322,4 +300,10 @@ function IconButton({
       {children}
     </button>
   );
+}
+
+// 데이터끼리 연결하는 내부 값이라 사용자가 정할 필요 없음 — 소문자·숫자·_ (API 규칙), 50자 이내.
+function newKey(prefix: string): string {
+  const rand = Math.random().toString(36).slice(2, 8);
+  return `${prefix}_${Date.now().toString(36)}${rand}`;
 }

@@ -111,13 +111,13 @@ export function SetInputs(props: Props) {
 
       for (const s of payload) {
         if (s.weightKg != null && !Number.isFinite(s.weightKg)) {
-          throw new Error('무게는 숫자여야 합니다');
+          throw new Error('무게는 숫자로 적어주세요');
         }
         if (s.reps != null && !Number.isInteger(s.reps)) {
-          throw new Error('횟수는 정수여야 합니다');
+          throw new Error('횟수는 정수로 적어주세요');
         }
         if (s.rir != null && !Number.isInteger(s.rir)) {
-          throw new Error('RIR은 정수여야 합니다');
+          throw new Error('RIR은 정수로 적어주세요');
         }
       }
 

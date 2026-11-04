@@ -35,7 +35,7 @@ export function BlogList({ posts, sources, activeSourceId }: Props) {
         router.refresh();
       } catch (err) {
         console.error(err);
-        setRefreshError('새로고침에 실패했습니다.');
+        setRefreshError('새 글을 가져오지 못했어요. 잠시 후 다시 해보세요.');
       }
     });
   }
@@ -55,7 +55,7 @@ export function BlogList({ posts, sources, activeSourceId }: Props) {
           className="inline-flex items-center gap-1.5 rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? 'animate-spin' : ''}`} aria-hidden />
-          {isRefreshing ? '수집 중…' : 'RSS 새로고침'}
+          {isRefreshing ? '가져오는 중…' : '새 글 가져오기'}
         </button>
       </div>
 
@@ -76,7 +76,7 @@ export function BlogList({ posts, sources, activeSourceId }: Props) {
         <div className="rounded-md border border-dashed border-zinc-300 p-8 text-center text-sm text-zinc-500 dark:border-zinc-700">
           {activeSourceId
             ? '이 블로그에서 새 글을 아직 못 찾았어요.'
-            : '아직 모아둔 글이 없어요. 위의 “RSS 새로고침”을 눌러 새 글을 가져와보세요.'}
+            : '아직 모아둔 글이 없어요. 새 글을 가져와보세요.'}
         </div>
       ) : (
         <ul className="flex flex-col gap-2">

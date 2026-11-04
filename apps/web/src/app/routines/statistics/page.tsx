@@ -126,12 +126,12 @@ async function RoutinesStatisticsContent() {
   if (blocks.length === 0) {
     return (
       <div className="flex flex-col items-center gap-3 rounded-lg border border-line bg-surface px-6 py-10 text-center">
-        <p className="text-ink-soft">아직 만든 시간블록이 없어요.</p>
+        <p className="text-ink-soft">아직 만든 루틴이 없어요.</p>
         <Link
           href="/routines"
           className="inline-flex min-h-10 items-center rounded-md bg-button px-4 text-sm font-semibold text-white hover:opacity-90"
         >
-          트래커에서 블록 추가하기 ›
+          트래커에서 루틴 추가하기 ›
         </Link>
       </div>
     );
@@ -158,7 +158,7 @@ async function RoutinesStatisticsContent() {
             role="tooltip"
             className="pointer-events-none invisible absolute top-full left-1/2 z-20 mt-1.5 flex w-max -translate-x-1/2 flex-col rounded-md bg-ink px-3 py-2 text-[13px] leading-normal break-keep whitespace-nowrap text-paper opacity-0 shadow-lg transition-opacity group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100"
           >
-            <span>블록을 하나라도 체크한 날이 이어진 날수예요.</span>
+            <span>루틴을 하나라도 체크한 날이 이어진 날수예요.</span>
             <span>최고 기록은 최근 180일 안에서 세요.</span>
           </span>
         </span>

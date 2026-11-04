@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { FileQuestion } from 'lucide-react';
 
 export const metadata = {
-  title: '페이지를 찾을 수 없습니다 · Rally',
+  title: '페이지를 찾을 수 없어요 · Rally',
 };
 
 // Renders for unmatched routes and explicit notFound() calls. Tone matches

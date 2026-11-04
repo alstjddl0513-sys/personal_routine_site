@@ -45,7 +45,7 @@ export function SessionTabs(props: Props) {
   }
 
   async function onDelete(id: string, label: string) {
-    if (!confirm(`${label}를 삭제할까요? 안의 세트/노트도 함께 사라집니다.`)) return;
+    if (!confirm(`${label}을(를) 삭제할까요? 안에 적은 세트·메모도 같이 사라져요.`)) return;
     try {
       await deleteWorkoutSession(id);
       const remaining = props.sessions.filter((s) => s.id !== id);

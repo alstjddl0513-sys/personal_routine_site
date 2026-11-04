@@ -94,7 +94,7 @@ export function NicknameRow() {
       } catch (err) {
         setStatus({
           kind: 'error',
-          message: err instanceof Error ? err.message : '확인 실패',
+          message: err instanceof Error ? err.message : '닉네임을 확인하지 못했어요',
         });
       }
     }, 400);
@@ -109,10 +109,10 @@ export function NicknameRow() {
       setStatus({ kind: 'idle' });
     } catch (err) {
       if (err instanceof HttpError && err.status === 409) {
-        setError('닉네임이 방금 다른 사람에게 선점됐어요. 다른 닉네임으로 시도해주세요.');
+        setError('닉네임이 방금 다른 사람에게 선점됐어요. 다른 닉네임으로 다시 시도해주세요.');
         setStatus({ kind: 'taken' });
       } else {
-        setError('저장 실패. 잠시 후 다시 시도해주세요.');
+        setError('저장하지 못했어요. 잠시 후 다시 해보세요.');
       }
     } finally {
       setSaving(false);
@@ -211,10 +211,10 @@ function StatusMessage({
     return <p className="text-xs text-red-600 dark:text-red-400">{status.message}</p>;
   }
   if (status.kind === 'taken') {
-    return <p className="text-xs text-red-600 dark:text-red-400">이미 사용중인 닉네임이에요.</p>;
+    return <p className="text-xs text-red-600 dark:text-red-400">이미 사용 중인 닉네임이에요.</p>;
   }
   if (status.kind === 'available') {
-    return <p className="text-xs text-emerald-600 dark:text-emerald-400">사용가능한 닉네임이에요.</p>;
+    return <p className="text-xs text-emerald-600 dark:text-emerald-400">사용할 수 있는 닉네임이에요.</p>;
   }
   if (status.kind === 'error') {
     return <p className="text-xs text-red-600 dark:text-red-400">{status.message}</p>;

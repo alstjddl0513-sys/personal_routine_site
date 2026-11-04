@@ -74,7 +74,7 @@ export function KpiCard({
           label="완료한 날"
           value={data.doneDays}
           unit={`/ ${data.totalDays}일`}
-          tip="블록을 전부 체크한 날만 세요"
+          tip="루틴을 전부 체크한 날만 세요"
           pct={data.totalDays > 0 ? (data.doneDays / data.totalDays) * 100 : 0}
           goal={allDone}
         />
