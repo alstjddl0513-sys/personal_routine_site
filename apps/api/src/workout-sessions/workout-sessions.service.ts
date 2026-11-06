@@ -1,7 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { and, asc, between, eq } from 'drizzle-orm';
 import { db } from '../db/client';
-import { workoutSessions } from '../db/schema';
+import { workoutSessions, workoutSplits } from '../db/schema';
 import type { QueryWorkoutSessionsDto } from './dto/query-workout-sessions.dto';
 import type { CreateWorkoutSessionDto } from './dto/create-workout-session.dto';
 import type { UpdateWorkoutSessionDto } from './dto/update-workout-session.dto';
@@ -48,7 +52,25 @@ export class WorkoutSessionsService {
     return row;
   }
 
+  // 남의 분할 id면 거절 (null은 분할 없음).
+  private async assertOwnedSplit(
+    ownerId: string,
+    splitId: string | null | undefined,
+  ) {
+    if (!splitId) return;
+    const [row] = await db
+      .select({ id: workoutSplits.id })
+      .from(workoutSplits)
+      .where(
+        and(eq(workoutSplits.id, splitId), eq(workoutSplits.ownerId, ownerId)),
+      )
+      .limit(1);
+    if (!row)
+      throw new BadRequestException('분할이 없거나 내 분할이 아니에요.');
+  }
+
   async create(ownerId: string, dto: CreateWorkoutSessionDto) {
+    await this.assertOwnedSplit(ownerId, dto.splitId);
     const [row] = await db
       .insert(workoutSessions)
       .values({ ...dto, ownerId })
@@ -57,6 +79,7 @@ export class WorkoutSessionsService {
   }
 
   async update(ownerId: string, id: string, dto: UpdateWorkoutSessionDto) {
+    await this.assertOwnedSplit(ownerId, dto.splitId);
     const [row] = await db
       .update(workoutSessions)
       .set({ ...dto, updatedAt: new Date() })

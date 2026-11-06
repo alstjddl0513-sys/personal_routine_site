@@ -1,9 +1,11 @@
 import {
   boolean,
   date,
+  index,
   integer,
   numeric,
   pgTable,
+  primaryKey,
   smallint,
   text,
   timestamp,
@@ -32,6 +34,45 @@ export const exercises = pgTable('exercises', {
     .defaultNow(),
 });
 
+// 분할(스플릿): 이름 + 종목 목록 + 순서. 요일 고정이 아니라 sort_order 순서대로
+// 돌아가며 함("지난번 상체 A → 오늘은 하체 A 차례"). 부위와 무관 — 같은 하체라도
+// 종목만 다른 "하체 A/B" 가능. 분할을 안 만든 유저는 기존처럼 전체 종목.
+export const workoutSplits = pgTable(
+  'workout_splits',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    // Owner. See companies.ts for the auth.users FK note (raw SQL in migration).
+    ownerId: uuid('owner_id').notNull(),
+    name: text('name').notNull(),
+    sortOrder: integer('sort_order').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index('workout_splits_owner_order_idx').on(t.ownerId, t.sortOrder)],
+);
+
+// M2M: 분할 ↔ 종목. 한 종목이 여러 분할에 들어갈 수 있음. 카드 순서는 종목의
+// sort_order를 그대로 따름(분할 안 순서는 따로 두지 않음).
+export const workoutSplitExercises = pgTable(
+  'workout_split_exercises',
+  {
+    splitId: uuid('split_id')
+      .notNull()
+      .references(() => workoutSplits.id, { onDelete: 'cascade' }),
+    exerciseId: uuid('exercise_id')
+      .notNull()
+      .references(() => exercises.id, { onDelete: 'cascade' }),
+  },
+  (t) => [
+    primaryKey({ columns: [t.splitId, t.exerciseId] }),
+    index('wse_exercise_idx').on(t.exerciseId),
+  ],
+);
+
 // 하루 여러 세션 허용 (분할 훈련 대응). date는 그냥 index 대상.
 export const workoutSessions = pgTable('workout_sessions', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -39,6 +80,10 @@ export const workoutSessions = pgTable('workout_sessions', {
   ownerId: uuid('owner_id').notNull(),
   date: date('date').notNull(),
   note: text('note'),
+  // 그날 한 분할 — 다음 차례 계산용. 분할을 지워도 기록은 남게 SET NULL.
+  splitId: uuid('split_id').references(() => workoutSplits.id, {
+    onDelete: 'set null',
+  }),
   startedAt: timestamp('started_at', { withTimezone: true, mode: 'string' }),
   endedAt: timestamp('ended_at', { withTimezone: true, mode: 'string' }),
   createdAt: timestamp('created_at', { withTimezone: true })
