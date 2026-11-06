@@ -218,6 +218,13 @@
       "when": 1793518998143,
       "tag": "0030_loud_lionheart",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1793972046844,
+      "tag": "0031_spotty_johnny_storm",
+      "breakpoints": true
     }
   ]
 }

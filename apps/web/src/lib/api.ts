@@ -49,6 +49,9 @@ import type {
   WeeklyVolumeEntry,
   WorkoutHeatmapEntry,
   WorkoutSession,
+  WorkoutSplit,
+  WorkoutSplitTemplate,
+  WorkoutSplitsResponse,
   WorkoutSessionContext,
   WorkoutSet,
 } from '@repo/shared';
@@ -533,6 +536,7 @@ export async function getWorkoutSessionsRange(range: {
 export async function createWorkoutSession(input: {
   date: string;
   note?: string;
+  splitId?: string | null;
 }): Promise<WorkoutSession> {
   const res = await fetch(apiUrl('/workout-sessions'), {
     method: 'POST',
@@ -545,7 +549,7 @@ export async function createWorkoutSession(input: {
 
 export async function patchWorkoutSession(
   id: string,
-  patch: { note?: string | null },
+  patch: { note?: string | null; splitId?: string | null },
 ): Promise<WorkoutSession> {
   const res = await fetch(apiUrl(`/workout-sessions/${id}`), {
     method: 'PATCH',
@@ -554,6 +558,77 @@ export async function patchWorkoutSession(
   });
   if (!res.ok) throw new Error(`PATCH /workout-sessions/${id} failed: HTTP ${res.status}`);
   return (await res.json()) as WorkoutSession;
+}
+
+// --- 운동 분할 ---
+
+// before 이전 마지막 기록 기준으로 다음 차례(nextSplitId)를 같이 받음.
+export async function getWorkoutSplits(before?: string): Promise<WorkoutSplitsResponse> {
+  const qs = before ? `?before=${before}` : '';
+  const res = await fetch(apiUrl(`/workout-splits${qs}`), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) throw new Error(`GET /workout-splits failed: HTTP ${res.status}`);
+  return (await res.json()) as WorkoutSplitsResponse;
+}
+
+export async function createWorkoutSplit(input: {
+  name: string;
+  exerciseIds: string[];
+}): Promise<WorkoutSplit> {
+  const res = await fetch(apiUrl('/workout-splits'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(`POST /workout-splits failed: HTTP ${res.status}`);
+  return (await res.json()) as WorkoutSplit;
+}
+
+export async function patchWorkoutSplit(
+  id: string,
+  patch: { name?: string; exerciseIds?: string[] },
+): Promise<WorkoutSplit> {
+  const res = await fetch(apiUrl(`/workout-splits/${id}`), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok) throw new Error(`PATCH /workout-splits/${id} failed: HTTP ${res.status}`);
+  return (await res.json()) as WorkoutSplit;
+}
+
+export async function deleteWorkoutSplit(id: string): Promise<void> {
+  const res = await fetch(apiUrl(`/workout-splits/${id}`), {
+    method: 'DELETE',
+    headers: await authHeaders(),
+  });
+  if (!res.ok && res.status !== 204) {
+    throw new Error(`DELETE /workout-splits/${id} failed: HTTP ${res.status}`);
+  }
+}
+
+export async function reorderWorkoutSplits(ids: string[]): Promise<WorkoutSplit[]> {
+  const res = await fetch(apiUrl('/workout-splits/order'), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify({ ids }),
+  });
+  if (!res.ok) throw new Error(`PUT /workout-splits/order failed: HTTP ${res.status}`);
+  return (await res.json()) as WorkoutSplit[];
+}
+
+export async function createWorkoutSplitsFromTemplate(
+  kind: WorkoutSplitTemplate,
+): Promise<WorkoutSplit[]> {
+  const res = await fetch(apiUrl('/workout-splits/templates'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify({ kind }),
+  });
+  if (!res.ok) throw new Error(`POST /workout-splits/templates failed: HTTP ${res.status}`);
+  return (await res.json()) as WorkoutSplit[];
 }
 
 export async function deleteWorkoutSession(id: string): Promise<void> {

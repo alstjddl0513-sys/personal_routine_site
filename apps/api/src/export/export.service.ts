@@ -9,6 +9,8 @@ import {
   timeBlocks,
   workoutSessions,
   workoutSets,
+  workoutSplitExercises,
+  workoutSplits,
 } from '../db/schema';
 
 // Whole-DB dump for local backup. Small enough (a few thousand rows total)
@@ -25,6 +27,8 @@ export class ExportService {
       exercisesRows,
       workoutSessionsRows,
       workoutSetsRows,
+      workoutSplitsRows,
+      workoutSplitExercisesRows,
     ] = await Promise.all([
       db.select().from(companies).where(eq(companies.ownerId, ownerId)),
       db.select().from(timeBlocks).where(eq(timeBlocks.ownerId, ownerId)),
@@ -36,6 +40,19 @@ export class ExportService {
         .from(workoutSessions)
         .where(eq(workoutSessions.ownerId, ownerId)),
       db.select().from(workoutSets).where(eq(workoutSets.ownerId, ownerId)),
+      db.select().from(workoutSplits).where(eq(workoutSplits.ownerId, ownerId)),
+      // junction엔 owner가 없어서 내 분할로 조인
+      db
+        .select({
+          splitId: workoutSplitExercises.splitId,
+          exerciseId: workoutSplitExercises.exerciseId,
+        })
+        .from(workoutSplitExercises)
+        .innerJoin(
+          workoutSplits,
+          eq(workoutSplits.id, workoutSplitExercises.splitId),
+        )
+        .where(eq(workoutSplits.ownerId, ownerId)),
     ]);
 
     return {
@@ -49,6 +66,8 @@ export class ExportService {
         exercises: exercisesRows,
         workoutSessions: workoutSessionsRows,
         workoutSets: workoutSetsRows,
+        workoutSplits: workoutSplitsRows,
+        workoutSplitExercises: workoutSplitExercisesRows,
       },
     };
   }
