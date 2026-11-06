@@ -1,6 +1,5 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
-import { Settings2 } from 'lucide-react';
 import type { WorkoutSessionContext, WorkoutSet } from '@repo/shared';
 import {
   getExercises,
@@ -15,7 +14,7 @@ import {
   type MuscleGroupFilter,
 } from '../../lib/muscle-groups';
 import { AddExerciseButton } from '../../components/workouts/AddExerciseButton';
-import { RestTimer } from '../../components/workouts/RestTimer';
+import { RestTimer, RestTimerOpenButton } from '../../components/workouts/RestTimer';
 import { WorkoutBoard } from '../../components/workouts/WorkoutBoard';
 import { WorkoutDateNav } from '../../components/workouts/WorkoutDateNav';
 import { WorkoutGroupTabs } from '../../components/workouts/WorkoutGroupTabs';
@@ -36,24 +35,27 @@ export default async function WorkoutsPage({
   const sessionParam = first(sp.session);
 
   return (
-    <div className="flex flex-col gap-4 p-6 pb-40 md:pb-24">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-semibold">운동 기록</h1>
-          <AddExerciseButton />
-        </div>
-        <WorkoutDateNav date={displayDate} group={groupFilter} />
-      </header>
+    <div className="flex min-h-screen flex-col bg-paper font-plex text-[15px] leading-normal text-ink tabular-nums">
+      <div className="mx-auto flex w-full max-w-310 flex-1 flex-col gap-5 px-4 pt-6 pb-40 md:px-10 md:pt-9 md:pb-10">
+        <header className="flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-[26px] leading-tight font-bold tracking-[-0.01em]">운동 기록</h1>
+          <div className="flex items-center gap-2">
+            <RestTimerOpenButton />
+            <WorkoutDateNav date={displayDate} group={groupFilter} />
+          </div>
+        </header>
 
-      <Suspense fallback={<WorkoutsSkeleton />}>
-        <WorkoutsContent
-          dateIso={dateIso}
-          dateParam={dateParam}
-          groupFilter={groupFilter}
-          sessionParam={sessionParam}
-        />
-      </Suspense>
+        <Suspense fallback={<WorkoutsSkeleton />}>
+          <WorkoutsContent
+            dateIso={dateIso}
+            dateParam={dateParam}
+            groupFilter={groupFilter}
+            sessionParam={sessionParam}
+          />
+        </Suspense>
+      </div>
 
+      {/* 데스크톱: 본문 열 바닥에 붙는 띠 / 모바일: 기존 플로팅 버튼·패널 */}
       <RestTimer />
     </div>
   );
@@ -121,22 +123,28 @@ async function WorkoutsContent({
 
   return (
     <>
-      <div className="flex items-end justify-between gap-2 border-b border-zinc-200 dark:border-zinc-800">
-        <WorkoutGroupTabs
-          active={groupFilter}
-          counts={counts}
-          preserveParams={{ date: dateParam }}
-        />
-        <Link
-          href="/settings/exercises"
-          className="mb-1.5 inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
-        >
-          <Settings2 className="h-3.5 w-3.5" aria-hidden />
-          종목 관리
-        </Link>
-      </div>
-
       <WorkoutBoard
+        groupTabs={
+          // 부위 탭 + 종목 동작(관리·추가)을 카드 바로 위에 모음
+          <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2 border-b border-divider">
+            <WorkoutGroupTabs
+              active={groupFilter}
+              counts={counts}
+              preserveParams={{ date: dateParam }}
+            />
+            <div className="mb-1.5 flex items-center gap-2">
+              <Link
+                href="/settings/exercises"
+                className="inline-flex min-h-10 items-center px-1 text-sm text-ink-soft hover:text-ink"
+              >
+                종목 관리 ›
+              </Link>
+              <AddExerciseButton />
+            </div>
+          </div>
+        }
+        activeSetCount={allSets.length}
+        totalExercises={allExercises.length}
         exercises={exercises}
         date={dateIso}
         group={groupFilter}
@@ -153,8 +161,13 @@ async function WorkoutsContent({
 function WorkoutsSkeleton() {
   return (
     <>
-      <Skeleton className="h-10" />
-      <Skeleton className="h-64" />
+      <Skeleton className="h-10 w-120 max-w-full" />
+      <Skeleton className="h-11" />
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <Skeleton className="h-80" />
+        <Skeleton className="h-80" />
+        <Skeleton className="h-80" />
+      </div>
     </>
   );
 }

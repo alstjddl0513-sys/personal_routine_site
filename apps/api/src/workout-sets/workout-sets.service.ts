@@ -344,25 +344,65 @@ export class WorkoutSetsService {
     };
   }
 
+  // 기록 화면용 최고 기록: 보고 있는 날짜(beforeDate) **이전** 세트만.
+  // findExerciseStats의 pr은 전체 기간(통계용)이라, 오늘 적은 세트가 곧바로 PR이
+  // 돼서 "오늘 최고 기록을 넘겼다" 비교가 새로고침 뒤 사라짐. '지난 운동'(findPrevious)과
+  // 같은 기준으로 맞춤. 정렬 기준은 pr과 같음(무게 → 횟수 → 최근 날짜).
+  private async findPrBefore(
+    ownerId: string,
+    exerciseId: string,
+    beforeDate: string,
+  ): Promise<ExerciseStatsPR | null> {
+    const [row] = await db
+      .select({
+        weightKg: workoutSets.weightKg,
+        reps: workoutSets.reps,
+        sessionDate: workoutSessions.date,
+      })
+      .from(workoutSets)
+      .innerJoin(workoutSessions, eq(workoutSessions.id, workoutSets.sessionId))
+      .where(
+        and(
+          eq(workoutSets.ownerId, ownerId),
+          eq(workoutSets.exerciseId, exerciseId),
+          isNotNull(workoutSets.weightKg),
+          lt(workoutSessions.date, beforeDate),
+        ),
+      )
+      .orderBy(
+        desc(workoutSets.weightKg),
+        desc(workoutSets.reps),
+        desc(workoutSessions.date),
+      )
+      .limit(1);
+    return row
+      ? {
+          weightKg: row.weightKg as string,
+          reps: row.reps,
+          sessionDate: row.sessionDate,
+        }
+      : null;
+  }
+
   // /workouts 진입 시 종목 N개의 previous + PR을 한 번의 요청으로 반환.
   // 기존엔 GET /workout-sets/previous · GET /workout-sets/exercise-stats?limit=1
   // 를 종목마다 각각 호출 → 클라→서버 2N 왕복. Vercel(icn1) → Render(Singapore)
   // 홉당 ~70ms라 종목 15개면 30개 왕복이 병렬이라도 커넥션 풀·네트워크 분산으로
   // 200-400ms 지연. 이 endpoint 하나로 왕복을 1회로 압축.
   //
-  // 서버 내부는 여전히 기존 findPrevious/findExerciseStats 재사용 (Promise.all
-  // 로 병렬). DB 왕복 2N은 그대로지만 Render↔Supabase(둘 다 아시아 리전
+  // 서버 내부는 findPrevious/findPrBefore 재사용 (Promise.all로 병렬). PR은
+  // beforeDate 이전만 — '지난 운동'과 같은 기준. DB 왕복 2N은 그대로지만 Render↔Supabase(둘 다 아시아 리전
   // 가까움) ~30-50ms라 큰 문제 아님. 필요시 후속으로 window function/LATERAL
   // 로 압축 가능.
   //
-  // 소유권: findPrevious/findExerciseStats 둘 다 workoutSets.ownerId 필터가
+  // 소유권: findPrevious/findPrBefore 둘 다 workoutSets.ownerId 필터가
   // 걸려 있어 caller 소유가 아닌 exerciseId는 자연스레 null/빈 결과. 별도
   // preflight 검증은 skip (기존 개별 endpoint 정책과 동일).
   async getSessionContext(
     ownerId: string,
     query: QuerySessionContextDto,
   ): Promise<WorkoutSessionContext> {
-    const [previousList, statsList] = await Promise.all([
+    const [previousList, prList] = await Promise.all([
       Promise.all(
         query.exerciseIds.map((id) =>
           this.findPrevious(ownerId, {
@@ -373,7 +413,7 @@ export class WorkoutSetsService {
       ),
       Promise.all(
         query.exerciseIds.map((id) =>
-          this.findExerciseStats(ownerId, { exerciseId: id, limit: 1 }),
+          this.findPrBefore(ownerId, id, query.beforeDate),
         ),
       ),
     ]);
@@ -382,7 +422,7 @@ export class WorkoutSetsService {
     const pr: Record<string, ExerciseStatsPR | null> = {};
     query.exerciseIds.forEach((id, i) => {
       previous[id] = previousList[i];
-      pr[id] = statsList[i].pr;
+      pr[id] = prList[i];
     });
     return { previous, pr };
   }

@@ -31,6 +31,61 @@ function subscribeLastPreset(cb: () => void): () => void {
   };
 }
 
+const BAND_OPEN_KEY = 'rally.restTimer.bandOpen';
+const BAND_OPEN_EVENT = 'rally.restTimer.bandOpenChanged';
+
+function readBandOpen(): boolean {
+  try {
+    return window.localStorage.getItem(BAND_OPEN_KEY) !== '0';
+  } catch {
+    return true;
+  }
+}
+
+function subscribeBandOpen(cb: () => void): () => void {
+  window.addEventListener(BAND_OPEN_EVENT, cb);
+  window.addEventListener('storage', cb);
+  return () => {
+    window.removeEventListener(BAND_OPEN_EVENT, cb);
+    window.removeEventListener('storage', cb);
+  };
+}
+
+function setBandOpen(open: boolean) {
+  try {
+    window.localStorage.setItem(BAND_OPEN_KEY, open ? '1' : '0');
+  } catch {
+    // ignore
+  }
+  window.dispatchEvent(new Event(BAND_OPEN_EVENT));
+}
+
+function useBandOpen(): boolean {
+  return useSyncExternalStore(subscribeBandOpen, readBandOpen, () => true);
+}
+
+// 띠를 ✕로 닫았을 때만 헤더(날짜 이동 왼쪽)에 보이는 버튼. 데스크톱 전용.
+export function RestTimerOpenButton() {
+  const open = useBandOpen();
+  if (open) return null;
+  return (
+    <button
+      type="button"
+      onClick={() => setBandOpen(true)}
+      className="hidden min-h-10 cursor-pointer items-center gap-1.5 rounded-md border border-btn-border bg-btn-bg px-3.5 text-sm font-medium text-btn-fg hover:border-heading md:inline-flex"
+    >
+      <Timer className="h-4 w-4" aria-hidden />
+      휴식 타이머
+    </button>
+  );
+}
+
+// "1:30"
+function formatMSS(totalSec: number): string {
+  const s = Math.max(0, Math.ceil(totalSec));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+
 type Status = 'idle' | 'running' | 'paused' | 'done';
 
 function formatMMSS(totalSec: number): string {
@@ -86,10 +141,10 @@ function notifyIfAllowed(body: string) {
     if (typeof Notification === 'undefined') return;
     if (Notification.permission === 'granted') {
       // tag: 같은 tag의 이전 알림은 덮어씀 (연속 사용 시 스팸 방지)
-      new Notification('Rally · 휴식 종료', {
+      new Notification('휴식 끝', {
         body,
         tag: 'rally-rest-timer',
-        silent: false,
+        silent: true,
       });
     }
   } catch {
@@ -113,6 +168,7 @@ export function RestTimer() {
   // 사용자가 FAB 탭으로 명시적으로 펼친 여부만 저장 — 실제 노출은
   // status !== 'idle'로도 파생되어 non-idle 상태에서는 항상 보임.
   const [mobileUserExpanded, setMobileUserExpanded] = useState(false);
+  const bandOpen = useBandOpen();
   // 실제 종료 시각(ms since epoch). setInterval은 백그라운드에서 스로틀되므로,
   // deadline 기준으로 남은 시간을 계산해 스로틀에 무관하게 정확도 유지.
   const deadlineRef = useRef<number | null>(null);
@@ -131,7 +187,7 @@ export function RestTimer() {
         deadlineRef.current = null;
         playBeep();
         vibrate();
-        notifyIfAllowed(`${totalSec}초 휴식 완료`);
+        notifyIfAllowed(`${totalSec}초 휴식이 끝났어요.`);
         return;
       }
       setRemainingMs(rem);
@@ -215,8 +271,8 @@ export function RestTimer() {
       ) : null}
 
       <div
-        className={`pointer-events-none fixed inset-x-0 bottom-24 z-40 justify-center px-4 md:bottom-4 md:pl-[calc(15rem+1rem)] ${
-          showMobileFab ? 'hidden md:flex' : 'flex'
+        className={`pointer-events-none fixed inset-x-0 bottom-24 z-40 justify-center px-4 md:hidden ${
+          showMobileFab ? 'hidden' : 'flex'
         }`}
       >
         <div
@@ -248,7 +304,141 @@ export function RestTimer() {
           )}
         </div>
       </div>
+
+      {bandOpen ? (
+        <DesktopBand
+          status={status}
+          remainingMs={remainingMs}
+          totalSec={totalSec}
+          lastPreset={lastPreset}
+          onStart={start}
+          onPause={pause}
+          onResume={resume}
+          onReset={reset}
+          onClose={() => {
+            close();
+            setBandOpen(false);
+          }}
+        />
+      ) : null}
     </>
+  );
+}
+
+const BAND_BTN =
+  'inline-flex min-h-10 cursor-pointer items-center gap-1.5 rounded-md border border-btn-border bg-btn-bg px-3 text-sm text-btn-fg hover:border-heading';
+
+// 데스크톱: 본문 열 바닥에 붙는 띠(사이드바 안 덮음). 흐름 안의 sticky라 맨 아래로
+// 스크롤하면 띠가 마지막 카드 뒤에 놓여 입력칸을 가리지 않음.
+function DesktopBand({
+  status,
+  remainingMs,
+  totalSec,
+  lastPreset,
+  onStart,
+  onPause,
+  onResume,
+  onReset,
+  onClose,
+}: {
+  status: Status;
+  remainingMs: number;
+  totalSec: number;
+  lastPreset: number;
+  onStart: (sec: number) => void;
+  onPause: () => void;
+  onResume: () => void;
+  onReset: () => void;
+  onClose: () => void;
+}) {
+  const done = status === 'done';
+  const active = status === 'running' || status === 'paused';
+  const remainRatio = totalSec > 0 ? Math.max(0, Math.min(1, remainingMs / (totalSec * 1000))) : 0;
+
+  return (
+    <section
+      aria-label="휴식 타이머"
+      className={`sticky bottom-0 z-30 hidden border-t px-10 py-2.5 md:block ${
+        done ? 'border-chip-on-border bg-chip-on-bg' : 'border-line bg-surface'
+      }`}
+    >
+      <div className="mx-auto flex min-h-12 max-w-310 items-center gap-5">
+        {done ? (
+          <>
+            <strong className="text-[22px] leading-tight font-bold text-heading">완료!</strong>
+            <span className="text-sm text-ink-soft">{totalSec}초 휴식이 끝났어요.</span>
+          </>
+        ) : (
+          <span className="text-sm font-semibold text-ink-soft">휴식</span>
+        )}
+
+        {active ? (
+          <>
+            <span
+              role="timer"
+              aria-label={`${formatMSS(totalSec)} 중 ${formatMSS(remainingMs / 1000)} 남음`}
+              className="flex items-baseline gap-1.5"
+            >
+              <strong className="text-[26px] leading-tight font-bold text-ink">
+                {formatMSS(remainingMs / 1000)}
+              </strong>
+              <span className="text-[15px] text-ink-muted">
+                / {formatMSS(totalSec)}
+                {status === 'paused' ? ' · 일시정지' : ''}
+              </span>
+            </span>
+            <span className="block h-1.5 max-w-70 flex-[0_1_280px] bg-track">
+              <span
+                className="block h-full bg-primary transition-[width] duration-200"
+                style={{ width: `${remainRatio * 100}%` }}
+              />
+            </span>
+          </>
+        ) : (
+          <span className="flex items-center gap-2">
+            {PRESETS.map((sec) => (
+              <button
+                key={sec}
+                type="button"
+                onClick={() => onStart(sec)}
+                className={`${BAND_BTN} ${sec === lastPreset ? 'font-semibold' : ''}`}
+              >
+                {sec}초
+              </button>
+            ))}
+          </span>
+        )}
+
+        <span className="ml-auto flex items-center gap-2">
+          {status === 'running' ? (
+            <button type="button" onClick={onPause} className={BAND_BTN}>
+              <Pause className="h-3.5 w-3.5" aria-hidden />
+              일시정지
+            </button>
+          ) : null}
+          {status === 'paused' ? (
+            <button type="button" onClick={onResume} className={BAND_BTN}>
+              <Play className="h-3.5 w-3.5" aria-hidden />
+              재개
+            </button>
+          ) : null}
+          {active ? (
+            <button type="button" onClick={onReset} className={BAND_BTN}>
+              <RotateCcw className="h-3.5 w-3.5" aria-hidden />
+              리셋
+            </button>
+          ) : null}
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="휴식 타이머 닫기"
+            className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-md text-ink-muted hover:text-ink"
+          >
+            <X className="h-4 w-4" aria-hidden />
+          </button>
+        </span>
+      </div>
+    </section>
   );
 }
 
