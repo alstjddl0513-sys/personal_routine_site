@@ -8,11 +8,14 @@ import type {
   PreviousWorkout,
   WorkoutSet,
 } from '@repo/shared';
-import { SetInputs } from './SetInputs';
+import { SetInputs, type SavedSet } from './SetInputs';
 import { muscleLabel } from '../../lib/muscle-groups';
+import { toISODate } from '../../lib/routines-week';
 
 interface Props {
   exercise: Exercise;
+  /** 이 기록의 날짜(YYYY-MM-DD) — 오늘 세운 PR의 날짜 표시용 */
+  date: string;
   existingSets: WorkoutSet[];
   previous: PreviousWorkout | null;
   pr: ExerciseStatsPR | null;
@@ -22,50 +25,71 @@ interface Props {
   onMove: (dir: 'up' | 'down') => Promise<void>;
 }
 
-function formatSet(s: { weightKg: string | null; reps: number | null }): string {
-  const w = s.weightKg != null ? Number(s.weightKg) : null;
-  const r = s.reps;
-  if (w == null && r == null) return '-';
-  if (w == null) return `${r}회`;
-  if (r == null) return `${w}kg`;
-  return `${w}kg × ${r}`;
+// "11월 1일"
+function monthDay(iso: string): string {
+  return `${Number(iso.slice(5, 7))}월 ${Number(iso.slice(8, 10))}일`;
 }
 
-function formatPrev(prev: PreviousWorkout | null): { date: string; rendered: string } | null {
-  if (!prev || prev.sets.length === 0) return null;
-  const rendered = prev.sets
-    .slice()
-    .sort((a, b) => a.setNumber - b.setNumber)
-    .map(formatSet)
-    .join(', ');
-  return { date: prev.date, rendered };
+function toSaved(sets: WorkoutSet[]): SavedSet[] {
+  return sets
+    .map((s) => ({ weightKg: s.weightKg != null ? Number(s.weightKg) : null, reps: s.reps }))
+    .filter((s): s is SavedSet => s.weightKg != null && s.reps != null);
 }
+
+// 정보 줄 PR: 오늘 저장한 세트가 기존 PR을 넘으면 오늘 값·날짜로.
+function currentPr(
+  pr: ExerciseStatsPR | null,
+  today: SavedSet[],
+  date: string,
+): { weightKg: number; reps: number | null; date: string } | null {
+  let best = pr ? { weightKg: Number(pr.weightKg), reps: pr.reps, date: pr.sessionDate } : null;
+  if (!best) return null; // 지난 기록이 없으면 PR 비교 자체를 안 함(첫 기록은 PR 표시 X)
+  for (const s of today) {
+    if (
+      s.weightKg > best.weightKg ||
+      (s.weightKg === best.weightKg && best.reps != null && s.reps > best.reps)
+    ) {
+      best = { weightKg: s.weightKg, reps: s.reps, date };
+    }
+  }
+  return best;
+}
+
+const MOVE_BTN =
+  'inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-md text-ink-muted hover:text-ink disabled:cursor-default disabled:opacity-30';
 
 export function ExerciseCard(props: Props) {
   const [reordering, startReorder] = useTransition();
   const [showRir, setShowRir] = useState(props.existingSets.some((s) => s.rir != null));
-  // Mobile-only collapse; desktop always shows body via `md:block` override.
+  // Mobile-only collapse; desktop always shows body via `md:flex` override.
   const [collapsed, setCollapsed] = useState(false);
-  const prev = formatPrev(props.previous);
-  const bodyHiddenClass = collapsed ? 'hidden md:block' : '';
+  const [todaySaved, setTodaySaved] = useState<SavedSet[]>(() => toSaved(props.existingSets));
+
+  const hasPrev = !!props.previous && props.previous.sets.length > 0;
+  const pr = currentPr(props.pr, todaySaved, props.date);
+  const muscle = muscleLabel(props.exercise.targetMuscle);
 
   return (
-    <div className="group flex flex-col rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
-      <div className="mb-2 flex items-start justify-between gap-2">
+    <article
+      aria-label={props.exercise.name}
+      className="group flex min-w-0 flex-col gap-3.5 rounded-lg border border-line bg-surface px-4 pt-4 pb-3.5 focus-within:border-btn-border hover:border-btn-border"
+    >
+      <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-sm font-semibold">{props.exercise.name}</div>
-          <div className="text-[11px] text-zinc-500">
-            {muscleLabel(props.exercise.targetMuscle) ?? '-'} · 목표 {props.exercise.repMin}~{props.exercise.repMax}회
-          </div>
+          <h3 className="truncate text-[17px] font-bold text-heading">{props.exercise.name}</h3>
+          <p className="text-[13px] text-ink-muted">
+            {muscle ?? '기타'} · 목표 {props.exercise.repMin}~{props.exercise.repMax}회
+          </p>
         </div>
-        <div className="flex items-center gap-0.5">
-          <div className="hidden items-center gap-0.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100 md:flex">
+        <div className="-mt-2 -mr-2 flex items-center">
+          {/* 순서 바꾸기 ↑↓: 카드 hover 또는 안에 포커스가 있을 때만 */}
+          <div className="hidden items-center opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 md:flex">
             <button
               type="button"
               onClick={() => startReorder(() => props.onMove('up'))}
               disabled={!props.canMoveUp || reordering}
-              className="inline-flex h-6 w-6 items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 disabled:opacity-30 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
               aria-label={`${props.exercise.name} 위로`}
+              className={MOVE_BTN}
             >
               <ChevronUp className="h-4 w-4" aria-hidden />
             </button>
@@ -73,8 +97,8 @@ export function ExerciseCard(props: Props) {
               type="button"
               onClick={() => startReorder(() => props.onMove('down'))}
               disabled={!props.canMoveDown || reordering}
-              className="inline-flex h-6 w-6 items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 disabled:opacity-30 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
               aria-label={`${props.exercise.name} 아래로`}
+              className={MOVE_BTN}
             >
               <ChevronDown className="h-4 w-4" aria-hidden />
             </button>
@@ -84,7 +108,7 @@ export function ExerciseCard(props: Props) {
             onClick={() => setCollapsed((c) => !c)}
             aria-expanded={!collapsed}
             aria-label={collapsed ? '펼치기' : '접기'}
-            className="inline-flex h-7 w-7 items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 md:hidden dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+            className={`${MOVE_BTN} md:hidden`}
           >
             <ChevronDown
               className={`h-4 w-4 transition-transform ${collapsed ? '' : 'rotate-180'}`}
@@ -94,49 +118,45 @@ export function ExerciseCard(props: Props) {
         </div>
       </div>
 
-      <div className={bodyHiddenClass}>
-      {prev ? (
-        <div className="mb-1 rounded bg-zinc-50 px-2 py-1.5 text-[11px] text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
-          <span className="font-medium">지난번</span>
-          <span className="ml-1 text-zinc-400">({prev.date})</span>: {prev.rendered}
-        </div>
-      ) : (
-        <div className="mb-1 rounded bg-zinc-50 px-2 py-1.5 text-[11px] italic text-zinc-400 dark:bg-zinc-900">
-          지난 기록 없음
-        </div>
-      )}
-
-      {props.pr ? (
-        <div className="mb-2 flex items-center gap-1 text-[10px] text-amber-700 dark:text-amber-400">
-          <span className="rounded bg-amber-100 px-1 py-0.5 font-semibold dark:bg-amber-950/50">
-            PR
-          </span>
-          <span>
-            {Number(props.pr.weightKg)}kg
-            {props.pr.reps != null ? ` × ${props.pr.reps}` : ''}
-            <span className="ml-1 text-zinc-400">({props.pr.sessionDate})</span>
-          </span>
-        </div>
-      ) : null}
-
-      <SetInputs
-        exerciseId={props.exercise.id}
-        defaultSets={props.exercise.defaultSets}
-        existingSets={props.existingSets}
-        ensureSession={props.ensureSession}
-        showRir={showRir}
-      />
-
-      <div className="mt-1 flex justify-end">
-        <button
-          type="button"
-          onClick={() => setShowRir((v) => !v)}
-          className="text-[11px] text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
-        >
-          {showRir ? '− RIR 숨기기' : '+ RIR'}
-        </button>
+      <div className={`flex-1 flex-col gap-3.5 ${collapsed ? 'hidden md:flex' : 'flex'}`}>
+        {/* 라벨(흐리게) · 값(진하게) 두 줄 — "최근 기록 / 최고 기록" 짝. 최근 기록 =
+            이 종목을 마지막으로 적은 날(세트 표 오른쪽 열과 같은 이름) */}
+        {hasPrev ? (
+          <dl className="-mt-1.5 grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-0.5 text-[13px]">
+            <dt className="text-ink-muted">최근 기록</dt>
+            <dd className="font-semibold text-ink">{monthDay(props.previous!.date)}</dd>
+            {pr ? (
+              <>
+                <dt className="text-ink-muted">최고 기록</dt>
+                <dd className="text-ink-soft">
+                  <span className="font-semibold text-ink">
+                    {pr.weightKg}kg{pr.reps != null ? ` × ${pr.reps}` : ''}
+                  </span>{' '}
+                  ·{' '}
+                  {pr.date !== props.date
+                    ? monthDay(pr.date)
+                    : props.date === toISODate(new Date())
+                      ? '오늘'
+                      : '이날'}
+                </dd>
+              </>
+            ) : null}
+          </dl>
+        ) : (
+          <p className="-mt-1.5 text-[13px] text-ink-muted">아직 기록이 없어요</p>
+        )}
+        <SetInputs
+          exerciseId={props.exercise.id}
+          defaultSets={props.exercise.defaultSets}
+          existingSets={props.existingSets}
+          ensureSession={props.ensureSession}
+          showRir={showRir}
+          onToggleRir={() => setShowRir((v) => !v)}
+          previous={props.previous}
+          pr={props.pr}
+          onSaved={setTodaySaved}
+        />
       </div>
-      </div>
-    </div>
+    </article>
   );
 }

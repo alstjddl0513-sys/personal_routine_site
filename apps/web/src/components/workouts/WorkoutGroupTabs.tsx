@@ -21,11 +21,9 @@ export function WorkoutGroupTabs({ active, counts, preserveParams }: Props) {
     return s ? `/workouts?${s}` : '/workouts';
   }
 
+  // 밑줄 탭 — 카드를 거르는 필터라 카드 바로 위. 0개 탭도 누를 수 있음(→ 빈 상태).
   return (
-    <nav
-      className="flex items-center gap-1"
-      aria-label="운동 부위 필터"
-    >
+    <nav className="-mb-px flex items-end gap-1" aria-label="운동 부위 필터">
       {GROUP_TABS.map((t) => {
         const isActive = t.key === active;
         const count = counts[t.key];
@@ -34,20 +32,14 @@ export function WorkoutGroupTabs({ active, counts, preserveParams }: Props) {
             key={t.key}
             href={href(t.key)}
             aria-current={isActive ? 'page' : undefined}
-            className={`inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm transition-colors ${
+            className={`inline-flex min-h-11 items-center gap-1.5 border-b-2 px-3 text-[15px] transition-colors ${
               isActive
-                ? 'border-zinc-900 font-medium text-zinc-900 dark:border-zinc-100 dark:text-zinc-100'
-                : 'border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-900 dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:text-zinc-100'
+                ? 'border-primary font-bold text-heading'
+                : 'border-transparent text-ink-soft hover:text-ink'
             }`}
           >
             <span>{t.label}</span>
-            <span
-              className={`rounded px-1.5 py-0.5 text-[10px] tabular-nums ${
-                isActive
-                  ? 'bg-zinc-900 text-zinc-50 dark:bg-zinc-100 dark:text-zinc-900'
-                  : 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400'
-              }`}
-            >
+            <span className={`font-normal ${count === 0 ? 'text-icon-faint' : 'text-ink-muted'}`}>
               {count}
             </span>
           </Link>

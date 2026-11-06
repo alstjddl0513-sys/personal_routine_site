@@ -14,6 +14,9 @@ export function SessionNoteCard(props: Props) {
   const [saving, startSave] = useTransition();
   const [flash, setFlash] = useState<'saved' | null>(null);
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [failed, setFailed] = useState(false);
+  // 입력을 멈추고 1초 뒤 자동 저장.
+  const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Reset only when the server-provided initialNote changes (i.e., date nav
   // or reorder-triggered refresh). Keyed on sessionId at the parent would
@@ -31,47 +34,69 @@ export function SessionNoteCard(props: Props) {
   useEffect(() => {
     return () => {
       if (flashTimer.current) clearTimeout(flashTimer.current);
+      if (debounce.current) clearTimeout(debounce.current);
     };
   }, []);
 
   const dirty = value !== saved;
 
-  function onSave() {
-    if (!dirty) return;
+  function onSave(next: string = value) {
+    if (debounce.current) clearTimeout(debounce.current);
+    if (next === saved) return;
     startSave(async () => {
       try {
         const id = await props.ensureSession();
-        await patchWorkoutSession(id, { note: value.trim() === '' ? null : value });
-        setSaved(value);
+        await patchWorkoutSession(id, { note: next.trim() === '' ? null : next });
+        setSaved(next);
+        setFailed(false);
         setFlash('saved');
         if (flashTimer.current) clearTimeout(flashTimer.current);
         flashTimer.current = setTimeout(() => setFlash(null), 1200);
       } catch (err) {
         console.error(err);
+        setFailed(true);
       }
     });
   }
 
+  function onChange(next: string) {
+    setValue(next);
+    if (debounce.current) clearTimeout(debounce.current);
+    debounce.current = setTimeout(() => onSave(next), 1000);
+  }
+
   return (
-    <div className="flex items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950">
-      <label className="shrink-0 text-xs text-zinc-500">컨디션</label>
+    <div className="flex min-w-0 flex-1 items-center gap-2.5">
+      <label htmlFor="session-note" className="shrink-0 text-sm font-semibold text-ink-soft">
+        컨디션
+      </label>
       <input
+        id="session-note"
         type="text"
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(e) => onChange(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
             e.preventDefault();
             onSave();
           }
         }}
-        onBlur={onSave}
+        onBlur={() => onSave()}
         maxLength={500}
         placeholder="오늘 컨디션 한 줄..."
-        className="min-h-11 flex-1 rounded border border-zinc-200 bg-white px-2 py-2 text-base outline-none focus:border-zinc-500 md:min-h-0 md:py-1 md:text-sm dark:border-zinc-700 dark:bg-zinc-950"
+        className="min-h-11 min-w-0 flex-1 rounded-md border border-btn-border bg-surface px-3 text-[15px] text-ink outline-none placeholder:text-ink-faint focus:border-heading md:min-h-10"
       />
-      <span className="min-w-15 text-right text-[10px] text-zinc-400">
-        {saving ? '저장 중…' : flash === 'saved' ? '저장됨' : dirty ? '변경사항 있음' : ' '}
+      <span role="status" className="min-w-22 shrink-0 text-[13px]">
+        {saving ? (
+          <span className="text-ink-faint">저장 중…</span>
+        ) : dirty || failed ? (
+          <span className="inline-flex items-center gap-1.5 text-warn">
+            <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-warn" />
+            변경사항 있음
+          </span>
+        ) : flash === 'saved' ? (
+          <span className="text-ink-faint">저장됨</span>
+        ) : null}
       </span>
     </div>
   );

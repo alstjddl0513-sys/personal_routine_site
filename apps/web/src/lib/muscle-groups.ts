@@ -14,7 +14,8 @@ export const MUSCLE_OPTIONS: MuscleOption[] = [
   { key: 'chest', label: '가슴', group: 'upper' },
   { key: 'shoulder', label: '어깨', group: 'upper' },
   { key: 'arm', label: '팔', group: 'upper' },
-  { key: 'leg', label: '다리', group: 'lower' },
+  // 부위 탭('하체')과 같은 이름으로 부름 — 저장 값은 leg 그대로
+  { key: 'leg', label: '하체', group: 'lower' },
 ];
 
 const MUSCLE_BY_KEY = new Map(MUSCLE_OPTIONS.map((o) => [o.key, o]));
