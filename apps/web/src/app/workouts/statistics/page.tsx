@@ -1,16 +1,22 @@
 import { Suspense } from 'react';
+import type { Exercise, ExerciseStats } from '@repo/shared';
 import {
-  getExerciseStats,
+  getExerciseStatsBatch,
   getExercises,
   getMuscleGoals,
   getMuscleSets,
   getWeeklyVolume,
-  getWorkoutSessionsRange,
+  getWorkoutDailySummary,
 } from '../../../lib/api';
 import { addDays, mondayOf, toISODate } from '../../../lib/routines-week';
 import { calcBestWeeklyStreak, calcWeeklyStreak } from '../../../lib/streak';
+import { classifyMuscleGroup } from '../../../lib/muscle-groups';
 import { ExerciseStatsCard } from '../../../components/workouts/ExerciseStatsCard';
 import { MuscleGoalsCard } from '../../../components/workouts/MuscleGoalsCard';
+import {
+  RecentWorkoutDays,
+  WorkoutWeekDaysCard,
+} from '../../../components/workouts/RecentWorkoutDays';
 import { WeeklyVolumeCard } from '../../../components/workouts/WeeklyVolumeCard';
 import { Skeleton } from '../../../components/Skeleton';
 import { StreakBadge } from '../../../components/StreakBadge';
@@ -19,6 +25,12 @@ const VOLUME_WEEKS = 12;
 const HISTORY_LIMIT = 12;
 const STREAK_WEEKS = 26; // ~6 months for best-streak lookback
 const WEEKLY_THRESHOLD = 3;
+const RECENT_DAYS = 7;
+const GROUPS = [
+  { key: 'upper', label: '상체' },
+  { key: 'lower', label: '하체' },
+  { key: 'other', label: '기타' },
+] as const;
 
 export default async function WorkoutsStatisticsPage() {
   return (
@@ -41,63 +53,103 @@ async function WorkoutsStatisticsContent() {
   const rangeTo = toISODate(addDays(currentMon, 6));
   const volumeFrom = toISODate(addDays(currentMon, -(VOLUME_WEEKS - 1) * 7));
   const weekFrom = toISODate(currentMon);
-  const weekTo = toISODate(addDays(currentMon, 6));
+  const weekTo = rangeTo;
 
-  const [exercises, sessions, volumeEntries, muscleGoals, muscleSets] = await Promise.all([
+  const [exercises, days, volumeEntries, muscleGoals, muscleSets] = await Promise.all([
     getExercises(),
-    getWorkoutSessionsRange({ from: streakFrom, to: rangeTo }),
+    // '운동한 날' = 횟수 적힌 세트가 있는 날만(메모만 적은 날 X). 스트릭·이번 주·최근 목록이 같이 씀
+    getWorkoutDailySummary({ from: streakFrom, to: rangeTo }),
     getWeeklyVolume({ from: volumeFrom, to: rangeTo }),
     getMuscleGoals(),
     getMuscleSets({ from: weekFrom, to: weekTo }),
   ]);
 
-  const statsList = await Promise.all(
-    exercises.map((e) => getExerciseStats({ exerciseId: e.id, limit: HISTORY_LIMIT })),
-  );
+  const statsById =
+    exercises.length > 0
+      ? await getExerciseStatsBatch({ exerciseIds: exercises.map((e) => e.id), limit: HISTORY_LIMIT })
+      : {};
 
-  const sessionDates = sessions.map((s) => s.date);
-  const currentStreak = calcWeeklyStreak(sessionDates, WEEKLY_THRESHOLD, today);
+  const dayDates = days.map((d) => d.date);
+  const currentStreak = calcWeeklyStreak(dayDates, WEEKLY_THRESHOLD, today);
   const bestStreak = calcBestWeeklyStreak(
-    sessionDates,
+    dayDates,
     WEEKLY_THRESHOLD,
     addDays(currentMon, -(STREAK_WEEKS - 1) * 7),
     currentMon,
   );
 
+  // 종목 카드: 부위 묶음(상체·하체·기타), 묶음 안은 최근에 한 종목부터.
+  // 무게 기록이 없는 종목(그래프를 못 그림 — 아직 안 한 종목·맨몸 운동)은 맨 아래 접기
+  const emptyStats: ExerciseStats = { history: [], pr: null };
+  const withStats = exercises.map((e) => ({ exercise: e, stats: statsById[e.id] ?? emptyStats }));
+  const recorded = withStats.filter((x) => x.stats.history.length > 0 || x.stats.pr);
+  const unrecorded = withStats.filter((x) => !(x.stats.history.length > 0 || x.stats.pr));
+  const lastDate = (s: ExerciseStats) => s.history[0]?.sessionDate ?? s.pr?.sessionDate ?? '';
+  const grouped = GROUPS.map((g) => ({
+    ...g,
+    items: recorded
+      .filter((x) => classifyMuscleGroup(x.exercise.targetMuscle) === g.key)
+      .sort((a, b) => lastDate(b.stats).localeCompare(lastDate(a.stats))),
+  })).filter((g) => g.items.length > 0);
+
   return (
     <>
-      <StreakBadge
-        label="운동 스트릭"
-        current={currentStreak}
-        best={bestStreak}
-        unit="주"
-        caption={`주 ${WEEKLY_THRESHOLD}회+`}
-      />
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <StreakBadge
+          label="운동 스트릭"
+          current={currentStreak}
+          best={bestStreak}
+          unit="주"
+          caption={`주 ${WEEKLY_THRESHOLD}일+`}
+          hint={`세트를 적은 날이 주 ${WEEKLY_THRESHOLD}일 이상인 주가 몇 주 이어졌는지예요`}
+        />
+        <WorkoutWeekDaysCard days={days} weekFrom={weekFrom} weekTo={weekTo} target={WEEKLY_THRESHOLD} />
+      </div>
 
-      <WeeklyVolumeCard
-        entries={volumeEntries}
-        today={today}
-        weeks={VOLUME_WEEKS}
-      />
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        <WeeklyVolumeCard entries={volumeEntries} today={today} weeks={VOLUME_WEEKS} />
+        <RecentWorkoutDays days={days.slice(0, RECENT_DAYS)} />
+      </div>
 
-      <MuscleGoalsCard
-        goals={muscleGoals}
-        entries={muscleSets}
-        rangeLabel="이번 주"
-      />
+      <MuscleGoalsCard goals={muscleGoals} entries={muscleSets} rangeLabel="이번 주" />
 
       {exercises.length === 0 ? (
         <div className="rounded-md border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500 dark:border-zinc-700">
           아직 등록한 운동이 없어요. 설정에서 운동 종목을 추가해보세요.
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {exercises.map((e, i) => (
-            <ExerciseStatsCard key={e.id} exercise={e} stats={statsList[i]} />
+        <>
+          {grouped.map((g) => (
+            <section key={g.key} className="flex flex-col gap-2">
+              <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                {g.label} <span className="font-normal text-zinc-500">{g.items.length}</span>
+              </h2>
+              <ExerciseGrid items={g.items} />
+            </section>
           ))}
-        </div>
+          {unrecorded.length > 0 ? (
+            <details className="group rounded-md border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
+              <summary className="cursor-pointer text-sm text-zinc-600 dark:text-zinc-400">
+                무게 기록이 없는 종목 {unrecorded.length}개
+              </summary>
+              <p className="mt-2 text-sm text-zinc-700 dark:text-zinc-300">
+                {unrecorded.map((x) => x.exercise.name).join(' · ')}
+              </p>
+            </details>
+          ) : null}
+        </>
       )}
     </>
+  );
+}
+
+function ExerciseGrid({ items }: { items: { exercise: Exercise; stats: ExerciseStats }[] }) {
+  return (
+    <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+      {items.map((x) => (
+        <ExerciseStatsCard key={x.exercise.id} exercise={x.exercise} stats={x.stats} />
+      ))}
+    </div>
   );
 }
 

@@ -86,10 +86,11 @@ export function MuscleGoalsCard({ goals, entries, rangeLabel }: Props) {
   );
 }
 
-// 달성률 톤 단일. 100%+ 진한, 50~99% 중간, <50% 옅음, 0% zinc.
+// 달성률 톤 단일. 100%+ 메리골드(목표를 다 채운 막대 — references.md 메리골드 규칙),
+// 50~99% 중간, <50% 옅음, 0% zinc. 나머지 톤은 디자인 개편 때 토큰으로.
 function fillColor(pct: number): string {
   if (pct === 0) return 'bg-zinc-300 dark:bg-zinc-700';
-  if (pct >= 100) return 'bg-emerald-600 dark:bg-emerald-500';
+  if (pct >= 100) return 'bg-marigold';
   if (pct >= 50) return 'bg-emerald-400 dark:bg-emerald-600';
   return 'bg-emerald-200 dark:bg-emerald-900';
 }

@@ -3,14 +3,16 @@ interface Props {
   current: number;
   best: number;
   unit: string; // e.g. '일', '주'
-  caption?: string; // e.g. '주 3회+'
+  caption?: string; // e.g. '주 3일+'
+  /** 세는 기준 툴팁 (예: 운동 — 세트를 적은 날만) */
+  hint?: string;
 }
 
-export function StreakBadge({ label, current, best, unit, caption }: Props) {
+export function StreakBadge({ label, current, best, unit, caption, hint }: Props) {
   return (
     <div className="flex items-center justify-between gap-3 rounded-md border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
       <div className="flex flex-col">
-        <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+        <span title={hint} className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
           {label}
           {caption && (
             <span className="ml-1 text-[10px] text-zinc-400">· {caption}</span>

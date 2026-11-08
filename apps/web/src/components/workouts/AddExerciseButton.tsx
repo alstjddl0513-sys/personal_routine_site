@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, X } from 'lucide-react';
-import { createExercise } from '../../lib/api';
+import { Check, Plus, X } from 'lucide-react';
+import { createExercise, patchWorkoutSplit } from '../../lib/api';
 import { TargetMuscleSelect } from './TargetMuscleSelect';
 import { BUTTON_PRIMARY, BUTTON_SECONDARY, POPOVER_CLOSE } from '../jobs/cells/popover-style';
 
@@ -15,10 +15,15 @@ const DEFAULT_SETS = 3;
 const DEFAULT_REP_MIN = 8;
 const DEFAULT_REP_MAX = 12;
 
+/** 분할 탭을 보고 있을 때 — 새 종목을 그 분할에도 담음 */
+export type AddToSplit = { id: string; name: string; exerciseIds: string[] };
+
 export function AddExerciseButton({
   variant = 'outline',
+  split,
 }: {
   variant?: 'outline' | 'primary' | 'link';
+  split?: AddToSplit | null;
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -41,12 +46,18 @@ export function AddExerciseButton({
           종목 추가
         </button>
       )}
-      {open ? <AddExerciseModal onRequestClose={() => setOpen(false)} /> : null}
+      {open ? <AddExerciseModal split={split ?? null} onRequestClose={() => setOpen(false)} /> : null}
     </>
   );
 }
 
-function AddExerciseModal({ onRequestClose }: { onRequestClose: () => void }) {
+function AddExerciseModal({
+  split,
+  onRequestClose,
+}: {
+  split: AddToSplit | null;
+  onRequestClose: () => void;
+}) {
   const router = useRouter();
   const [name, setName] = useState('');
   const [targetMuscle, setTargetMuscle] = useState('');
@@ -54,6 +65,10 @@ function AddExerciseModal({ onRequestClose }: { onRequestClose: () => void }) {
   const [repMin, setRepMin] = useState(String(DEFAULT_REP_MIN));
   const [repMax, setRepMax] = useState(String(DEFAULT_REP_MAX));
   const [error, setError] = useState<string | null>(null);
+  // 보고 있는 분할에 같이 담기 — 기본 켜짐(스트레칭처럼 담기 싫으면 끔)
+  const [addToSplit, setAddToSplit] = useState(true);
+  // 종목은 만들었는데 분할에 못 담은 상태 — 다시 누르면 종목이 또 생기므로 [닫기]만
+  const [created, setCreated] = useState(false);
   const [isPending, startTransition] = useTransition();
   const nameRef = useRef<HTMLInputElement>(null);
 
@@ -99,13 +114,24 @@ function AddExerciseModal({ onRequestClose }: { onRequestClose: () => void }) {
 
     startTransition(async () => {
       try {
-        await createExercise({
+        const ex = await createExercise({
           name: trimmedName,
           targetMuscle: trimmedMuscle || undefined,
           defaultSets: sets,
           repMin: rMin,
           repMax: rMax,
         });
+        if (split && addToSplit) {
+          try {
+            await patchWorkoutSplit(split.id, { exerciseIds: [...split.exerciseIds, ex.id] });
+          } catch (err) {
+            console.error(err);
+            router.refresh();
+            setCreated(true);
+            setError(`종목은 추가했지만 ${split.name}에 담지 못했어요. 분할 관리에서 넣어주세요.`);
+            return;
+          }
+        }
         router.refresh();
         onRequestClose();
       } catch (err) {
@@ -220,8 +246,38 @@ function AddExerciseModal({ onRequestClose }: { onRequestClose: () => void }) {
             </fieldset>
           </div>
 
+          {split ? (
+            <label className="flex min-h-10 cursor-pointer items-center gap-2.5 text-[15px]">
+              <input
+                type="checkbox"
+                checked={addToSplit}
+                onChange={(e) => setAddToSplit(e.target.checked)}
+                disabled={isPending || created}
+                className="peer sr-only"
+              />
+              <span
+                aria-hidden
+                className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-[5px] peer-focus-visible:ring-2 peer-focus-visible:ring-primary/40 ${
+                  addToSplit ? 'bg-primary' : 'border-[1.5px] border-check-off'
+                }`}
+              >
+                {addToSplit ? <Check className="h-3.25 w-3.25 text-white dark:text-paper" strokeWidth={3.2} /> : null}
+              </span>
+              <span>
+                <strong className="font-semibold">{split.name}</strong>에도 담기
+              </span>
+            </label>
+          ) : null}
+
           {error ? <p className="text-[13px] text-alert">{error}</p> : null}
 
+          {created ? (
+            <div className="flex justify-end">
+              <button type="button" onClick={onRequestClose} className={`${BUTTON_SECONDARY} min-h-11 px-4.5`}>
+                닫기
+              </button>
+            </div>
+          ) : (
           <div className="flex items-center justify-end gap-2">
             <button
               type="button"
@@ -240,6 +296,7 @@ function AddExerciseModal({ onRequestClose }: { onRequestClose: () => void }) {
               {isPending ? '추가 중…' : '추가하기'}
             </button>
           </div>
+          )}
         </div>
       </div>
     </div>
