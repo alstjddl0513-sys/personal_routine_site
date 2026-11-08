@@ -272,17 +272,10 @@ export function SetInputs(props: Props) {
     savedByNumber.get(r.setNumber) !== rowKey(r) && (r.weight !== '' || r.reps !== '' || r.rir !== '');
   const firstFailedIdx = error ? rows.findIndex(unsaved) : -1;
 
-  // 입력칸은 정해진 최대 폭(무게 96 · 횟수 80px)까지 먼저 늘고, 남는 폭만 '최근 기록' 열이
-  // 가져감 — RIR이 꺼져 있을 때 가운데 큰 빈칸이 생기지 않게. RIR을 켜면 최소 폭(무게 60 ·
-  // 횟수 48px, "102.5"가 들어감)까지 줄어 1280px 카드(3열)를 넘지 않음.
-  // 최근 기록이 없으면 그 열이 없으니 입력칸이 폭을 나눠 씀.
-  const cols = [
-    '28px',
-    hasPrev ? 'minmax(60px,96px)' : 'minmax(0,1fr)',
-    hasPrev ? 'minmax(48px,80px)' : 'minmax(0,1fr)',
-    props.showRir ? (hasPrev ? '44px' : 'minmax(0,0.6fr)') : null,
-    hasPrev ? 'minmax(64px,1fr)' : null,
-  ]
+  // 모든 카드 같은 열 — 번호 22 · 무게 76 · 횟수 60 · (RIR 48) · 최근 기록(나머지, 왼쪽 정렬).
+  // 3열 그리드에서 카드마다 칸 폭이 달라 줄이 안 맞아 보이지 않게, 기록이 없는 카드도
+  // 입력칸을 넓히지 않고 남는 열은 비워 둠.
+  const cols = ['22px', '76px', '60px', props.showRir ? '48px' : null, 'minmax(0,1fr)']
     .filter(Boolean)
     .join(' ');
   const atMax = (rows.at(-1)?.setNumber ?? 0) >= MAX_SETS;
@@ -290,7 +283,7 @@ export function SetInputs(props: Props) {
   return (
     <div className="flex flex-1 flex-col gap-1.5">
       <div
-        className="grid items-center gap-1.5 text-xs font-medium text-ink-muted"
+        className="grid items-center gap-2 text-xs font-medium text-ink-muted"
         style={{ gridTemplateColumns: cols }}
       >
         <span />
@@ -318,7 +311,7 @@ export function SetInputs(props: Props) {
           </span>
         ) : null}
         {/* 정보 줄 '최근 기록'(날짜)과 같은 이름 — 그날 같은 번호 세트 값 */}
-        {hasPrev ? <span className="text-right">최근 기록</span> : null}
+        <span className="pl-2">{hasPrev ? '최근 기록' : ''}</span>
       </div>
       {rows.map((row, idx) => {
         const filled = row.weight.trim() !== '' && row.reps.trim() !== '';
@@ -340,7 +333,7 @@ export function SetInputs(props: Props) {
         return (
           <div key={row.setNumber} className="flex flex-col gap-1">
             <div
-              className="grid items-center gap-1.5"
+              className="grid items-center gap-2"
               style={{ gridTemplateColumns: cols }}
               onFocus={() => setFocusedRow(idx)}
               onBlur={(e) => {
@@ -386,29 +379,32 @@ export function SetInputs(props: Props) {
                   className={`h-11 w-full min-w-0 rounded-md border px-1 text-center text-[15px] text-ink outline-none focus:border-transparent focus:ring-2 focus:ring-chip-on-border md:h-10 ${box}`}
                 />
               ))}
-              {hasPrev ? (
-                <span className="flex min-w-0 flex-col items-end text-right text-[13px] leading-tight">
-                  <span className="text-ink-muted">{prev ? formatPrevSet(prev.w, prev.r) : '—'}</span>
-                  {/* 둘째 줄: [최고] +2.5kg · −4회 — 늘면 숲색, 줄면 흐리게. 길면 줄바꿈 */}
-                  {isPr || diff.length > 0 ? (
-                    <span className="mt-0.5 flex flex-wrap items-center justify-end gap-x-1 gap-y-0.5">
-                      {isPr ? (
-                        <span className="rounded border border-chip-on-border bg-chip-on-bg px-1 text-[10.5px] leading-[1.4] font-bold text-chip-on-fg">
-                          최고
-                        </span>
-                      ) : null}
-                      {diff.map((c, i) => (
-                        <span key={c.text} className="whitespace-nowrap">
-                          {i > 0 ? <span className="text-ink-faint">· </span> : null}
-                          <span className={c.up ? 'font-semibold text-primary' : 'text-ink-muted'}>
-                            {c.text}
-                          </span>
-                        </span>
-                      ))}
-                    </span>
-                  ) : null}
-                </span>
-              ) : null}
+              {/* 최근 기록 — 입력칸 바로 옆에 붙여 오늘 값과 눈이 바로 오감(왼쪽 정렬) */}
+              <span className="flex min-w-0 flex-col pl-2 leading-tight">
+                {hasPrev ? (
+                  <span className="text-[12.5px] whitespace-nowrap text-ink-muted">
+                    {prev ? formatPrevSet(prev.w, prev.r) : '—'}
+                  </span>
+                ) : null}
+                {/* 값 아래 한 줄: "최고" → 늘어난 것(primary 600) → 줄어든 것(ink-faint) */}
+                {isPr || diff.length > 0 ? (
+                  <span className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[13px]">
+                    {isPr ? (
+                      <span className="rounded border border-chip-on-border bg-chip-on-bg px-1 text-[10.5px] leading-[1.4] font-bold text-chip-on-fg">
+                        최고
+                      </span>
+                    ) : null}
+                    {[...diff.filter((c) => c.up), ...diff.filter((c) => !c.up)].map((c) => (
+                      <span
+                        key={c.text}
+                        className={`whitespace-nowrap ${c.up ? 'font-semibold text-primary' : 'font-normal text-ink-faint'}`}
+                      >
+                        {c.text}
+                      </span>
+                    ))}
+                  </span>
+                ) : null}
+              </span>
             </div>
             {idx === firstFailedIdx && error ? (
               <p className="flex items-center gap-2 pl-8 text-[13px] text-alert" role="alert">

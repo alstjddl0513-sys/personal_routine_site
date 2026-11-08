@@ -262,7 +262,7 @@ export function Sidebar() {
   return (
     <aside
       data-app-sidebar
-      className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col gap-5 border-r border-side-border bg-side-bg px-3.5 pt-6 pb-4 font-plex text-side-fg md:flex"
+      className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-5 border-r border-side-border bg-side-bg px-3.5 pt-6 pb-4 font-plex text-side-fg md:flex"
     >
       <Link
         href="/today"

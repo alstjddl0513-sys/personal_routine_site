@@ -42,6 +42,12 @@ export class WorkoutSplitsController {
     return this.service.createFromTemplate(requireUserId(req), dto.kind);
   }
 
+  // 처음부터 다시 짜기 — 내 분할 전부 삭제(운동 기록은 남음)
+  @Delete()
+  removeAll(@Req() req: AuthedRequest) {
+    return this.service.removeAll(requireUserId(req));
+  }
+
   @Put('order')
   reorder(@Req() req: AuthedRequest, @Body() dto: ReorderWorkoutSplitsDto) {
     return this.service.reorder(requireUserId(req), dto.ids);

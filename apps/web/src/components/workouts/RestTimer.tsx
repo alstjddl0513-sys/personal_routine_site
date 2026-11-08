@@ -327,6 +327,9 @@ export function RestTimer() {
 
 const BAND_BTN =
   'inline-flex min-h-10 cursor-pointer items-center gap-1.5 rounded-md border border-btn-border bg-btn-bg px-3 text-sm text-btn-fg hover:border-heading';
+// 마지막에 쓴 프리셋 — 선택 상태(chip-on). 기본 버튼 색과 섞이지 않게 따로.
+const BAND_BTN_ON =
+  'inline-flex min-h-10 cursor-pointer items-center gap-1.5 rounded-md bg-chip-on-bg px-3 text-sm font-bold text-heading shadow-[inset_0_0_0_2px_var(--rally-chip-on-border)]';
 
 // 데스크톱: 본문 열 바닥에 붙는 띠(사이드바 안 덮음). 흐름 안의 sticky라 맨 아래로
 // 스크롤하면 띠가 마지막 카드 뒤에 놓여 입력칸을 가리지 않음.
@@ -401,7 +404,8 @@ function DesktopBand({
                 key={sec}
                 type="button"
                 onClick={() => onStart(sec)}
-                className={`${BAND_BTN} ${sec === lastPreset ? 'font-semibold' : ''}`}
+                // 마지막에 쓴 시간 = 선택 상태로 — 굵기만 다르면 왜 굵은지 모름
+                className={sec === lastPreset ? BAND_BTN_ON : BAND_BTN}
               >
                 {sec}초
               </button>

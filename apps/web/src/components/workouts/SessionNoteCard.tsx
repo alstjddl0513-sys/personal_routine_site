@@ -65,38 +65,45 @@ export function SessionNoteCard(props: Props) {
     debounce.current = setTimeout(() => onSave(next), 1000);
   }
 
+  // 입력칸은 본문 오른쪽 끝까지(flex-1), 저장 상태는 칸 안 오른쪽 — 칸 밖에 두면 폭이 들쭉날쭉.
+  // 오른쪽 여백은 가장 긴 상태("● 변경사항 있음")가 글자와 안 겹치는 폭.
   return (
-    <div className="flex min-w-0 flex-1 items-center gap-2.5">
+    <div className="flex min-w-0 flex-[1_1_320px] items-center gap-2.5">
       <label htmlFor="session-note" className="shrink-0 text-sm font-semibold text-ink-soft">
         컨디션
       </label>
-      <input
-        id="session-note"
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            onSave();
-          }
-        }}
-        onBlur={() => onSave()}
-        maxLength={500}
-        placeholder="오늘 컨디션 한 줄..."
-        className="min-h-11 min-w-0 flex-1 rounded-md border border-btn-border bg-surface px-3 text-[15px] text-ink outline-none placeholder:text-ink-faint focus:border-heading md:min-h-10"
-      />
-      <span role="status" className="min-w-22 shrink-0 text-[13px]">
-        {saving ? (
-          <span className="text-ink-faint">저장 중…</span>
-        ) : dirty || failed ? (
-          <span className="inline-flex items-center gap-1.5 text-warn">
-            <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-warn" />
-            변경사항 있음
-          </span>
-        ) : flash === 'saved' ? (
-          <span className="text-ink-faint">저장됨</span>
-        ) : null}
+      <span className="relative flex min-w-0 flex-1">
+        <input
+          id="session-note"
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              onSave();
+            }
+          }}
+          onBlur={() => onSave()}
+          maxLength={500}
+          placeholder="오늘 컨디션 한 줄..."
+          className="min-h-11 w-full min-w-0 rounded-md border border-btn-border bg-surface pr-26 pl-3 text-[15px] text-ink outline-none placeholder:text-ink-faint focus:border-heading md:min-h-10"
+        />
+        <span
+          role="status"
+          className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-[13px]"
+        >
+          {saving ? (
+            <span className="text-ink-faint">저장 중…</span>
+          ) : dirty || failed ? (
+            <span className="inline-flex items-center gap-1.5 text-warn">
+              <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-warn" />
+              변경사항 있음
+            </span>
+          ) : flash === 'saved' ? (
+            <span className="text-ink-faint">저장됨</span>
+          ) : null}
+        </span>
       </span>
     </div>
   );

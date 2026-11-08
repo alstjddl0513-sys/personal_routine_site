@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { and, asc, desc, eq, inArray, isNotNull, lt, max } from 'drizzle-orm';
 import {
-  MUSCLE_OPTIONS,
+  planSplitTemplate,
   type WorkoutSplit,
   type WorkoutSplitTemplate,
   type WorkoutSplitsResponse,
@@ -117,6 +117,16 @@ export class WorkoutSplitsService {
     return { id: row.id };
   }
 
+  // 처음부터 다시 짜기 — 내 분할 전부. 하나씩 지우다 중간에 실패하지 않게 한 번에.
+  // 기록의 split_id는 FK SET NULL로 비워지고 운동 기록은 남음.
+  async removeAll(ownerId: string) {
+    const rows = await db
+      .delete(workoutSplits)
+      .where(eq(workoutSplits.ownerId, ownerId))
+      .returning({ id: workoutSplits.id });
+    return { deleted: rows.length };
+  }
+
   // ids = 내 분할 전부를 새 순서대로. 하나라도 빠지거나 남의 것이면 거절.
   async reorder(ownerId: string, ids: string[]): Promise<WorkoutSplit[]> {
     await db.transaction(async (tx) => {
@@ -144,8 +154,8 @@ export class WorkoutSplitsService {
     return this.list(ownerId);
   }
 
-  // 예시로 한 번에 만들기 — 기존 분할 뒤에 이어 붙임. 부위로 나눌 수 있는 것만 자동 배정
-  // (밀기/당기기는 팔이 양쪽이라 부위로 못 나눠서 이름만, 종목은 직접 고름).
+  // 예시로 한 번에 만들기 — 기존 분할 뒤에 이어 붙임. 배정 규칙은 @repo/shared
+  // planSplitTemplate 하나(화면 미리보기와 같은 결과).
   async createFromTemplate(
     ownerId: string,
     kind: WorkoutSplitTemplate,
@@ -157,29 +167,7 @@ export class WorkoutSplitsService {
         and(eq(exercises.ownerId, ownerId), eq(exercises.isArchived, false)),
       )
       .orderBy(asc(exercises.sortOrder));
-    const groupOf = new Map(MUSCLE_OPTIONS.map((o) => [o.key, o.group]));
-    const byGroup = (g: 'upper' | 'lower') =>
-      active
-        .filter(
-          (e) =>
-            e.targetMuscle &&
-            groupOf.get(e.targetMuscle.trim().toLowerCase()) === g,
-        )
-        .map((e) => e.id);
-
-    const plan: { name: string; exerciseIds: string[] }[] =
-      kind === 'upper-lower'
-        ? [
-            { name: '상체', exerciseIds: byGroup('upper') },
-            { name: '하체', exerciseIds: byGroup('lower') },
-          ]
-        : kind === 'push-pull-legs'
-          ? [
-              { name: '밀기', exerciseIds: [] },
-              { name: '당기기', exerciseIds: [] },
-              { name: '하체', exerciseIds: byGroup('lower') },
-            ]
-          : [{ name: '전신', exerciseIds: active.map((e) => e.id) }];
+    const plan = planSplitTemplate(kind, active).splits;
 
     await db.transaction(async (tx) => {
       let sortOrder = await this.nextSortOrder(tx, ownerId);

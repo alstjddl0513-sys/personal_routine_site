@@ -122,7 +122,7 @@ export function ExerciseCard(props: Props) {
         {/* 라벨(흐리게) · 값(진하게) 두 줄 — "최근 기록 / 최고 기록" 짝. 최근 기록 =
             이 종목을 마지막으로 적은 날(세트 표 오른쪽 열과 같은 이름) */}
         {hasPrev ? (
-          <dl className="-mt-1.5 grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-0.5 text-[13px]">
+          <dl className="-mt-1.5 grid grid-cols-[56px_minmax(0,1fr)] gap-x-2 gap-y-0.5 text-[13px] [&_dt]:whitespace-nowrap">
             <dt className="text-ink-muted">최근 기록</dt>
             <dd className="font-semibold text-ink">{monthDay(props.previous!.date)}</dd>
             {pr ? (
