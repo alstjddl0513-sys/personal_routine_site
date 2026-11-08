@@ -19,6 +19,7 @@ import { ExercisesModule } from './exercises/exercises.module';
 import { MuscleGoalsModule } from './muscle-goals/muscle-goals.module';
 import { WorkoutSessionsModule } from './workout-sessions/workout-sessions.module';
 import { WorkoutSetsModule } from './workout-sets/workout-sets.module';
+import { WorkoutSplitsModule } from './workout-splits/workout-splits.module';
 import { ExportModule } from './export/export.module';
 import { BlogSourcesModule } from './blog-sources/blog-sources.module';
 import { BlogPostsModule } from './blog-posts/blog-posts.module';
@@ -52,6 +53,7 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     MuscleGoalsModule,
     WorkoutSessionsModule,
     WorkoutSetsModule,
+    WorkoutSplitsModule,
     ExportModule,
     BlogSourcesModule,
     BlogPostsModule,

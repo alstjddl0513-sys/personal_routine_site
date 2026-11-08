@@ -237,10 +237,55 @@ export interface Exercise {
   updatedAt: string;
 }
 
+// 운동 부위 값의 정본 — web(선택지·필터·라벨)과 api(분할 템플릿 배정)가 같이 씀.
+// 새 부위 추가는 여기 한 줄.
+export interface MuscleOption {
+  key: string;
+  label: string;
+  group: 'upper' | 'lower';
+}
+
+export const MUSCLE_OPTIONS: MuscleOption[] = [
+  { key: 'back', label: '등', group: 'upper' },
+  { key: 'chest', label: '가슴', group: 'upper' },
+  { key: 'shoulder', label: '어깨', group: 'upper' },
+  { key: 'arm', label: '팔', group: 'upper' },
+  // 부위 탭('하체')과 같은 이름으로 부름 — 저장 값은 leg 그대로
+  { key: 'leg', label: '하체', group: 'lower' },
+];
+
+// 분할(스플릿): 이름 + 종목 목록 + 순서. sortOrder 순서대로 돌아가며 함.
+export interface WorkoutSplit {
+  id: string;
+  name: string;
+  sortOrder: number;
+  exerciseIds: string[];
+}
+
+// GET /workout-splits?before= — 다음 차례는 before 이전 마지막 기록 기준.
+export interface WorkoutSplitsResponse {
+  splits: WorkoutSplit[];
+  /** before 이전에 마지막으로 한 분할 (기록 없으면 null) */
+  lastSplitId: string | null;
+  /** 오늘 할 차례 (분할이 없으면 null) */
+  nextSplitId: string | null;
+}
+
+export const WORKOUT_SPLIT_TEMPLATES = {
+  'upper-lower': 'upper-lower',
+  'push-pull-legs': 'push-pull-legs',
+  'full-body': 'full-body',
+} as const;
+export type WorkoutSplitTemplate = keyof typeof WORKOUT_SPLIT_TEMPLATES;
+
+export const WORKOUT_SPLIT_NAME_MAX = 30;
+
 export interface WorkoutSession {
   id: string;
   date: string;
   note: string | null;
+  /** 그날 한 분할 (없으면 null) */
+  splitId: string | null;
   startedAt: string | null;
   endedAt: string | null;
   createdAt: string;
