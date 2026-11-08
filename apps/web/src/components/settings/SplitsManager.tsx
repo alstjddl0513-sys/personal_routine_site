@@ -1,24 +1,17 @@
 'use client';
 
-import { useState, useTransition, type FormEvent } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronDown, ChevronUp, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Pencil, Plus, Trash2 } from 'lucide-react';
+import type { Exercise, WorkoutSplit } from '@repo/shared';
 import {
-  WORKOUT_SPLIT_NAME_MAX,
-  type Exercise,
-  type WorkoutSplit,
-  type WorkoutSplitTemplate,
-} from '@repo/shared';
-import {
-  createWorkoutSplit,
-  createWorkoutSplitsFromTemplate,
+  deleteAllWorkoutSplits,
   deleteWorkoutSplit,
-  patchWorkoutSplit,
   reorderWorkoutSplits,
 } from '../../lib/api';
-import { classifyMuscleGroup } from '../../lib/muscle-groups';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
-import { Portal } from '../ui/Portal';
+import { SplitCreateDialog } from '../workouts/splits/SplitCreateDialog';
+import { SplitEditDialog } from '../workouts/splits/SplitEditDialog';
 
 interface Props {
   initial: WorkoutSplit[];
@@ -26,18 +19,12 @@ interface Props {
   exercises: Exercise[];
 }
 
-const TEMPLATES: { kind: WorkoutSplitTemplate; label: string; hint: string }[] = [
-  { kind: 'upper-lower', label: '상체 / 하체', hint: '종목 부위로 자동으로 나눠요' },
-  { kind: 'push-pull-legs', label: '밀기 / 당기기 / 하체', hint: '밀기·당기기 종목은 직접 골라요' },
-  { kind: 'full-body', label: '전신', hint: '모든 종목을 담아요' },
-];
-
-const GROUP_LABEL = { upper: '상체', lower: '하체', other: '기타' } as const;
-
 const ICON_BTN =
   'inline-flex h-8 w-8 items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-zinc-800 disabled:opacity-30 dark:hover:bg-zinc-800 dark:hover:text-zinc-200';
 
 // 분할 = 이름 + 종목 목록 + 순서. 순서대로 돌아가며 운동(요일 고정 X).
+// 만들기·편집 창은 운동 기록 화면과 같은 것(components/workouts/splits). 목록 본문은
+// 설정의 다른 관리 화면과 같은 톤 — 설정 개편 때 함께.
 export function SplitsManager({ initial, exercises }: Props) {
   const router = useRouter();
   const [splits, setSplits] = useState(initial);
@@ -46,8 +33,10 @@ export function SplitsManager({ initial, exercises }: Props) {
     setPrevInitial(initial);
     setSplits(initial);
   }
+  const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<WorkoutSplit | 'new' | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<WorkoutSplit | null>(null);
+  const [resetOpen, setResetOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -80,35 +69,17 @@ export function SplitsManager({ initial, exercises }: Props) {
   return (
     <div className="flex flex-col gap-3">
       {splits.length === 0 ? (
-        <div className="flex flex-col gap-4 rounded-md border border-dashed border-zinc-300 p-6 dark:border-zinc-700">
+        <div className="flex flex-col items-start gap-3 rounded-md border border-dashed border-zinc-300 p-6 dark:border-zinc-700">
           <p className="text-sm text-zinc-700 dark:text-zinc-300">
             분할을 만들면 운동 기록에서 오늘 할 종목만 볼 수 있어요.
           </p>
-          <div className="flex flex-wrap gap-2">
-            {TEMPLATES.map((t) => (
-              <button
-                key={t.kind}
-                type="button"
-                disabled={isPending}
-                onClick={() =>
-                  run(async () => {
-                    setSplits(await createWorkoutSplitsFromTemplate(t.kind));
-                  }, '분할을 만들지 못했어요.')
-                }
-                className="flex flex-col items-start rounded-md border border-zinc-300 bg-white px-3 py-2 text-left hover:border-zinc-500 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-950"
-              >
-                <span className="text-sm font-medium">{t.label}</span>
-                <span className="text-xs text-zinc-500 dark:text-zinc-400">{t.hint}</span>
-              </button>
-            ))}
-          </div>
           <button
             type="button"
-            onClick={() => setEditing('new')}
-            className="inline-flex w-fit items-center gap-1 text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+            onClick={() => setCreating(true)}
+            className="inline-flex min-h-10 items-center gap-1 rounded bg-zinc-900 px-4 text-sm text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900"
           >
             <Plus className="h-4 w-4" aria-hidden />
-            직접 만들기
+            분할 만들기
           </button>
         </div>
       ) : (
@@ -178,21 +149,47 @@ export function SplitsManager({ initial, exercises }: Props) {
               </li>
             ))}
           </ol>
-          <button
-            type="button"
-            onClick={() => setEditing('new')}
-            className="inline-flex w-fit items-center gap-1 rounded px-2 py-1 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
-          >
-            <Plus className="h-4 w-4" aria-hidden />
-            분할 추가
-          </button>
+          <UnassignedNote splits={splits} exercises={exercises} />
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <button
+              type="button"
+              onClick={() => setEditing('new')}
+              className="inline-flex w-fit items-center gap-1 rounded px-2 py-1 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+            >
+              <Plus className="h-4 w-4" aria-hidden />
+              분할 추가
+            </button>
+            <button
+              type="button"
+              onClick={() => setResetOpen(true)}
+              disabled={isPending}
+              className="rounded px-2 py-1 text-sm text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+            >
+              처음부터 다시 짜기
+            </button>
+          </div>
         </>
       )}
 
       {error ? <p className="text-xs text-rose-600 dark:text-rose-400">{error}</p> : null}
 
+      {creating ? (
+        <SplitCreateDialog
+          exercises={exercises}
+          onClose={() => setCreating(false)}
+          onCreated={(created) => {
+            setSplits((prev) => {
+              const ids = new Set(prev.map((p) => p.id));
+              return [...prev, ...created.filter((c) => !ids.has(c.id))];
+            });
+            setCreating(false);
+            router.refresh();
+          }}
+        />
+      ) : null}
+
       {editing ? (
-        <SplitEditor
+        <SplitEditDialog
           split={editing === 'new' ? null : editing}
           exercises={exercises}
           onClose={() => setEditing(null)}
@@ -229,148 +226,42 @@ export function SplitsManager({ initial, exercises }: Props) {
           }, '분할을 삭제하지 못했어요.');
         }}
       />
+
+      {/* 처음부터 다시 짜기 — 전부 지우면 바로 '분할 만들기'로 이어짐 */}
+      <ConfirmDialog
+        open={resetOpen}
+        title="처음부터 다시 짜기"
+        description={<p>분할 {splits.length}개를 모두 지우고 새로 짤까요? 운동 기록은 남아요.</p>}
+        confirmLabel={isPending ? '지우는 중…' : '지우기'}
+        pending={isPending}
+        onCancel={() => setResetOpen(false)}
+        onConfirm={() =>
+          run(async () => {
+            await deleteAllWorkoutSplits();
+            setSplits([]);
+            setResetOpen(false);
+            setCreating(true);
+          }, '분할을 지우지 못했어요.')
+        }
+      />
     </div>
   );
 }
 
-// 이름 + 종목 체크 목록(부위별로 묶음). 비워둬도 저장 가능 — 나중에 고르면 됨.
-function SplitEditor({
-  split,
+// 어느 분할에도 없는 종목 — 놓치지 않게 목록 아래 한 줄.
+function UnassignedNote({
+  splits,
   exercises,
-  onClose,
-  onSaved,
 }: {
-  split: WorkoutSplit | null;
+  splits: WorkoutSplit[];
   exercises: Exercise[];
-  onClose: () => void;
-  onSaved: (s: WorkoutSplit) => void;
 }) {
-  const [name, setName] = useState(split?.name ?? '');
-  const [selected, setSelected] = useState<Set<string>>(() => new Set(split?.exerciseIds ?? []));
-  const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
-
-  const groups = (['upper', 'lower', 'other'] as const)
-    .map((g) => ({
-      key: g,
-      items: exercises.filter((e) => classifyMuscleGroup(e.targetMuscle) === g),
-    }))
-    .filter((g) => g.items.length > 0);
-
-  function toggle(id: string) {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
-
-  function submit(e: FormEvent) {
-    e.preventDefault();
-    const trimmed = name.trim();
-    if (!trimmed) {
-      setError('이름을 입력하세요.');
-      return;
-    }
-    setError(null);
-    startTransition(async () => {
-      try {
-        const input = { name: trimmed, exerciseIds: [...selected] };
-        onSaved(split ? await patchWorkoutSplit(split.id, input) : await createWorkoutSplit(input));
-      } catch (err) {
-        console.error(err);
-        setError('저장하지 못했어요. 잠시 후 다시 해보세요.');
-      }
-    });
-  }
-
+  const inAny = new Set(splits.flatMap((s) => s.exerciseIds));
+  const left = exercises.filter((e) => !inAny.has(e.id));
+  if (left.length === 0) return null;
   return (
-    <Portal>
-      <div
-        className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 md:items-center md:p-4"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="split-editor-title"
-        onMouseDown={(e) => {
-          if (e.target === e.currentTarget && !isPending) onClose();
-        }}
-      >
-        <form
-          onSubmit={submit}
-          className="flex max-h-[85vh] w-full flex-col gap-4 overflow-y-auto rounded-t-2xl bg-white p-5 shadow-xl md:max-w-md md:rounded-lg dark:bg-zinc-900"
-        >
-          <div className="flex items-center justify-between">
-            <h2 id="split-editor-title" className="text-base font-semibold">
-              {split ? '분할 편집' : '새 분할'}
-            </h2>
-            <button type="button" onClick={onClose} aria-label="닫기" className={ICON_BTN}>
-              <X className="h-4 w-4" aria-hidden />
-            </button>
-          </div>
-
-          <label className="flex flex-col gap-1 text-xs text-zinc-500 dark:text-zinc-400">
-            이름
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              maxLength={WORKOUT_SPLIT_NAME_MAX}
-              placeholder="예: 하체 A"
-              autoFocus
-              className="min-h-10 rounded border border-zinc-300 bg-white px-2 text-sm text-zinc-900 outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-            />
-          </label>
-
-          <fieldset className="flex flex-col gap-3">
-            <legend className="mb-1 text-xs text-zinc-500 dark:text-zinc-400">
-              담을 종목 <span className="text-zinc-400">· {selected.size}개</span>
-            </legend>
-            {exercises.length === 0 ? (
-              <p className="text-sm text-zinc-500">먼저 운동 종목을 추가해보세요.</p>
-            ) : (
-              groups.map((g) => (
-                <div key={g.key} className="flex flex-col gap-1">
-                  <span className="text-[11px] font-medium text-zinc-400">{GROUP_LABEL[g.key]}</span>
-                  <div className="grid grid-cols-2 gap-x-3">
-                    {g.items.map((ex) => (
-                      <label key={ex.id} className="flex min-h-9 cursor-pointer items-center gap-2 text-sm">
-                        <input
-                          type="checkbox"
-                          checked={selected.has(ex.id)}
-                          onChange={() => toggle(ex.id)}
-                          className="h-4 w-4 accent-zinc-900 dark:accent-zinc-100"
-                        />
-                        <span className="min-w-0 truncate">{ex.name}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              ))
-            )}
-          </fieldset>
-
-          {error ? <p className="text-xs text-rose-600 dark:text-rose-400">{error}</p> : null}
-
-          <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isPending}
-              className="min-h-10 rounded border border-zinc-300 px-3 text-sm text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
-            >
-              취소
-            </button>
-            <button
-              type="submit"
-              disabled={isPending}
-              className="min-h-10 rounded bg-zinc-900 px-4 text-sm text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
-            >
-              {isPending ? '저장 중…' : split ? '저장' : '만들기'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </Portal>
+    <p className="text-xs text-zinc-500 dark:text-zinc-400">
+      어느 분할에도 없는 종목 {left.length}개: {left.map((e) => e.name).join(', ')}
+    </p>
   );
 }

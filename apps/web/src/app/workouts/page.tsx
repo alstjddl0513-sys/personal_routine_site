@@ -1,11 +1,11 @@
 import { Suspense } from 'react';
-import Link from 'next/link';
 import type { WorkoutSessionContext, WorkoutSet } from '@repo/shared';
 import {
   getExercises,
   getWorkoutSessionContext,
   getWorkoutSessionsByDate,
   getWorkoutSets,
+  getWorkoutSplits,
 } from '../../lib/api';
 import { parseISODate, toISODate } from '../../lib/routines-week';
 import {
@@ -18,6 +18,7 @@ import { RestTimer, RestTimerOpenButton } from '../../components/workouts/RestTi
 import { WorkoutBoard } from '../../components/workouts/WorkoutBoard';
 import { WorkoutDateNav } from '../../components/workouts/WorkoutDateNav';
 import { WorkoutGroupTabs } from '../../components/workouts/WorkoutGroupTabs';
+import { WorkoutSettingsMenu } from '../../components/workouts/WorkoutSettingsMenu';
 import { Skeleton } from '../../components/Skeleton';
 
 function first(raw: string | string[] | undefined): string | undefined {
@@ -33,15 +34,20 @@ export default async function WorkoutsPage({
   const dateIso = toISODate(displayDate);
   const groupFilter: MuscleGroupFilter = parseGroupFilter(first(sp.group));
   const sessionParam = first(sp.session);
+  const splitParam = first(sp.split);
 
   return (
     <div className="flex min-h-screen flex-col bg-paper font-plex text-[15px] leading-normal text-ink tabular-nums">
       <div className="mx-auto flex w-full max-w-310 flex-1 flex-col gap-5 px-4 pt-6 pb-40 md:px-10 md:pt-9 md:pb-10">
         <header className="flex flex-wrap items-center justify-between gap-4">
           <h1 className="text-[26px] leading-tight font-bold tracking-[-0.01em]">운동 기록</h1>
-          <div className="flex items-center gap-2">
-            <RestTimerOpenButton />
-            <WorkoutDateNav date={displayDate} group={groupFilter} />
+          <div className="flex items-center gap-4">
+            <WorkoutSettingsMenu />
+            <span aria-hidden className="h-6 w-px bg-rule" />
+            <div className="flex items-center gap-2">
+              <RestTimerOpenButton />
+              <WorkoutDateNav date={displayDate} group={groupFilter} />
+            </div>
           </div>
         </header>
 
@@ -51,6 +57,7 @@ export default async function WorkoutsPage({
             dateParam={dateParam}
             groupFilter={groupFilter}
             sessionParam={sessionParam}
+            splitParam={splitParam}
           />
         </Suspense>
       </div>
@@ -66,16 +73,22 @@ async function WorkoutsContent({
   dateParam,
   groupFilter,
   sessionParam,
+  splitParam,
 }: {
   dateIso: string;
   dateParam: string | undefined;
   groupFilter: MuscleGroupFilter;
   sessionParam: string | undefined;
+  splitParam: string | undefined;
 }) {
-  const [allExercises, sessions] = await Promise.all([
+  const [allExercises, sessions, splitsRes] = await Promise.all([
     getExercises(),
     getWorkoutSessionsByDate(dateIso),
+    // 다음 차례는 보고 있는 날짜 이전 마지막 기록 기준
+    getWorkoutSplits(dateIso),
   ]);
+  const { splits, nextSplitId, lastSplitId } = splitsRes;
+  const hasSplits = splits.length > 0;
 
   // Stale ?session=<id> (deleted session) silently falls back to first / null.
   const activeSession =
@@ -93,8 +106,25 @@ async function WorkoutsContent({
     counts[classifyMuscleGroup(e.targetMuscle)]++;
   }
 
-  const exercises =
-    groupFilter === 'all'
+  // 분할이 있으면: ?split= → 그날 기록한 분할 → 다음 차례 순으로 고르고, 그 분할의
+  // 종목만(순서는 종목 순서 그대로). 분할이 없으면 지금처럼 부위 필터.
+  const splitIds = new Set(splits.map((s) => s.id));
+  const selectedSplitId: string | null = !hasSplits
+    ? null
+    : splitParam === 'all'
+      ? 'all'
+      : splitParam && splitIds.has(splitParam)
+        ? splitParam
+        : activeSession?.splitId && splitIds.has(activeSession.splitId)
+          ? activeSession.splitId
+          : nextSplitId;
+  const selectedSplit = splits.find((s) => s.id === selectedSplitId) ?? null;
+
+  const exercises = hasSplits
+    ? selectedSplit
+      ? allExercises.filter((e) => selectedSplit.exerciseIds.includes(e.id))
+      : allExercises
+    : groupFilter === 'all'
       ? allExercises
       : allExercises.filter((e) => classifyMuscleGroup(e.targetMuscle) === groupFilter);
 
@@ -125,25 +155,31 @@ async function WorkoutsContent({
     <>
       <WorkoutBoard
         groupTabs={
-          // 부위 탭 + 종목 동작(관리·추가)을 카드 바로 위에 모음
-          <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2 border-b border-divider">
-            <WorkoutGroupTabs
-              active={groupFilter}
-              counts={counts}
-              preserveParams={{ date: dateParam }}
-            />
-            <div className="mb-1.5 flex items-center gap-2">
-              <Link
-                href="/settings/exercises"
-                className="inline-flex min-h-10 items-center px-1 text-sm text-ink-soft hover:text-ink"
-              >
-                종목 관리 ›
-              </Link>
-              <AddExerciseButton />
-            </div>
+          // 카드 위 줄 — 카드를 거르는 것(분할 요약 또는 부위 탭) … [+ 종목 추가]
+          // 높이 52px·세로 가운데 — 밑줄 탭도 52px라 밑줄이 아래 구분선에 붙고 버튼과 줄이 맞음
+          <div className="flex min-h-13 flex-wrap items-center justify-between gap-x-4 border-b border-divider">
+            {hasSplits ? (
+              // 부위 탭이 빠지며 비어 보이지 않게, 지금 보고 있는 것을 한 줄로
+              <p className="text-[15px] text-ink-muted">
+                <strong className="font-bold text-heading">{selectedSplit?.name ?? '전체'}</strong> 종목{' '}
+                {exercises.length}개
+              </p>
+            ) : (
+              <WorkoutGroupTabs
+                active={groupFilter}
+                counts={counts}
+                preserveParams={{ date: dateParam }}
+              />
+            )}
+            {/* 관리 링크는 헤더 ⚙로 — 여기엔 운동하다 바로 쓰는 [+ 종목 추가]만 */}
+            <AddExerciseButton />
           </div>
         }
-        activeSetCount={allSets.length}
+        splits={splits}
+        selectedSplitId={selectedSplitId}
+        nextSplitId={nextSplitId}
+        lastSplitId={lastSplitId}
+        allExercises={allExercises}
         totalExercises={allExercises.length}
         exercises={exercises}
         date={dateIso}

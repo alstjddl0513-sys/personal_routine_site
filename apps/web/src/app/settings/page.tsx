@@ -65,16 +65,16 @@ const MANAGEMENT_GROUPS: {
         desc: '자주 하는 운동을 등록하고, 안 하는 종목은 잠시 숨겨두세요.',
       },
       {
-        href: '/settings/muscle-goals',
-        icon: Target,
-        title: '부위별 주간 목표',
-        desc: '한 주에 부위별로 몇 세트를 채울지 목표를 정해두세요.',
-      },
-      {
         href: '/settings/splits',
         icon: Repeat,
         title: '분할 관리',
         desc: '순서대로 돌아가며 할 운동 묶음을 만들어두세요.',
+      },
+      {
+        href: '/settings/muscle-goals',
+        icon: Target,
+        title: '부위별 주간 목표',
+        desc: '한 주에 부위별로 몇 세트를 채울지 목표를 정해두세요.',
       },
     ],
   },

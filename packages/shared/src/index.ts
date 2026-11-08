@@ -280,6 +280,54 @@ export type WorkoutSplitTemplate = keyof typeof WORKOUT_SPLIT_TEMPLATES;
 
 export const WORKOUT_SPLIT_NAME_MAX = 30;
 
+export interface SplitTemplatePlan {
+  splits: { name: string; exerciseIds: string[] }[];
+  /** 어느 분할에도 자동으로 안 담긴 종목 — 직접 담아야 함 */
+  unassignedIds: string[];
+  /** 왜 안 담겼는지 한 줄 (예: 팔은 밀기·당기기 양쪽이라 직접) */
+  note: string | null;
+}
+
+// 예시 분할 배정 규칙 — api(만들기)와 web(미리보기)이 같은 결과를 보도록 한 곳에.
+// 부위로 확실히 나눌 수 있는 것만 자동: 밀기 = 가슴·어깨, 당기기 = 등, 하체 = leg.
+// 팔(이두·삼두 섞임)·부위 없는 종목은 남겨서 직접 고르게 함.
+export function planSplitTemplate(
+  kind: WorkoutSplitTemplate,
+  exercises: { id: string; targetMuscle: string | null }[],
+): SplitTemplatePlan {
+  const keyOf = (e: { targetMuscle: string | null }) =>
+    e.targetMuscle ? e.targetMuscle.trim().toLowerCase() : '';
+  const groupOf = new Map(MUSCLE_OPTIONS.map((o) => [o.key, o.group]));
+  const pick = (pred: (key: string) => boolean) =>
+    exercises.filter((e) => pred(keyOf(e))).map((e) => e.id);
+
+  let splits: SplitTemplatePlan['splits'];
+  let note: string | null = null;
+  if (kind === 'upper-lower') {
+    splits = [
+      { name: '상체', exerciseIds: pick((k) => groupOf.get(k) === 'upper') },
+      { name: '하체', exerciseIds: pick((k) => groupOf.get(k) === 'lower') },
+    ];
+  } else if (kind === 'push-pull-legs') {
+    splits = [
+      { name: '밀기', exerciseIds: pick((k) => k === 'chest' || k === 'shoulder') },
+      { name: '당기기', exerciseIds: pick((k) => k === 'back') },
+      { name: '하체', exerciseIds: pick((k) => groupOf.get(k) === 'lower') },
+    ];
+    if (exercises.some((e) => keyOf(e) === 'arm')) {
+      note = '팔 종목은 밀기·당기기 양쪽이라 직접 담아주세요.';
+    }
+  } else {
+    splits = [{ name: '전신', exerciseIds: exercises.map((e) => e.id) }];
+  }
+  const assigned = new Set(splits.flatMap((s) => s.exerciseIds));
+  return {
+    splits,
+    unassignedIds: exercises.filter((e) => !assigned.has(e.id)).map((e) => e.id),
+    note,
+  };
+}
+
 export interface WorkoutSession {
   id: string;
   date: string;

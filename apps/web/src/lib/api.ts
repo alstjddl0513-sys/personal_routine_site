@@ -609,6 +609,15 @@ export async function deleteWorkoutSplit(id: string): Promise<void> {
   }
 }
 
+// 처음부터 다시 짜기 — 내 분할 전부 삭제(운동 기록은 남음).
+export async function deleteAllWorkoutSplits(): Promise<void> {
+  const res = await fetch(apiUrl('/workout-splits'), {
+    method: 'DELETE',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) throw new Error(`DELETE /workout-splits failed: HTTP ${res.status}`);
+}
+
 export async function reorderWorkoutSplits(ids: string[]): Promise<WorkoutSplit[]> {
   const res = await fetch(apiUrl('/workout-splits/order'), {
     method: 'PUT',

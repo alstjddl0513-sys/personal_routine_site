@@ -32,4 +32,5 @@ export const GROUP_TABS: { key: MuscleGroupFilter; label: string }[] = [
   { key: 'all', label: '전체' },
   { key: 'upper', label: '상체' },
   { key: 'lower', label: '하체' },
+  { key: 'other', label: '기타' },
 ];
