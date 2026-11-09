@@ -5,7 +5,12 @@ import {
 } from '@nestjs/common';
 import { and, asc, between, desc, eq, isNotNull, lt, sql } from 'drizzle-orm';
 import { db } from '../db/client';
-import { exercises, workoutSessions, workoutSets } from '../db/schema';
+import {
+  exercises,
+  workoutSessions,
+  workoutSets,
+  workoutSplits,
+} from '../db/schema';
 import type { BatchWorkoutSetsDto } from './dto/batch-workout-sets.dto';
 import type { QueryHeatmapDto } from './dto/query-heatmap.dto';
 import type { QueryMuscleSetsDto } from './dto/query-muscle-sets.dto';
@@ -14,9 +19,13 @@ import type { QueryWorkoutSetsDto } from './dto/query-workout-sets.dto';
 import type { QueryPreviousDto } from './dto/query-previous.dto';
 import type { QueryExerciseStatsDto } from './dto/query-exercise-stats.dto';
 import type { QuerySessionContextDto } from './dto/query-session-context.dto';
+import type { QueryDailySummaryDto } from './dto/query-daily-summary.dto';
+import type { QueryExerciseStatsBatchDto } from './dto/query-exercise-stats-batch.dto';
 import type {
+  ExerciseStatsBatch,
   ExerciseStatsPR,
   PreviousWorkout,
+  WorkoutDaySummary,
   WorkoutSessionContext,
 } from '@repo/shared';
 
@@ -151,8 +160,10 @@ export class WorkoutSetsService {
   }
 
   // Heatmap counts: per date, how many distinct exercises had at least one
-  // "complete" set (weight AND reps both recorded). Rows for empty days are
-  // omitted; the caller fills them in as zero.
+  // set with reps recorded. Rows for empty days are omitted; the caller fills
+  // them in as zero.
+  // '운동한 날' 기준 = 횟수가 적힌 세트(무게는 없어도 됨 — 플랭크·맨몸 운동).
+  // findDailySummary와 같은 기준이라 '오늘' 건너뜀 알림과 운동 통계가 어긋나지 않음.
   async findHeatmap(ownerId: string, query: QueryHeatmapDto) {
     return db
       .select({
@@ -165,11 +176,57 @@ export class WorkoutSetsService {
         and(
           eq(workoutSessions.ownerId, ownerId),
           between(workoutSessions.date, query.from, query.to),
-          isNotNull(workoutSets.weightKg),
           isNotNull(workoutSets.reps),
         ),
       )
       .groupBy(workoutSessions.date);
+  }
+
+  // 운동 통계 '운동한 날' 목록 — 횟수가 적힌 세트가 있는 날만(메모만 적은 날 X).
+  // 날짜별 분할 이름(예전에 하루 기록이 여러 개면 여러 개)·종목 수·세트 수. 최근 날짜부터.
+  async findDailySummary(
+    ownerId: string,
+    query: QueryDailySummaryDto,
+  ): Promise<WorkoutDaySummary[]> {
+    return db
+      .select({
+        date: workoutSessions.date,
+        splitNames: sql<
+          string[]
+        >`coalesce(array_agg(distinct ${workoutSplits.name}) filter (where ${workoutSplits.name} is not null), '{}')`,
+        exerciseCount: sql<number>`count(distinct ${workoutSets.exerciseId})::int`,
+        setCount: sql<number>`count(*)::int`,
+      })
+      .from(workoutSets)
+      .innerJoin(workoutSessions, eq(workoutSessions.id, workoutSets.sessionId))
+      .leftJoin(workoutSplits, eq(workoutSplits.id, workoutSessions.splitId))
+      .where(
+        and(
+          eq(workoutSessions.ownerId, ownerId),
+          between(workoutSessions.date, query.from, query.to),
+          isNotNull(workoutSets.reps),
+        ),
+      )
+      .groupBy(workoutSessions.date)
+      .orderBy(desc(workoutSessions.date));
+  }
+
+  // 운동 통계 종목 카드 — 종목마다 부르던 exercise-stats를 한 번에.
+  // 서버 안은 findExerciseStats 재사용(소유권도 거기 ownerId 필터 — 남의 종목은 빈 결과).
+  async findExerciseStatsBatch(
+    ownerId: string,
+    query: QueryExerciseStatsBatchDto,
+  ): Promise<ExerciseStatsBatch> {
+    const list = await Promise.all(
+      query.exerciseIds.map((id) =>
+        this.findExerciseStats(ownerId, { exerciseId: id, limit: query.limit }),
+      ),
+    );
+    const out: ExerciseStatsBatch = {};
+    query.exerciseIds.forEach((id, i) => {
+      out[id] = list[i];
+    });
+    return out;
   }
 
   // Weekly volume for the sparkline on /workouts/statistics. Volume = sum of

@@ -169,6 +169,7 @@ export function WorkoutBoard(props: Props) {
       ) : selectedSplit && props.exercises.length === 0 ? (
         <div className="flex flex-col items-center gap-1 rounded-lg border border-line bg-surface px-6 py-10 text-center">
           <p className="text-ink-soft">이 분할에 담긴 종목이 없어요.</p>
+          <AddExerciseButton variant="link" split={selectedSplit} />
           <Link
             href="/settings/splits"
             className="inline-flex min-h-10 items-center text-sm text-heading hover:underline"

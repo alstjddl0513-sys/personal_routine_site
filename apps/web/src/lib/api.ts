@@ -20,6 +20,8 @@ import type {
   DocumentKind,
   Exercise,
   ExerciseStats,
+  ExerciseStatsBatch,
+  WorkoutDaySummary,
   Feedback,
   InitDocumentInput,
   InitDocumentResult,
@@ -760,6 +762,39 @@ export async function getExerciseStats(params: {
   });
   if (!res.ok) throw new Error(`GET /workout-sets/exercise-stats failed: HTTP ${res.status}`);
   return (await res.json()) as ExerciseStats;
+}
+
+// 운동 통계 종목 카드 — 종목 N개를 한 번에.
+export async function getExerciseStatsBatch(params: {
+  exerciseIds: readonly string[];
+  limit?: number;
+}): Promise<ExerciseStatsBatch> {
+  const qs = new URLSearchParams({ exerciseIds: params.exerciseIds.join(',') });
+  if (params.limit !== undefined) qs.set('limit', String(params.limit));
+  const res = await fetch(apiUrl(`/workout-sets/exercise-stats-batch?${qs.toString()}`), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new Error(`GET /workout-sets/exercise-stats-batch failed: HTTP ${res.status}`);
+  }
+  return (await res.json()) as ExerciseStatsBatch;
+}
+
+// 운동한 날(횟수 적힌 세트가 있는 날)만, 최근 날짜부터.
+export async function getWorkoutDailySummary(range: {
+  from: string;
+  to: string;
+}): Promise<WorkoutDaySummary[]> {
+  const qs = new URLSearchParams({ from: range.from, to: range.to });
+  const res = await fetch(apiUrl(`/workout-sets/daily-summary?${qs.toString()}`), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new Error(`GET /workout-sets/daily-summary failed: HTTP ${res.status}`);
+  }
+  return (await res.json()) as WorkoutDaySummary[];
 }
 
 // --- export (backup) ---

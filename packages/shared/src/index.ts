@@ -390,6 +390,19 @@ export interface WorkoutHeatmapEntry {
   completedExerciseCount: number;
 }
 
+// 운동 통계 '운동한 날' — 횟수가 적힌 세트가 1개 이상인 날만(무게는 없어도 됨).
+// 컨디션 메모만 적은 날은 빠짐. 스트릭·이번 주 운동한 날·최근 운동한 날 목록이 같이 씀.
+export interface WorkoutDaySummary {
+  date: string;
+  /** 그날 기록에 붙은 분할 이름(예전에 하루 기록이 여러 개면 여러 개). 분할 없이 기록했으면 빈 배열 */
+  splitNames: string[];
+  exerciseCount: number;
+  setCount: number;
+}
+
+// 운동 통계 종목 카드 — 종목 N개를 한 번에. key = exerciseId
+export type ExerciseStatsBatch = Record<string, ExerciseStats>;
+
 export interface WeeklyVolumeEntry {
   /** ISO date of Monday of that week. */
   weekStart: string;
