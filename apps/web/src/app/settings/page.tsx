@@ -73,8 +73,8 @@ const MANAGEMENT_GROUPS: {
       {
         href: '/settings/muscle-goals',
         icon: Target,
-        title: '부위별 주간 목표',
-        desc: '한 주에 부위별로 몇 세트를 채울지 목표를 정해두세요.',
+        title: '주간 운동 목표',
+        desc: '한 주에 며칠, 부위별로 몇 세트를 할지 정해두세요.',
       },
     ],
   },

@@ -500,9 +500,19 @@ export interface LearnFilterPreferences {
   favoritesCategories?: string[];
 }
 
+// 주간 운동 목표 — 한 주에 며칠 운동할지. 운동 스트릭·'이번 주 운동한 날'의 기준.
+// 값이 없으면 WORKOUT_WEEKLY_DAYS_DEFAULT(기존 고정값 3)로 읽음 → 시드 불필요.
+export interface WorkoutPreferences {
+  weeklyDaysTarget?: number;
+}
+export const WORKOUT_WEEKLY_DAYS_DEFAULT = 3;
+export const WORKOUT_WEEKLY_DAYS_MIN = 1;
+export const WORKOUT_WEEKLY_DAYS_MAX = 7;
+
 export interface Preferences {
   notif: NotifPreferences;
   learn?: LearnFilterPreferences;
+  workout?: WorkoutPreferences;
 }
 
 // 신규 계정/미마이그 사용자를 위한 시드값. 클라 localStorage 기본값과

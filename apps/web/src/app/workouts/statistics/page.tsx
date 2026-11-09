@@ -1,10 +1,11 @@
 import { Suspense } from 'react';
-import type { Exercise, ExerciseStats } from '@repo/shared';
+import { WORKOUT_WEEKLY_DAYS_DEFAULT, type Exercise, type ExerciseStats } from '@repo/shared';
 import {
   getExerciseStatsBatch,
   getExercises,
   getMuscleGoals,
   getMuscleSets,
+  getMyProfile,
   getWeeklyVolume,
   getWorkoutDailySummary,
 } from '../../../lib/api';
@@ -24,7 +25,6 @@ import { StreakBadge } from '../../../components/StreakBadge';
 const VOLUME_WEEKS = 12;
 const HISTORY_LIMIT = 12;
 const STREAK_WEEKS = 26; // ~6 months for best-streak lookback
-const WEEKLY_THRESHOLD = 3;
 const RECENT_DAYS = 7;
 const GROUPS = [
   { key: 'upper', label: '상체' },
@@ -55,14 +55,18 @@ async function WorkoutsStatisticsContent() {
   const weekFrom = toISODate(currentMon);
   const weekTo = rangeTo;
 
-  const [exercises, days, volumeEntries, muscleGoals, muscleSets] = await Promise.all([
+  const [exercises, days, volumeEntries, muscleGoals, muscleSets, profile] = await Promise.all([
     getExercises(),
     // '운동한 날' = 횟수 적힌 세트가 있는 날만(메모만 적은 날 X). 스트릭·이번 주·최근 목록이 같이 씀
     getWorkoutDailySummary({ from: streakFrom, to: rangeTo }),
     getWeeklyVolume({ from: volumeFrom, to: rangeTo }),
     getMuscleGoals(),
     getMuscleSets({ from: weekFrom, to: weekTo }),
+    getMyProfile().catch(() => null),
   ]);
+  // 주간 운동 목표(설정 › 주간 운동 목표). 없으면 기본 3일
+  const weeklyTarget =
+    profile?.preferences.workout?.weeklyDaysTarget ?? WORKOUT_WEEKLY_DAYS_DEFAULT;
 
   const statsById =
     exercises.length > 0
@@ -70,10 +74,10 @@ async function WorkoutsStatisticsContent() {
       : {};
 
   const dayDates = days.map((d) => d.date);
-  const currentStreak = calcWeeklyStreak(dayDates, WEEKLY_THRESHOLD, today);
+  const currentStreak = calcWeeklyStreak(dayDates, weeklyTarget, today);
   const bestStreak = calcBestWeeklyStreak(
     dayDates,
-    WEEKLY_THRESHOLD,
+    weeklyTarget,
     addDays(currentMon, -(STREAK_WEEKS - 1) * 7),
     currentMon,
   );
@@ -100,10 +104,10 @@ async function WorkoutsStatisticsContent() {
           current={currentStreak}
           best={bestStreak}
           unit="주"
-          caption={`주 ${WEEKLY_THRESHOLD}일+`}
-          hint={`세트를 적은 날이 주 ${WEEKLY_THRESHOLD}일 이상인 주가 몇 주 이어졌는지예요`}
+          caption={`주 ${weeklyTarget}일+`}
+          hint={`세트를 적은 날이 주 ${weeklyTarget}일 이상인 주가 몇 주 이어졌는지예요`}
         />
-        <WorkoutWeekDaysCard days={days} weekFrom={weekFrom} weekTo={weekTo} target={WEEKLY_THRESHOLD} />
+        <WorkoutWeekDaysCard days={days} weekFrom={weekFrom} weekTo={weekTo} target={weeklyTarget} />
       </div>
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">

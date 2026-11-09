@@ -8,7 +8,7 @@ import { useOutsideClick } from '../../lib/useOutsideClick';
 const ITEMS = [
   { href: '/settings/exercises', label: '종목 관리' },
   { href: '/settings/splits', label: '분할 관리' },
-  { href: '/settings/muscle-goals', label: '부위별 주간 목표' },
+  { href: '/settings/muscle-goals', label: '주간 운동 목표' },
 ];
 
 // 가끔 쓰는 운동 설정(관리)을 헤더 아이콘 하나로 — 테두리 없이, 날짜 이동과는 구분선으로 나눔.
