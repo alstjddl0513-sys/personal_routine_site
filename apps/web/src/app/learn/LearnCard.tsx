@@ -8,7 +8,7 @@ import {
   PartyPopper,
   Star,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   QUESTION_STATUS_LABELS,
   type QuestionDetail,
@@ -24,12 +24,20 @@ interface Props {
   initialIndex: number;
   /** 'daily'는 오늘 quota, 'review'는 복습필요 모아보기, 'favorites'는 별표 모아보기. 완료 카드 문구만 분기. */
   mode?: LearnMode;
+  /** categoryKey → 이름. 카드 위 라벨(없거나 지운 카테고리면 "질문") */
+  categoryNames?: Record<string, string>;
+}
+
+// 입력 중이거나 조합키면 단축키 무시
+function isTypingTarget(t: EventTarget | null): boolean {
+  if (!(t instanceof HTMLElement)) return false;
+  return t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName);
 }
 
 // Positions: 0..questions.length-1 = normal question cards, questions.length
 // = the "오늘 학습 완료" card. Prev from completion goes back to the last
 // question; user can revisit anything via prev/next.
-export function LearnCard({ questions, initialIndex, mode = 'daily' }: Props) {
+export function LearnCard({ questions, initialIndex, mode = 'daily', categoryNames = {} }: Props) {
   const total = questions.length;
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   // Local shadow of `status` per question so answering updates the header
@@ -81,7 +89,8 @@ export function LearnCard({ questions, initialIndex, mode = 'daily' }: Props) {
         const d = await getQuestionDetail(question.id);
         setDetail(d);
       } catch (e) {
-        setError((e as Error).message);
+        console.error(e);
+        setError('답을 불러오지 못했어요. 잠시 후 다시 해보세요.');
         setLoading(false);
         return;
       }
@@ -111,7 +120,8 @@ export function LearnCard({ questions, initialIndex, mode = 'daily' }: Props) {
         return arr;
       });
       setDetail((d) => (d && d.id === question.id ? { ...d, isFavorite: !next } : d));
-      setError((e as Error).message);
+      console.error(e);
+      setError('별표를 바꾸지 못했어요. 잠시 후 다시 해보세요.');
     }
   }
 
@@ -127,7 +137,8 @@ export function LearnCard({ questions, initialIndex, mode = 'daily' }: Props) {
         return next;
       });
     } catch (e) {
-      setError((e as Error).message);
+      console.error(e);
+      setError('표시하지 못했어요. 잠시 후 다시 해보세요.');
     }
   }
 
@@ -144,6 +155,39 @@ export function LearnCard({ questions, initialIndex, mode = 'daily' }: Props) {
   function handlePrev() {
     if (canGoPrev) goTo(currentIndex - 1, 'left');
   }
+
+  // 단축키: ← 이전 · → 다음 · Space 답 보기 · 1 이해완료 · 2 복습필요(답이 열렸을 때만).
+  // 화면 안내 문구는 없고 버튼에 aria-keyshortcuts·title로 알림. ref로 최신 핸들러를 읽어
+  // 리스너는 한 번만 등록.
+  const keyRef = useRef<(e: KeyboardEvent) => void>(() => {});
+  useEffect(() => {
+    keyRef.current = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.altKey || e.metaKey || isTypingTarget(e.target)) return;
+      if (e.key === 'ArrowLeft') handlePrev();
+      else if (e.key === 'ArrowRight') handleNext();
+      // 버튼·링크에 포커스가 있으면 Space는 그 버튼을 누르는 키라 건드리지 않음
+      else if (
+        e.key === ' ' &&
+        !onCompletion &&
+        !showAnswer &&
+        !loading &&
+        !(e.target instanceof HTMLElement && e.target.closest('button, a'))
+      ) {
+        e.preventDefault();
+        void handleShowAnswer();
+      } else if ((e.key === '1' || e.key === '2') && !onCompletion && showAnswer) {
+        void handleStatus(e.key === '1' ? 'understood' : 'review_needed');
+      }
+    };
+  });
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => keyRef.current(e);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  const firstUnmarked = statuses.findIndex((s) => !s);
+  const label = question?.categoryKey ? (categoryNames[question.categoryKey] ?? '질문') : '질문';
 
   const cardKey = onCompletion ? 'completion' : question!.id;
   const cardAnim =
@@ -162,7 +206,7 @@ export function LearnCard({ questions, initialIndex, mode = 'daily' }: Props) {
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-baseline gap-2">
             <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-emerald-600 dark:text-emerald-400">
-              {onCompletion ? '완료' : 'CS 질문'}
+              {onCompletion ? '완료' : label}
             </span>
             {onCompletion ? null : (
               <span className="text-[11px] tabular-nums text-zinc-500 dark:text-zinc-500">
@@ -207,6 +251,8 @@ export function LearnCard({ questions, initialIndex, mode = 'daily' }: Props) {
                 onClick={handlePrev}
                 disabled={!canGoPrev}
                 aria-label="이전"
+                aria-keyshortcuts="ArrowLeft"
+                title="이전 (←)"
                 className="inline-flex h-9 w-9 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-zinc-500 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
               >
                 <ChevronLeft className="h-5 w-5" aria-hidden />
@@ -216,6 +262,8 @@ export function LearnCard({ questions, initialIndex, mode = 'daily' }: Props) {
                 onClick={handleNext}
                 disabled={!canGoNext}
                 aria-label="다음"
+                aria-keyshortcuts="ArrowRight"
+                title="다음 (→)"
                 className="inline-flex h-9 w-9 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-zinc-500 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
               >
                 <ChevronRight className="h-5 w-5" aria-hidden />
@@ -230,6 +278,7 @@ export function LearnCard({ questions, initialIndex, mode = 'daily' }: Props) {
             total={total}
             understood={statuses.filter((s) => s === 'understood').length}
             reviewNeeded={statuses.filter((s) => s === 'review_needed').length}
+            onGoUnmarked={firstUnmarked >= 0 ? () => goTo(firstUnmarked, 'left') : undefined}
           />
         ) : (
           <QuestionBody
@@ -238,9 +287,11 @@ export function LearnCard({ questions, initialIndex, mode = 'daily' }: Props) {
             detail={detail}
             showAnswer={showAnswer}
             loading={loading}
+            isLast={currentIndex === total - 1}
             onShowAnswer={handleShowAnswer}
             onCollapseAnswer={() => setShowAnswer(false)}
             onStatus={handleStatus}
+            onNext={handleNext}
           />
         )}
 
@@ -258,18 +309,22 @@ function QuestionBody({
   detail,
   showAnswer,
   loading,
+  isLast,
   onShowAnswer,
   onCollapseAnswer,
   onStatus,
+  onNext,
 }: {
   question: RandomQuestion;
   currentStatus: QuestionStatus | null;
   detail: QuestionDetail | null;
   showAnswer: boolean;
   loading: boolean;
+  isLast: boolean;
   onShowAnswer: () => void;
   onCollapseAnswer: () => void;
   onStatus: (s: QuestionStatus) => void;
+  onNext: () => void;
 }) {
   return (
     <>
@@ -286,6 +341,8 @@ function QuestionBody({
             type="button"
             onClick={onShowAnswer}
             disabled={loading}
+            aria-keyshortcuts="Space"
+            title="답 보기 (Space)"
             className="inline-flex w-fit items-center gap-2 rounded-md border border-zinc-300 bg-zinc-50 px-5 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
@@ -309,6 +366,8 @@ function QuestionBody({
             <button
               type="button"
               onClick={() => onStatus('understood')}
+              aria-keyshortcuts="1"
+              title="이해완료 (1)"
               className={`inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium transition-colors ${
                 currentStatus === 'understood'
                   ? 'border-emerald-500 bg-emerald-500 text-white'
@@ -320,6 +379,8 @@ function QuestionBody({
             <button
               type="button"
               onClick={() => onStatus('review_needed')}
+              aria-keyshortcuts="2"
+              title="복습필요 (2)"
               className={`inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium transition-colors ${
                 currentStatus === 'review_needed'
                   ? 'border-amber-500 bg-amber-500 text-white'
@@ -335,6 +396,18 @@ function QuestionBody({
             >
               접기
             </button>
+            {/* 표시한 뒤에만 — 자동으로 넘기지 않음(답을 다시 읽을 틈) */}
+            {currentStatus ? (
+              <button
+                type="button"
+                onClick={onNext}
+                aria-keyshortcuts="ArrowRight"
+                className="ml-auto inline-flex items-center gap-1 rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+              >
+                {isLast ? '마치기' : '다음 질문'}
+                <ChevronRight className="h-4 w-4" aria-hidden />
+              </button>
+            ) : null}
           </div>
         </div>
       ) : null}
@@ -347,11 +420,14 @@ function CompletionBody({
   total,
   understood,
   reviewNeeded,
+  onGoUnmarked,
 }: {
   mode: LearnMode;
   total: number;
   understood: number;
   reviewNeeded: number;
+  /** 표시 안 한 질문이 있으면 — 첫 미표시 질문으로 */
+  onGoUnmarked?: () => void;
 }) {
   const skipped = total - understood - reviewNeeded;
   return (
@@ -388,6 +464,15 @@ function CompletionBody({
           </span>
         ) : null}
       </div>
+      {onGoUnmarked ? (
+        <button
+          type="button"
+          onClick={onGoUnmarked}
+          className="inline-flex min-h-10 cursor-pointer items-center text-sm text-zinc-700 hover:underline dark:text-zinc-300"
+        >
+          표시 안 한 질문 보기 ›
+        </button>
+      ) : null}
     </div>
   );
 }
