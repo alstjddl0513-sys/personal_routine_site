@@ -21,11 +21,22 @@ export type AddToSplit = { id: string; name: string; exerciseIds: string[] };
 export function AddExerciseButton({
   variant = 'outline',
   split,
+  defaultOpen = false,
 }: {
   variant?: 'outline' | 'primary' | 'link';
   split?: AddToSplit | null;
+  /** ?add=1로 들어왔을 때 창을 바로 엶 */
+  defaultOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
+  // 연 뒤엔 주소에서 add를 지움 — 새로고침·뒤로 가기로 다시 열리지 않게(서버 다시 안 부름)
+  useEffect(() => {
+    if (!defaultOpen) return;
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has('add')) return;
+    url.searchParams.delete('add');
+    window.history.replaceState(window.history.state, '', url.pathname + url.search);
+  }, [defaultOpen]);
   return (
     <>
       {variant === 'link' ? (

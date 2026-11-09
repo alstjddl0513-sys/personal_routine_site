@@ -1,63 +1,58 @@
 import type { Exercise, ExerciseStats } from '@repo/shared';
-import { MiniLineChart } from './MiniLineChart';
 import { muscleLabel } from '../../lib/muscle-groups';
+import { ExerciseSparkline } from './stats/ExerciseSparkline';
 
 interface Props {
   exercise: Exercise;
   stats: ExerciseStats;
 }
 
-function formatPR(pr: ExerciseStats['pr']): string {
-  if (!pr) return '기록 없음';
-  const w = Number(pr.weightKg);
-  const parts = pr.reps != null ? `${w}kg × ${pr.reps}` : `${w}kg`;
-  return `${parts} (${pr.sessionDate})`;
-}
+const num = (s: string) => Number(s);
+// 'YYYY-MM-DD' → '11월 9일'
+const monthDay = (iso: string) => `${Number(iso.slice(5, 7))}월 ${Number(iso.slice(8, 10))}일`;
 
+// 종목 카드 — 최고 기록(전체 기간) + 최근 N번 운동한 날의 그날 최고 무게 꺾은선.
+// 무게 기록이 있는 종목만(없는 종목은 페이지 맨 아래 접기 목록으로).
 export function ExerciseStatsCard({ exercise, stats }: Props) {
-  // history from service: most recent first. Chart needs oldest → newest.
-  const chartPoints = stats.history
-    .slice()
-    .reverse()
-    .map((h) => ({ date: h.sessionDate, value: Number(h.topWeightKg) }));
-
+  // 서비스는 최근 순 → 그래프는 오래된 순
+  const history = stats.history.slice().reverse();
   const latest = stats.history[0];
-  const oldest = stats.history[stats.history.length - 1];
-
-  const showChart = chartPoints.length > 0;
+  const count = history.length;
+  const pr = stats.pr;
 
   return (
-    <div className="flex flex-col gap-2 rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <div className="text-sm font-semibold">{exercise.name}</div>
-          <div className="text-[11px] text-zinc-500">
-            {muscleLabel(exercise.targetMuscle) ?? '-'} · 목표 {exercise.repMin}~{exercise.repMax}회
-          </div>
-        </div>
-        <div className="shrink-0 rounded bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
-          <span className="mr-1">PR</span>
-          {formatPR(stats.pr)}
-        </div>
+    <article className="flex min-w-0 flex-col gap-2.5 rounded-lg border border-line bg-surface px-4.5 pt-4 pb-3.5">
+      <div className="min-w-0">
+        <h4 className="truncate text-[17px] font-bold text-heading">{exercise.name}</h4>
+        <p className="text-[13px] text-ink-muted">
+          {muscleLabel(exercise.targetMuscle) ?? '기타'} · 목표 {exercise.repMin}~{exercise.repMax}회
+        </p>
       </div>
-
-      {showChart ? (
-        <>
-          <MiniLineChart points={chartPoints} />
-          <div className="flex items-center justify-between text-[10px] text-zinc-500">
-            <span>{oldest?.sessionDate}</span>
-            <span>
-              최근 {chartPoints.length}회 최고 무게 · 최신 {Number(latest.topWeightKg)}kg
-              {latest.topReps != null ? ` × ${latest.topReps}` : ''}
+      {pr ? (
+        <p className="grid grid-cols-[56px_minmax(0,1fr)] gap-x-2 text-sm">
+          <span className="whitespace-nowrap text-ink-muted">최고 기록</span>
+          <span className="min-w-0 truncate">
+            <span className="font-semibold text-ink-strong">
+              {num(pr.weightKg)}kg{pr.reps != null ? ` × ${pr.reps}` : ''}
             </span>
-            <span>{latest?.sessionDate}</span>
+            <span className="text-ink-muted"> · {monthDay(pr.sessionDate)}</span>
+          </span>
+        </p>
+      ) : null}
+      {latest ? (
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="text-xs text-ink-muted">
+              최고 무게 · {count === 1 ? '기록 1번' : `최근 ${count}번`}
+            </span>
+            <span className="flex items-baseline gap-1.5 tabular-nums">
+              <span className="text-[15px] font-bold text-ink">{num(latest.topWeightKg)}kg</span>
+              <span className="text-xs text-ink-muted">{monthDay(latest.sessionDate)}</span>
+            </span>
           </div>
-        </>
-      ) : (
-        <div className="rounded bg-zinc-50 px-2 py-6 text-center text-[11px] italic text-zinc-400 dark:bg-zinc-900">
-          아직 무게 기록이 없어요
+          <ExerciseSparkline values={history.map((h) => num(h.topWeightKg))} />
         </div>
-      )}
-    </div>
+      ) : null}
+    </article>
   );
 }
