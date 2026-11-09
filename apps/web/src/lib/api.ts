@@ -984,6 +984,9 @@ export type PreferencesPatch = {
     reviewCategories?: string[];
     favoritesCategories?: string[];
   };
+  workout?: {
+    weeklyDaysTarget?: number;
+  };
 };
 
 export async function patchMyPreferences(patch: PreferencesPatch): Promise<Profile> {

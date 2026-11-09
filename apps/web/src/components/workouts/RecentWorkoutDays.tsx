@@ -25,16 +25,29 @@ export function WorkoutWeekDaysCard({
 }) {
   const done = days.filter((d) => d.date >= weekFrom && d.date <= weekTo).length;
   const pct = Math.min(100, Math.round((done / target) * 100));
+  const left = target - done;
   return (
     <div className="flex flex-col gap-2 rounded-md border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
-      <span
-        className="text-xs font-medium text-zinc-600 dark:text-zinc-400"
-        title="세트를 1개 이상 적은 날만 세요"
-      >
-        이번 주 운동한 날
+      <span className="flex items-center justify-between gap-2">
+        <span
+          className="text-xs font-medium text-zinc-600 dark:text-zinc-400"
+          title="세트를 1개 이상 적은 날만 세요"
+        >
+          이번 주 운동한 날
+        </span>
+        <Link
+          href="/settings/muscle-goals"
+          className="text-xs text-zinc-500 hover:text-zinc-900 hover:underline dark:text-zinc-400 dark:hover:text-zinc-100"
+        >
+          목표 바꾸기
+        </Link>
       </span>
       <span className="text-sm tabular-nums text-zinc-800 dark:text-zinc-200">
-        <span className="font-semibold">{done}</span> / {target}일
+        <span className="font-semibold">{done}</span>일{' '}
+        <span className="text-zinc-500">/ 목표 {target}일</span>
+      </span>
+      <span className="text-xs text-zinc-500 dark:text-zinc-400">
+        {left > 0 ? `${left}일 더 하면 이번 주도 스트릭에 들어가요` : '이번 주 목표를 채웠어요'}
       </span>
       <div className="h-1.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
         <div
