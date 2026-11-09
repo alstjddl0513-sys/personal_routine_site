@@ -35,6 +35,8 @@ export default async function WorkoutsPage({
   const groupFilter: MuscleGroupFilter = parseGroupFilter(first(sp.group));
   const sessionParam = first(sp.session);
   const splitParam = first(sp.split);
+  // 운동 통계 빈 상태 "종목 추가하기"에서 오면 종목 추가 창을 바로 엶
+  const openAdd = first(sp.add) === '1';
 
   return (
     <div className="flex min-h-screen flex-col bg-paper font-plex text-[15px] leading-normal text-ink tabular-nums">
@@ -58,6 +60,7 @@ export default async function WorkoutsPage({
             groupFilter={groupFilter}
             sessionParam={sessionParam}
             splitParam={splitParam}
+            openAdd={openAdd}
           />
         </Suspense>
       </div>
@@ -74,12 +77,14 @@ async function WorkoutsContent({
   groupFilter,
   sessionParam,
   splitParam,
+  openAdd,
 }: {
   dateIso: string;
   dateParam: string | undefined;
   groupFilter: MuscleGroupFilter;
   sessionParam: string | undefined;
   splitParam: string | undefined;
+  openAdd: boolean;
 }) {
   const [allExercises, sessions, splitsRes] = await Promise.all([
     getExercises(),
@@ -173,7 +178,7 @@ async function WorkoutsContent({
             )}
             {/* 관리 링크는 헤더 ⚙로 — 여기엔 운동하다 바로 쓰는 [+ 종목 추가]만 */}
             {/* 분할 탭을 보고 있으면 새 종목을 그 분할에도 담음(창에서 끌 수 있음) */}
-            <AddExerciseButton split={selectedSplit} />
+            <AddExerciseButton split={selectedSplit} defaultOpen={openAdd} />
           </div>
         }
         splits={splits}

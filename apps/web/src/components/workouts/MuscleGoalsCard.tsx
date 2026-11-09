@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { Settings2 } from 'lucide-react';
 import {
   DEFAULT_MUSCLE_GOALS,
   type MuscleGoal,
@@ -10,18 +9,17 @@ import { MUSCLE_OPTIONS } from '../../lib/muscle-groups';
 interface Props {
   goals: MuscleGoal[];
   entries: MuscleSetCountEntry[];
-  /** Range label shown in header (e.g. '이번주'). */
-  rangeLabel: string;
 }
 
-// 부위별 주간 세트 목표 대비 달성률. entries는 이번주(월~일) 완전 세트 카운트.
-// goals가 없는 부위는 DEFAULT_MUSCLE_GOALS 값으로 폴백 — 신규/미설정 유저도 카드가
-// 그럴싸하게 보임.
-export function MuscleGoalsCard({ goals, entries, rangeLabel }: Props) {
+// 보여주는 순서(가슴 먼저). MUSCLE_OPTIONS의 저장 순서와 따로
+const ORDER = ['chest', 'back', 'shoulder', 'arm', 'leg'];
+
+// 부위별 주간 목표 — 5부위를 한 줄 5칸으로(세로로 쌓으면 카드가 길어짐).
+// entries는 이번 주(월~일) 완전 세트(무게·횟수) 카운트. 목표가 없는 부위는 DEFAULT_MUSCLE_GOALS로.
+// 막대: 평소 primary, 목표를 채우면 메리골드. 100% 넘어도 막대는 100%에서 멈추고 숫자에 %.
+export function MuscleGoalsCard({ goals, entries }: Props) {
   const goalByKey = new Map(goals.map((g) => [g.muscleKey, g.weeklySetTarget]));
-  const defaultByKey = new Map(
-    DEFAULT_MUSCLE_GOALS.map((d) => [d.muscleKey, d.weeklySetTarget]),
-  );
+  const defaultByKey = new Map(DEFAULT_MUSCLE_GOALS.map((d) => [d.muscleKey, d.weeklySetTarget]));
   const countByKey = new Map<string, number>();
   for (const e of entries) {
     if (!e.muscleKey) continue;
@@ -29,74 +27,51 @@ export function MuscleGoalsCard({ goals, entries, rangeLabel }: Props) {
     countByKey.set(key, (countByKey.get(key) ?? 0) + e.setCount);
   }
 
-  const rows = MUSCLE_OPTIONS.map((opt) => {
-    const target = goalByKey.get(opt.key) ?? defaultByKey.get(opt.key) ?? 10;
-    const done = countByKey.get(opt.key) ?? 0;
-    const pct = target > 0 ? Math.round((done / target) * 100) : 0;
-    return { key: opt.key, label: opt.label, target, done, pct };
-  });
+  const rows = ORDER.map((key) => MUSCLE_OPTIONS.find((o) => o.key === key))
+    .filter((o): o is (typeof MUSCLE_OPTIONS)[number] => !!o)
+    .map((opt) => {
+      const target = goalByKey.get(opt.key) ?? defaultByKey.get(opt.key) ?? 10;
+      const done = countByKey.get(opt.key) ?? 0;
+      const pct = target > 0 ? Math.round((done / target) * 100) : 0;
+      return { key: opt.key, label: opt.label, target, done, pct };
+    });
 
   return (
-    <div className="rounded-md border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <div className="flex items-baseline gap-2">
-          <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-            부위별 주간 목표
-          </h2>
-          <span className="text-[10px] text-zinc-500">{rangeLabel}</span>
-        </div>
-        <Link
-          href="/settings/muscle-goals"
-          className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
-        >
-          <Settings2 className="h-3.5 w-3.5" aria-hidden />
-          목표 설정
+    <section
+      aria-labelledby="muscle-goals-title"
+      className="flex flex-col gap-4.5 rounded-lg border border-line bg-surface px-6 pt-5.5 pb-5"
+    >
+      <div className="flex min-h-7 items-center justify-between gap-2">
+        <h2 id="muscle-goals-title" className="text-[17px] font-bold text-heading">
+          부위별 주간 목표
+        </h2>
+        <Link href="/settings/muscle-goals" className="inline-flex min-h-10 items-center text-sm text-heading hover:underline">
+          목표 바꾸기 ›
         </Link>
       </div>
-
-      <div className="flex flex-col gap-2">
-        {rows.map((r) => {
-          // Fill bar caps at 100%; overflow shows in the text ("120%").
-          const fillPct = Math.min(r.pct, 100);
-          const barColor = fillColor(r.pct);
-          const trackColor = 'bg-zinc-100 dark:bg-zinc-800';
-          return (
-            <div
-              key={r.key}
-              className="grid grid-cols-[3rem_1fr_6rem] items-center gap-3 text-xs md:grid-cols-[3.5rem_1fr_8rem]"
-            >
-              <span className="text-zinc-600 dark:text-zinc-400">{r.label}</span>
-              <div className={`relative h-3 overflow-hidden rounded-full ${trackColor}`}>
-                <div
-                  className={`h-full rounded-full transition-[width] ${barColor}`}
-                  style={{ width: `${fillPct}%` }}
-                />
-              </div>
-              <span className="text-right tabular-nums text-zinc-700 dark:text-zinc-300">
-                {r.done} / {r.target}
-                <span className={`ml-1 text-[10px] ${overflowColor(r.pct)}`}>
-                  ({r.pct}%)
-                </span>
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+      <ul className="grid grid-cols-2 gap-y-4 md:grid-cols-5 md:gap-y-0">
+        {rows.map((r) => (
+          <li
+            key={r.key}
+            className="flex min-w-0 flex-col gap-2 border-divider px-0 md:px-5 md:first:pl-0 md:not-first:border-l"
+          >
+            <span className="text-sm font-semibold text-ink-soft">{r.label}</span>
+            <span className="text-[15px] text-ink-muted tabular-nums">
+              <span className={`text-[22px] font-semibold ${r.done === 0 ? 'text-ink-muted' : 'text-ink-strong'}`}>
+                {r.done}
+              </span>{' '}
+              / {r.target}세트
+              {r.pct > 100 ? <span className="font-normal"> ({r.pct}%)</span> : null}
+            </span>
+            <span className="block h-1.5 bg-track">
+              <span
+                className={`block h-full ${r.pct >= 100 ? 'bg-marigold' : 'bg-primary'}`}
+                style={{ width: `${Math.min(100, r.pct)}%` }}
+              />
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
-}
-
-// 달성률 톤 단일. 100%+ 메리골드(목표를 다 채운 막대 — references.md 메리골드 규칙),
-// 50~99% 중간, <50% 옅음, 0% zinc. 나머지 톤은 디자인 개편 때 토큰으로.
-function fillColor(pct: number): string {
-  if (pct === 0) return 'bg-zinc-300 dark:bg-zinc-700';
-  if (pct >= 100) return 'bg-marigold';
-  if (pct >= 50) return 'bg-emerald-400 dark:bg-emerald-600';
-  return 'bg-emerald-200 dark:bg-emerald-900';
-}
-
-function overflowColor(pct: number): string {
-  return pct >= 100
-    ? 'text-emerald-600 dark:text-emerald-400'
-    : 'text-zinc-400';
 }

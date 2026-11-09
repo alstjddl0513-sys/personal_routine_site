@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ChevronRight } from 'lucide-react';
 import type { WorkoutDaySummary } from '@repo/shared';
 
 const WEEKDAY = ['일', '월', '화', '수', '목', '금', '토'];
@@ -10,82 +11,60 @@ function fmtDay(iso: string): string {
   return `${m}월 ${d}일 (${wd})`;
 }
 
-// 이번 주(월~일) 운동한 날 / 목표 일수. 다 채우면 메리골드(목표를 다 채운 막대 규칙).
-// 디자인 개편 전 — 모양은 zinc 그대로, 숫자 기준만 확정.
-export function WorkoutWeekDaysCard({
+// 최근 운동한 날 — 줄 전체가 그날 운동 기록으로 가는 링크.
+// 분할을 쓰는 사람: 분할 없이 기록한 날은 가운데 칸만 비움. 분할을 안 쓰는 사람: 가운데 칸 자체가 없음.
+export function RecentWorkoutDays({
   days,
-  weekFrom,
-  weekTo,
-  target,
+  showSplit,
 }: {
   days: WorkoutDaySummary[];
-  weekFrom: string;
-  weekTo: string;
-  target: number;
+  /** 분할이 1개 이상 있으면 true */
+  showSplit: boolean;
 }) {
-  const done = days.filter((d) => d.date >= weekFrom && d.date <= weekTo).length;
-  const pct = Math.min(100, Math.round((done / target) * 100));
-  const left = target - done;
   return (
-    <div className="flex flex-col gap-2 rounded-md border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
-      <span className="flex items-center justify-between gap-2">
-        <span
-          className="text-xs font-medium text-zinc-600 dark:text-zinc-400"
-          title="세트를 1개 이상 적은 날만 세요"
-        >
-          이번 주 운동한 날
-        </span>
-        <Link
-          href="/settings/muscle-goals"
-          className="text-xs text-zinc-500 hover:text-zinc-900 hover:underline dark:text-zinc-400 dark:hover:text-zinc-100"
-        >
-          목표 바꾸기
-        </Link>
-      </span>
-      <span className="text-sm tabular-nums text-zinc-800 dark:text-zinc-200">
-        <span className="font-semibold">{done}</span>일{' '}
-        <span className="text-zinc-500">/ 목표 {target}일</span>
-      </span>
-      <span className="text-xs text-zinc-500 dark:text-zinc-400">
-        {left > 0 ? `${left}일 더 하면 이번 주도 스트릭에 들어가요` : '이번 주 목표를 채웠어요'}
-      </span>
-      <div className="h-1.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
-        <div
-          className={`h-full rounded-full ${done >= target ? 'bg-marigold' : 'bg-primary'}`}
-          style={{ width: `${pct}%` }}
-        />
+    <section
+      aria-labelledby="recent-days-title"
+      className="flex min-w-0 flex-col gap-3.5 rounded-lg border border-line bg-surface px-6 pt-5.5 pb-5"
+    >
+      <div className="flex min-h-7 items-center justify-between gap-2">
+        <h2 id="recent-days-title" className="text-[17px] font-bold text-heading">
+          최근 운동한 날
+        </h2>
+        {days.length > 0 ? <span className="text-[13px] text-ink-muted">{days.length}일</span> : null}
       </div>
-    </div>
-  );
-}
-
-// 최근 운동한 날 — 그날 분할 이름 · 종목 수 · 세트 수. 누르면 그날 운동 기록으로.
-export function RecentWorkoutDays({ days }: { days: WorkoutDaySummary[] }) {
-  return (
-    <div className="rounded-md border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-      <h2 className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">최근 운동한 날</h2>
       {days.length === 0 ? (
-        <p className="py-4 text-center text-sm text-zinc-500">아직 운동 기록이 없어요.</p>
+        <div className="flex flex-1 flex-col items-center justify-center gap-1 py-8 text-center">
+          <p className="text-ink-soft">아직 운동한 날이 없어요.</p>
+          <Link href="/workouts" className="inline-flex min-h-10 items-center text-sm text-heading hover:underline">
+            오늘 운동 기록하기 ›
+          </Link>
+        </div>
       ) : (
-        <ul className="flex flex-col">
+        <ul className="-mt-1.5">
           {days.map((d) => (
-            <li key={d.date}>
+            <li key={d.date} className="border-b border-divider last:border-b-0">
               <Link
                 href={`/workouts?date=${d.date}`}
-                className="flex min-h-10 items-center gap-2 rounded px-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-900"
+                className="group -mx-2.5 flex min-h-11 items-center gap-3.5 rounded-md px-2.5 text-sm text-ink hover:bg-row-hover"
               >
-                <span className="font-medium tabular-nums">{fmtDay(d.date)}</span>
-                {d.splitNames.length > 0 ? (
-                  <span className="text-zinc-700 dark:text-zinc-300">· {d.splitNames.join(' · ')}</span>
+                <span className="w-28 shrink-0 font-medium tabular-nums group-hover:font-semibold">
+                  {fmtDay(d.date)}
+                </span>
+                {showSplit ? (
+                  <span className="min-w-0 flex-1 truncate text-ink-soft">{d.splitNames.join(' · ')}</span>
                 ) : null}
-                <span className="ml-auto tabular-nums text-zinc-500">
+                <span className={`shrink-0 text-ink-muted tabular-nums ${showSplit ? '' : 'flex-1'}`}>
                   {d.exerciseCount}종목 {d.setCount}세트
                 </span>
+                <ChevronRight
+                  className="h-4 w-4 shrink-0 text-ink-muted opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+                  aria-hidden
+                />
               </Link>
             </li>
           ))}
         </ul>
       )}
-    </div>
+    </section>
   );
 }
