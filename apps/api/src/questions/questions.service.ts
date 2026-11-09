@@ -13,6 +13,7 @@ import {
 } from 'drizzle-orm';
 import { db } from '../db/client';
 import { questionLogs, questions } from '../db/schema';
+import type { QuestionStatus } from '@repo/shared';
 import type { CreateQuestionDto } from './dto/create-question.dto';
 import type { FavoriteQuestionDto } from './dto/favorite-question.dto';
 import type { LogQuestionDto } from './dto/log-question.dto';
@@ -33,17 +34,24 @@ export class QuestionsService {
   // are today's set. Same day → same 10 (refresh-safe). Different day → new
   // 10. No storage; if we ever need "show me yesterday's set" this becomes
   // a table lookup.
+  //
+  // 질문당 기록은 1개(마지막 상태)라 그대로 쓰면 예전에 표시한 질문이 오늘 '이미 한 것'으로
+  // 떠서, 5개가 다 예전 질문이면 하나도 안 풀었는데 '오늘 완료'가 됨. 그래서:
+  //  - status는 오늘(서울, query.date) 표시한 것만 — 이전 날 표시는 null
+  //  - 어제까지 이해완료한 질문은 뒤로(안 푼 질문·복습필요가 먼저, 모자라면 채움).
+  //    오늘 표시해도 앞 묶음 안에서만 움직여 하루 안 5개 구성은 그대로
   async findDaily(ownerId: string, query: QueryDailyDto) {
     const conditions: SQL[] = [eq(questions.ownerId, ownerId)];
     if (query.categories && query.categories.length > 0) {
       conditions.push(inArray(questions.categoryKey, query.categories));
     }
+    const logDay = sql`(${questionLogs.updatedAt} AT TIME ZONE 'Asia/Seoul')::date`;
     return db
       .select({
         id: questions.id,
         content: questions.content,
         categoryKey: questions.categoryKey,
-        status: questionLogs.status,
+        status: sql<QuestionStatus | null>`case when ${logDay} = ${query.date}::date then ${questionLogs.status} else null end`,
         isFavorite: questions.isFavorite,
       })
       .from(questions)
@@ -55,7 +63,10 @@ export class QuestionsService {
         ),
       )
       .where(and(...conditions))
-      .orderBy(sql`md5(${questions.id}::text || ${query.date})`)
+      .orderBy(
+        sql`case when ${questionLogs.status} = 'understood' and ${logDay} < ${query.date}::date then 1 else 0 end`,
+        sql`md5(${questions.id}::text || ${query.date})`,
+      )
       .limit(DAILY_LIMIT);
   }
 

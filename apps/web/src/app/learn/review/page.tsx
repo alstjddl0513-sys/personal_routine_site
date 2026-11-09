@@ -96,6 +96,7 @@ export default async function LearnReviewPage({
         questions={list}
         initialIndex={initialIndex}
         mode={mode}
+        categoryNames={Object.fromEntries(categories.map((c) => [c.key, c.label]))}
       />
     </div>
   );

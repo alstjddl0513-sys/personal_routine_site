@@ -93,6 +93,7 @@ export default async function LearnPage({
         key={selectedCategories.join(',')}
         questions={daily}
         initialIndex={initialIndex}
+        categoryNames={Object.fromEntries(categories.map((c) => [c.key, c.label]))}
       />
     </div>
   );
