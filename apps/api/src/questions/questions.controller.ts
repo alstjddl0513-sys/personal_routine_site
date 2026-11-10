@@ -78,6 +78,11 @@ export class QuestionsController {
     return this.service.getSummary(requireUserId(req));
   }
 
+  @Get('stats/categories')
+  getCategoryStats(@Req() req: AuthedRequest) {
+    return this.service.getCategoryStats(requireUserId(req));
+  }
+
   @Get(':id')
   findOne(@Req() req: AuthedRequest, @Param('id', ParseUUIDPipe) id: string) {
     return this.service.findOne(requireUserId(req), id);

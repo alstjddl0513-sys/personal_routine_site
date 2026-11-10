@@ -39,6 +39,7 @@ import type {
   QuestionDetail,
   QuestionHeatmapEntry,
   QuestionLog,
+  QuestionCategoryStat,
   QuestionStatsSummary,
   QuestionStatus,
   MuscleGoal,
@@ -1172,6 +1173,17 @@ export async function getQuestionStatsSummary(): Promise<QuestionStatsSummary> {
     throw new Error(`GET /questions/stats/summary failed: HTTP ${res.status}`);
   }
   return (await res.json()) as QuestionStatsSummary;
+}
+
+export async function getQuestionCategoryStats(): Promise<QuestionCategoryStat[]> {
+  const res = await fetch(apiUrl('/questions/stats/categories'), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new Error(`GET /questions/stats/categories failed: HTTP ${res.status}`);
+  }
+  return (await res.json()) as QuestionCategoryStat[];
 }
 
 // --- questions (관리 페이지 CRUD) ---

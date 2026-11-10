@@ -1,6 +1,13 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
-import { getQuestionHeatmap, getQuestionStatsSummary } from '../../../lib/api';
+import {
+  getQuestionCategories,
+  getQuestionCategoryStats,
+  getQuestionHeatmap,
+  getQuestionStatsSummary,
+} from '../../../lib/api';
+import { CategoryStatsCard } from '../../../components/learn/stats/CategoryStatsCard';
+import { WeeklyLearnBars } from '../../../components/learn/stats/WeeklyLearnBars';
 import { addDays, todayInSeoul, toISODate } from '../../../lib/routines-week';
 import { calcBestDailyStreak, calcDailyStreak } from '../../../lib/streak';
 import { LearnHeatmapCard } from '../../../components/learn/LearnHeatmapCard';
@@ -39,9 +46,11 @@ async function StatsContent() {
   const streakFrom = toISODate(addDays(today, -(STREAK_DAYS - 1)));
   const to = toISODate(today);
 
-  const [summary, entries] = await Promise.all([
+  const [summary, entries, categoryStats, categories] = await Promise.all([
     getQuestionStatsSummary(),
     getQuestionHeatmap({ from: streakFrom, to }),
+    getQuestionCategoryStats(),
+    getQuestionCategories(),
   ]);
 
   if (summary.total === 0) {
@@ -86,7 +95,22 @@ async function StatsContent() {
         hint="질문을 하나라도 표시한 날이 이어진 날수예요"
       />
 
-      <LearnHeatmapCard entries={entries} today={today} weeks={HEATMAP_WEEKS} />
+      {/* 숫자보다 다음 행동 — 2주 넘게 다시 안 본 복습필요가 있을 때만 */}
+      {summary.staleReviewNeeded > 0 ? (
+        <p className="flex flex-wrap items-center gap-x-2 rounded-md border border-zinc-200 bg-white px-4 py-3 text-sm dark:border-zinc-800 dark:bg-zinc-950">
+          2주 넘게 다시 안 본 복습필요 질문 {summary.staleReviewNeeded}개
+          <Link href="/learn/review" className="font-medium text-zinc-900 hover:underline dark:text-zinc-100">
+            복습하러 가기 ›
+          </Link>
+        </p>
+      ) : null}
+
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        <WeeklyLearnBars entries={entries} today={today} weeks={HEATMAP_WEEKS} />
+        <LearnHeatmapCard entries={entries} today={today} weeks={HEATMAP_WEEKS} />
+      </div>
+
+      <CategoryStatsCard stats={categoryStats} categories={categories} />
     </>
   );
 }
