@@ -4,6 +4,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useOptimistic, useRef, useTransition } from 'react';
 import type { QuestionCategory } from '@repo/shared';
 import { patchMyPreferences } from '../../lib/api';
+import { BUTTON_SECONDARY } from '../jobs/cells/popover-style';
 
 type FilterMode = 'daily' | 'review' | 'favorites';
 
@@ -17,22 +18,14 @@ interface Props {
 
 const PATCH_DEBOUNCE_MS = 500;
 
-// 카테고리 chip 단일 선택. 활성 chip 다시 누르면 초기화(전체). URL
-// `?categories=<key>`로 상태 보존하고 동시에 profiles.preferences.learn.
-// [mode]Categories로 서버 sync (debounce). URL이 없을 때만 preferences가
-// fallback으로 쓰이므로 소프트 네비게이션 시에도 최근 선택이 유지됨.
-// 필터가 바뀌면 daily set이 달라지므로 `?q=`는 제거. 그 외 파라미터
-// (review 페이지의 ?mode=favorites 등)는 유지. preferences 값은 string[] 유지
-// (히스토리 호환) — 실질적으로 원소 0 또는 1개.
+// 카테고리 고르기(칩·빈 상태 [전체 보기] 공용). 단일 선택, 고른 칩을 다시 누르면 전체.
+// URL `?categories=<key>`로 상태 보존 + 쿠키 즉시 write + profiles.preferences.learn.
+// [mode]Categories로 서버 sync(debounce). 필터가 바뀌면 `?q=`는 제거, 그 외 파라미터
+// (review의 ?mode=favorites 등)는 유지. preferences 값은 string[](원소 0 또는 1개).
 //
-// 체감 개선(2026-09-30): (1) hover/focus 시 대상 URL을 `router.prefetch`로
-// warm-up해 클릭 시엔 RSC payload가 캐시에 있음. (2) `useOptimistic`으로 chip
-// active 표시를 클릭 즉시 반영 — 실 SSR 왕복은 그대로지만 "눌렀는데 반응 없음"
-// 구간이 사라짐. (3) `disabled={isPending}` 제거해 사용자가 chip을 연속으로
-// 눌러도 마지막 것만 반영됨(startTransition 특성). 카드 영역까지 pending
-// skeleton으로 갈아치우려면 chips↔card 간 transition state 공유가 필요해
-// 이번엔 skip.
-export function CategoryFilterChips({ categories, selected, mode }: Props) {
+// 체감 개선(2026-09-30): hover/focus 시 대상 URL `router.prefetch`, `useOptimistic`으로
+// 칩 active를 클릭 즉시 반영, 연속 클릭은 마지막 것만 반영(startTransition).
+function useCategorySelect(mode: FilterMode, selected: readonly string[]) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -53,11 +46,8 @@ export function CategoryFilterChips({ categories, selected, mode }: Props) {
 
   const activeSet = new Set(optimisticSelected);
 
-  // 세션 간 preference 유지용 mirror cookie. 서버(`/learn` page.tsx)가 profile
-  // fetch 하기 전 이 cookie를 먼저 확인 → 있으면 profile RTT (~100ms) skip.
-  // profile PATCH도 여전히 유지 (source of truth · 다른 기기·브라우저 sync용).
-  // 값: CSV. 빈 문자열도 유효 (=명시적 '전체'). cookie 미존재 시에만 profile
-  // fallback으로 폴백. 1년 유효, SameSite=Lax (동일 사이트 SSR nav에서 읽힘).
+  // 세션 간 선호 유지용 mirror cookie. 서버(`/learn` page.tsx)가 profile fetch 전에
+  // 먼저 확인 → 있으면 profile RTT skip. 값: CSV, 빈 문자열 = 명시적 '전체'. 1년, Lax.
   function writeCookie(nextArr: string[]) {
     const cookieName = `rally.learn.${mode}`;
     const csv = nextArr.join(',');
@@ -69,7 +59,6 @@ export function CategoryFilterChips({ categories, selected, mode }: Props) {
     if (patchTimeoutRef.current !== null) {
       window.clearTimeout(patchTimeoutRef.current);
     }
-    // Cookie는 즉시 write — 다음 SSR 진입이 debounce 만료 전이라도 반영됨.
     writeCookie(nextArr);
     const key =
       mode === 'daily'
@@ -84,10 +73,8 @@ export function CategoryFilterChips({ categories, selected, mode }: Props) {
     }, PATCH_DEBOUNCE_MS);
   }
 
-  // 빈 값이어도 파라미터 자체는 세팅해서 서버가 '명시적 전체(=[])'로 인식
-  // 하게 만듦. 안 그러면 '전체' 클릭 시 URL에 categories가 사라지고 서버가
-  // preferences fallback으로 넘어가 debounced PATCH 완료 전엔 이전 선택이
-  // 그대로 돌아옴 (한 번 클릭으로 안 넘어가는 버그).
+  // 빈 값이어도 파라미터 자체는 세팅 — 서버가 '명시적 전체(=[])'로 인식.
+  // 안 그러면 '전체' 클릭 시 preferences fallback으로 이전 선택이 돌아옴.
   function buildUrl(next: readonly string[]): string {
     const csv = next.join(',');
     const params = new URLSearchParams();
@@ -117,16 +104,19 @@ export function CategoryFilterChips({ categories, selected, mode }: Props) {
     schedulePatch(nextArr);
   }
 
-  // Hover/focus 진입 시 다음에 눌릴 만한 URL을 미리 warm-up. Next가 동일 URL은
-  // 자동 dedupe하므로 연속 hover에도 요청은 한 번만.
   function prefetch(key: string | null) {
     router.prefetch(buildUrl(nextArrFor(key)));
   }
 
+  return { activeSet, apply, prefetch };
+}
+
+export function CategoryFilterChips({ categories, selected, mode }: Props) {
+  const { activeSet, apply, prefetch } = useCategorySelect(mode, selected);
   if (categories.length === 0) return null;
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
+    <div className="flex flex-wrap items-center gap-2">
       <ChipButton
         active={activeSet.size === 0}
         onClick={() => apply(null)}
@@ -143,6 +133,28 @@ export function CategoryFilterChips({ categories, selected, mode }: Props) {
         />
       ))}
     </div>
+  );
+}
+
+// 빈 상태 [전체 보기] — 칩의 '전체'와 같은 길(쿠키·설정 저장 포함)
+export function ShowAllCategoriesButton({
+  mode,
+  selected,
+}: {
+  mode: FilterMode;
+  selected: readonly string[];
+}) {
+  const { apply, prefetch } = useCategorySelect(mode, selected);
+  return (
+    <button
+      type="button"
+      onClick={() => apply(null)}
+      onMouseEnter={() => prefetch(null)}
+      onFocus={() => prefetch(null)}
+      className={BUTTON_SECONDARY}
+    >
+      전체 보기
+    </button>
   );
 }
 
@@ -164,10 +176,10 @@ function ChipButton({
       onMouseEnter={onHover}
       onFocus={onHover}
       aria-pressed={active}
-      className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+      className={`inline-flex h-9 cursor-pointer items-center rounded-[18px] px-3.5 text-sm transition-colors ${
         active
-          ? 'border-emerald-500 bg-emerald-500 text-white'
-          : 'border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900'
+          ? 'bg-chip-on-bg font-bold text-heading shadow-[inset_0_0_0_2px_var(--rally-chip-on-border)]'
+          : 'bg-surface font-medium text-ink-soft shadow-[inset_0_0_0_1px_var(--rally-btn-border)] hover:bg-row-hover'
       }`}
     >
       {label}

@@ -7,8 +7,13 @@ import {
 } from '../../lib/api';
 import { readCookieCategories } from '../../lib/learn-categories';
 import { todayInSeoul, toISODate } from '../../lib/routines-week';
-import { CategoryFilterChips } from '../../components/learn/CategoryFilterChips';
-import { LearnCard } from './LearnCard';
+import Link from 'next/link';
+import {
+  CategoryFilterChips,
+  ShowAllCategoriesButton,
+} from '../../components/learn/CategoryFilterChips';
+import { LearnEmpty } from '../../components/learn/LearnEmpty';
+import { QuestionCard } from '../../components/learn/QuestionCard';
 
 export const metadata = {
   title: '오늘의 학습 · Rally',
@@ -16,7 +21,7 @@ export const metadata = {
 
 // Daily quota: server returns today's 5 questions (deterministic by
 // owner+date). `?q=<uuid>` on the URL pins the initial card so refresh
-// preserves the current position. LearnCard mirrors `?q=` via
+// preserves the current position. QuestionCard mirrors `?q=` via
 // history.replaceState on prev/next. `?categories=<csv>`가 있으면 그
 // 카테고리들 안에서만 5개를 뽑음.
 export default async function LearnPage({
@@ -52,49 +57,40 @@ export default async function LearnPage({
     console.error('[learn] daily/categories fetch failed', e);
   }
 
-  const header = (
-    <header className="flex flex-col gap-3">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold">오늘의 학습</h1>
-        <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          답을 확인한 뒤 &lsquo;이해완료&rsquo; 또는 &lsquo;복습필요&rsquo;로 표시해두세요.
-        </p>
-      </div>
-      <CategoryFilterChips
-        categories={categories}
-        selected={selectedCategories}
-        mode="daily"
-      />
-    </header>
-  );
-
-  if (daily.length === 0) {
-    return (
-      <div className="flex flex-col gap-4 p-6">
-        {header}
-        <p className="rounded-md border border-zinc-200 bg-zinc-50 p-6 text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
-          {selectedCategories.length > 0
-            ? '고른 카테고리에서 뽑을 질문이 없어요. 다른 카테고리를 선택해보세요.'
-            : '오늘 풀어볼 질문이 없어요. 잠시 뒤에 다시 열어보세요.'}
-        </p>
-      </div>
-    );
-  }
-
-  const initialIndex = pickInitialIndex(daily, qParam);
+  const categoryNames = Object.fromEntries(categories.map((c) => [c.key, c.label]));
+  const selectedName = selectedCategories[0] ? categoryNames[selectedCategories[0]] : undefined;
 
   return (
-    <div className="flex flex-col gap-4 p-6">
-      {header}
-      {/* 카테고리 필터 변경은 router.push 소프트 네비게이션이라 LearnCard 인스턴스가
-          재사용됨. useState 초기값(shadow, initialIndex)은 첫 마운트에만 계산되므로
-          key로 재마운트를 강제해 새 daily set에 맞춰 재동기화. */}
-      <LearnCard
-        key={selectedCategories.join(',')}
-        questions={daily}
-        initialIndex={initialIndex}
-        categoryNames={Object.fromEntries(categories.map((c) => [c.key, c.label]))}
-      />
+    <div className="min-h-screen bg-paper font-plex text-[15px] leading-normal text-ink tabular-nums">
+      <div className="mx-auto flex max-w-220 flex-col gap-5 px-4 pt-6 pb-16 md:px-10 md:pt-9">
+        <header className="flex flex-col gap-1">
+          <h1 className="text-[26px] leading-tight font-bold tracking-[-0.01em]">오늘의 학습</h1>
+          <p className="text-[15px] text-ink-soft">답을 확인하고 이해완료 · 복습필요로 표시해요.</p>
+        </header>
+        <CategoryFilterChips categories={categories} selected={selectedCategories} mode="daily" />
+        {daily.length === 0 ? (
+          selectedCategories.length > 0 ? (
+            <LearnEmpty message={`${selectedName ?? '고른 카테고리'}에서 뽑을 질문이 없어요.`}>
+              <ShowAllCategoriesButton mode="daily" selected={selectedCategories} />
+            </LearnEmpty>
+          ) : (
+            <LearnEmpty message="오늘 풀어볼 질문이 없어요.">
+              <Link href="/settings/questions" className="inline-flex min-h-10 items-center text-sm text-heading hover:underline">
+                설정에서 질문 추가하기 ›
+              </Link>
+            </LearnEmpty>
+          )
+        ) : (
+          // 카테고리 필터 변경은 router.push 소프트 네비게이션이라 카드 인스턴스가 재사용됨.
+          // useState 초기값은 첫 마운트에만 계산되므로 key로 재마운트해 새 5문제에 맞춤.
+          <QuestionCard
+            key={selectedCategories.join(',')}
+            questions={daily}
+            initialIndex={pickInitialIndex(daily, qParam)}
+            categoryNames={categoryNames}
+          />
+        )}
+      </div>
     </div>
   );
 }
