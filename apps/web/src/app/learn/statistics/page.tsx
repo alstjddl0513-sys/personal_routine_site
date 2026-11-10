@@ -78,7 +78,13 @@ async function StatsContent() {
         <Kpi label="복습필요" value={`${summary.reviewNeeded}`} tone="amber" />
       </div>
 
-      <StreakBadge label="학습 스트릭" current={current} best={best} unit="일" />
+      <StreakBadge
+        label="학습 스트릭"
+        current={current}
+        best={best}
+        unit="일"
+        hint="질문을 하나라도 표시한 날이 이어진 날수예요"
+      />
 
       <LearnHeatmapCard entries={entries} today={today} weeks={HEATMAP_WEEKS} />
     </>

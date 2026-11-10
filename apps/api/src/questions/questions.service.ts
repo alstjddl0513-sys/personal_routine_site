@@ -12,7 +12,7 @@ import {
   type SQL,
 } from 'drizzle-orm';
 import { db } from '../db/client';
-import { questionLogs, questions } from '../db/schema';
+import { questionLogEvents, questionLogs, questions } from '../db/schema';
 import type { QuestionStatus } from '@repo/shared';
 import type { CreateQuestionDto } from './dto/create-question.dto';
 import type { FavoriteQuestionDto } from './dto/favorite-question.dto';
@@ -205,37 +205,27 @@ export class QuestionsService {
     };
   }
 
-  // Daily activity counts for the heatmap. Groups by updated_at date in
-  // Asia/Seoul (Rally is Korean-audience) so a KST-morning answer lands on
-  // today rather than yesterday-UTC. Re-answering moves activity to today's
-  // bucket (review also counts as learning). Empty days omitted; client
-  // fills with 0. Hardcoded Seoul is a known limitation — revisit if
-  // internationalizing.
+  // 날짜별 학습한 질문 수(히트맵·스트릭·'오늘 학습'). 표시할 때마다 쌓는 question_log_events 기준 —
+  // question_logs(질문당 1행)로 세면 다시 표시할 때 예전 날짜가 덮여 지난 기록이 줄었음.
+  // 같은 날 같은 질문을 여러 번 바꿔도 1개(질문을 지워도 기록의 question_id는 남음 — FK 없음).
+  // 서울 날짜 기준(국내 사용자). 빈 날은 빠짐 → 클라가 0으로 채움.
   async getHeatmap(ownerId: string, query: QueryStatsRangeDto) {
-    const rows = await db
+    const day = sql`(${questionLogEvents.createdAt} AT TIME ZONE 'Asia/Seoul')::date`;
+    return db
       .select({
-        date: sql<string>`(${questionLogs.updatedAt} AT TIME ZONE 'Asia/Seoul')::date::text`,
-        count: sql<number>`count(*)::int`,
+        date: sql<string>`${day}::text`,
+        count: sql<number>`count(distinct ${questionLogEvents.questionId})::int`,
       })
-      .from(questionLogs)
+      .from(questionLogEvents)
       .where(
         and(
-          eq(questionLogs.ownerId, ownerId),
-          gte(
-            sql`(${questionLogs.updatedAt} AT TIME ZONE 'Asia/Seoul')::date`,
-            query.from,
-          ),
-          lte(
-            sql`(${questionLogs.updatedAt} AT TIME ZONE 'Asia/Seoul')::date`,
-            query.to,
-          ),
+          eq(questionLogEvents.ownerId, ownerId),
+          gte(day, query.from),
+          lte(day, query.to),
         ),
       )
-      .groupBy(sql`(${questionLogs.updatedAt} AT TIME ZONE 'Asia/Seoul')::date`)
-      .orderBy(
-        sql`(${questionLogs.updatedAt} AT TIME ZONE 'Asia/Seoul')::date`,
-      );
-    return rows;
+      .groupBy(day)
+      .orderBy(day);
   }
 
   // Aggregate counts. UNIQUE(owner, question) means one log per question,
@@ -383,18 +373,24 @@ export class QuestionsService {
       .limit(1);
     if (!q) throw new NotFoundException(`Question ${questionId} not found`);
 
-    const [row] = await db
-      .insert(questionLogs)
-      .values({ ownerId, questionId, status: dto.status })
-      .onConflictDoUpdate({
-        target: [questionLogs.ownerId, questionLogs.questionId],
-        set: { status: dto.status, updatedAt: new Date() },
-      })
-      .returning({
-        status: questionLogs.status,
-        answeredAt: questionLogs.answeredAt,
-        updatedAt: questionLogs.updatedAt,
-      });
-    return row;
+    // 지금 상태(question_logs 1행) + 표시 기록 한 줄(question_log_events)을 한 번에 — 통계 날짜는 기록 쪽
+    return db.transaction(async (tx) => {
+      const [row] = await tx
+        .insert(questionLogs)
+        .values({ ownerId, questionId, status: dto.status })
+        .onConflictDoUpdate({
+          target: [questionLogs.ownerId, questionLogs.questionId],
+          set: { status: dto.status, updatedAt: new Date() },
+        })
+        .returning({
+          status: questionLogs.status,
+          answeredAt: questionLogs.answeredAt,
+          updatedAt: questionLogs.updatedAt,
+        });
+      await tx
+        .insert(questionLogEvents)
+        .values({ ownerId, questionId, status: dto.status });
+      return row;
+    });
   }
 }
