@@ -620,6 +620,16 @@ export interface QuestionStatsSummary {
   total: number;
   understood: number;
   reviewNeeded: number;
+  /** 복습필요로 표시한 지 14일 넘은 질문 수 */
+  staleReviewNeeded: number;
+}
+
+// 학습 통계 카테고리별 현황 — 질문 수 · 지금 상태. categoryKey null = 카테고리 없음
+export interface QuestionCategoryStat {
+  categoryKey: string | null;
+  total: number;
+  understood: number;
+  reviewNeeded: number;
 }
 
 // --- documents (이력서·포폴·외부 링크) ---

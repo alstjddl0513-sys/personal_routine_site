@@ -13,7 +13,7 @@ import {
 } from 'drizzle-orm';
 import { db } from '../db/client';
 import { questionLogEvents, questionLogs, questions } from '../db/schema';
-import type { QuestionStatus } from '@repo/shared';
+import type { QuestionCategoryStat, QuestionStatus } from '@repo/shared';
 import type { CreateQuestionDto } from './dto/create-question.dto';
 import type { FavoriteQuestionDto } from './dto/favorite-question.dto';
 import type { LogQuestionDto } from './dto/log-question.dto';
@@ -26,6 +26,8 @@ import type { QueryStatsRangeDto } from './dto/query-stats-range.dto';
 import type { UpdateQuestionDto } from './dto/update-question.dto';
 
 const DAILY_LIMIT = 5;
+// 학습 통계 '오래 묵은 복습필요' 기준(고정)
+const STALE_REVIEW_DAYS = 14;
 
 @Injectable()
 export class QuestionsService {
@@ -237,6 +239,8 @@ export class QuestionsService {
       .select({
         understood: sql<number>`sum(case when ${questionLogs.status} = 'understood' then 1 else 0 end)::int`,
         reviewNeeded: sql<number>`sum(case when ${questionLogs.status} = 'review_needed' then 1 else 0 end)::int`,
+        // 복습필요로 표시한 지 14일 넘은(서울 날짜) 질문 — "2주 넘게 다시 안 본"
+        staleReviewNeeded: sql<number>`sum(case when ${questionLogs.status} = 'review_needed' and (${questionLogs.updatedAt} AT TIME ZONE 'Asia/Seoul')::date < (now() AT TIME ZONE 'Asia/Seoul')::date - ${STALE_REVIEW_DAYS}::int then 1 else 0 end)::int`,
       })
       .from(questionLogs)
       .where(eq(questionLogs.ownerId, ownerId));
@@ -246,7 +250,30 @@ export class QuestionsService {
       total: understood + reviewNeeded,
       understood,
       reviewNeeded,
+      staleReviewNeeded: logAgg?.staleReviewNeeded ?? 0,
     };
+  }
+
+  // 카테고리별 현황 — 질문 수와 지금 상태(이해완료·복습필요). 표시한 질문 = 둘의 합.
+  // 카테고리 없음은 null 줄(웹에서 지운 카테고리와 함께 '기타'로 묶음).
+  async getCategoryStats(ownerId: string): Promise<QuestionCategoryStat[]> {
+    return db
+      .select({
+        categoryKey: questions.categoryKey,
+        total: sql<number>`count(*)::int`,
+        understood: sql<number>`count(*) filter (where ${questionLogs.status} = 'understood')::int`,
+        reviewNeeded: sql<number>`count(*) filter (where ${questionLogs.status} = 'review_needed')::int`,
+      })
+      .from(questions)
+      .leftJoin(
+        questionLogs,
+        and(
+          eq(questionLogs.questionId, questions.id),
+          eq(questionLogs.ownerId, ownerId),
+        ),
+      )
+      .where(eq(questions.ownerId, ownerId))
+      .groupBy(questions.categoryKey);
   }
 
   // 관리 페이지용 list. 사용자가 직접 추가한 커스텀 질문(is_seed=false)만.
