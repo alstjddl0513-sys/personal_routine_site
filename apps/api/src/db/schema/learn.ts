@@ -99,3 +99,23 @@ export const questionLogs = pgTable(
     unique('question_logs_owner_question_uq').on(t.ownerId, t.questionId),
   ],
 );
+
+// 표시할 때마다 한 줄씩 쌓는 기록. question_logs는 질문당 1행(지금 상태)이라 다시 표시하면
+// 예전 날짜가 덮여서 학습 통계(히트맵·스트릭·오늘 학습)가 나중에 줄었음 → 날짜 집계는 여기서.
+// 질문을 지워도 그날 공부한 기록은 남게 questions FK는 두지 않음. owner → auth.users FK·RLS는 마이그레이션에 손으로.
+export const questionLogEvents = pgTable(
+  'question_log_events',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    ownerId: uuid('owner_id').notNull(),
+    // FK 없음(일부러) — 질문을 지워도 id가 남아야 그날 같은 질문을 여러 번 바꾼 기록이 1개로 묶임
+    questionId: uuid('question_id').notNull(),
+    status: questionStatusEnum('status').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index('question_log_events_owner_created_idx').on(t.ownerId, t.createdAt),
+  ],
+);

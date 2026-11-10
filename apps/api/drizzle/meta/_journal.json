@@ -225,6 +225,20 @@
       "when": 1793972046844,
       "tag": "0031_spotty_johnny_storm",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1794304742471,
+      "tag": "0032_supreme_joshua_kane",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1794307262912,
+      "tag": "0033_freezing_titania",
+      "breakpoints": true
     }
   ]
 }

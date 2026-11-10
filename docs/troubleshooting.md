@@ -463,3 +463,8 @@
   - **prod의 기존 row는 UI(`/settings/blog-sources`)에서 수동 삭제/비활성**
 - 재활성 후보: Cloudflare Workers Free로 국내 프록시. 다른 소스 여러 개가 같은 이유로 막히면 검토
 
+
+### 기록 표 FK를 `ON DELETE SET NULL`로 두니 지운 질문의 같은 날 기록이 따로 세짐
+- 상황: 학습 통계용 `question_log_events`(표시할 때마다 1줄)를 만들고 날짜별 `count(distinct question_id)`로 셈. 같은 날 두 번 바꾼 질문을 지우니 그날 1 → 2
+- 원인: questions FK를 SET NULL로 둬서 삭제 시 question_id가 NULL → distinct로 못 묶여 줄마다 따로 셈
+- 해결: 기록 표는 questions FK를 두지 않고 question_id NOT NULL(0033). 사용자 FK·RLS는 유지. 날짜 집계용 기록 표엔 "지워져도 id는 남게"가 맞음
