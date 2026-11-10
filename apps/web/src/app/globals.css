@@ -255,35 +255,40 @@ body {
   background-color: rgb(82 82 91); /* zinc-600 */
 }
 
-/* /learn 카드 넘기기 애니메이션. subtle rotateY + translate로 물리 카드 넘기는
-   느낌. React key 갱신 시 자동 재생. 방향(next/prev)별로 두 벌. */
-@keyframes card-flip-in-right {
+/* /learn·/learn/review 질문 넘기기 — 카드 안 내용만 150ms(가로 8px + 투명도).
+   React key 갱신 시 자동 재생, 방향별 두 벌. prefers-reduced-motion은 motion-reduce:animate-none. */
+@keyframes learn-swap-right {
   from {
-    transform: translateX(28px) rotateY(-12deg);
+    transform: translateX(8px);
     opacity: 0;
   }
   to {
-    transform: translateX(0) rotateY(0);
+    transform: none;
     opacity: 1;
   }
 }
-@keyframes card-flip-in-left {
+@keyframes learn-swap-left {
   from {
-    transform: translateX(-28px) rotateY(12deg);
+    transform: translateX(-8px);
     opacity: 0;
   }
   to {
-    transform: translateX(0) rotateY(0);
+    transform: none;
     opacity: 1;
   }
 }
-.animate-card-flip-in-right {
-  animation: card-flip-in-right 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
-  transform-origin: left center;
+.animate-learn-swap-right {
+  animation: learn-swap-right 150ms ease-out;
 }
-.animate-card-flip-in-left {
-  animation: card-flip-in-left 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
-  transform-origin: right center;
+.animate-learn-swap-left {
+  animation: learn-swap-left 150ms ease-out;
+}
+/* 레이어 밖 CSS라 Tailwind motion-reduce: 유틸보다 우선 → 여기서 직접 끔 */
+@media (prefers-reduced-motion: reduce) {
+  .animate-learn-swap-right,
+  .animate-learn-swap-left {
+    animation: none;
+  }
 }
 
 /* 통계 → /jobs?highlight=id 이동 시 해당 row/카드에 잠깐 노란 강조.

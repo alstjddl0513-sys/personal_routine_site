@@ -89,6 +89,8 @@ export class QuestionsService {
         categoryKey: questions.categoryKey,
         status: questionLogs.status,
         isFavorite: questions.isFavorite,
+        // 복습 카드 "11월 2일에 표시" — 복습필요로 표시한 날(서울)
+        markedAt: sql<string>`(${questionLogs.updatedAt} AT TIME ZONE 'Asia/Seoul')::date::text`,
       })
       .from(questions)
       .innerJoin(

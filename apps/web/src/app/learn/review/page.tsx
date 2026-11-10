@@ -7,8 +7,12 @@ import {
   getQuestionCategories,
   getReviewQuestions,
 } from '../../../lib/api';
-import { CategoryFilterChips } from '../../../components/learn/CategoryFilterChips';
-import { LearnCard, type LearnMode } from '../LearnCard';
+import {
+  CategoryFilterChips,
+  ShowAllCategoriesButton,
+} from '../../../components/learn/CategoryFilterChips';
+import { LearnEmpty } from '../../../components/learn/LearnEmpty';
+import { QuestionCard, type LearnMode } from '../../../components/learn/QuestionCard';
 
 export const metadata = {
   title: '복습 · Rally',
@@ -16,21 +20,18 @@ export const metadata = {
 
 type ReviewMode = Extract<LearnMode, 'review' | 'favorites'>;
 
-// 'review'(복습필요 마킹 모아보기)와 'favorites'(별표 모아보기) 두 모드를 상단 pill
-// toggle로 병치. 진입점은 sidebar '복습' 하나 유지 (탭 늘리기 회피). ?mode=favorites로
-// 상태 보존, 카테고리 chip 필터는 양쪽 공용.
+// 'review'(복습필요 모아보기)와 'favorites'(별표 모아보기)를 세그먼트 [복습필요 N | 별표 N]로
+// 전환. 진입점은 sidebar '복습' 하나. ?mode=favorites로 상태 보존, 카테고리 칩은 양쪽 공용
+// (선호는 모드별로 따로 저장).
 export default async function LearnReviewPage({
   searchParams,
 }: PageProps<'/learn/review'>) {
   const sp = await searchParams;
   const rawQ = sp.q;
   const qParam = typeof rawQ === 'string' ? rawQ : undefined;
-  const rawCategories = sp.categories;
-  const urlCategories = parseCategoriesParam(rawCategories);
+  const urlCategories = parseCategoriesParam(sp.categories);
   const mode: ReviewMode = sp.mode === 'favorites' ? 'favorites' : 'review';
-  // 우선순위: URL → cookie mirror(클라가 chip 변경 시 즉시 write) → profile
-  // fallback. cookie가 있으면 profile RTT를 skip. 자세한 배경은 /learn/page.tsx
-  // 주석.
+  // 우선순위: URL → cookie mirror → profile fallback (자세한 배경은 /learn/page.tsx)
   const prefKey = mode === 'favorites' ? 'favoritesCategories' : 'reviewCategories';
   const cookieCategories = readCookieCategories(await cookies(), mode);
   const selectedCategories =
@@ -38,152 +39,158 @@ export default async function LearnReviewPage({
     cookieCategories ??
     (await getMyProfile().catch(() => null))?.preferences.learn?.[prefKey] ??
     [];
+  const filtered = selectedCategories.length > 0;
 
   let list: RandomQuestion[] = [];
   let categories: QuestionCategory[] = [];
+  // 세그먼트 개수 = 카테고리와 무관한 전체 개수
+  let reviewCount = 0;
+  let favoriteCount = 0;
   try {
-    [list, categories] = await Promise.all([
-      mode === 'favorites'
-        ? getFavoriteQuestions(selectedCategories)
-        : getReviewQuestions(selectedCategories),
+    const [allReview, allFav, filteredList, cats] = await Promise.all([
+      getReviewQuestions([]),
+      getFavoriteQuestions([]),
+      filtered
+        ? mode === 'favorites'
+          ? getFavoriteQuestions(selectedCategories)
+          : getReviewQuestions(selectedCategories)
+        : Promise.resolve(null),
       getQuestionCategories(),
     ]);
+    reviewCount = allReview.length;
+    favoriteCount = allFav.length;
+    list = filteredList ?? (mode === 'favorites' ? allFav : allReview);
+    categories = cats;
   } catch (e) {
-    // UI는 그대로 empty state로 fall through — 다만 실 데이터 없음/API 500/
-    // 인증 실패 등을 구분할 수 있게 서버 로그(Vercel Function Logs)에는 남김.
+    // 화면은 빈 상태로 — 원인은 서버 로그(Vercel Function Logs)에
     console.error(`[learn/review] ${mode} fetch failed`, e);
   }
 
-  const header = (
-    <header className="flex flex-col gap-3">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold">복습</h1>
-        <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          {mode === 'favorites'
-            ? '별표해둔 질문을 다시 훑어보세요.'
-            : '‘복습필요’로 표시한 질문을 다시 학습해보세요.'}
-        </p>
-      </div>
-      <ModeToggle mode={mode} categories={selectedCategories} />
-      <CategoryFilterChips
-        categories={categories}
-        selected={selectedCategories}
-        mode={mode}
-      />
-    </header>
-  );
-
-  if (list.length === 0) {
-    return (
-      <div className="flex flex-col gap-4 p-6">
-        {header}
-        <EmptyState mode={mode} filtered={selectedCategories.length > 0} />
-      </div>
-    );
-  }
-
-  const initialIndex = pickInitialIndex(list, qParam);
+  const categoryNames = Object.fromEntries(categories.map((c) => [c.key, c.label]));
+  const selectedName = selectedCategories[0] ? categoryNames[selectedCategories[0]] : undefined;
 
   return (
-    <div className="flex flex-col gap-4 p-6">
-      {header}
-      {/* mode 전환/카테고리 필터 변경은 <Link>·router.push 소프트 네비게이션이라
-          LearnCard 인스턴스가 재사용됨. useState 초기값(isFavorite/status shadow,
-          initialIndex)은 첫 마운트에만 계산되므로 key로 재마운트를 강제해 새
-          questions에 맞춰 재동기화. */}
-      <LearnCard
-        key={`${mode}:${selectedCategories.join(',')}`}
-        questions={list}
-        initialIndex={initialIndex}
-        mode={mode}
-        categoryNames={Object.fromEntries(categories.map((c) => [c.key, c.label]))}
-      />
+    <div className="min-h-screen bg-paper font-plex text-[15px] leading-normal text-ink tabular-nums">
+      <div className="mx-auto flex max-w-220 flex-col gap-5 px-4 pt-6 pb-16 md:px-10 md:pt-9">
+        <header className="flex flex-col gap-1">
+          <h1 className="text-[26px] leading-tight font-bold tracking-[-0.01em]">복습</h1>
+          <p className="text-[15px] text-ink-soft">다시 읽고 이해했으면 이해완료로 바꿔요.</p>
+        </header>
+
+        {/* 전환과 칩 모두 "어떤 질문을 볼지" 고르는 거라 한 줄에. 넘치면 칩만 다음 줄로 */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+          <ModeSegment
+            mode={mode}
+            categories={selectedCategories}
+            reviewCount={reviewCount}
+            favoriteCount={favoriteCount}
+          />
+          {categories.length > 0 ? <span aria-hidden className="h-6 w-px bg-rule" /> : null}
+          <CategoryFilterChips categories={categories} selected={selectedCategories} mode={mode} />
+        </div>
+
+        {list.length === 0 ? (
+          <EmptyState mode={mode} filtered={filtered} name={selectedName} selected={selectedCategories} />
+        ) : (
+          // 전환·칩 변경은 소프트 네비게이션이라 카드 인스턴스가 재사용됨 → key로 재마운트
+          <QuestionCard
+            key={`${mode}:${selectedCategories.join(',')}`}
+            questions={list}
+            initialIndex={pickInitialIndex(list, qParam)}
+            mode={mode}
+            categoryNames={categoryNames}
+          />
+        )}
+      </div>
     </div>
   );
 }
 
-function ModeToggle({
+// 운동 기록 분할 탭과 같은 세그먼트. 개수는 500 ink-muted
+function ModeSegment({
   mode,
   categories,
+  reviewCount,
+  favoriteCount,
 }: {
   mode: ReviewMode;
   categories: string[];
+  reviewCount: number;
+  favoriteCount: number;
 }) {
   const catQs = categories.length > 0 ? `&categories=${categories.join(',')}` : '';
   const reviewHref = catQs ? `/learn/review?${catQs.slice(1)}` : '/learn/review';
   const favHref = `/learn/review?mode=favorites${catQs}`;
+  const items = [
+    { key: 'review' as const, label: '복습필요', count: reviewCount, href: reviewHref },
+    { key: 'favorites' as const, label: '별표', count: favoriteCount, href: favHref },
+  ];
   return (
     <div
       role="tablist"
       aria-label="복습 모드"
-      className="inline-flex w-fit items-center gap-1 rounded-full border border-zinc-200 bg-zinc-50 p-1 text-xs dark:border-zinc-800 dark:bg-zinc-900"
+      className="inline-flex h-10 shrink-0 overflow-hidden rounded-md border border-btn-border"
     >
-      <Link
-        role="tab"
-        aria-selected={mode === 'review'}
-        href={reviewHref}
-        className={`inline-flex items-center rounded-full px-3 py-1 font-medium transition-colors ${
-          mode === 'review'
-            ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-950 dark:text-zinc-100'
-            : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200'
-        }`}
-      >
-        복습필요
-      </Link>
-      <Link
-        role="tab"
-        aria-selected={mode === 'favorites'}
-        href={favHref}
-        className={`inline-flex items-center rounded-full px-3 py-1 font-medium transition-colors ${
-          mode === 'favorites'
-            ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-950 dark:text-zinc-100'
-            : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200'
-        }`}
-      >
-        별표
-      </Link>
+      {items.map((it, i) => {
+        const on = mode === it.key;
+        return (
+          <Link
+            key={it.key}
+            role="tab"
+            aria-selected={on}
+            href={it.href}
+            className={`inline-flex items-center gap-1.5 px-4 text-sm text-heading ${
+              i > 0 ? 'border-l border-btn-border' : ''
+            } ${
+              on
+                ? 'bg-chip-on-bg font-bold shadow-[inset_0_0_0_2px_var(--rally-chip-on-border)]'
+                : 'bg-btn-bg hover:bg-row-hover'
+            }`}
+          >
+            {it.label}
+            <span className="font-medium text-ink-muted tabular-nums">{it.count}</span>
+          </Link>
+        );
+      })}
     </div>
   );
 }
 
-function EmptyState({ mode, filtered }: { mode: ReviewMode; filtered: boolean }) {
-  if (mode === 'favorites') {
+function EmptyState({
+  mode,
+  filtered,
+  name,
+  selected,
+}: {
+  mode: ReviewMode;
+  filtered: boolean;
+  name: string | undefined;
+  selected: string[];
+}) {
+  const where = name ?? '고른 카테고리';
+  if (filtered) {
     return (
-      <p className="rounded-md border border-zinc-200 bg-zinc-50 p-6 text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
-        {filtered ? (
-          '고른 카테고리에는 별표한 질문이 없어요. 다른 카테고리를 선택해보세요.'
-        ) : (
-          <>
-            아직 별표한 질문이 없어요.{' '}
-            <Link
-              href="/learn"
-              className="text-zinc-700 underline underline-offset-2 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100"
-            >
-              학습
-            </Link>
-            에서 카드 우측 상단의 ☆를 눌러 담아두면 여기서 다시 만날 수 있어요.
-          </>
-        )}
-      </p>
+      <LearnEmpty
+        message={
+          mode === 'favorites' ? `${where}에 별표한 질문이 없어요.` : `${where}에 복습할 질문이 없어요.`
+        }
+      >
+        <ShowAllCategoriesButton mode={mode} selected={selected} />
+      </LearnEmpty>
     );
   }
   return (
-    <p className="rounded-md border border-zinc-200 bg-zinc-50 p-6 text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
-      {filtered ? (
-        '고른 카테고리에는 복습할 질문이 없어요. 다른 카테고리를 선택해보세요.'
-      ) : (
-        <>
-          아직 복습할 질문이 없어요.{' '}
-          <Link
-            href="/learn"
-            className="text-zinc-700 underline underline-offset-2 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100"
-          >
-            학습
-          </Link>
-          에서 답을 확인한 뒤 ‘복습필요’를 눌러 담아두면 여기서 다시 만날 수 있어요.
-        </>
-      )}
-    </p>
+    <LearnEmpty
+      message={
+        mode === 'favorites'
+          ? '아직 별표한 질문이 없어요. 질문 카드의 ☆를 누르면 여기 모여요.'
+          : '아직 복습할 질문이 없어요.'
+      }
+    >
+      <Link href="/learn" className="inline-flex min-h-10 items-center text-sm text-heading hover:underline">
+        오늘의 학습 하러 가기 ›
+      </Link>
+    </LearnEmpty>
   );
 }
 
@@ -215,10 +222,7 @@ function readCookieCategories(
 }
 
 // /learn과 동일 정책: ?q=<uuid>가 유효하면 그 위치로. 없거나 무효면 첫 번째로.
-function pickInitialIndex(
-  questions: RandomQuestion[],
-  urlQ: string | undefined,
-): number {
+function pickInitialIndex(questions: RandomQuestion[], urlQ: string | undefined): number {
   if (urlQ) {
     const i = questions.findIndex((q) => q.id === urlQ);
     if (i >= 0) return i;

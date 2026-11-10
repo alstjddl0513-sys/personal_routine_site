@@ -569,6 +569,8 @@ export interface RandomQuestion {
   categoryKey: string | null;
   status: QuestionStatus | null;
   isFavorite: boolean;
+  /** 복습 목록만 — 복습필요로 표시한 날(서울, YYYY-MM-DD). 오늘의 학습·별표는 없음 */
+  markedAt?: string | null;
 }
 
 // Full detail (fetched when the user asks to see the answer).

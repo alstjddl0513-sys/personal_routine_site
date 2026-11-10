@@ -19,6 +19,7 @@
 | `rally-routines-stats(-dark).html` · `rally-routines-stats-parts.html` | 루틴 통계 · [월] 선택 · 숫자 0 · 빈 상태 | `/routines/statistics` `components/routines/stats/*` |
 | `rally-workouts(-dark).html` · `rally-workouts-parts.html` | 운동 기록 · 세트 상태 · 타이머 · 종목 추가 모달 · 빈 상태 | `/workouts` `components/workouts/*` |
 | `rally-workouts-stats(-dark).html` · `rally-workouts-stats-parts.html` | 운동 통계 · 요약 띠 · 주간 볼륨 hover · 숫자 0 · 목표 채움·넘침 · 분할 없음 · 빈 상태 | `/workouts/statistics` `components/workouts/stats/*` |
+| `rally-learn(-dark).html` · `rally-learn-review.html` · `rally-learn-parts.html` | 오늘의 학습 · 복습(복습필요/별표) · 카드 상태 · 완료 카드 · 빈 상태 · 오류 | `/learn` `/learn/review` `components/learn/*` |
 
 **현재 상태**: 숲색 `#1F3D30` · 메리골드 `#E9B949`(로고·챌린지 포인트, 시안의 황토 `#C8963E`에서 변경) · 바탕 `#F6F7F5`, IBM Plex Sans KR + Noto Serif KR(인사말). 사이드바(전 페이지)와 `/today`에 적용. 다른 페이지 본문은 zinc — 페이지별로 개편할 때 같은 토큰으로 확산. 모바일(BottomNav)은 별도 시안 예정.
 
@@ -134,6 +135,16 @@
 - 무게 기록 없는 종목의 "최근 기록" 날짜는 운동 기록 화면의 session-context 재사용(API 추가 X)
 - 종목 0개 빈 카드 버튼 → `/workouts?add=1`: 종목 추가 창이 바로 열리고 주소에서 `add`는 지움(새로고침해도 다시 안 열림)
 - 지운 것: StreakBadge(운동 통계에서만 — 학습 통계는 그대로), 임시 '이번 주 운동한 날' 카드, 볼륨 카드 머리 숫자(요약 띠로), `MiniLineChart`
+
+**학습 — 오늘의 학습 · 복습** (`/learn` `/learn/review`, 2026-11-10) — 동작은 #186 그대로(오늘 5문제 = 어제까지 이해완료한 질문은 뒤로, 상태는 오늘 표시한 것만 · [다음 질문 ›] · 단축키 ←/→·Space·1·2)
+- 두 페이지가 같은 질문 카드(`components/learn/QuestionCard`), 위 줄만 다름: 오늘 = 점 5개 / 복습 = "11월 2일에 표시" / 별표 = 날짜 없이 "N / M"만
+- **정렬은 시안과 다르게 가운데 한 열**(제목·칩·카드를 폭 800px 한 줄기로, 화면 가운데): 시안은 다른 페이지처럼 왼쪽 정렬이었지만, 학습은 질문 하나에 집중하는 화면이라 예전처럼 가운데가 낫다고 결정(2026-11-10). 제목·칩·카드 시작선은 맞춤
+- 그 밖의 시안 '다른 후보'는 시안대로(안내 문구, 전환·칩 한 줄, 꼬리 질문 바탕+선, 별표 완료 설명 있음) — 다른 후보는 PR 설명에
+- "N월 N일에 표시"는 복습 목록 응답에 `markedAt`(그 기록의 서울 날짜) 필드를 더해서(DB·동작 그대로). 세그먼트 개수(복습필요 N | 별표 N)는 카테고리와 무관한 전체 개수
+- 답 본문은 텍스트 그대로, 빈 줄 → 문단 · "- "/"• "/"1. "로 시작하는 줄 → 목록으로만 나눠 그림. 꼬리 질문은 줄마다 항목
+- 오류 줄 [다시 시도]는 실패한 동작(답 불러오기·별표·표시)을 그대로 다시. 별표 완료 카드는 개수 줄 없이 제목·설명만
+- 빈 상태 [전체 보기]는 칩의 '전체'와 같은 길(쿠키·설정 저장). 넘기기는 내용만 150ms, 동작 줄이기 설정이면 없음(레이어 밖 CSS라 `@media`로 직접 끔)
+- 지운 것: `app/learn/LearnCard.tsx`(→ QuestionCard), 큰 넘김 keyframes `card-flip-in-*`
 
 **화면 문구 정리** (2026-11-04, 앱 전체 · 관리자 화면 제외)
 - 이름 통일: 블록·시간블록·라벨 → 루틴, 기업 → 회사(기업 통계 → 회사 통계, 기업 유형 → 회사 유형), 포폴 → 포트폴리오, 미체크 → 아직 안 한, '오늘' 학습 기록 문구는 버튼 이름('이해완료'·'복습필요')에 맞춤
