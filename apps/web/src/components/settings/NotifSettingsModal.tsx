@@ -66,8 +66,10 @@ export function NotifSettingsModal({ open, onClose }: Props) {
           </ul>
         </li>
       </ul>
-      {/* 두 항목 설명에서 뺀 조건 — 한 줄로 따로(설명이 두 줄로 넘치지 않게) */}
-      <p className="-mt-2 text-xs text-ink-muted">채용 마감 · 캘린더 일정 알림은 앱을 연 날 아침에 보내드려요.</p>
+      {/* 두 항목 설명에서 뺀 조건 — 목록과 divider로 붙인 창 아래 각주(떠 보이지 않게) */}
+      <p className="-mt-4.5 border-t border-divider pt-3 text-xs text-ink-muted">
+        채용 마감 · 캘린더 일정 알림은 앱을 연 날 아침에 보내드려요.
+      </p>
     </SettingsDialog>
   );
 }
