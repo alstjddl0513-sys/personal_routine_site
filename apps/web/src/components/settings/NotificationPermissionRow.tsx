@@ -1,94 +1,52 @@
 'use client';
 
-import { useState, useSyncExternalStore } from 'react';
-import { Bell, BellOff, Check } from 'lucide-react';
+import { useState } from 'react';
+import { Check, Lock } from 'lucide-react';
+import { requestNotifPermission, useNotifPermission } from '../../lib/notif-permission';
+import { BUTTON_PRIMARY } from '../jobs/cells/popover-style';
 
-type PermissionState = 'unsupported' | 'default' | 'granted' | 'denied';
+const DESC = {
+  granted: '브라우저 알림이 허용돼 있어요.',
+  default: '알림을 받으려면 브라우저 알림을 허용해주세요.',
+  denied: '주소창 자물쇠 → 사이트 설정 → 알림에서 다시 열어주세요.',
+  unsupported: '이 브라우저는 알림을 지원하지 않아요.',
+} as const;
 
-function readPermission(): PermissionState {
-  if (typeof Notification === 'undefined') return 'unsupported';
-  const p = Notification.permission;
-  if (p === 'granted') return 'granted';
-  if (p === 'denied') return 'denied';
-  return 'default';
-}
-
-// requestPermission 성공 후 자기 컴포넌트가 재렌더되도록 broadcast.
-// 브라우저 permission API에 표준 change 이벤트가 없어 대체.
-const PERMISSION_CHANGE_EVENT = 'rally.notif.permission-changed';
-
-function subscribePermission(cb: () => void): () => void {
-  if (typeof window === 'undefined') return () => {};
-  window.addEventListener(PERMISSION_CHANGE_EVENT, cb);
-  return () => window.removeEventListener(PERMISSION_CHANGE_EVENT, cb);
-}
-
+// 알림 설정 창 맨 위 권한 상자 — 창 안 다른 항목과 구분되게 thead 바탕.
+// 허용 요청 뒤엔 변경 이벤트로 아래 항목들도 같이 잠금이 풀림(lib/notif-permission).
 export function NotificationPermissionRow() {
-  // 서버 render는 null(placeholder), hydration 후 실제 permission으로 재렌더.
-  const state = useSyncExternalStore<PermissionState | null>(
-    subscribePermission,
-    () => readPermission(),
-    () => null,
-  );
+  const state = useNotifPermission();
   const [requesting, setRequesting] = useState(false);
 
   async function request() {
     if (state !== 'default') return;
     setRequesting(true);
-    try {
-      await Notification.requestPermission();
-    } catch {
-      // Some browsers throw on requestPermission (e.g. insecure origin).
-      // Notification.permission이 'denied'로 세팅되어 있을 가능성이 크므로
-      // 별도 처리 없이 event만 발화해 재렌더.
-    } finally {
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new Event(PERMISSION_CHANGE_EVENT));
-      }
-      setRequesting(false);
-    }
+    await requestNotifPermission();
+    setRequesting(false);
   }
 
-  // Description is static across granted/default — badge/button on the
-  // right already surfaces the state, so no need to repeat it in prose.
-  // denied/unsupported get their own message with an actionable hint.
-  const description =
-    state === 'unsupported'
-      ? '이 브라우저에서는 알림을 켤 수 없어요.'
-      : state === 'denied'
-        ? '주소창 자물쇠 → 사이트 설정 → 알림에서 다시 열어주세요.'
-        : '휴식 타이머가 끝날 때 알려드릴게요.';
-
   return (
-    <div className="flex items-start gap-3 border-b border-zinc-100 px-4 py-3 dark:border-zinc-800">
-      <Bell className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" aria-hidden />
-      <div className="min-w-0 flex-1">
-        <div className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
-          알림
-        </div>
-        <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-          {state === null ? ' ' : description}
-        </p>
+    <div className="flex min-h-14 items-center justify-between gap-4 rounded-md border border-divider bg-thead px-4 py-2">
+      <div className="flex min-w-0 flex-col gap-0.5">
+        <span className="text-[15px] font-semibold text-ink-strong">브라우저 알림 권한</span>
+        <span className="text-[13px] text-ink-soft">{state === null ? ' ' : DESC[state]}</span>
       </div>
       {state === 'default' ? (
-        <button
-          type="button"
-          onClick={request}
-          disabled={requesting}
-          className="inline-flex min-h-11 shrink-0 items-center self-center rounded border border-zinc-300 bg-white px-3 text-xs text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 md:min-h-0 md:py-1.5 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
-        >
+        <button type="button" onClick={request} disabled={requesting} className={`${BUTTON_PRIMARY} shrink-0`}>
           {requesting ? '요청 중…' : '허용 요청'}
         </button>
       ) : state === 'granted' ? (
-        <span className="inline-flex shrink-0 items-center gap-1 self-center text-xs text-emerald-600 dark:text-emerald-400">
-          <Check className="h-3.5 w-3.5" aria-hidden />
+        <span className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-primary">
+          <Check className="h-4 w-4" aria-hidden />
           허용됨
         </span>
-      ) : state === 'denied' || state === 'unsupported' ? (
-        <span className="inline-flex shrink-0 items-center gap-1 self-center text-xs text-zinc-500">
-          <BellOff className="h-3.5 w-3.5" aria-hidden />
-          {state === 'denied' ? '차단됨' : '미지원'}
+      ) : state === 'denied' ? (
+        <span className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-warn">
+          <Lock className="h-4 w-4" aria-hidden />
+          차단됨
         </span>
+      ) : state === 'unsupported' ? (
+        <span className="shrink-0 text-sm text-ink-muted">미지원</span>
       ) : null}
     </div>
   );

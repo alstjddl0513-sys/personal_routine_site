@@ -1,15 +1,12 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { AlertCircle, Check, Dices, User, X } from 'lucide-react';
+import { Check, Dices, LoaderCircle, User } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
-import {
-  HttpError,
-  checkNicknameAvailability,
-  getMyProfile,
-  renameMyNickname,
-} from '@/lib/api';
+import { HttpError, checkNicknameAvailability, getMyProfile, renameMyNickname } from '@/lib/api';
 import { randomNickname } from '@/lib/nickname';
+import { SettingsRow } from './SettingsRow';
+import { BUTTON_PRIMARY } from '../jobs/cells/popover-style';
 
 type Status =
   | { kind: 'idle' }
@@ -30,20 +27,26 @@ function shapeError(value: string): Status | null {
   return null;
 }
 
+// 비활성 테두리 버튼 — 고치지 않았거나 확인 중·오류일 때 [저장]
+const DISABLED_BTN =
+  'inline-flex min-h-10 shrink-0 items-center justify-center rounded-md border border-divider bg-surface px-4 text-sm text-icon-faint';
+const FIELD =
+  'block min-h-10 w-full min-w-0 rounded-md border bg-surface px-3 text-[15px] text-ink outline-none placeholder:text-ink-faint disabled:opacity-60';
+
+// 닉네임 — 그 자리에서 고침. 입력하고 0.4초 뒤 확인, 사용 가능할 때만 [저장]이 채운 버튼
 export function NicknameRow() {
   const [current, setCurrent] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const [status, setStatus] = useState<Status>({ kind: 'idle' });
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Fetch initial nickname. Re-fetch on auth change (unlikely on this
-  // page but keeps state honest).
+  // 처음 닉네임 읽기 — 로그인 상태가 바뀌면 다시(이 화면에선 드물지만 상태를 맞춰둠)
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
     let cancelled = false;
-
     async function refresh() {
       try {
         const profile = await getMyProfile();
@@ -53,7 +56,7 @@ export function NicknameRow() {
           setDraft(profile.nickname);
         }
       } catch {
-        // Auth-off dev mode or transient error — leave state empty.
+        // 인증 끈 개발 모드 · 잠깐 오류 — 비워 둠
       }
     }
     refresh();
@@ -71,12 +74,12 @@ export function NicknameRow() {
     [],
   );
 
-  // Debounced availability check driven by the input event, not an effect
-  // (react-hooks/set-state-in-effect used to flag the sync 'idle' reset).
+  // 확인은 입력 이벤트에서(effect 안 setState 금지 규칙)
   function updateDraft(next: string) {
     setDraft(next);
+    setSaved(false);
+    setError(null);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-
     if (!next || next === current) {
       setStatus({ kind: 'idle' });
       return;
@@ -93,10 +96,7 @@ export function NicknameRow() {
         setStatus({ kind: available ? 'available' : 'taken' });
       } catch (err) {
         console.error(err);
-        setStatus({
-          kind: 'error',
-          message: '닉네임을 확인하지 못했어요. 잠시 후 다시 해보세요.',
-        });
+        setStatus({ kind: 'error', message: '닉네임을 확인하지 못했어요. 잠시 후 다시 해보세요.' });
       }
     }, 400);
   }
@@ -108,11 +108,13 @@ export function NicknameRow() {
       const updated = await renameMyNickname(draft);
       setCurrent(updated.nickname);
       setStatus({ kind: 'idle' });
+      setSaved(true);
     } catch (err) {
       if (err instanceof HttpError && err.status === 409) {
         setError('닉네임이 방금 다른 사람에게 선점됐어요. 다른 닉네임으로 다시 시도해주세요.');
         setStatus({ kind: 'taken' });
       } else {
+        console.error(err);
         setError('저장하지 못했어요. 잠시 후 다시 해보세요.');
       }
     } finally {
@@ -120,105 +122,97 @@ export function NicknameRow() {
     }
   }
 
-  const canSave = status.kind === 'available' && !saving;
+  if (current === null) return null; // 인증 끈 개발 모드 · 프로필 아직 없음
 
-  if (current === null) {
-    // Auth-off dev mode or profile not yet created — hide the row.
-    return null;
-  }
+  const canSave = status.kind === 'available' && !saving;
+  const bad = status.kind === 'taken' || status.kind === 'invalid';
 
   return (
-    <div className="flex flex-col gap-2 border-b border-zinc-100 px-4 py-3 dark:border-zinc-800">
-      <div className="flex items-center gap-3">
-        <User className="h-4 w-4 text-zinc-500" aria-hidden />
-        <div className="flex-1">
-          <div className="text-sm font-medium text-zinc-800 dark:text-zinc-200">닉네임</div>
-          <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-            사이드바와 공유 화면에 표시돼요.
-          </p>
-        </div>
-      </div>
-      <div className="flex flex-col gap-1 pl-7">
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
+    <SettingsRow
+      stackOnMobile
+      icon={User}
+      title="닉네임"
+      desc="사이드바와 공유 화면에 표시돼요."
+      end={
+        <span className="flex w-full flex-col gap-1.5 md:w-85">
+          <span className="flex items-center gap-2">
             <input
               type="text"
               value={draft}
               onChange={(e) => updateDraft(e.target.value)}
               disabled={saving}
-              className="block min-h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 pr-20 text-base text-zinc-900 outline-none transition-colors focus:border-zinc-400 focus:ring-2 focus:ring-zinc-200 disabled:opacity-60 md:min-h-0 md:text-sm dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:focus:border-zinc-500 dark:focus:ring-zinc-800"
+              aria-label="닉네임"
+              aria-invalid={bad}
+              className={`${FIELD} flex-1 ${bad ? 'border-alert' : 'border-btn-border focus:border-chip-on-border'}`}
             />
-            <div className="absolute inset-y-0 right-0 flex items-center gap-1 pr-2">
-              <StatusIcon status={status} />
-              <button
-                type="button"
-                onClick={() => updateDraft(randomNickname())}
-                disabled={saving}
-                aria-label="랜덤 닉네임 생성"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-40 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
-              >
-                <Dices className="h-4 w-4" aria-hidden />
-              </button>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={!canSave}
-            className="inline-flex min-h-11 items-center justify-center rounded-lg bg-zinc-900 px-4 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 md:min-h-0 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
-          >
-            {saving ? '저장 중…' : '저장'}
-          </button>
-        </div>
-        <StatusMessage status={status} draftSameAsCurrent={draft === current} />
-        {error ? (
-          <div className="flex items-start gap-1.5 text-xs text-red-600 dark:text-red-400">
-            <AlertCircle className="mt-0.5 h-3 w-3 shrink-0" aria-hidden />
-            <span>{error}</span>
-          </div>
-        ) : null}
-      </div>
-    </div>
+            <button
+              type="button"
+              onClick={() => updateDraft(randomNickname())}
+              disabled={saving}
+              aria-label="랜덤 닉네임"
+              title="랜덤 닉네임"
+              className="inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-md border border-btn-border bg-btn-bg text-ink-soft hover:border-heading disabled:opacity-50"
+            >
+              <Dices className="h-4.5 w-4.5" aria-hidden />
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={!canSave}
+              className={canSave || saving ? `${BUTTON_PRIMARY} shrink-0` : DISABLED_BTN}
+            >
+              {saving ? '저장 중…' : '저장'}
+            </button>
+          </span>
+          <StatusLine status={status} saved={saved} sameAsCurrent={draft === current} error={error} />
+        </span>
+      }
+    />
   );
 }
 
-function StatusIcon({ status }: { status: Status }) {
-  if (status.kind === 'checking') {
-    return (
-      <span
-        className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-zinc-300 border-t-transparent"
-        aria-hidden
-      />
-    );
-  }
-  if (status.kind === 'available') {
-    return <Check className="h-4 w-4 text-emerald-500" aria-label="사용 가능" />;
-  }
-  if (status.kind === 'taken' || status.kind === 'invalid') {
-    return <X className="h-4 w-4 text-red-500" aria-label="사용 불가" />;
-  }
-  return null;
-}
-
-function StatusMessage({
+function StatusLine({
   status,
-  draftSameAsCurrent,
+  saved,
+  sameAsCurrent,
+  error,
 }: {
   status: Status;
-  draftSameAsCurrent: boolean;
+  saved: boolean;
+  sameAsCurrent: boolean;
+  error: string | null;
 }) {
-  if (draftSameAsCurrent) return null;
-  if (status.kind === 'invalid') {
-    return <p className="text-xs text-red-600 dark:text-red-400">{status.message}</p>;
-  }
-  if (status.kind === 'taken') {
-    return <p className="text-xs text-red-600 dark:text-red-400">이미 사용 중인 닉네임이에요.</p>;
-  }
-  if (status.kind === 'available') {
-    return <p className="text-xs text-emerald-600 dark:text-emerald-400">사용할 수 있는 닉네임이에요.</p>;
-  }
-  if (status.kind === 'error') {
-    return <p className="text-xs text-red-600 dark:text-red-400">{status.message}</p>;
-  }
+  const line = 'flex items-center gap-1 text-[13px]';
+  if (error)
+    return (
+      <span role="alert" className={`${line} text-alert`}>
+        {error}
+      </span>
+    );
+  if (saved && sameAsCurrent)
+    return (
+      <span role="status" className={`${line} text-ink-faint`}>
+        <Check className="h-3.5 w-3.5" aria-hidden />
+        저장됨
+      </span>
+    );
+  if (sameAsCurrent) return null;
+  if (status.kind === 'checking')
+    return (
+      <span role="status" className={`${line} text-ink-faint`}>
+        <LoaderCircle className="h-3.5 w-3.5 animate-spin motion-reduce:animate-none" aria-hidden />
+        확인 중…
+      </span>
+    );
+  if (status.kind === 'available')
+    return (
+      <span role="status" className={`${line} text-primary`}>
+        <Check className="h-3.5 w-3.5" aria-hidden />
+        사용할 수 있는 닉네임이에요.
+      </span>
+    );
+  if (status.kind === 'taken') return <span className={`${line} text-alert`}>이미 사용 중인 닉네임이에요.</span>;
+  if (status.kind === 'invalid' || status.kind === 'error')
+    return <span className={`${line} text-alert`}>{status.message}</span>;
   return null;
 }
