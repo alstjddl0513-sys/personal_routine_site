@@ -1,34 +1,40 @@
 'use client';
 
-import { useEffect, useRef, useState, useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, Trash2, X } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { deleteMyAccount } from '@/lib/api';
+import { SettingsDialog } from './SettingsDialog';
+import { BUTTON_SECONDARY } from '../jobs/cells/popover-style';
 
 const CONFIRM_WORD = '삭제';
 
+// 실제로 지워지는 것과 같게 — 표가 늘면 여기도 같이(백업 export.service와 같은 범위)
+const DELETED: [string, string][] = [
+  ['채용', '회사 · 회사 유형 · 일정'],
+  ['캘린더', '메모'],
+  ['루틴', '루틴 · 체크 · 회고 · 챌린지'],
+  ['운동', '기록 · 종목 · 분할 · 주간 목표'],
+  ['학습', '질문 · 카테고리 · 학습 기록'],
+  ['블로그', '구독한 블로그 · 가져온 글'],
+  ['문서', '이력서 · 포트폴리오(올린 파일 포함)'],
+  ['계정', '닉네임 · 설정'],
+];
+
+// 설정 맨 아래 오른쪽 끝 글자 버튼 "계정 삭제" → 확인 창("…" 표기는 오타처럼 보여서 뺌).
+// 로그아웃(왼쪽)과 멀리 둬서 잘못 누르지 않게, 숨기지는 않음.
 export function AccountDeleteRow() {
   const [open, setOpen] = useState(false);
-
   return (
     <>
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-red-50 dark:hover:bg-red-950/30"
+        className="inline-flex min-h-10 cursor-pointer items-center rounded-md px-2 text-sm font-medium text-alert hover:underline"
       >
-        <Trash2 className="h-4 w-4 text-red-500 dark:text-red-400" aria-hidden />
-        <div className="flex-1">
-          <div className="text-sm font-medium text-red-600 dark:text-red-400">
-            계정 삭제
-          </div>
-          <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-            계정과 모든 기록을 지워요. 한 번 삭제하면 되돌릴 수 없어요.
-          </p>
-        </div>
+        계정 삭제
       </button>
-
       {open ? <AccountDeleteModal onRequestClose={() => setOpen(false)} /> : null}
     </>
   );
@@ -40,15 +46,6 @@ function AccountDeleteModal({ onRequestClose }: { onRequestClose: () => void }) 
   const [typed, setTyped] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  const typedRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape' && !isPending) onRequestClose();
-    }
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [isPending, onRequestClose]);
 
   const canConfirm = checked && typed.trim() === CONFIRM_WORD && !isPending;
 
@@ -66,128 +63,93 @@ function AccountDeleteModal({ onRequestClose }: { onRequestClose: () => void }) 
         router.refresh();
       } catch (err) {
         console.error(err);
-        setError(
-          err instanceof Error
-            ? '계정을 삭제하지 못했어요. 잠시 후 다시 해보세요.'
-            : '계정을 삭제하지 못했어요. 잠시 후 다시 해보세요.',
-        );
+        setError('계정을 삭제하지 못했어요. 잠시 후 다시 해보세요.');
       }
     });
   }
 
   return (
-    <div
-      className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="account-delete-title"
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget && !isPending) onRequestClose();
-      }}
+    <SettingsDialog
+      open
+      title="정말 계정을 삭제하시겠어요?"
+      labelId="account-delete-title"
+      onClose={onRequestClose}
+      busy={isPending}
+      widthClass="md:max-w-140"
     >
-      <div className="w-full max-w-md rounded-lg border border-zinc-200 bg-white p-5 shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="mb-4 flex items-start justify-between gap-3">
-          <div className="flex items-start gap-2">
-            <AlertTriangle
-              className="mt-0.5 h-5 w-5 shrink-0 text-red-500 dark:text-red-400"
-              aria-hidden
-            />
-            <h2
-              id="account-delete-title"
-              className="text-base font-semibold text-red-600 dark:text-red-400"
-            >
-              정말 계정을 삭제하시겠어요?
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={() => !isPending && onRequestClose()}
-            disabled={isPending}
-            className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 disabled:opacity-50 dark:hover:bg-zinc-800"
-            aria-label="닫기"
+      <p className="text-ink-soft">
+        계정을 삭제하면 아래 데이터가 <strong className="text-ink-strong">영구히 삭제</strong>되며{' '}
+        <strong className="text-ink-strong">되돌릴 수 없어요.</strong>
+      </p>
+      <dl className="rounded-md border border-divider bg-thead px-4 py-1">
+        {DELETED.map(([k, v]) => (
+          <div
+            key={k}
+            className="grid grid-cols-[64px_minmax(0,1fr)] gap-x-3 border-b border-divider py-2 text-sm last:border-b-0"
           >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-
-        <div className="flex flex-col gap-3 text-sm text-zinc-700 dark:text-zinc-300">
-          <p>
-            계정을 삭제하면 아래 데이터가 <strong>영구히 삭제</strong>되며{' '}
-            <strong>되돌릴 수 없어요.</strong>
-          </p>
-          <ul className="ml-4 list-disc space-y-0.5 text-xs text-zinc-600 dark:text-zinc-400">
-            {/* 실제로 지워지는 것과 같게 — 표가 늘면 여기도 같이(백업 export.service와 같은 범위) */}
-            <li>채용: 회사 · 회사 유형 · 일정</li>
-            <li>캘린더 메모</li>
-            <li>루틴: 루틴 · 체크 · 회고 · 챌린지</li>
-            <li>운동: 기록 · 종목 · 분할 · 주간 목표</li>
-            <li>학습: 질문 · 카테고리 · 학습 기록</li>
-            <li>구독한 블로그 · 가져온 글</li>
-            <li>이력서·포트폴리오(올린 파일 포함)</li>
-            <li>닉네임 · 설정</li>
-          </ul>
-
-          <label className="mt-1 flex cursor-pointer items-start gap-2 text-xs">
-            <input
-              type="checkbox"
-              checked={checked}
-              onChange={(e) => setChecked(e.target.checked)}
-              disabled={isPending}
-              className="mt-0.5 h-4 w-4 cursor-pointer rounded border-zinc-300 accent-red-600 dark:border-zinc-600"
-            />
-            <span className="text-zinc-700 dark:text-zinc-300">
-              위 내용을 모두 확인했으며, 계정 삭제에 동의합니다.
-            </span>
-          </label>
-
-          <div className="flex flex-col gap-1">
-            <label
-              htmlFor="account-delete-confirm"
-              className="text-xs text-zinc-500 dark:text-zinc-400"
-            >
-              정말 삭제하려면 아래에{' '}
-              <span className="font-semibold text-red-600 dark:text-red-400">
-                {CONFIRM_WORD}
-              </span>
-              라고 입력하세요.
-            </label>
-            <input
-              id="account-delete-confirm"
-              ref={typedRef}
-              type="text"
-              value={typed}
-              onChange={(e) => setTyped(e.target.value)}
-              disabled={isPending}
-              autoComplete="off"
-              className="min-h-11 rounded border border-zinc-300 bg-white px-2 py-1.5 text-sm outline-none focus:border-red-500 md:min-h-0 dark:border-zinc-700 dark:bg-zinc-950"
-            />
+            <dt className="font-semibold text-ink-soft">{k}</dt>
+            <dd className="text-ink">{v}</dd>
           </div>
+        ))}
+      </dl>
 
-          {error ? (
-            <p className="text-xs text-red-600 dark:text-red-400">{error}</p>
-          ) : null}
+      <label className="flex cursor-pointer items-center gap-2.5 text-sm text-ink">
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={(e) => setChecked(e.target.checked)}
+          disabled={isPending}
+          className="peer sr-only"
+        />
+        <span
+          aria-hidden
+          className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-[5px] peer-focus-visible:ring-2 peer-focus-visible:ring-primary/40 ${
+            checked ? 'bg-primary' : 'border-[1.5px] border-check-off'
+          }`}
+        >
+          {checked ? <Check className="h-3.25 w-3.25 text-white dark:text-paper" strokeWidth={3.2} /> : null}
+        </span>
+        위 데이터가 모두 삭제되는 것을 확인했어요.
+      </label>
 
-          <div className="mt-2 flex items-center justify-end gap-2">
-            <button
-              type="button"
-              onClick={onRequestClose}
-              disabled={isPending}
-              className="inline-flex min-h-11 items-center rounded px-3 text-sm text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 md:min-h-0 md:py-1.5 dark:text-zinc-400 dark:hover:bg-zinc-800"
-            >
-              취소
-            </button>
-            <button
-              type="button"
-              onClick={confirmDelete}
-              disabled={!canConfirm}
-              className="inline-flex min-h-11 items-center gap-1 rounded bg-red-600 px-3 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-40 md:min-h-0 md:py-1.5"
-            >
-              <Trash2 className="h-4 w-4" aria-hidden />
-              {isPending ? '삭제 중…' : '영구 삭제'}
-            </button>
-          </div>
-        </div>
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="account-delete-confirm" className="text-sm text-ink-soft">
+          확인을 위해 &ldquo;{CONFIRM_WORD}&rdquo;를 입력해주세요
+        </label>
+        <input
+          id="account-delete-confirm"
+          type="text"
+          value={typed}
+          onChange={(e) => setTyped(e.target.value)}
+          disabled={isPending}
+          autoComplete="off"
+          className="min-h-10 w-55 rounded-md border border-btn-border bg-surface px-3 text-[15px] text-ink outline-none focus:border-chip-on-border"
+        />
       </div>
-    </div>
+
+      {error ? (
+        <p role="alert" className="text-[13px] text-alert">
+          {error}
+        </p>
+      ) : null}
+
+      <div className="flex justify-end gap-2">
+        <button type="button" onClick={onRequestClose} disabled={isPending} className={BUTTON_SECONDARY}>
+          취소
+        </button>
+        <button
+          type="button"
+          onClick={confirmDelete}
+          disabled={!canConfirm}
+          className={`inline-flex min-h-10 items-center justify-center rounded-md px-4 text-sm font-semibold ${
+            canConfirm || isPending
+              ? 'cursor-pointer bg-alert text-white hover:opacity-90 dark:text-paper'
+              : 'bg-divider text-icon-faint'
+          }`}
+        >
+          {isPending ? '삭제 중…' : '영구 삭제'}
+        </button>
+      </div>
+    </SettingsDialog>
   );
 }

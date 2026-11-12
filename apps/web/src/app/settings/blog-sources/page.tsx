@@ -22,7 +22,7 @@ export default async function BlogSourcesSettingsPage() {
         </Link>
         <h1 className="text-xl font-semibold">구독한 블로그</h1>
         <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          구독할 기술 블로그를 골라두면 새 글이 자동으로 모여요.
+          기술 블로그를 추가해두면 새 글이 자동으로 모여요.
           잠시 안 볼 블로그는 &lsquo;일시중지&rsquo;로 쉬게 하고, 지우면 그 블로그에서 가져온 글도 같이 사라져요.
         </p>
       </header>

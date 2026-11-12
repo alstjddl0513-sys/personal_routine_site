@@ -1,29 +1,26 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronRight, MessageSquare } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
 import { FeedbackModal } from './FeedbackModal';
+import { SettingsRow } from './SettingsRow';
+import { BUTTON_SECONDARY } from '../jobs/cells/popover-style';
 
+// 설정 › 앱 › 피드백 — 줄 이름은 명사, 버튼은 동사. 줄 끝 테두리 버튼이 창을 엶
 export function FeedbackRow() {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
-      >
-        <MessageSquare className="h-4 w-4 shrink-0 text-zinc-500" aria-hidden />
-        <div className="min-w-0 flex-1">
-          <div className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
-            피드백 보내기
-          </div>
-          <p className="mt-0.5 break-keep text-xs text-zinc-500 dark:text-zinc-400">
-            버그·개선 아이디어를 짧게 남겨주시면 큰 도움이 돼요.
-          </p>
-        </div>
-        <ChevronRight className="h-4 w-4 shrink-0 text-zinc-400" aria-hidden />
-      </button>
+      <SettingsRow
+        icon={MessageSquare}
+        title="피드백"
+        desc="버그·개선 아이디어를 짧게 남겨주시면 큰 도움이 돼요."
+        end={
+          <button type="button" onClick={() => setOpen(true)} aria-label="피드백 작성하기" className={BUTTON_SECONDARY}>
+            작성하기
+          </button>
+        }
+      />
       <FeedbackModal open={open} onClose={() => setOpen(false)} />
     </>
   );

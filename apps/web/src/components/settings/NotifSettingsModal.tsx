@@ -1,13 +1,11 @@
 'use client';
 
-import { useEffect, useSyncExternalStore } from 'react';
-import { Bell, X } from 'lucide-react';
-import {
-  getMasterEnabled,
-  setMasterEnabled,
-  subscribeMasterEnabled,
-} from '../../lib/notif-master';
-import { Portal } from '../ui/Portal';
+import { useSyncExternalStore } from 'react';
+import { Lock } from 'lucide-react';
+import { getMasterEnabled, setMasterEnabled, subscribeMasterEnabled } from '../../lib/notif-master';
+import { useNotifPermission } from '../../lib/notif-permission';
+import { Switch } from '../ui/Switch';
+import { SettingsDialog } from './SettingsDialog';
 import { ChallengeCelebrateRow } from './ChallengeCelebrateRow';
 import { DeadlineNotifRow } from './DeadlineNotifRow';
 import { EventNotifRow } from './EventNotifRow';
@@ -21,145 +19,57 @@ interface Props {
   onClose: () => void;
 }
 
-// 알림 관련 세부 토글들을 모아 보여주는 중앙 모달. 설정 페이지 섹션이
-// 5개 로우로 길어져 진입점만 남기고 여기로 이관. 각 Row 컴포넌트는
-// 그대로 재사용(로직/스토어 변경 X).
-//
-// NotifLogDrawer의 Esc + backdrop click + body 스크롤 잠금 패턴 미러.
-// 우측 슬라이드 대신 중앙 배치.
+// 알림 설정 창 — 맨 위 권한 상자 → "알림 전체" → 항목 6개. 스위치는 바꾸면 바로 저장(창 아래 버튼 없음).
+// 권한이 없으면 항목은 지우지 않고 잠금 + 목록 위 자물쇠 한 줄. 알림 전체가 꺼지면 항목은 흐리게(지금 동작).
 export function NotifSettingsModal({ open, onClose }: Props) {
-  const master = useSyncExternalStore<boolean | null>(
-    subscribeMasterEnabled,
-    () => getMasterEnabled(),
-    () => null,
-  );
-
-  useEffect(() => {
-    if (!open) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
-    }
-    document.addEventListener('keydown', onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prev;
-    };
-  }, [open, onClose]);
-
-  if (!open) return null;
+  const master = useSyncExternalStore<boolean | null>(subscribeMasterEnabled, () => getMasterEnabled(), () => null);
+  const permission = useNotifPermission();
+  const lockLine =
+    permission === 'default'
+      ? '먼저 위의 알림 권한을 허용해주세요.'
+      : permission === 'denied'
+        ? '브라우저에서 알림을 다시 열면 켤 수 있어요.'
+        : null;
 
   return (
-    <Portal>
-      <div
-        aria-hidden
-        onClick={onClose}
-        className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm"
-      />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="notif-settings-title"
-        className="fixed inset-0 z-50 flex items-end justify-center md:items-center md:p-4"
-        onClick={onClose}
-      >
-        <div
-          onClick={(e) => e.stopPropagation()}
-          className="flex max-h-[85vh] w-full flex-col overflow-hidden rounded-t-2xl border border-zinc-200 bg-white shadow-lg pb-[env(safe-area-inset-bottom)] md:max-h-[calc(100vh-2rem)] md:max-w-2xl md:rounded-lg md:pb-0 dark:border-zinc-800 dark:bg-zinc-950"
-        >
-          <div
-            aria-hidden
-            className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-zinc-300 md:hidden dark:bg-zinc-700"
-          />
-          <header className="flex items-center justify-between border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
-            <div className="flex items-center gap-2">
-              <Bell className="h-4 w-4 text-zinc-500" aria-hidden />
-              <h2
-                id="notif-settings-title"
-                className="text-sm font-semibold text-zinc-800 dark:text-zinc-200"
-              >
-                알림 설정
-              </h2>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="닫기"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-800 dark:hover:bg-zinc-900 dark:hover:text-zinc-200"
-            >
-              <X className="h-4 w-4" aria-hidden />
-            </button>
-          </header>
-
-          <div className="flex-1 overflow-y-auto">
-            <MasterBanner
-              enabled={master}
-              onToggle={() => {
-                if (master === null) return;
-                setMasterEnabled(!master);
-              }}
-            />
-            <div
-              className={
-                master === false
-                  ? 'pointer-events-auto opacity-50 transition-opacity'
-                  : 'transition-opacity'
-              }
-            >
-              <NotificationPermissionRow />
-              <MorningSummaryRow />
-              <DeadlineNotifRow />
-              <EventNotifRow />
-              <RoutineReminderRow />
-              <WorkoutSkipRow />
-              <ChallengeCelebrateRow />
-            </div>
-          </div>
-        </div>
-      </div>
-    </Portal>
-  );
-}
-
-interface MasterBannerProps {
-  enabled: boolean | null;
-  onToggle: () => void;
-}
-
-function MasterBanner({ enabled, onToggle }: MasterBannerProps) {
-  return (
-    <div className="flex items-start gap-3 border-b border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900/50">
-      <Bell
-        className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500"
-        aria-hidden
-      />
-      <div className="min-w-0 flex-1">
-        <div className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
-          알림 전체
-        </div>
-        <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-          모든 알림을 한번에 껐다 켜요.
+    <SettingsDialog open={open} title="알림 설정" labelId="notif-settings-title" onClose={onClose}>
+      <NotificationPermissionRow />
+      {lockLine ? (
+        <p className="-mb-2 flex items-center gap-1.5 text-[13px] text-ink-soft">
+          <Lock className="h-3.5 w-3.5" aria-hidden />
+          {lockLine}
         </p>
-      </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={enabled ?? false}
-        onClick={onToggle}
-        disabled={enabled === null}
-        className={`relative inline-flex h-6 w-11 shrink-0 items-center self-center rounded-full border transition-colors ${
-          enabled
-            ? 'border-emerald-500 bg-emerald-500'
-            : 'border-zinc-300 bg-zinc-200 dark:border-zinc-700 dark:bg-zinc-800'
-        }`}
-      >
-        <span
-          className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${
-            enabled ? 'translate-x-6' : 'translate-x-1'
-          }`}
-        />
-      </button>
-    </div>
+      ) : null}
+      <ul className="flex flex-col">
+        <li className="flex items-start justify-between gap-4 border-b border-divider py-3">
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <span className="text-[15px] font-semibold text-ink-strong">알림 전체</span>
+            <span className="text-[13px] text-ink-muted">모든 알림을 한번에 껐다 켜요.</span>
+          </div>
+          <span className="-my-2 -mr-2">
+            <Switch
+              label="알림 전체"
+              checked={!!master}
+              disabled={master === null}
+              onChange={(next) => setMasterEnabled(next)}
+            />
+          </span>
+        </li>
+        <li className={master === false ? 'opacity-50 transition-opacity' : 'transition-opacity'}>
+          <ul className="flex flex-col">
+            <MorningSummaryRow />
+            <DeadlineNotifRow />
+            <EventNotifRow />
+            <RoutineReminderRow />
+            <WorkoutSkipRow />
+            <ChallengeCelebrateRow />
+          </ul>
+        </li>
+      </ul>
+      {/* 두 항목 설명에서 뺀 조건 — 목록과 divider로 붙인 창 아래 각주(떠 보이지 않게) */}
+      <p className="-mt-4.5 border-t border-divider pt-3 text-xs text-ink-muted">
+        채용 마감 · 캘린더 일정 알림은 앱을 연 날 아침에 알려드릴게요.
+      </p>
+    </SettingsDialog>
   );
 }
