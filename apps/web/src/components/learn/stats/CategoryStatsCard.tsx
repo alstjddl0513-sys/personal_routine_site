@@ -117,7 +117,7 @@ export function CategoryStatsCard({
 function Legend({ className, children }: { className: string; children: string }) {
   return (
     <span className="inline-flex items-center gap-1.5">
-      <span aria-hidden className={`h-2.5 w-2.5 rounded-[2px] ${className}`} />
+      <span aria-hidden className={`h-2.5 w-2.5 rounded-xs ${className}`} />
       {children}
     </span>
   );

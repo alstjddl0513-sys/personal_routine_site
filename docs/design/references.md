@@ -21,6 +21,7 @@
 | `rally-workouts-stats(-dark).html` · `rally-workouts-stats-parts.html` | 운동 통계 · 요약 띠 · 주간 볼륨 hover · 숫자 0 · 목표 채움·넘침 · 분할 없음 · 빈 상태 | `/workouts/statistics` `components/workouts/stats/*` |
 | `rally-learn(-dark).html` · `rally-learn-review.html` · `rally-learn-parts.html` | 오늘의 학습 · 복습(복습필요/별표) · 카드 상태 · 완료 카드 · 빈 상태 · 오류 | `/learn` `/learn/review` `components/learn/*` |
 | `rally-learn-stats(-dark).html` · `rally-learn-stats-parts.html` | 학습 통계 · 요약 띠 · 묵은 복습필요 · 주별 막대 · 히트맵 · 카테고리 표 · 숫자 0 · 빈 상태 | `/learn/statistics` `components/learn/stats/*` |
+| `rally-blog(-dark).html` · `rally-blog-parts.html` | 기술 블로그 · 칩 · 가져오기 결과 · 글 목록(새 글 · 읽음 · hover · 포커스) · 더 보기 · 빈 상태 | `/blog` `components/blog/*` |
 
 **현재 상태**: 숲색 `#1F3D30` · 메리골드 `#E9B949`(로고·챌린지 포인트, 시안의 황토 `#C8963E`에서 변경) · 바탕 `#F6F7F5`, IBM Plex Sans KR + Noto Serif KR(인사말). 사이드바(전 페이지)와 `/today`에 적용. 다른 페이지 본문은 zinc — 페이지별로 개편할 때 같은 토큰으로 확산. 모바일(BottomNav)은 별도 시안 예정.
 
@@ -157,6 +158,13 @@
 - 스트릭 0일은 단위 "일"("0 일 연속" X). 총 학습 ⓘ는 가운데 정렬(끝 정렬이면 옆 칸 숫자를 가림). 카테고리 표 줄 hover = row-hover
 - 메리골드는 오늘 학습 5 / 5 막대에만. 총 학습 · 카테고리 구성 막대는 primary · warn
 - 지운 것: KPI 카드 4개 · `StreakBadge`(파일 삭제 — 마지막 사용처) → 요약 띠로
+
+**기술 블로그** (`/blog`, 2026-11-12) — 동작은 #191 그대로(가져오기 자동 · 수동, 새 글 = 지난번 연 뒤 가져온 글, 읽은 글, 50개씩 더 보기 — 새 글 · 읽음은 이 브라우저에만)
+- 시안 '다른 후보' 3곳은 시안대로(글 줄은 흰 카드 하나 안 divider 목록, 일부 실패 앞에 "새 글 N개를 가져왔어요.", 빈 상태 첫 문장만) — 다른 후보는 PR 설명에
+- **글 목록 카드 폭은 시안(최대 960px)과 다르게 본문 전체 폭** — 1440에서 오른쪽이 145px쯤 비고 [구독 관리] · [새 글 가져오기] 끝선과 어긋나서(2026-11-12). 제목 · 요약 한 줄 폭은 640 → 720px
+- "구독 관리"는 공용 테두리 버튼(`BUTTON_SECONDARY`, 글자 ink). 칩은 학습 카테고리 칩과 같은 클래스. 결과 줄 성공 · 없음은 5초 뒤 · 다른 칩 누르면 사라짐, 실패는 ✕까지
+- 새 탭 아이콘은 날짜 칸 안(날짜 오른쪽 20px을 늘 비워둠) — 시안처럼 칸 밖(-20px)이면 hover 배경 밖으로 삐져나와서
+- [더 보기] 실패 시 같은 버튼이 [다시 시도]로 바뀜(버튼 두 개 X)
 
 **화면 문구 정리** (2026-11-04, 앱 전체 · 관리자 화면 제외)
 - 이름 통일: 블록·시간블록·라벨 → 루틴, 기업 → 회사(기업 통계 → 회사 통계, 기업 유형 → 회사 유형), 포폴 → 포트폴리오, 미체크 → 아직 안 한, '오늘' 학습 기록 문구는 버튼 이름('이해완료'·'복습필요')에 맞춤
