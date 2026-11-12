@@ -1,14 +1,14 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, ExternalLink, RefreshCw } from 'lucide-react';
+import { Check, ExternalLink, RefreshCw, X } from 'lucide-react';
 import type { BlogPost, BlogRefreshResult, BlogSource } from '@repo/shared';
 import { getBlogPosts, refreshBlogPosts } from '../../lib/api';
 import { BLOG_PAGE_SIZE } from '../../lib/blog';
 import { useBlogLastSeen, useBlogRead } from '../../lib/blog-local';
-
+import { BUTTON_PRIMARY } from '../jobs/cells/popover-style';
 
 interface Props {
   posts: BlogPost[];
@@ -16,6 +16,13 @@ interface Props {
   sources: BlogSource[];
   activeSourceId: string | null;
 }
+
+// 테두리 버튼 — 가져오는 중·불러오는 중엔 테두리 divider · 글자 ink-muted
+const OUTLINE_BTN =
+  'inline-flex min-h-10 shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-btn-border bg-btn-bg px-4 text-sm text-btn-fg hover:border-heading disabled:cursor-default disabled:border-divider disabled:text-ink-muted disabled:hover:border-divider';
+const SPIN = 'animate-spin motion-reduce:animate-none';
+// 성공·새 글 없음 결과 줄이 머무는 시간
+const RESULT_MS = 5000;
 
 // 서울 날짜 — 올해면 "11월 5일", 아니면 "2025년 3월 2일"
 const seoulParts = new Intl.DateTimeFormat('en-CA', {
@@ -35,11 +42,30 @@ function formatDate(iso: string): string {
   return y === thisYear ? `${m}월 ${d}일` : `${y}년 ${m}월 ${d}일`;
 }
 
+type Result = { kind: 'done'; data: BlogRefreshResult } | { kind: 'error' };
+
+// 성공·새 글 없음(조용한 결과) — 5초 뒤·칩 바꾸면 사라짐. 실패는 ✕나 다시 가져올 때까지
+function isQuiet(r: Result): boolean {
+  return r.kind === 'done' && r.data.errors.length === 0;
+}
+
 export function BlogList({ posts, sources, activeSourceId }: Props) {
   const router = useRouter();
   const [isRefreshing, startRefresh] = useTransition();
-  const [refreshResult, setRefreshResult] = useState<BlogRefreshResult | null>(null);
-  const [refreshError, setRefreshError] = useState<string | null>(null);
+  const [result, setResult] = useState<Result | null>(null);
+
+  // 다른 칩을 누르면 성공·새 글 없음 줄은 바로 사라짐
+  const [resultSource, setResultSource] = useState(activeSourceId);
+  if (resultSource !== activeSourceId) {
+    setResultSource(activeSourceId);
+    if (result && isQuiet(result)) setResult(null);
+  }
+  // 성공·새 글 없음은 5초 뒤 사라짐
+  useEffect(() => {
+    if (!result || !isQuiet(result)) return;
+    const t = window.setTimeout(() => setResult(null), RESULT_MS);
+    return () => window.clearTimeout(t);
+  }, [result]);
 
   // 더 보기 — 서버가 준 첫 묶음 뒤에 이어 붙임. 필터·새로고침으로 첫 묶음이 바뀌면 처음부터
   const [more, setMore] = useState<{ base: BlogPost[]; items: BlogPost[]; done: boolean }>({
@@ -51,36 +77,35 @@ export function BlogList({ posts, sources, activeSourceId }: Props) {
     setMore({ base: posts, items: [], done: posts.length < BLOG_PAGE_SIZE });
   }
   const [loadingMore, setLoadingMore] = useState(false);
-  const [moreError, setMoreError] = useState<string | null>(null);
+  const [moreError, setMoreError] = useState(false);
   const all = more.base === posts ? [...posts, ...more.items] : posts;
 
   const sourceById = new Map(sources.map((s) => [s.id, s]));
+  const activeSources = sources.filter((s) => s.isActive);
   // 새 글 = 지난 방문 뒤에 가져온 글, 읽은 글 = 눌러본 글(둘 다 이 브라우저에만 기억)
   const lastSeen = useBlogLastSeen();
   const { isRead, markRead } = useBlogRead();
-  const activeSources = sources.filter((s) => s.isActive);
 
   function pushFilter(sourceId: string | null) {
     router.push(sourceId ? `/blog?source=${sourceId}` : '/blog');
   }
 
   function onRefresh() {
-    setRefreshResult(null);
-    setRefreshError(null);
+    setResult(null);
     startRefresh(async () => {
       try {
-        setRefreshResult(await refreshBlogPosts());
+        setResult({ kind: 'done', data: await refreshBlogPosts() });
         router.refresh();
       } catch (err) {
         console.error(err);
-        setRefreshError('새 글을 가져오지 못했어요. 잠시 후 다시 해보세요.');
+        setResult({ kind: 'error' });
       }
     });
   }
 
   async function loadMore() {
     setLoadingMore(true);
-    setMoreError(null);
+    setMoreError(false);
     try {
       const next = await getBlogPosts({
         sourceId: activeSourceId ?? undefined,
@@ -90,94 +115,114 @@ export function BlogList({ posts, sources, activeSourceId }: Props) {
       setMore((cur) => ({ ...cur, items: [...cur.items, ...next], done: next.length < BLOG_PAGE_SIZE }));
     } catch (err) {
       console.error(err);
-      setMoreError('더 불러오지 못했어요. 잠시 후 다시 해보세요.');
+      setMoreError(true);
     } finally {
       setLoadingMore(false);
     }
   }
 
-  // 켜둔 블로그가 하나도 없음 — 새 글 가져오기를 눌러도 올 게 없으니 추가하러 가게
+  const refreshButton = (
+    <button
+      type="button"
+      onClick={onRefresh}
+      disabled={isRefreshing}
+      aria-busy={isRefreshing}
+      className={OUTLINE_BTN}
+    >
+      <RefreshCw className={`h-4 w-4 ${isRefreshing ? SPIN : ''}`} aria-hidden />
+      {isRefreshing ? '가져오는 중…' : '새 글 가져오기'}
+    </button>
+  );
+
+  // 구독한 블로그가 없음 — 칩 줄·가져오기 없이 카드 하나
   if (activeSources.length === 0 && all.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-2 rounded-md border border-dashed border-zinc-300 p-8 text-center text-sm text-zinc-500 dark:border-zinc-700">
-        <p>아직 구독한 블로그가 없어요.</p>
-        <Link
-          href="/settings/blog-sources"
-          className="text-zinc-800 underline underline-offset-2 hover:text-zinc-950 dark:text-zinc-200"
-        >
+      <EmptyCard message="아직 구독한 블로그가 없어요.">
+        <Link href="/settings/blog-sources" className={BUTTON_PRIMARY}>
           블로그 추가하기 ›
         </Link>
-      </div>
+      </EmptyCard>
     );
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+    <>
+      {/* 칩이 몇 줄이 되든 [새 글 가져오기]는 첫 줄 오른쪽 */}
+      <div className="flex items-start gap-4">
         <SourceChips sources={activeSources} activeSourceId={activeSourceId} onPick={pushFilter} />
-        <button
-          type="button"
-          onClick={onRefresh}
-          disabled={isRefreshing}
-          className="inline-flex items-center gap-1.5 rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
-        >
-          <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? 'animate-spin' : ''}`} aria-hidden />
-          {isRefreshing ? '가져오는 중…' : '새 글 가져오기'}
-        </button>
+        <span className="ml-auto">{refreshButton}</span>
       </div>
 
-      {refreshResult ? <RefreshSummary result={refreshResult} /> : null}
-      {refreshError ? <ErrorLine message={refreshError} /> : null}
+      {result ? <ResultLine result={result} onClose={() => setResult(null)} /> : null}
 
       {all.length === 0 ? (
-        <div className="rounded-md border border-dashed border-zinc-300 p-8 text-center text-sm text-zinc-500 dark:border-zinc-700">
-          {activeSourceId
-            ? '이 블로그에서 새 글을 아직 못 찾았어요.'
-            : '아직 가져온 글이 없어요. 새 글을 가져와보세요.'}
-        </div>
-      ) : (
-        <>
-          <ul className="flex flex-col gap-2">
-            {all.map((p) => (
-              <PostRow
-                key={p.id}
-                post={p}
-                sourceName={sourceById.get(p.sourceId)?.name ?? '지운 블로그'}
-                isNew={!!lastSeen && p.createdAt > lastSeen && !isRead(p.id)}
-                read={isRead(p.id)}
-                onOpen={() => markRead(p.id)}
-              />
-            ))}
-          </ul>
-          {moreError ? <ErrorLine message={moreError} /> : null}
-          {more.done ? null : (
-            <button
-              type="button"
-              onClick={loadMore}
-              disabled={loadingMore}
-              className="self-center rounded-md border border-zinc-300 bg-white px-4 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
-            >
-              {loadingMore ? '불러오는 중…' : '더 보기'}
+        activeSourceId ? (
+          <EmptyCard message="이 블로그에서 새 글을 아직 못 찾았어요.">
+            <button type="button" onClick={() => pushFilter(null)} className={OUTLINE_BTN}>
+              전체 보기
             </button>
+          </EmptyCard>
+        ) : (
+          <EmptyCard message="아직 가져온 글이 없어요.">{refreshButton}</EmptyCard>
+        )
+      ) : (
+        <section
+          aria-label="글 목록"
+          className={`w-full rounded-lg border border-line bg-surface px-6 pt-1.5 ${
+            more.done ? 'pb-1.5' : 'pb-4.5'
+          }`}
+        >
+          <ul>
+            {all.map((p) => {
+              const read = isRead(p.id);
+              return (
+                <li key={p.id} className="border-b border-divider last:border-b-0">
+                  <PostRow
+                    post={p}
+                    sourceName={sourceById.get(p.sourceId)?.name ?? null}
+                    isNew={!!lastSeen && p.createdAt > lastSeen && !read}
+                    read={read}
+                    onOpen={() => markRead(p.id)}
+                  />
+                </li>
+              );
+            })}
+          </ul>
+          {more.done ? null : (
+            <div className="flex flex-col items-center gap-2 border-t border-divider pt-3.5">
+              {moreError ? (
+                <p role="alert" className="text-sm text-alert">
+                  더 불러오지 못했어요. 잠시 후 다시 해보세요.
+                </p>
+              ) : null}
+              <button
+                type="button"
+                onClick={loadMore}
+                disabled={loadingMore}
+                aria-busy={loadingMore}
+                className={OUTLINE_BTN}
+              >
+                {loadingMore ? <RefreshCw className={`h-4 w-4 ${SPIN}`} aria-hidden /> : null}
+                {loadingMore ? '불러오는 중…' : moreError ? '다시 시도' : '더 보기'}
+              </button>
+            </div>
           )}
-        </>
+        </section>
       )}
-    </div>
+    </>
   );
 }
 
-function ErrorLine({ message }: { message: string }) {
+function EmptyCard({ message, children }: { message: string; children: React.ReactNode }) {
   return (
-    <div
-      role="alert"
-      className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300"
-    >
-      <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
-      <span>{message}</span>
+    <div className="flex w-full flex-col items-center gap-3.5 rounded-lg border border-line bg-surface px-6 py-11 text-center">
+      <p className="text-ink-soft">{message}</p>
+      {children}
     </div>
   );
 }
 
+// 칩 — 학습 페이지 카테고리 칩과 같은 모양. 많으면 칩만 줄바꿈(접기·가로 스크롤 X)
 function SourceChips({
   sources,
   activeSourceId,
@@ -188,7 +233,7 @@ function SourceChips({
   onPick: (sourceId: string | null) => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
+    <div className="flex min-w-0 flex-wrap items-center gap-2">
       <Chip active={!activeSourceId} onClick={() => onPick(null)}>
         전체
       </Chip>
@@ -210,13 +255,17 @@ function Chip({
   onClick: () => void;
   children: React.ReactNode;
 }) {
-  const base = 'rounded-full border px-3 py-1 text-xs transition-colors';
-  const activeCls =
-    'border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900';
-  const idleCls =
-    'border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800';
   return (
-    <button type="button" onClick={onClick} aria-pressed={active} className={`${base} ${active ? activeCls : idleCls}`}>
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={`inline-flex h-9 cursor-pointer items-center rounded-[18px] px-3.5 text-sm ${
+        active
+          ? 'bg-chip-on-bg font-bold text-heading shadow-[inset_0_0_0_2px_var(--rally-chip-on-border)]'
+          : 'bg-surface font-medium text-ink-soft shadow-[inset_0_0_0_1px_var(--rally-btn-border)] hover:bg-row-hover'
+      }`}
+    >
       {children}
     </button>
   );
@@ -230,70 +279,115 @@ function PostRow({
   onOpen,
 }: {
   post: BlogPost;
-  sourceName: string;
+  /** null = 지운 블로그 */
+  sourceName: string | null;
   isNew: boolean;
   read: boolean;
   onOpen: () => void;
 }) {
   return (
-    <li className="rounded-md border border-zinc-200 bg-white p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900">
-      <a
-        href={post.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={onOpen}
-        onAuxClick={onOpen}
-        className="flex flex-col gap-1"
-      >
-        <div className="flex items-center gap-2 text-[11px] text-zinc-500 dark:text-zinc-400">
-          <span className="rounded bg-zinc-100 px-1.5 py-0.5 dark:bg-zinc-800">{sourceName}</span>
-          <span className="tabular-nums">{formatDate(post.publishedAt ?? post.createdAt)}</span>
+    <a
+      href={post.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={onOpen}
+      onAuxClick={onOpen}
+      className="group -mx-4 grid grid-cols-[116px_minmax(0,1fr)_128px] items-start gap-5 rounded-md px-4 py-3.5 outline-none hover:bg-row-hover focus-visible:shadow-[inset_0_0_0_2px_var(--rally-chip-on-border)]"
+    >
+      {sourceName ? (
+        <span className="truncate text-sm font-semibold text-ink-soft">{sourceName}</span>
+      ) : (
+        <span className="text-sm text-ink-muted">지운 블로그</span>
+      )}
+      <span className="flex min-w-0 flex-col">
+        <span className={`max-w-180 text-base leading-normal font-semibold ${read ? 'text-ink-faint' : 'text-ink-strong'}`}>
           {isNew ? (
-            <span className="inline-flex items-center gap-1 font-medium text-primary">
+            <span className="mr-2 inline-flex items-center gap-1 align-[1px] text-xs font-bold text-heading">
               <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-primary" />
               새 글
             </span>
           ) : null}
-          {read ? <span className="sr-only">읽음</span> : null}
-        </div>
-        <div className="flex items-start justify-between gap-2">
-          <h2
-            className={`text-sm leading-snug font-medium ${
-              read ? 'text-zinc-400 dark:text-zinc-500' : 'text-zinc-900 dark:text-zinc-100'
-            }`}
-          >
-            {post.title}
-          </h2>
-          <ExternalLink className="mt-0.5 h-3.5 w-3.5 shrink-0 text-zinc-400" aria-hidden />
-        </div>
+          {/* 밑줄은 제목 글자에만(새 글 표시엔 X) */}
+          <span className="underline-offset-3 group-hover:underline">{post.title}</span>
+        </span>
         {post.summary ? (
-          <p className={`line-clamp-2 text-xs ${read ? 'text-zinc-400 dark:text-zinc-600' : 'text-zinc-500 dark:text-zinc-400'}`}>
+          <span className={`mt-1 line-clamp-2 max-w-180 text-sm leading-[1.55] ${read ? 'text-ink-faint' : 'text-ink-soft'}`}>
             {post.summary}
-          </p>
+          </span>
         ) : null}
-      </a>
-    </li>
+      </span>
+      <span className="relative flex flex-col items-end gap-1 pr-5 text-right">
+        <span className="text-[13px] text-ink-muted tabular-nums">{formatDate(post.publishedAt ?? post.createdAt)}</span>
+        {read ? (
+          <span className="inline-flex items-center gap-1 text-xs text-ink-faint">
+            <Check className="h-3 w-3" aria-hidden />
+            읽음
+          </span>
+        ) : null}
+        {/* 새 탭 아이콘 — 날짜 오른쪽 자리(pr-5)를 늘 비워둬서 hover해도 날짜가 안 움직이고, hover 배경 안에 들어옴 */}
+        <ExternalLink
+          aria-hidden
+          className="absolute top-0.5 right-0 h-3.5 w-3.5 text-ink-muted opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+        />
+      </span>
+    </a>
   );
 }
 
-// 가져오기 결과 — 서버 오류 원문은 안 보이고(서버 로그에만) 실패한 블로그 이름만
-function RefreshSummary({ result }: { result: BlogRefreshResult }) {
-  const failed = result.errors.map((e) => e.name);
+// 결과 줄 — 배경 없는 한 줄. 서버 오류 원문은 안 보이고(서버 로그에만) 실패한 블로그 이름만
+function ResultLine({ result, onClose }: { result: Result; onClose: () => void }) {
+  if (result.kind === 'error') {
+    return (
+      <FailLine onClose={onClose}>
+        <span className="text-alert">새 글을 가져오지 못했어요. 잠시 후 다시 해보세요.</span>
+      </FailLine>
+    );
+  }
+  const { added, errors } = result.data;
+  const addedText = (
+    <>
+      새 글 <strong className="font-bold text-ink-strong">{added}개</strong>를 가져왔어요.
+    </>
+  );
+  if (errors.length > 0) {
+    return (
+      <FailLine onClose={onClose}>
+        {/* 성공한 몫도 알려줌 — 가져온 게 0개면 실패 문장만 */}
+        {added > 0 ? <span className="text-ink-soft">{addedText} </span> : null}
+        <span className="text-alert">
+          {errors.length}개 블로그에서 가져오지 못했어요: {errors.map((e) => e.name).join(', ')}. 잠시 후 다시
+          해보세요.
+        </span>
+      </FailLine>
+    );
+  }
   return (
-    <div
-      role="status"
-      className={`rounded-md border px-3 py-2 text-xs ${
-        failed.length > 0
-          ? 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200'
-          : 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200'
-      }`}
-    >
-      <p>{result.added > 0 ? `새 글 ${result.added}개를 가져왔어요.` : '새로 올라온 글이 없어요.'}</p>
-      {failed.length > 0 ? (
-        <p className="mt-0.5">
-          {failed.length}개 블로그에서 가져오지 못했어요: {failed.join(', ')}. 잠시 후 다시 해보세요.
-        </p>
-      ) : null}
+    <p role="status" className="flex min-h-8 items-center gap-2 text-sm">
+      {added > 0 ? (
+        <>
+          <Check className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+          <span className="text-ink-soft">{addedText}</span>
+        </>
+      ) : (
+        <span className="text-ink-muted">새로 올라온 글이 없어요.</span>
+      )}
+    </p>
+  );
+}
+
+function FailLine({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
+  return (
+    <div role="alert" className="flex min-h-8 items-center gap-2 text-sm">
+      <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-alert" />
+      <p className="min-w-0 flex-1">{children}</p>
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="닫기"
+        className="inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md text-ink-muted hover:bg-row-hover hover:text-ink"
+      >
+        <X className="h-4 w-4" aria-hidden />
+      </button>
     </div>
   );
 }
