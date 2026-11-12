@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Check } from 'lucide-react';
 import { WORKOUT_WEEKLY_DAYS_MAX, WORKOUT_WEEKLY_DAYS_MIN } from '@repo/shared';
 import { patchMyPreferences } from '../../lib/api';
+import { Segment } from '../ui/Segment';
 
 const SAVED_FLASH_MS = 2000;
 const OPTIONS = Array.from(
@@ -53,22 +54,16 @@ export function WeeklyDaysGoalField({ initial }: { initial: number }) {
     <section className="flex flex-col gap-2">
       <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">운동하는 날</h2>
       <div className="flex items-center gap-3 rounded-md border border-zinc-200 bg-white px-4 py-3 text-sm dark:border-zinc-800 dark:bg-zinc-950">
-        <label htmlFor="weekly-days-goal" className="text-zinc-800 dark:text-zinc-200">
-          한 주에
-        </label>
-        <select
-          id="weekly-days-goal"
+        <span className="text-zinc-800 dark:text-zinc-200">한 주에</span>
+        <Segment
+          label="한 주에 운동하는 날"
+          size="sm"
           value={value}
-          onChange={(e) => change(Number(e.target.value))}
-          disabled={isPending}
-          className="rounded border border-zinc-300 bg-white px-2 py-1 text-sm tabular-nums outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
-        >
-          {OPTIONS.map((n) => (
-            <option key={n} value={n}>
-              {n}일
-            </option>
-          ))}
-        </select>
+          onChange={(n) => {
+            if (n !== value) change(n);
+          }}
+          options={OPTIONS.map((n) => ({ value: n, label: `${n}일` }))}
+        />
         <span role="status" className="ml-auto text-xs text-zinc-500 dark:text-zinc-400">
           {isPending ? (
             '저장 중…'
