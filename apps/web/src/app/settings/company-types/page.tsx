@@ -18,12 +18,11 @@ export default async function CompanyTypesSettingsPage() {
           className="inline-flex w-fit items-center gap-1 text-xs text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
         >
           <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
-          설정으로 돌아가기
+          설정
         </Link>
         <h1 className="text-xl font-semibold">회사 유형</h1>
         <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          회사에 붙일 유형을 취향대로 정리해두세요.
-          지워도 이미 그 유형을 쓰던 회사에는 그대로 남고, 새로 고를 목록에서만 사라져요.
+          회사에 붙일 유형을 정리해두세요.
         </p>
       </header>
 

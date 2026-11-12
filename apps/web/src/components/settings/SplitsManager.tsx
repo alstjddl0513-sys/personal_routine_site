@@ -10,6 +10,7 @@ import {
   reorderWorkoutSplits,
 } from '../../lib/api';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { BUTTON_PRIMARY } from '../jobs/cells/popover-style';
 import { SplitCreateDialog } from '../workouts/splits/SplitCreateDialog';
 import { SplitEditDialog } from '../workouts/splits/SplitEditDialog';
 
@@ -20,7 +21,7 @@ interface Props {
 }
 
 const ICON_BTN =
-  'inline-flex h-8 w-8 items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-zinc-800 disabled:opacity-30 dark:hover:bg-zinc-800 dark:hover:text-zinc-200';
+  'inline-flex h-10 w-10 items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-zinc-800 disabled:opacity-30 dark:hover:bg-zinc-800 dark:hover:text-zinc-200';
 
 // 분할 = 이름 + 종목 목록 + 순서. 순서대로 돌아가며 운동(요일 고정 X).
 // 만들기·편집 창은 운동 기록 화면과 같은 것(components/workouts/splits). 목록 본문은
@@ -69,14 +70,14 @@ export function SplitsManager({ initial, exercises }: Props) {
   return (
     <div className="flex flex-col gap-3">
       {splits.length === 0 ? (
-        <div className="flex flex-col items-start gap-3 rounded-md border border-dashed border-zinc-300 p-6 dark:border-zinc-700">
-          <p className="text-sm text-zinc-700 dark:text-zinc-300">
+        <div className="flex flex-col items-start gap-3 rounded-lg border border-line bg-surface p-6">
+          <p className="text-sm text-ink-soft">
             분할을 만들면 운동 기록에서 오늘 할 종목만 볼 수 있어요.
           </p>
           <button
             type="button"
             onClick={() => setCreating(true)}
-            className="inline-flex min-h-10 items-center gap-1 rounded bg-zinc-900 px-4 text-sm text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900"
+            className={`${BUTTON_PRIMARY} gap-1`}
           >
             <Plus className="h-4 w-4" aria-hidden />
             분할 만들기
@@ -154,7 +155,7 @@ export function SplitsManager({ initial, exercises }: Props) {
             <button
               type="button"
               onClick={() => setEditing('new')}
-              className="inline-flex w-fit items-center gap-1 rounded px-2 py-1 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+              className="inline-flex min-h-10 w-fit items-center gap-1 rounded px-2 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
             >
               <Plus className="h-4 w-4" aria-hidden />
               분할 추가
@@ -163,7 +164,7 @@ export function SplitsManager({ initial, exercises }: Props) {
               type="button"
               onClick={() => setResetOpen(true)}
               disabled={isPending}
-              className="rounded px-2 py-1 text-sm text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+              className="min-h-10 rounded px-2 text-sm text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
             >
               처음부터 다시 짜기
             </button>

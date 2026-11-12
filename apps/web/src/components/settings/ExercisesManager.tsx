@@ -66,7 +66,9 @@ export function ExercisesManager({ initial }: { initial: Exercise[] }) {
   const [confirm, setConfirm] = useState<ConfirmState | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const visible = includeArchived ? rows : rows.filter((r) => !r.isArchived);
+  const archivedCount = rows.filter((r) => r.isArchived).length;
+  // 숨긴 게 하나도 안 남으면 토글이 사라지니 보기 상태도 같이 끔
+  const visible = includeArchived && archivedCount > 0 ? rows : rows.filter((r) => !r.isArchived);
 
   function beginEdit(row: Exercise) {
     setExpandedId(row.id);
@@ -173,15 +175,21 @@ export function ExercisesManager({ initial }: { initial: Exercise[] }) {
         </div>
       ) : null}
 
-      <label className="inline-flex w-fit items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
-        <input
-          type="checkbox"
-          checked={includeArchived}
-          onChange={(e) => setIncludeArchived(e.target.checked)}
-          className="h-3.5 w-3.5"
-        />
-        숨긴 종목 포함 ({rows.filter((r) => r.isArchived).length})
-      </label>
+      {archivedCount > 0 ? (
+        <button
+          type="button"
+          onClick={() => setIncludeArchived((v) => !v)}
+          aria-pressed={includeArchived}
+          className="inline-flex min-h-10 w-fit items-center gap-1 rounded px-2 text-sm text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+        >
+          {includeArchived ? (
+            <ChevronDown className="h-4 w-4" aria-hidden />
+          ) : (
+            <ChevronRight className="h-4 w-4" aria-hidden />
+          )}
+          {includeArchived ? '숨긴 종목 가리기' : `숨긴 종목 ${archivedCount}개 보기`}
+        </button>
+      ) : null}
 
       <div className="rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
         <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -213,7 +221,7 @@ export function ExercisesManager({ initial }: { initial: Exercise[] }) {
                           {row.defaultSets}세트 · {row.repMin}~{row.repMax}회
                         </span>
                         {row.isArchived ? (
-                          <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] text-amber-700 dark:bg-amber-950/50 dark:text-amber-300">
+                          <span className="rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
                             숨김
                           </span>
                         ) : null}
@@ -221,25 +229,27 @@ export function ExercisesManager({ initial }: { initial: Exercise[] }) {
                     </div>
                   </button>
 
-                  <div className="flex shrink-0 items-center gap-1">
+                  <div className="flex shrink-0 items-center">
                     <IconButton
                       onClick={() => toggleArchive(row)}
                       disabled={isPending}
-                      label={row.isArchived ? '숨김 해제' : '숨김'}
+                      label={row.isArchived ? `${row.name} 다시 보이기` : `${row.name} 숨기기`}
+                      title={row.isArchived ? '다시 보이기' : '숨기기 — 목록에서만 감추고 기록은 남아요'}
                     >
                       {row.isArchived ? (
-                        <ArchiveRestore className="h-3.5 w-3.5" />
+                        <ArchiveRestore className="h-4 w-4" />
                       ) : (
-                        <Archive className="h-3.5 w-3.5" />
+                        <Archive className="h-4 w-4" />
                       )}
                     </IconButton>
                     <IconButton
                       onClick={() => requestDelete(row)}
                       disabled={isPending}
-                      label="삭제"
+                      label={`${row.name} 삭제`}
+                      title="삭제"
                       danger
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <Trash2 className="h-4 w-4" />
                     </IconButton>
                   </div>
                 </div>
@@ -263,12 +273,6 @@ export function ExercisesManager({ initial }: { initial: Exercise[] }) {
           onError={setError}
         />
       </div>
-
-      <p className="text-xs text-zinc-500 dark:text-zinc-400">
-        <strong>숨김</strong>은 리스트에서만 감추고 세트 이력은 보존.
-        <strong>삭제</strong>는 세트 기록이 하나도 없는 종목에만 허용됨.
-        운동 순서는 <code>/workouts</code> 카드 hover ↑↓로 조정.
-      </p>
 
       <ConfirmDialog
         open={confirm?.kind === 'delete'}
@@ -347,7 +351,7 @@ function EditForm({
               className="rounded border border-zinc-300 bg-white px-2 py-1 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
             />
           </Field>
-          <Field label="타겟 부위 (선택)">
+          <Field label="부위">
             <TargetMuscleSelect
               value={draft.targetMuscle}
               onChange={(next) => onChange({ ...draft, targetMuscle: next })}
@@ -466,14 +470,14 @@ function AddRow({
 
   if (!open) {
     return (
-      <div className="border-t border-zinc-100 p-2 dark:border-zinc-800">
+      <div className="border-t border-zinc-100 p-1 dark:border-zinc-800">
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+          className="inline-flex min-h-10 items-center gap-1 rounded px-2 text-sm text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
         >
-          <Plus className="h-3.5 w-3.5" aria-hidden />
-          운동 추가
+          <Plus className="h-4 w-4" aria-hidden />
+          종목 추가
         </button>
       </div>
     );
@@ -497,7 +501,7 @@ function AddRow({
             className="rounded border border-zinc-300 bg-white px-2 py-1 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
           />
         </Field>
-        <Field label="타겟 부위 (선택)">
+        <Field label="부위">
           <TargetMuscleSelect
             value={draft.targetMuscle}
             onChange={(next) => setDraft({ ...draft, targetMuscle: next })}
@@ -568,7 +572,7 @@ function AddRow({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-[10px] uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+      <span className="text-xs text-zinc-500 dark:text-zinc-400">
         {label}
       </span>
       {children}
@@ -580,12 +584,16 @@ function IconButton({
   onClick,
   disabled,
   label,
+  title,
   danger,
   children,
 }: {
   onClick: () => void;
   disabled: boolean;
+  /** 스크린리더 이름(종목 이름 포함) */
   label: string;
+  /** 마우스를 올리면 보이는 설명 */
+  title: string;
   danger?: boolean;
   children: React.ReactNode;
 }) {
@@ -595,8 +603,8 @@ function IconButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={label}
-      title={label}
-      className={`inline-flex h-7 w-7 items-center justify-center rounded text-zinc-500 transition-colors disabled:opacity-40 ${
+      title={title}
+      className={`inline-flex h-10 w-10 items-center justify-center rounded text-zinc-500 transition-colors disabled:opacity-40 ${
         danger
           ? 'hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/40 dark:hover:text-red-300'
           : 'hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100'

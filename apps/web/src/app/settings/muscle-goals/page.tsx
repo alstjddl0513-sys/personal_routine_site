@@ -25,11 +25,11 @@ export default async function MuscleGoalsSettingsPage() {
           className="inline-flex w-fit items-center gap-1 text-xs text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
         >
           <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
-          설정으로 돌아가기
+          설정
         </Link>
         <h1 className="text-xl font-semibold">주간 운동 목표</h1>
         <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          한 주에 며칠, 부위별로 몇 세트를 할지 정해두세요. 운동 통계가 이 목표로 채워져요.
+          한 주에 며칠, 부위별로 몇 세트 할지 정해두세요.
         </p>
       </header>
 

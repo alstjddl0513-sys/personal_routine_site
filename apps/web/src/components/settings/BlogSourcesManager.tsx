@@ -79,7 +79,7 @@ export function BlogSourcesManager({ initial }: { initial: BlogSource[] }) {
         router.refresh();
       } catch (err) {
         console.error(err);
-        setError('고치지 못했어요. 이미 등록된 RSS 주소인지 확인해보세요.');
+        setError('고치지 못했어요. 주소를 확인하고 다시 해보세요.');
       }
     });
   }
@@ -151,30 +151,36 @@ export function BlogSourcesManager({ initial }: { initial: BlogSource[] }) {
                     </div>
                     {!row.isActive ? (
                       <span className="shrink-0 rounded bg-zinc-200 px-1.5 py-0.5 text-[10px] text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
-                        비활성
+                        일시중지됨
                       </span>
                     ) : null}
                   </button>
 
-                  <div className="flex shrink-0 items-center gap-1">
+                  <div className="flex shrink-0 items-center">
                     <IconButton
                       onClick={() => toggleActive(row)}
                       disabled={isPending}
-                      label={row.isActive ? '수집 일시중지' : '수집 재개'}
+                      label={row.isActive ? `${row.name} 일시중지` : `${row.name} 다시 받기`}
+                      title={
+                        row.isActive
+                          ? '일시중지 — 새 글을 잠시 안 가져와요. 가져온 글은 남아요'
+                          : '다시 받기'
+                      }
                     >
                       {row.isActive ? (
-                        <PauseCircle className="h-3.5 w-3.5" />
+                        <PauseCircle className="h-4 w-4" />
                       ) : (
-                        <PlayCircle className="h-3.5 w-3.5" />
+                        <PlayCircle className="h-4 w-4" />
                       )}
                     </IconButton>
                     <IconButton
                       onClick={() => setConfirmDeleteRow(row)}
                       disabled={isPending}
-                      label="삭제"
+                      label={`${row.name} 삭제`}
+                      title="삭제"
                       danger
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <Trash2 className="h-4 w-4" />
                     </IconButton>
                   </div>
                 </div>
@@ -198,11 +204,6 @@ export function BlogSourcesManager({ initial }: { initial: BlogSource[] }) {
           onError={setError}
         />
       </div>
-
-      <p className="text-xs text-zinc-500 dark:text-zinc-400">
-        <strong>일시중지</strong>하면 다음 새로고침에서 잠시 쉬어요. 이미 가져온 글은 그대로 남아요.
-        <strong>삭제</strong>는 그 블로그와 함께 가져온 <strong>글도 전부 함께 사라져요</strong>. 되돌릴 수 없어요.
-      </p>
 
       <ConfirmDialog
         open={!!confirmDeleteRow}
@@ -256,7 +257,7 @@ function EditForm({
             className="rounded border border-zinc-300 bg-white px-2 py-1 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
           />
         </Field>
-        <Field label="RSS URL">
+        <Field label="RSS 주소">
           <input
             type="url"
             value={draft.rssUrl}
@@ -267,7 +268,7 @@ function EditForm({
             className="rounded border border-zinc-300 bg-white px-2 py-1 font-mono text-xs outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
           />
         </Field>
-        <Field label="사이트 URL (선택)">
+        <Field label="사이트 주소 (선택)">
           <input
             type="url"
             value={draft.siteUrl}
@@ -341,20 +342,20 @@ function AddRow({
         router.refresh();
       } catch (err) {
         console.error(err);
-        onError('추가하지 못했어요. 이미 등록된 RSS 주소인지 확인해보세요.');
+        onError('추가하지 못했어요. 주소를 확인하고 다시 해보세요.');
       }
     });
   }
 
   if (!open) {
     return (
-      <div className="border-t border-zinc-100 p-2 dark:border-zinc-800">
+      <div className="border-t border-zinc-100 p-1 dark:border-zinc-800">
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+          className="inline-flex min-h-10 items-center gap-1 rounded px-2 text-sm text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
         >
-          <Plus className="h-3.5 w-3.5" aria-hidden />
+          <Plus className="h-4 w-4" aria-hidden />
           블로그 추가
         </button>
       </div>
@@ -378,7 +379,7 @@ function AddRow({
           className="rounded border border-zinc-300 bg-white px-2 py-1 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
         />
       </Field>
-      <Field label="RSS URL">
+      <Field label="RSS 주소">
         <input
           type="url"
           value={draft.rssUrl}
@@ -389,7 +390,7 @@ function AddRow({
           className="rounded border border-zinc-300 bg-white px-2 py-1 font-mono text-xs outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
         />
       </Field>
-      <Field label="사이트 URL (선택)">
+      <Field label="사이트 주소 (선택)">
         <input
           type="url"
           value={draft.siteUrl}
@@ -424,7 +425,7 @@ function AddRow({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-[10px] uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+      <span className="text-xs text-zinc-500 dark:text-zinc-400">
         {label}
       </span>
       {children}
@@ -436,12 +437,16 @@ function IconButton({
   onClick,
   disabled,
   label,
+  title,
   danger,
   children,
 }: {
   onClick: () => void;
   disabled: boolean;
+  /** 스크린리더 이름(블로그 이름 포함) */
   label: string;
+  /** 마우스를 올리면 보이는 설명 */
+  title: string;
   danger?: boolean;
   children: React.ReactNode;
 }) {
@@ -451,8 +456,8 @@ function IconButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={label}
-      title={label}
-      className={`inline-flex h-7 w-7 items-center justify-center rounded text-zinc-500 transition-colors disabled:opacity-40 ${
+      title={title}
+      className={`inline-flex h-10 w-10 items-center justify-center rounded text-zinc-500 transition-colors disabled:opacity-40 ${
         danger
           ? 'hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/40 dark:hover:text-red-300'
           : 'hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100'
