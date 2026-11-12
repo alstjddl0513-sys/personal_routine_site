@@ -86,14 +86,14 @@ const MANAGEMENT_GROUPS: {
   },
 ];
 
-// 왼쪽 정렬 한 열(본문 최대 720px — 좌우 여백 포함 800) — 읽고 고르는 화면이라 넓히지 않음.
+// 가운데 한 열(본문 최대 720px — 좌우 여백 포함 800). 옆에 다른 내용이 없어서 왼쪽 정렬이면 넓은 화면에서 오른쪽이 크게 빔 — 읽고 고르는 화면이라 넓히지 않음.
 // 모바일엔 사이드바 닉네임 · 관리자 진입점이 없어서 위에 프로필 카드(md 이상에선 숨김, 모바일 개편 때 다룸).
 export default async function SettingsPage() {
   const profile = await getMyProfile().catch(() => null);
 
   return (
     <div className="min-h-screen bg-paper font-plex text-[15px] leading-normal text-ink">
-      <div className="flex max-w-200 flex-col gap-7 px-4 pt-6 pb-16 md:px-10 md:pt-9">
+      <div className="mx-auto flex max-w-200 flex-col gap-7 px-4 pt-6 pb-16 md:px-10 md:pt-9">
         <h1 className="text-[26px] leading-tight font-bold tracking-[-0.01em]">설정</h1>
 
         {profile ? (
