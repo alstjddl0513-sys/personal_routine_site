@@ -163,13 +163,13 @@ export default async function SettingsPage() {
         </Section>
 
         {/* 로그아웃(왼쪽) · 계정 삭제(오른쪽 끝) — 서로 멀리 둬서 잘못 누르지 않게, 숨기지는 않음 */}
-        <div className="-mt-3 flex flex-col gap-2 border-t border-rule pt-4">
-          <div className="flex items-center justify-between gap-4">
-            <LogoutRow />
-            <AccountDeleteRow />
-          </div>
-          <p className="text-xs text-ink-faint">Rally v{APP_VERSION}</p>
+        <div className="-mt-3 flex items-center justify-between gap-4 border-t border-rule pt-4">
+          <LogoutRow />
+          <AccountDeleteRow />
         </div>
+
+        {/* 앱 정보 — 로그아웃 줄과 떨어진 맨 아래 가운데(버튼 설명처럼 안 보이게) */}
+        <p className="pt-2 text-center text-xs text-ink-faint">Rally v{APP_VERSION}</p>
       </div>
     </div>
   );
