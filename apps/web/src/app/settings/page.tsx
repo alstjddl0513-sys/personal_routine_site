@@ -4,8 +4,8 @@ import {
   Dumbbell,
   FileText,
   Folder,
-  ListRestart,
   Palette,
+  Repeat,
   Rss,
   Shield,
   Tag,
@@ -52,7 +52,7 @@ const MANAGEMENT_GROUPS: {
         title: '운동 종목',
         desc: '자주 하는 운동을 등록하고, 안 하는 종목은 잠시 숨겨두세요.',
       },
-      { href: '/settings/splits', icon: ListRestart, title: '분할', desc: '순서대로 돌아가며 할 운동 묶음을 만들어두세요.' },
+      { href: '/settings/splits', icon: Repeat, title: '분할', desc: '순서대로 돌아가며 할 운동 묶음을 만들어두세요.' },
       {
         href: '/settings/muscle-goals',
         icon: Target,

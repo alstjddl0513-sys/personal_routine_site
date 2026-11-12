@@ -10,7 +10,7 @@ export function DeadlineNotifRow() {
   return (
     <NotifItem
       title="채용 마감 알림"
-      desc="앱을 열어둔 날 아침에 3일 뒤 또는 내일 마감인 회사가 있으면 각각 알려드릴게요."
+      desc="마감 3일 전과 전날에 알려드릴게요."
       enabled={enabled}
       onToggle={(next) => setEnabled(next)}
     />

@@ -10,7 +10,7 @@ export function EventNotifRow() {
   return (
     <NotifItem
       title="캘린더 일정 알림"
-      desc="앱을 열어둔 날 아침에 3일 뒤 · 내일 · 오늘의 면접/시험/발표를 알려드릴게요."
+      desc="면접·시험·발표 3일 전, 전날, 당일에 알려드릴게요."
       enabled={enabled}
       onToggle={(next) => setEnabled(next)}
     />
