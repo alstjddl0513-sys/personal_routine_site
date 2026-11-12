@@ -81,7 +81,7 @@ const MANAGEMENT_GROUPS: {
   {
     title: '블로그',
     items: [
-      { href: '/settings/blog-sources', icon: Rss, title: '구독한 블로그', desc: '구독할 기술 블로그를 골라두면 새 글이 자동으로 모여요.' },
+      { href: '/settings/blog-sources', icon: Rss, title: '구독한 블로그', desc: '기술 블로그를 추가해두면 새 글이 자동으로 모여요.' },
     ],
   },
 ];
