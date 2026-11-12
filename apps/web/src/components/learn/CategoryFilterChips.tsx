@@ -4,7 +4,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useOptimistic, useRef, useTransition } from 'react';
 import type { QuestionCategory } from '@repo/shared';
 import { patchMyPreferences } from '../../lib/api';
-import { BUTTON_SECONDARY } from '../jobs/cells/popover-style';
+import { BUTTON_PRIMARY } from '../jobs/cells/popover-style';
 
 type FilterMode = 'daily' | 'review' | 'favorites';
 
@@ -136,7 +136,7 @@ export function CategoryFilterChips({ categories, selected, mode }: Props) {
   );
 }
 
-// 빈 상태 [전체 보기] — 칩의 '전체'와 같은 길(쿠키·설정 저장 포함)
+// 빈 상태 [전체 보기] — 칩의 '전체'와 같은 길(쿠키·설정 저장 포함). 빈 상태의 유일한 행동이라 숲색으로 채움
 export function ShowAllCategoriesButton({
   mode,
   selected,
@@ -151,7 +151,7 @@ export function ShowAllCategoriesButton({
       onClick={() => apply(null)}
       onMouseEnter={() => prefetch(null)}
       onFocus={() => prefetch(null)}
-      className={BUTTON_SECONDARY}
+      className={BUTTON_PRIMARY}
     >
       전체 보기
     </button>

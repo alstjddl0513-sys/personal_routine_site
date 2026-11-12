@@ -17,9 +17,11 @@ interface Props {
   activeSourceId: string | null;
 }
 
-// 테두리 버튼 — 가져오는 중·불러오는 중엔 테두리 divider · 글자 ink-muted
+// 테두리 버튼([더 보기]) — 불러오는 중엔 테두리 divider · 글자 ink-muted
 const OUTLINE_BTN =
   'inline-flex min-h-10 shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-btn-border bg-btn-bg px-4 text-sm text-btn-fg hover:border-heading disabled:cursor-default disabled:border-divider disabled:text-ink-muted disabled:hover:border-divider';
+// 채운 버튼(숲색) — 이 화면에서 먼저 누를 버튼: [새 글 가져오기] · 빈 상태 행동
+const FILLED_BTN = `${BUTTON_PRIMARY} shrink-0 gap-1.5`;
 const SPIN = 'animate-spin motion-reduce:animate-none';
 // 성공·새 글 없음 결과 줄이 머무는 시간
 const RESULT_MS = 5000;
@@ -127,7 +129,7 @@ export function BlogList({ posts, sources, activeSourceId }: Props) {
       onClick={onRefresh}
       disabled={isRefreshing}
       aria-busy={isRefreshing}
-      className={OUTLINE_BTN}
+      className={FILLED_BTN}
     >
       <RefreshCw className={`h-4 w-4 ${isRefreshing ? SPIN : ''}`} aria-hidden />
       {isRefreshing ? '가져오는 중…' : '새 글 가져오기'}
@@ -158,7 +160,7 @@ export function BlogList({ posts, sources, activeSourceId }: Props) {
       {all.length === 0 ? (
         activeSourceId ? (
           <EmptyCard message="이 블로그에서 새 글을 아직 못 찾았어요.">
-            <button type="button" onClick={() => pushFilter(null)} className={OUTLINE_BTN}>
+            <button type="button" onClick={() => pushFilter(null)} className={FILLED_BTN}>
               전체 보기
             </button>
           </EmptyCard>

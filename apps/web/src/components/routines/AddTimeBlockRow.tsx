@@ -83,7 +83,7 @@ export function AddTimeBlockRow({
       <button
         type="button"
         onClick={() => setEditing(true)}
-        className="inline-flex items-center gap-1.5 rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+        className="inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded px-2 text-sm text-ink-muted hover:bg-row-hover hover:text-ink"
       >
         <Plus className="h-3.5 w-3.5" aria-hidden />
         루틴 추가
@@ -110,9 +110,9 @@ export function AddTimeBlockRow({
         maxLength={100}
         placeholder="루틴 이름 (예: 아침 운동)"
         disabled={saving}
-        className="min-w-0 flex-1 rounded border border-zinc-400 bg-white px-2 py-1 text-sm outline-none focus:border-zinc-600 md:max-w-64 dark:border-zinc-500 dark:bg-zinc-950"
+        className="min-h-8 min-w-0 flex-1 rounded border border-btn-border bg-surface px-2 text-sm text-ink outline-none placeholder:text-ink-faint focus:border-primary md:max-w-64"
       />
-      <span className="hidden text-xs text-zinc-400 md:inline">Enter 저장 · Esc 취소</span>
+      <span className="hidden text-xs text-ink-muted md:inline">Enter 저장 · Esc 취소</span>
     </div>
   );
 }

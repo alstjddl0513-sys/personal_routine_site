@@ -4,7 +4,7 @@ import { useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import type { Exercise } from '@repo/shared';
-import { BUTTON_SECONDARY, BUTTON_TEXT } from '../jobs/cells/popover-style';
+import { BUTTON_PRIMARY, BUTTON_TEXT } from '../jobs/cells/popover-style';
 import { SplitCreateDialog } from './splits/SplitCreateDialog';
 
 const DISMISS_KEY = 'rally.workouts.splitIntroDismissed';
@@ -72,7 +72,8 @@ export function SplitIntroBand({ exercises }: { exercises: Exercise[] }) {
         &nbsp; 상체·하체처럼 나눠두면 그날 할 종목만 보여요.
       </p>
       <span className="flex items-center gap-1">
-        <button type="button" onClick={openDialog} className={BUTTON_SECONDARY}>
+        {/* 안내 띠의 목적이 이 버튼 하나라 숲색으로 채움 */}
+        <button type="button" onClick={openDialog} className={BUTTON_PRIMARY}>
           분할 만들기
         </button>
         <button type="button" onClick={dismiss} className={BUTTON_TEXT}>
