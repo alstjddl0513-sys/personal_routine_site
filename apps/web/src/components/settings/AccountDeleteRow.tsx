@@ -119,7 +119,7 @@ function AccountDeleteModal({ onRequestClose }: { onRequestClose: () => void }) 
             <li>채용 리스트 · 회사 유형</li>
             <li>루틴 · 루틴 체크 · 회고</li>
             <li>운동 기록 · 세션 · 종목</li>
-            <li>블로그 소스 · 수집된 글</li>
+            <li>구독한 블로그 · 가져온 글</li>
             <li>닉네임 · 프로필</li>
           </ul>
 
