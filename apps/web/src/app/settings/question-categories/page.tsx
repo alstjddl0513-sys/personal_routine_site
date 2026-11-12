@@ -4,7 +4,7 @@ import { getQuestionCategories } from '../../../lib/api';
 import { QuestionCategoriesManager } from '../../../components/settings/QuestionCategoriesManager';
 
 export const metadata = {
-  title: '학습 카테고리 관리 · Rally',
+  title: '학습 카테고리 · Rally',
 };
 
 export default async function QuestionCategoriesSettingsPage() {
@@ -20,7 +20,7 @@ export default async function QuestionCategoriesSettingsPage() {
           <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
           설정으로 돌아가기
         </Link>
-        <h1 className="text-xl font-semibold">학습 카테고리 관리</h1>
+        <h1 className="text-xl font-semibold">학습 카테고리</h1>
         <p className="text-xs text-zinc-500 dark:text-zinc-400">
           학습 질문에 붙일 카테고리를 정리해두세요.
           지워도 이미 그 카테고리를 쓰던 질문은 그대로 남고, 필터 목록에서만 사라져요.

@@ -15,7 +15,9 @@ import { UpdateDocumentDto } from './dto/update-document.dto';
 import { QueryDocumentsDto } from './dto/query-documents.dto';
 import { DocumentKind } from './dto/enums';
 
-const BUCKET = 'documents';
+import { DOCUMENTS_BUCKET } from './storage-cleanup';
+
+const BUCKET = DOCUMENTS_BUCKET;
 const SIGNED_URL_TTL_SECONDS = 60 * 60; // 1시간
 const MAX_BYTES_BY_KIND: Record<'resume' | 'portfolio', number> = {
   resume: 10 * 1024 * 1024,

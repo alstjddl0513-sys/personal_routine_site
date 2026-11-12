@@ -92,9 +92,10 @@ export function NicknameRow() {
         const { available } = await checkNicknameAvailability(next);
         setStatus({ kind: available ? 'available' : 'taken' });
       } catch (err) {
+        console.error(err);
         setStatus({
           kind: 'error',
-          message: err instanceof Error ? err.message : '닉네임을 확인하지 못했어요',
+          message: '닉네임을 확인하지 못했어요. 잠시 후 다시 해보세요.',
         });
       }
     }, 400);

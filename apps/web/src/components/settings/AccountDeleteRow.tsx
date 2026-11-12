@@ -116,11 +116,15 @@ function AccountDeleteModal({ onRequestClose }: { onRequestClose: () => void }) 
             <strong>되돌릴 수 없어요.</strong>
           </p>
           <ul className="ml-4 list-disc space-y-0.5 text-xs text-zinc-600 dark:text-zinc-400">
-            <li>채용 리스트 · 회사 유형</li>
-            <li>루틴 · 루틴 체크 · 회고</li>
-            <li>운동 기록 · 세션 · 종목</li>
+            {/* 실제로 지워지는 것과 같게 — 표가 늘면 여기도 같이(백업 export.service와 같은 범위) */}
+            <li>채용: 회사 · 회사 유형 · 일정</li>
+            <li>캘린더 메모</li>
+            <li>루틴: 루틴 · 체크 · 회고 · 챌린지</li>
+            <li>운동: 기록 · 종목 · 분할 · 주간 목표</li>
+            <li>학습: 질문 · 카테고리 · 학습 기록</li>
             <li>구독한 블로그 · 가져온 글</li>
-            <li>닉네임 · 프로필</li>
+            <li>이력서·포트폴리오(올린 파일 포함)</li>
+            <li>닉네임 · 설정</li>
           </ul>
 
           <label className="mt-1 flex cursor-pointer items-start gap-2 text-xs">

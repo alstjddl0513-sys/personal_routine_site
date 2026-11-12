@@ -6,8 +6,8 @@ import { Settings2 } from 'lucide-react';
 import { useOutsideClick } from '../../lib/useOutsideClick';
 
 const ITEMS = [
-  { href: '/settings/exercises', label: '종목 관리' },
-  { href: '/settings/splits', label: '분할 관리' },
+  { href: '/settings/exercises', label: '운동 종목' },
+  { href: '/settings/splits', label: '분할' },
   { href: '/settings/muscle-goals', label: '주간 운동 목표' },
 ];
 
