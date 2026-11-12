@@ -139,7 +139,7 @@ function AddExerciseModal({
             console.error(err);
             router.refresh();
             setCreated(true);
-            setError(`종목은 추가했지만 ${split.name}에 담지 못했어요. 분할 관리에서 넣어주세요.`);
+            setError(`종목은 추가했지만 ${split.name}에 담지 못했어요. 설정의 분할에서 넣어주세요.`);
             return;
           }
         }

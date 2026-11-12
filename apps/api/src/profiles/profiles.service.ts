@@ -24,6 +24,7 @@ import {
   DEFAULTS_VERSION,
 } from '../db/defaults';
 import { getSupabaseAdmin } from '../supabase-admin';
+import { removeAllUserFiles } from '../documents/storage-cleanup';
 import { isAdminUserId } from '../admin/is-admin.util';
 import { deepMerge } from './preferences.util';
 import type { PatchPreferencesDto } from './dto/patch-preferences.dto';
@@ -239,8 +240,17 @@ export class ProfilesService {
   // 계정 삭제 = auth.users(id) 삭제. profiles와 도메인 데이터는 각각의
   // FK가 auth.users(id) ON DELETE CASCADE라 자동 정리(12.2·12.4에서 세팅).
   // 앱은 tx 없이 admin API에만 위임 — Postgres 쪽 CASCADE가 원자적.
+  // 단 Storage 파일(이력서·포트폴리오)은 CASCADE 대상이 아니라 **먼저** 직접 지움.
+  // 파일 삭제가 실패하면 계정 삭제를 멈춤(계정만 사라지고 파일이 남는 일 방지).
   async deleteMe(userId: string): Promise<void> {
     const admin = getSupabaseAdmin();
+    try {
+      await removeAllUserFiles(admin, userId);
+    } catch (err) {
+      throw new InternalServerErrorException(
+        `failed to remove user files: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
     const { error } = await admin.auth.admin.deleteUser(userId);
     if (error) {
       throw new InternalServerErrorException(

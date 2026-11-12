@@ -38,7 +38,7 @@ function withTopic(names: string[]): string {
 }
 
 // 분할 만들기: 예시 고르기 → 미리보기 → 만들기, 또는 직접 만들기(편집 창).
-// 운동 기록 화면(첫 사용 안내)과 설정 '분할 관리'가 같이 씀.
+// 운동 기록 화면(첫 사용 안내)과 설정 '분할'이 같이 씀.
 export function SplitCreateDialog({
   exercises,
   onClose,
@@ -146,7 +146,7 @@ export function SplitCreateDialog({
             {withTopic(names(plan.unassignedIds))} 어느 분할에도 안 담겨요.
           </p>
           <p className="pl-3.5 text-ink-muted">
-            &lsquo;전체&rsquo; 탭에서 기록할 수 있고, 분할 관리에서 언제든 넣을 수 있어요.
+            &lsquo;전체&rsquo; 탭에서 기록할 수 있고, 설정의 분할에서 언제든 넣을 수 있어요.
           </p>
           {plan.note ? <p className="pl-3.5 text-ink-muted">{plan.note}</p> : null}
         </div>

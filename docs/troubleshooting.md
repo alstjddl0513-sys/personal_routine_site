@@ -468,3 +468,8 @@
 - 상황: 학습 통계용 `question_log_events`(표시할 때마다 1줄)를 만들고 날짜별 `count(distinct question_id)`로 셈. 같은 날 두 번 바꾼 질문을 지우니 그날 1 → 2
 - 원인: questions FK를 SET NULL로 둬서 삭제 시 question_id가 NULL → distinct로 못 묶여 줄마다 따로 셈
 - 해결: 기록 표는 questions FK를 두지 않고 question_id NOT NULL(0033). 사용자 FK·RLS는 유지. 날짜 집계용 기록 표엔 "지워져도 id는 남게"가 맞음
+
+### 계정을 삭제해도 이력서·포트폴리오 파일이 Storage에 남음
+- 상황: 설정 › 계정 삭제는 `auth.admin.deleteUser`만 불러서 DB 행은 `auth.users` CASCADE로 지워지는데, Supabase Storage `documents` 버킷의 `{userId}/{kind}/*.pdf`는 그대로 남음
+- 원인: Storage 객체는 Postgres FK CASCADE 대상이 아님
+- 해결: `deleteMe`에서 **먼저** `removeAllUserFiles`(`documents/storage-cleanup.ts` — 폴더를 직접 list해서 DB에 없는 파일까지)로 지우고, 실패하면 계정 삭제를 멈춤. 이미 지운 계정의 남은 파일은 prod에서 따로 확인 필요

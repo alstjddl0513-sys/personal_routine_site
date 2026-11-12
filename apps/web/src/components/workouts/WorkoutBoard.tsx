@@ -174,7 +174,7 @@ export function WorkoutBoard(props: Props) {
             href="/settings/splits"
             className="inline-flex min-h-10 items-center text-sm text-heading hover:underline"
           >
-            분할 관리에서 종목 고르기 ›
+            설정에서 종목 고르기 ›
           </Link>
         </div>
       ) : props.exercises.length === 0 ? (

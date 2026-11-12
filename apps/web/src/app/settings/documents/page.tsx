@@ -4,7 +4,7 @@ import { listDocuments } from '../../../lib/api';
 import { DocumentsManager } from '../../../components/settings/DocumentsManager';
 
 export const metadata = {
-  title: '이력서·포트폴리오 관리 · Rally',
+  title: '이력서·포트폴리오 · Rally',
 };
 
 export default async function DocumentsSettingsPage() {
@@ -20,7 +20,7 @@ export default async function DocumentsSettingsPage() {
           <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
           설정으로 돌아가기
         </Link>
-        <h1 className="text-xl font-semibold">이력서·포트폴리오 관리</h1>
+        <h1 className="text-xl font-semibold">이력서·포트폴리오</h1>
         <p className="text-xs text-zinc-500 dark:text-zinc-400">
           여러 버전을 저장해두고 지원할 때마다 어떤 걸 낼지 대표를 정해두세요.
           PDF 파일과 외부 링크를 각각 관리할 수 있어요.

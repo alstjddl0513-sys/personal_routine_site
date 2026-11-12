@@ -44,13 +44,13 @@ const MANAGEMENT_GROUPS: {
       {
         href: '/settings/company-types',
         icon: Tag,
-        title: '회사 유형 관리',
+        title: '회사 유형',
         desc: '회사에 붙일 유형을 내 취향대로 정리해요.',
       },
       {
         href: '/settings/documents',
         icon: FileText,
-        title: '이력서·포트폴리오 관리',
+        title: '이력서·포트폴리오',
         desc: '여러 버전을 저장하고 대표 문서를 지정해두세요.',
       },
     ],
@@ -61,13 +61,13 @@ const MANAGEMENT_GROUPS: {
       {
         href: '/settings/exercises',
         icon: Dumbbell,
-        title: '운동 종목 관리',
+        title: '운동 종목',
         desc: '자주 하는 운동을 등록하고, 안 하는 종목은 잠시 숨겨두세요.',
       },
       {
         href: '/settings/splits',
         icon: Repeat,
-        title: '분할 관리',
+        title: '분할',
         desc: '순서대로 돌아가며 할 운동 묶음을 만들어두세요.',
       },
       {
@@ -84,13 +84,13 @@ const MANAGEMENT_GROUPS: {
       {
         href: '/settings/question-categories',
         icon: BookOpen,
-        title: '학습 카테고리 관리',
+        title: '학습 카테고리',
         desc: '학습 질문을 주제별로 묶어두면 관심 영역만 골라 볼 수 있어요.',
       },
       {
         href: '/settings/questions',
         icon: MessagesSquare,
-        title: '학습 질문 관리',
+        title: '학습 질문',
         desc: '면접 준비 중 만난 질문을 추가해두면 오늘의 학습에 같이 나와요.',
       },
     ],
@@ -204,7 +204,7 @@ export default async function SettingsPage() {
               데이터 백업
             </div>
             <p className="mt-0.5 break-keep text-xs text-zinc-500 dark:text-zinc-400">
-              지금까지 쌓아둔 모든 기록을 JSON 파일 하나로 내려받아 보관해두세요.
+              지금까지의 기록을 파일 하나로 내려받아 보관해두세요. 이력서·포트폴리오 파일은 들어가지 않아요.
             </p>
             <div className="mt-2">
               <BackupButton />
