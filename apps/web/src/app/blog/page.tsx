@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Settings2 } from 'lucide-react';
 import { getBlogPosts, getBlogSources } from '../../lib/api';
 import { BlogList } from '../../components/blog/BlogList';
+import { BLOG_PAGE_SIZE } from '../../lib/blog';
 import { Skeleton } from '../../components/Skeleton';
 
 export const metadata = {
@@ -26,7 +27,7 @@ export default async function BlogPage({
         <div className="flex flex-col gap-1">
           <h1 className="text-xl font-semibold">기술 블로그</h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            즐겨찾는 기술 블로그의 새 글을 모아봅니다.
+            구독한 블로그의 새 글이에요. 매일 오전 8시·오후 8시에 자동으로 가져와요.
           </p>
         </div>
         <Link
@@ -34,7 +35,7 @@ export default async function BlogPage({
           className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
         >
           <Settings2 className="h-3.5 w-3.5" aria-hidden />
-          소스 관리
+          구독 관리
         </Link>
       </header>
 
@@ -47,7 +48,7 @@ export default async function BlogPage({
 
 async function BlogContent({ activeSourceId }: { activeSourceId: string | null }) {
   const [posts, sources] = await Promise.all([
-    getBlogPosts({ sourceId: activeSourceId ?? undefined, limit: 50 }),
+    getBlogPosts({ sourceId: activeSourceId ?? undefined, limit: BLOG_PAGE_SIZE }),
     getBlogSources(true),
   ]);
 

@@ -101,7 +101,7 @@ const MANAGEMENT_GROUPS: {
       {
         href: '/settings/blog-sources',
         icon: Rss,
-        title: '블로그 소스 관리',
+        title: '구독한 블로그',
         desc: '구독할 기술 블로그를 골라두면 새 글이 자동으로 모여요.',
       },
     ],

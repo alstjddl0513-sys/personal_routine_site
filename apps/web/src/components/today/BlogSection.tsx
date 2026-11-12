@@ -34,7 +34,7 @@ export async function BlogSection() {
       {posts === null ? (
         <CardMessage>{LOAD_ERROR_COPY}</CardMessage>
       ) : posts.length === 0 ? (
-        <CardMessage href="/blog" linkLabel="블로그 구독 추가하기">
+        <CardMessage href="/settings/blog-sources" linkLabel="블로그 구독 추가하기">
           아직 수집된 글이 없어요.
         </CardMessage>
       ) : (

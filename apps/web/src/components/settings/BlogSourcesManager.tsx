@@ -200,19 +200,19 @@ export function BlogSourcesManager({ initial }: { initial: BlogSource[] }) {
       </div>
 
       <p className="text-xs text-zinc-500 dark:text-zinc-400">
-        <strong>일시중지</strong>하면 다음 새로고침에서 잠시 쉬어요. 이미 모아둔 글은 그대로 남아요.
-        <strong>삭제</strong>는 소스와 함께 모아둔 <strong>글도 전부 함께 사라져요</strong>. 되돌릴 수 없어요.
+        <strong>일시중지</strong>하면 다음 새로고침에서 잠시 쉬어요. 이미 가져온 글은 그대로 남아요.
+        <strong>삭제</strong>는 그 블로그와 함께 가져온 <strong>글도 전부 함께 사라져요</strong>. 되돌릴 수 없어요.
       </p>
 
       <ConfirmDialog
         open={!!confirmDeleteRow}
-        title="소스 삭제"
+        title="구독한 블로그 삭제"
         description={
           <p>
             <span className="font-medium text-zinc-900 dark:text-zinc-100">
               {confirmDeleteRow?.name}
             </span>
-            을(를) 삭제할까요? 이 소스에서 모아둔{' '}
+            을(를) 삭제할까요? 이 블로그에서 가져온{' '}
             <strong>글도 전부 함께 사라져요</strong>. 되돌릴 수 없어요.
           </p>
         }
@@ -355,7 +355,7 @@ function AddRow({
           className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
         >
           <Plus className="h-3.5 w-3.5" aria-hidden />
-          소스 추가
+          블로그 추가
         </button>
       </div>
     );
