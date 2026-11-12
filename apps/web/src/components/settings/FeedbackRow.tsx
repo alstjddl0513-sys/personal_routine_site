@@ -17,7 +17,7 @@ export function FeedbackRow() {
         desc="버그·개선 아이디어를 짧게 남겨주시면 큰 도움이 돼요."
         end={
           <button type="button" onClick={() => setOpen(true)} className={BUTTON_SECONDARY}>
-            피드백 쓰기
+            작성하기
           </button>
         }
       />
