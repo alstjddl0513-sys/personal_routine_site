@@ -16,7 +16,7 @@ export function FeedbackRow() {
         title="피드백 보내기"
         desc="버그·개선 아이디어를 짧게 남겨주시면 큰 도움이 돼요."
         end={
-          <button type="button" onClick={() => setOpen(true)} className={BUTTON_SECONDARY}>
+          <button type="button" onClick={() => setOpen(true)} aria-label="피드백 작성하기" className={BUTTON_SECONDARY}>
             작성하기
           </button>
         }

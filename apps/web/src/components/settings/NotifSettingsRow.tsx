@@ -16,7 +16,7 @@ export function NotifSettingsRow() {
         title="알림 설정"
         desc="아침 요약 · 채용 마감 · 루틴 · 운동 알림을 한번에 관리해요."
         end={
-          <button type="button" onClick={() => setOpen(true)} className={BUTTON_SECONDARY}>
+          <button type="button" onClick={() => setOpen(true)} aria-label="알림 설정 열기" className={BUTTON_SECONDARY}>
             열기
           </button>
         }
