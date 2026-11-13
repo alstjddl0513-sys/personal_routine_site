@@ -8,6 +8,7 @@ import {
   subscribeAnnouncements,
 } from '../lib/announcements-sink';
 import { NotifLogDrawer } from './NotifLogDrawer';
+import { NotifSettingsModal } from './settings/NotifSettingsModal';
 
 // 종 + unread 뱃지. 클릭 시 드로어 오픈. Sidebar(데스크톱) 하단과
 // SectionSubNav(모바일) 우측에 각각 마운트. md: 스위치로 동시 노출 X.
@@ -19,6 +20,8 @@ const DEFAULT_CLASS =
 // className: 사이드바처럼 배경이 다른 곳에서 버튼 색만 바꿀 때 (relative 포함해서 넘길 것).
 export function NotifBell({ className = DEFAULT_CLASS }: { className?: string }) {
   const [open, setOpen] = useState(false);
+  // 드로어 빈 상태 [알림 설정하기] — 드로어를 닫고 설정의 알림 창을 그대로 엶
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const localUnread = useSyncExternalStore<number>(
     subscribeLog,
     () => getUnreadCount(),
@@ -50,7 +53,15 @@ export function NotifBell({ className = DEFAULT_CLASS }: { className?: string })
           />
         ) : null}
       </button>
-      <NotifLogDrawer open={open} onClose={() => setOpen(false)} />
+      <NotifLogDrawer
+        open={open}
+        onClose={() => setOpen(false)}
+        onOpenSettings={() => {
+          setOpen(false);
+          setSettingsOpen(true);
+        }}
+      />
+      <NotifSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </>
   );
 }
