@@ -97,16 +97,34 @@ function filterOf(item: MergedItem): Exclude<FilterKey, 'all'> | undefined {
     : (LOG_FILTER as Partial<Record<string, Exclude<FilterKey, 'all'>>>)[item.entry.type];
 }
 
+const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+
+// "오전 8:00" — 0시는 오전 12시, 12시는 오후 12시
+function clockLabel(d: Date): string {
+  const h = d.getHours();
+  const m = String(d.getMinutes()).padStart(2, '0');
+  return `${h < 12 ? '오전' : '오후'} ${h % 12 === 0 ? 12 : h % 12}:${m}`;
+}
+
+function startOfDay(ms: number): number {
+  const d = new Date(ms);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
+// 알림 시각 — 1시간 안은 지난 시간("방금 · 12분 전"), 그 뒤로는 날짜 기준으로 읽히는 시각.
+// 오늘 "오전 8:00" · 어제 "어제 오후 9:00" · 7일 안 "11/10 (월)" · 그 전 "11/6".
+// 전엔 24시간 단위로 세서 어젯밤 11시 알림이 아침에 "10시간 전"으로, 매일 같은 시각 알림도 "12시간 전"처럼 계산해야 했음.
 function formatRelative(ms: number, now: number = Date.now()): string {
   const diffSec = Math.max(0, Math.round((now - ms) / 1000));
   if (diffSec < 60) return '방금';
   const diffMin = Math.round(diffSec / 60);
   if (diffMin < 60) return `${diffMin}분 전`;
-  const diffHour = Math.round(diffMin / 60);
-  if (diffHour < 24) return `${diffHour}시간 전`;
-  const diffDay = Math.round(diffHour / 24);
-  if (diffDay < 7) return `${diffDay}일 전`;
   const d = new Date(ms);
+  const dayDiff = Math.round((startOfDay(now) - startOfDay(ms)) / 86_400_000);
+  if (dayDiff <= 0) return clockLabel(d);
+  if (dayDiff === 1) return `어제 ${clockLabel(d)}`;
+  if (dayDiff < 7) return `${d.getMonth() + 1}/${d.getDate()} (${WEEKDAYS[d.getDay()]})`;
   return `${d.getMonth() + 1}/${d.getDate()}`;
 }
 
@@ -362,7 +380,7 @@ function LogRow({
             </span>
             <ChevronRight
               aria-hidden
-              className="h-[15px] w-[15px] shrink-0 text-transparent group-hover:text-ink-muted group-has-[>button:first-child:focus-visible]:text-ink-muted"
+              className="h-3.75 w-3.75 shrink-0 text-transparent group-hover:text-ink-muted group-has-[>button:first-child:focus-visible]:text-ink-muted"
             />
           </span>
         </span>
@@ -403,7 +421,7 @@ function AnnouncementRow({
   return (
     <li className={`relative ${expanded ? 'bg-thead' : 'hover:bg-row-hover'}`}>
       {!isRead ? (
-        <span aria-hidden className="absolute top-[22px] left-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
+        <span aria-hidden className="absolute top-5.5 left-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
       ) : null}
       <button
         type="button"
