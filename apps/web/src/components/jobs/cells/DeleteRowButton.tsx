@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Trash2 } from 'lucide-react';
 import { deleteCompany } from '../../../lib/api';
 import { useOutsideClick } from '../../../lib/useOutsideClick';
+import { objectParticle } from '../../../lib/korean';
 
 export function DeleteRowButton({
   id,
@@ -86,7 +87,7 @@ export function DeleteRowButton({
               <span className="font-medium text-zinc-900 dark:text-zinc-100">
                 {name}
               </span>
-              을(를) 삭제할까요? 되돌릴 수 없어요.
+              {objectParticle(name) ?? ''} 삭제할까요? 되돌릴 수 없어요.
             </p>
             <div className="flex items-center justify-end gap-2">
               <button

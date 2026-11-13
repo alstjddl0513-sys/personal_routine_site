@@ -40,6 +40,7 @@ import { dowLabel, toISODate } from '../../lib/routines-week';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { AddTimeBlockRow } from './AddTimeBlockRow';
 import { checkKey } from './RoutineTable';
+import { objectParticle } from '../../lib/korean';
 
 interface Props {
   blocks: TimeBlock[];
@@ -383,7 +384,7 @@ export function RoutineDayView({ blocks, checks, days }: Props) {
             <span className="font-medium text-zinc-900 dark:text-zinc-100">
               {deleteTarget?.label}
             </span>
-            을(를) 삭제할까요? 이 루틴의 체크 기록도 같이 사라져요.
+            {objectParticle(deleteTarget?.label ?? '') ?? ''} 삭제할까요? 이 루틴의 체크 기록도 같이 사라져요.
           </p>
         }
         confirmLabel={isPending ? '삭제 중…' : '삭제'}
