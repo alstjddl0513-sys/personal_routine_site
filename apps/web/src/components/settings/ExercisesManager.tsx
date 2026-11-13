@@ -29,6 +29,7 @@ import {
   TagChip,
 } from './lists/ListCard';
 import { ListConfirmDialog } from './lists/ListConfirmDialog';
+import { deleteConfirmTitle } from '../../lib/korean';
 
 type Draft = {
   name: string;
@@ -274,7 +275,7 @@ export function ExercisesManager({ initial }: { initial: Exercise[] }) {
 
       <ListConfirmDialog
         open={confirm?.kind === 'delete'}
-        title={`'${confirmName}'을(를) 삭제할까요?`}
+        title={deleteConfirmTitle(confirmName)}
         body="이미 기록한 세트가 있다면 지울 수 없고 '숨김'으로만 감출 수 있어요."
         confirmLabel={isPending ? '삭제 중…' : '삭제'}
         pending={isPending}

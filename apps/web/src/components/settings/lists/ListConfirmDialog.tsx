@@ -13,6 +13,7 @@ export function ListConfirmDialog({
   confirmLabel,
   tone = 'danger',
   pending,
+  widthClass = 'md:max-w-120',
   onConfirm,
   onCancel,
 }: {
@@ -22,6 +23,8 @@ export function ListConfirmDialog({
   confirmLabel: string;
   tone?: 'danger' | 'primary';
   pending?: boolean;
+  /** md 이상 최대 폭(기본 480px) */
+  widthClass?: string;
   onConfirm: () => void;
   onCancel: () => void;
 }) {
@@ -33,7 +36,7 @@ export function ListConfirmDialog({
       labelId={labelId}
       onClose={onCancel}
       busy={pending}
-      widthClass="md:max-w-120"
+      widthClass={widthClass}
       compact
     >
       <div className="text-[15px] leading-relaxed text-ink-soft">{body}</div>

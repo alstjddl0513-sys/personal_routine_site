@@ -1,81 +1,103 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus } from 'lucide-react';
 import { createLinkDocument } from '../../lib/api';
+import { BUTTON_PRIMARY, BUTTON_SECONDARY, POPOVER_INPUT_BASE } from '../jobs/cells/popover-style';
+import { AddLine, INPUT_ERROR } from './lists/ListCard';
 
-// 외부 링크 추가 폼. 제목 + URL. URL은 서버에서 http/https 프리픽스 검증.
+type FieldError = { field: 'title' | 'url' | 'server'; message: string };
+
+// 카드 맨 아래 "+ 링크 추가" → 한 줄 [이름][주소][추가][취소]. URL은 서버에서도 http/https 검증.
 export function LinkForm() {
   const router = useRouter();
+  const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<FieldError | null>(null);
 
-  function submit() {
+  function reset() {
+    setTitle('');
+    setUrl('');
     setError(null);
+    setOpen(false);
+  }
+
+  function submit(e: FormEvent) {
+    e.preventDefault();
     const t = title.trim();
     const u = url.trim();
     if (!t) {
-      setError('제목을 입력하세요.');
+      setError({ field: 'title', message: '이름을 입력하세요.' });
       return;
     }
     if (!/^https?:\/\/.+/i.test(u)) {
-      setError('http:// 또는 https://로 시작하는 주소를 입력하세요.');
+      setError({ field: 'url', message: '주소는 http:// 또는 https://로 시작해야 해요.' });
       return;
     }
+    setError(null);
     startTransition(async () => {
       try {
         await createLinkDocument({ title: t, url: u });
-        setTitle('');
-        setUrl('');
+        reset();
         router.refresh();
       } catch (err) {
         console.error(err);
-        setError('추가하지 못했어요. 잠시 후 다시 해보세요.');
+        setError({ field: 'server', message: '추가하지 못했어요. 잠시 후 다시 해보세요.' });
       }
     });
   }
 
+  if (!open) return <AddLine label="링크 추가" onClick={() => setOpen(true)} />;
+
+  const input = `${POPOVER_INPUT_BASE} w-full text-[15px]`;
   return (
-    <div className="flex flex-col gap-2 rounded-md border border-dashed border-zinc-300 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-900">
-      <div className="flex flex-col gap-2 sm:flex-row">
+    <form onSubmit={submit} className="flex flex-col gap-1 border-t border-divider py-2">
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-[1fr_1.3fr_auto_auto]">
         <input
           type="text"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="제목 (예: 노션 포트폴리오)"
+          onChange={(e) => {
+            setTitle(e.target.value);
+            setError(null);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') reset();
+          }}
+          placeholder="이름 (예: 노션 포트폴리오)"
+          aria-label="링크 이름"
+          aria-invalid={error?.field === 'title'}
           maxLength={200}
-          className="min-h-9 rounded border border-zinc-300 bg-white px-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950 sm:w-40"
+          autoFocus
+          disabled={pending}
+          className={`${input} ${error?.field === 'title' ? INPUT_ERROR : ''}`}
         />
         <input
           type="url"
           value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="https://..."
-          maxLength={1000}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              submit();
-            }
+          onChange={(e) => {
+            setUrl(e.target.value);
+            setError(null);
           }}
-          className="min-h-9 flex-1 rounded border border-zinc-300 bg-white px-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
-        />
-        <button
-          type="button"
-          onClick={submit}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') reset();
+          }}
+          placeholder="https://..."
+          aria-label="링크 주소"
+          aria-invalid={error?.field === 'url'}
+          maxLength={1000}
           disabled={pending}
-          className="inline-flex min-h-9 items-center gap-1 rounded bg-zinc-900 px-3 text-xs text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-        >
-          <Plus className="h-3.5 w-3.5" aria-hidden />
+          className={`${input} ${error?.field === 'url' ? INPUT_ERROR : ''}`}
+        />
+        <button type="submit" disabled={pending} className={BUTTON_PRIMARY}>
           {pending ? '추가 중…' : '추가'}
         </button>
+        <button type="button" onClick={reset} disabled={pending} className={BUTTON_SECONDARY}>
+          취소
+        </button>
       </div>
-      {error ? (
-        <p className="text-xs text-rose-600 dark:text-rose-400">{error}</p>
-      ) : null}
-    </div>
+      {error ? <p className="text-[13px] text-alert">{error.message}</p> : null}
+    </form>
   );
 }
