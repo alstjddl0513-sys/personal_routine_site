@@ -1346,6 +1346,19 @@ export async function uploadDocumentFile(
   }
 }
 
+// 업로드 2단계 — 파일이 실제로 올라간 걸 서버가 확인하고 storage_path를 채움.
+// 이걸 안 부르면(올리다 멈춤) 목록에 "올리다 멈춤"으로 남음.
+export async function completeDocumentUpload(id: string): Promise<Document> {
+  const res = await fetch(apiUrl(`/documents/${id}/complete`), {
+    method: 'POST',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(`POST /documents/${id}/complete failed: HTTP ${res.status}`, res.status);
+  }
+  return res.json();
+}
+
 export async function createLinkDocument(input: {
   title: string;
   url: string;
