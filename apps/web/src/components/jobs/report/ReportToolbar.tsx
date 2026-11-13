@@ -36,6 +36,18 @@ export function ReportToolbar() {
   }
 
   const includeAll = searchParams.get('includeAll') === '1';
+  // 지금 고른 기간 버튼 — 주소의 from/to가 버튼 값과 같으면 선택 모양(어느 걸 눌렀는지 보이게)
+  const from = searchParams.get('from');
+  const to = searchParams.get('to');
+  const today = todayIso();
+  const activePreset =
+    !from && !to
+      ? 'all'
+      : to === today && from === threeMonthsAgoIso()
+        ? '3m'
+        : to === today && from === yearStartIso()
+          ? 'year'
+          : null;
 
   return (
     <div
@@ -52,6 +64,7 @@ export function ReportToolbar() {
         <span className="mx-1 text-xs text-zinc-400">·</span>
         <PresetButton
           label="최근 3개월"
+          active={activePreset === '3m'}
           onClick={() =>
             updateParams((p) => {
               p.set('from', threeMonthsAgoIso());
@@ -60,7 +73,8 @@ export function ReportToolbar() {
           }
         />
         <PresetButton
-          label="이번 년도"
+          label="올해"
+          active={activePreset === 'year'}
           onClick={() =>
             updateParams((p) => {
               p.set('from', yearStartIso());
@@ -70,6 +84,7 @@ export function ReportToolbar() {
         />
         <PresetButton
           label="전체"
+          active={activePreset === 'all'}
           onClick={() =>
             updateParams((p) => {
               p.delete('from');
@@ -90,7 +105,7 @@ export function ReportToolbar() {
             }
             className="h-3 w-3"
           />
-          미지원·취소 포함
+          미지원 · 지원취소 포함
         </label>
       </div>
       <button
@@ -105,12 +120,25 @@ export function ReportToolbar() {
   );
 }
 
-function PresetButton({ label, onClick }: { label: string; onClick: () => void }) {
+function PresetButton({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="rounded px-2 py-1 text-xs text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+      aria-pressed={active}
+      className={`rounded px-2 py-1 text-xs ${
+        active
+          ? 'bg-zinc-900 font-medium text-white dark:bg-zinc-100 dark:text-zinc-900'
+          : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800'
+      }`}
     >
       {label}
     </button>

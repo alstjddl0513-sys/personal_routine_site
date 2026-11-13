@@ -1,5 +1,6 @@
 // 인쇄 상단 헤더. 서버에서 필터 상태 + 총 건수 받아 표시.
 // 화면과 인쇄본 모두에 노출. 스타일은 최소한 — 인쇄 CSS가 나머지 조정.
+// 오른쪽 시각은 "기준"(화면을 연 시각) — 화면에서도 보여서 "인쇄:"는 실제 인쇄 시각처럼 읽혔음.
 
 interface Props {
   from: string | null;
@@ -43,7 +44,7 @@ function PrintedAt() {
   const pad = (n: number) => String(n).padStart(2, '0');
   return (
     <>
-      인쇄: {now.getFullYear()}.{pad(now.getMonth() + 1)}.{pad(now.getDate())}{' '}
+      기준 {now.getFullYear()}.{pad(now.getMonth() + 1)}.{pad(now.getDate())}{' '}
       {pad(now.getHours())}:{pad(now.getMinutes())}
     </>
   );

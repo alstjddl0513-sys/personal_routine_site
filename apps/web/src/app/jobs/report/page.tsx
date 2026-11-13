@@ -123,7 +123,7 @@ async function ReportContent({ sp }: { sp: ReportSearchParams }) {
       <ReportToolbar />
       {rows.length === 0 ? (
         <div className="rounded-md border border-dashed border-zinc-300 p-10 text-center text-sm text-zinc-500 print:hidden dark:border-zinc-700">
-          조건에 맞는 회사가 없어요. 상단 툴바에서 필터를 조정해보세요.
+          이 기간에 지원한 회사가 없어요. 기간을 바꾸거나 미지원 · 지원취소를 포함해보세요.
         </div>
       ) : (
         <ReportTable rows={rows} companyTypes={companyTypes} />
