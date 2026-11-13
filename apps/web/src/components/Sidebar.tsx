@@ -351,7 +351,12 @@ export function Sidebar() {
           </Link>
           <span className="flex-1" />
           <ThemeToggle className={SIDE_ICON_BTN} />
-          <NotifBell className={SIDE_ICON_BTN} />
+          {/* 안 읽음이 있으면 버튼 배경 side-active + 흰 아이콘 + 오른쪽 위 점(메리골드 · 빨강 X) */}
+          <NotifBell
+            className={SIDE_ICON_BTN}
+            unreadClassName={SIDE_ICON_BTN.replace('text-side-fg', 'bg-side-active text-white')}
+            dotClassName="absolute top-1.5 right-1.5 h-[7px] w-[7px] rounded-full bg-side-strong ring-2 ring-side-active"
+          />
         </div>
       </div>
     </aside>

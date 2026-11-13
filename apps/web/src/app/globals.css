@@ -301,6 +301,39 @@ body {
 .dark {
   --highlight-flash-peak: rgba(133, 77, 14, 0.4); /* yellow-800 40% */
 }
+/* 알림 내역 창 열기 · 닫기(150ms) — 패널은 오른쪽에서 밀려 들어오고, 뒤 막은 서서히 */
+@keyframes drawer-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes drawer-out {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
 /* 채용 표 전용 행 강조 (모바일 카드는 위 highlight-flash 그대로) */
 @keyframes row-flash {
   0% {
