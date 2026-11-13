@@ -39,6 +39,7 @@ import { toISODate } from '../../lib/routines-week';
 import { useOutsideClick } from '../../lib/useOutsideClick';
 import { AddTimeBlockRow } from './AddTimeBlockRow';
 import { TimeCell } from './TimeCell';
+import { objectParticle } from '../../lib/korean';
 
 const REORDER_DEBOUNCE_MS = 300;
 
@@ -553,7 +554,7 @@ function DeleteBlockButton({ block }: { block: TimeBlock }) {
               <span className="font-medium text-zinc-900 dark:text-zinc-100">
                 {block.label}
               </span>
-              을(를) 삭제할까요? 이 루틴의 체크 기록도 같이 사라져요.
+              {objectParticle(block.label) ?? ''} 삭제할까요? 이 루틴의 체크 기록도 같이 사라져요.
             </p>
             <div className="flex items-center justify-end gap-2">
               <button

@@ -45,9 +45,14 @@ export function RowAction({
   );
 }
 
-export function StatusBadge({ children }: { children: ReactNode }) {
+/** 상태 뱃지 — 평소 테두리만, filled는 숲색 채움(이력서 "대표"처럼 하나만 골라진 것) */
+export function StatusBadge({ children, filled }: { children: ReactNode; filled?: boolean }) {
   return (
-    <span className="inline-flex h-5 shrink-0 items-center rounded-sm border border-btn-border px-1.5 text-xs font-semibold text-ink-muted">
+    <span
+      className={`inline-flex h-5 shrink-0 items-center rounded-sm border px-1.5 text-xs font-semibold ${
+        filled ? 'border-button bg-button text-white' : 'border-btn-border text-ink-muted'
+      }`}
+    >
       {children}
     </span>
   );
@@ -124,10 +129,10 @@ export function ListRow({
   );
 }
 
-/** 카드 맨 아래 "+ 추가" 줄 */
-export function AddLine({ label, onClick }: { label: string; onClick: () => void }) {
+/** "+ 추가" 줄 — 보통 카드 맨 아래(위 divider), top이면 카드 맨 위(아래 divider) */
+export function AddLine({ label, onClick, top }: { label: string; onClick: () => void; top?: boolean }) {
   return (
-    <div className="border-t border-divider py-2">
+    <div className={top ? 'border-b border-divider py-2' : 'border-t border-divider py-2'}>
       <button
         type="button"
         onClick={onClick}
@@ -140,13 +145,13 @@ export function AddLine({ label, onClick }: { label: string; onClick: () => void
   );
 }
 
-/** 줄 아래 · 카드 맨 아래 펼친 칸(thead 바탕, 카드 좌우 끝까지) */
-export function ExpandPanel({ children, last }: { children: ReactNode; last?: boolean }) {
+/** 줄 아래 · 카드 맨 아래(last) · 카드 맨 위(first) 펼친 칸(thead 바탕, 카드 좌우 끝까지) */
+export function ExpandPanel({ children, last, first }: { children: ReactNode; last?: boolean; first?: boolean }) {
   return (
     <div
-      className={`-mx-5 flex flex-col gap-3.5 border-t border-divider bg-thead px-5 pt-3.5 pb-4.5 ${
-        last ? '-mb-1 rounded-b-lg' : ''
-      }`}
+      className={`-mx-5 flex flex-col gap-3.5 bg-thead px-5 pt-3.5 pb-4.5 ${
+        first ? '-mt-1 rounded-t-lg border-b border-divider' : 'border-t border-divider'
+      } ${last ? '-mb-1 rounded-b-lg' : ''}`}
     >
       {children}
     </div>

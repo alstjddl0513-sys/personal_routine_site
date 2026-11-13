@@ -158,7 +158,8 @@ export function ShowAllCategoriesButton({
   );
 }
 
-function ChipButton({
+// 카테고리 칩 하나 — 설정 학습 질문 필터도 같이 씀(모양만 공유, 상태는 쓰는 쪽이)
+export function ChipButton({
   active,
   onClick,
   onHover,
@@ -166,7 +167,7 @@ function ChipButton({
 }: {
   active: boolean;
   onClick: () => void;
-  onHover: () => void;
+  onHover?: () => void;
   label: string;
 }) {
   return (

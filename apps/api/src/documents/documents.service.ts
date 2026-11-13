@@ -64,8 +64,10 @@ export class DocumentsService {
   }
 
   // 2단계 업로드 1단계: DB row insert + Supabase Storage signed upload URL.
-  // 클라는 반환된 uploadUrl에 PUT으로 파일 업로드하면 됨. 실패해도 orphan
-  // row는 남아 사용자가 목록에서 확인 후 수동 삭제 가능.
+  // 클라는 반환된 uploadUrl에 PUT으로 파일을 올린 뒤 complete()를 부름.
+  // storage_path는 여기서 비워 둠 — complete()가 파일이 실제로 있는 걸 확인하고 채움.
+  // 그래서 storage_path NULL = 올리다 멈춘 파일(화면 "올리다 멈춤", 채용 제출본 후보에서도 빠짐).
+  // 전엔 여기서 바로 채워서 실패한 업로드도 정상 파일처럼 보였음(다운로드만 실패).
   async init(ownerId: string, dto: InitDocumentDto) {
     const maxBytes = MAX_BYTES_BY_KIND[dto.kind];
     if (dto.fileSize > maxBytes) {
@@ -86,7 +88,6 @@ export class DocumentsService {
         ownerId,
         kind: dto.kind,
         title: dto.title,
-        storagePath: path,
         fileSize: dto.fileSize,
         fileMime: dto.fileMime,
       })
@@ -109,6 +110,35 @@ export class DocumentsService {
       token: data.token,
       path,
     };
+  }
+
+  // 2단계 업로드 2단계: 파일이 Storage에 실제로 있으면 storage_path를 채움(멱등).
+  async complete(ownerId: string, id: string) {
+    const current = await this.findOne(ownerId, id);
+    if (current.kind === 'link') {
+      throw new BadRequestException('링크는 올릴 파일이 없어요.');
+    }
+    if (current.storagePath) return current;
+    const folder = `${ownerId}/${current.kind}`;
+    const name = `${current.id}.pdf`;
+    const admin = getSupabaseAdmin();
+    const { data, error } = await admin.storage
+      .from(BUCKET)
+      .list(folder, { search: name });
+    if (error) {
+      throw new InternalServerErrorException(
+        `Storage 확인 실패: ${error.message}`,
+      );
+    }
+    if (!data?.some((f) => f.name === name)) {
+      throw new BadRequestException('파일이 아직 올라가지 않았어요.');
+    }
+    const [row] = await db
+      .update(documents)
+      .set({ storagePath: `${folder}/${name}`, updatedAt: new Date() })
+      .where(and(eq(documents.id, id), eq(documents.ownerId, ownerId)))
+      .returning();
+    return row;
   }
 
   async createLink(ownerId: string, dto: CreateLinkDocumentDto) {
@@ -169,11 +199,16 @@ export class DocumentsService {
   async remove(ownerId: string, id: string) {
     const current = await this.findOne(ownerId, id);
 
-    if (current.storagePath) {
+    // 파일 kind는 storage_path가 없어도(올리다 멈춤) 정해진 경로를 지움 —
+    // 파일은 올라갔는데 complete()만 실패한 경우 Storage에 남지 않게.
+    const filePath =
+      current.storagePath ??
+      (current.kind === 'link'
+        ? null
+        : `${ownerId}/${current.kind}/${current.id}.pdf`);
+    if (filePath) {
       const admin = getSupabaseAdmin();
-      const { error } = await admin.storage
-        .from(BUCKET)
-        .remove([current.storagePath]);
+      const { error } = await admin.storage.from(BUCKET).remove([filePath]);
       // `not_found`는 이미 지워졌거나 orphan row(업로드 실패)라 정상 취급.
       // 그 외 오류는 재시도 유도.
       if (error && !/not.?found/i.test(error.message)) {

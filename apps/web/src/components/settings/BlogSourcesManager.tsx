@@ -24,6 +24,7 @@ import {
   StatusBadge,
 } from './lists/ListCard';
 import { ListConfirmDialog } from './lists/ListConfirmDialog';
+import { deleteConfirmTitle } from '../../lib/korean';
 
 type Draft = {
   name: string;
@@ -215,7 +216,7 @@ export function BlogSourcesManager({ initial }: { initial: BlogSource[] }) {
 
       <ListConfirmDialog
         open={!!confirmDeleteRow}
-        title={`'${confirmDeleteRow?.name ?? ''}'을(를) 삭제할까요?`}
+        title={deleteConfirmTitle(confirmDeleteRow?.name ?? '')}
         body="이 블로그에서 가져온 글도 전부 함께 사라져요. 되돌릴 수 없어요."
         confirmLabel={isPending ? '삭제 중…' : '삭제'}
         pending={isPending}

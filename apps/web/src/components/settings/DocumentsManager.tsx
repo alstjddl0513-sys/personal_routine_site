@@ -12,7 +12,7 @@ export function DocumentsManager({ initial }: { initial: Document[] }) {
   const links = initial.filter((d) => d.kind === 'link');
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
       <DocumentSection
         kind="resume"
         title="이력서"
