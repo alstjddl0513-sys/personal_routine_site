@@ -164,11 +164,14 @@ export function ChipButton({
   onClick,
   onHover,
   label,
+  count,
 }: {
   active: boolean;
   onClick: () => void;
   onHover?: () => void;
   label: string;
+  /** 이름 옆 개수(알림 내역 칩 "마감 3") — 500, 선택 칩은 같은 글자색 · 아니면 ink-muted */
+  count?: number;
 }) {
   return (
     <button
@@ -177,13 +180,16 @@ export function ChipButton({
       onMouseEnter={onHover}
       onFocus={onHover}
       aria-pressed={active}
-      className={`inline-flex h-9 cursor-pointer items-center rounded-[18px] px-3.5 text-sm transition-colors ${
+      className={`inline-flex h-9 cursor-pointer items-center gap-1 rounded-[18px] px-3.5 text-sm transition-colors ${
         active
           ? 'bg-chip-on-bg font-bold text-heading shadow-[inset_0_0_0_2px_var(--rally-chip-on-border)]'
           : 'bg-surface font-medium text-ink-soft shadow-[inset_0_0_0_1px_var(--rally-btn-border)] hover:bg-row-hover'
       }`}
     >
       {label}
+      {count !== undefined ? (
+        <span className={`font-medium ${active ? '' : 'text-ink-muted'}`}>{count}</span>
+      ) : null}
     </button>
   );
 }

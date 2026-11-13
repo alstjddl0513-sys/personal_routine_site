@@ -25,6 +25,7 @@
 | `rally-settings(-dark).html` · `rally-settings-parts.html` | 설정 첫 화면 · 닉네임 · 비밀번호 · 백업 · 알림 창 · 피드백 창 · 계정 삭제 창 | `/settings` `components/settings/*` |
 | `rally-settings-lists(-dark).html` · `rally-settings-lists-parts.html` | 설정 목록 관리 6화면(회사 유형 · 학습 카테고리 · 운동 종목 · 분할 · 주간 운동 목표 · 구독한 블로그) + 편집 · 추가 · 오류 · 확인 창 | `/settings/{company-types,question-categories,exercises,splits,muscle-goals,blog-sources}` `components/settings/lists/*` |
 | `rally-settings-docs(-dark).html` · `rally-settings-docs-parts.html` | 설정 이력서 · 포트폴리오 · 학습 질문 + 이름 고치기 · 올리는 중 · 올리다 멈춤 · 확인 창 · 미리보기 창 · 질문 펼침 | `/settings/documents` `/settings/questions` `components/settings/Document*` `QuestionsManager` |
+| `rally-notif-drawer(-dark).html` · `rally-notif-drawer-parts.html` | 알림 내역 창(사이드바 🔔) — 꺼짐 안내 · 칩 · 알림 줄 · 공지 줄 · 빈 상태 · 🔔 안 읽음 | `components/NotifLogDrawer.tsx` `NotifBell.tsx` |
 
 **현재 상태**: 숲색 `#1F3D30` · 메리골드 `#E9B949`(로고·챌린지 포인트, 시안의 황토 `#C8963E`에서 변경) · 바탕 `#F6F7F5`, IBM Plex Sans KR + Noto Serif KR(인사말). 사이드바(전 페이지)와 `/today`에 적용. 다른 페이지 본문은 zinc — 페이지별로 개편할 때 같은 토큰으로 확산. 모바일(BottomNav)은 별도 시안 예정.
 
@@ -201,6 +202,13 @@
 - 시안에 없던 동작 추가: 새로 생긴 줄(올리기 · 링크 · 질문 추가) 2.5초 `row-flash` 강조, 링크 ✎는 제목 · 주소 펼침 칸(파일은 줄 안 이름 고치기), 대표를 지우면 확인 창에 "대표는 ‘…’로 바뀌어요."
 - [다운로드]는 "제목.pdf"로 저장(전엔 내부 id 이름). 저장소 이름 옵션은 한글을 %ED%…로 깨뜨려서 브라우저가 받아서 이름을 붙임
 - 확인 창 조사는 받침으로 자동("…이력서'를'", "…최종본'을'", 대표 바뀜 "로/으로"), 영어 · 숫자로 끝나면 조사 없이(`lib/korean.ts`). 채용 행 삭제 · 루틴 삭제 창의 "을(를)"도 같이 바꿈
+
+**알림 내역** (사이드바 🔔 → 오른쪽 400px 창, 2026-11-13) — 동작 · 문구는 #200 그대로
+- 종류 아이콘은 모양만(마감 시계 · 일정 달력 · 루틴 목록 · 운동 덤벨 · 아침 해 · 챌린지 트로피), 색은 ink-muted 하나. 공지 종류 색(관리자 화면용)은 드로어에서 안 씀
+- 공지 읽음 뱃지: 종류 뱃지 → "읽음"으로 교체(시안 제안 — 뱃지가 둘로 안 늘게)
+- 🔔 안 읽음 점: 시안 #E9ECE9는 토큰에 없어서 가장 가까운 `side-strong`. 사이드바에서만 — 모바일 🔔는 그대로
+- 시안 parts의 "챌린지" 칩은 안 만듦 — 챌린지 알림은 지금처럼 "루틴"에 묶음(동작 그대로)
+- 칩은 학습 화면 `ChipButton`에 `count` 추가해서 공유. 열고 닫기 150ms 슬라이드(motion-reduce면 없음), 열면 ✕에 포커스 · Tab 창 안에서만 · 닫으면 🔔로
 
 **채운 버튼(숲색) 규칙** (2026-11-12) — 한 화면에서 **가장 먼저 누를 버튼 하나만** `BUTTON_PRIMARY`(bg-button). 빈 상태의 유일한 행동도 채움. 반복되는 버튼([세트 추가] 등) · 이동 · 보조 · 창 안 [취소]는 테두리
 - 테두리 → 채움으로 바꾼 곳: 운동 기록 첫 사용 안내 [분할 만들기], 블로그 [새 글 가져오기] · 빈 상태 [전체 보기], 학습 · 복습 빈 상태 [전체 보기]
