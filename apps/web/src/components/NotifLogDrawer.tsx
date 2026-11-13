@@ -32,6 +32,8 @@ import {
   markAnnouncementReadAndSync,
   subscribeAnnouncements,
 } from '../lib/announcements-sink';
+import { useNotifPermission } from '../lib/notif-permission';
+import { getMasterEnabled, subscribeMasterEnabled } from '../lib/notif-master';
 import {
   ANNOUNCEMENT_KIND_COLOR,
   ANNOUNCEMENT_KIND_ICON,
@@ -41,6 +43,8 @@ import { Portal } from './ui/Portal';
 interface Props {
   open: boolean;
   onClose: () => void;
+  /** 빈 상태 [알림 설정하기] — 드로어를 닫고 알림 설정 창을 엶 */
+  onOpenSettings: () => void;
 }
 
 const ICON_MAP: Record<NotifType, LucideIcon> = {
@@ -105,7 +109,7 @@ function formatRelative(ms: number, now: number = Date.now()): string {
   return `${d.getMonth() + 1}/${d.getDate()}`;
 }
 
-export function NotifLogDrawer({ open, onClose }: Props) {
+export function NotifLogDrawer({ open, onClose, onOpenSettings }: Props) {
   const router = useRouter();
   const log = useSyncExternalStore<readonly NotifLogEntry[]>(
     subscribeLog,
@@ -117,6 +121,11 @@ export function NotifLogDrawer({ open, onClose }: Props) {
     getServerAnnouncements,
     getAnnouncementsServerSnapshot,
   );
+
+  // 알림이 꺼져 있으면(브라우저 권한 없음 · 설정의 '알림 전체' 끔) 새 알림이 안 오니 빈 상태에서 알려줌
+  const permission = useNotifPermission();
+  const master = useSyncExternalStore<boolean | null>(subscribeMasterEnabled, () => getMasterEnabled(), () => null);
+  const notifOff = (permission !== null && permission !== 'granted') || master === false;
 
   const items: MergedItem[] = useMemo(() => {
     const merged: MergedItem[] = [
@@ -213,12 +222,25 @@ export function NotifLogDrawer({ open, onClose }: Props) {
           </button>
         </header>
 
-        {/* 종류가 2가지 이상일 때만 칩 노출 — 한 종류뿐이면 거를 의미가 없음 */}
+        {notifOff ? (
+          <div className="flex items-center justify-between gap-3 border-b border-zinc-200 px-4 py-2 dark:border-zinc-800">
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">알림이 꺼져 있어요.</p>
+            <button
+              type="button"
+              onClick={onOpenSettings}
+              className="inline-flex min-h-10 shrink-0 items-center rounded-md border border-zinc-300 px-3 text-sm text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
+            >
+              알림 설정하기
+            </button>
+          </div>
+        ) : null}
+
+        {/* 종류가 2가지 이상일 때만 칩 노출 — 한 종류뿐이면 거를 의미가 없음. 넘치면 다음 줄로(가로 스크롤 X) */}
         {visibleFilters.length > 1 ? (
           <div
             role="tablist"
             aria-label="알림 종류"
-            className="thin-scrollbar flex gap-1.5 overflow-x-auto border-b border-zinc-200 px-4 py-2 dark:border-zinc-800"
+            className="flex flex-wrap gap-1.5 border-b border-zinc-200 px-4 py-2 dark:border-zinc-800"
           >
             {[{ key: 'all' as const, label: '전체' }, ...visibleFilters].map((f) => {
               const active = activeFilter === f.key;
@@ -254,9 +276,6 @@ export function NotifLogDrawer({ open, onClose }: Props) {
               />
               <p className="text-sm text-zinc-500 dark:text-zinc-400">
                 아직 받은 알림이 없어요.
-              </p>
-              <p className="text-xs text-zinc-400 dark:text-zinc-500">
-                여기에 최근 알림이 쌓여요.
               </p>
             </div>
           ) : visibleItems.length === 0 ? (

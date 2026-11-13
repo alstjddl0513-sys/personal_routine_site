@@ -212,7 +212,7 @@ export function formatMorningMessage(
   if (summary.uncheckedRoutines > 0)
     parts.push(`아직 안 한 루틴 ${summary.uncheckedRoutines}개`);
   return {
-    title: '오늘의 하루',
+    title: '오늘 할 일',
     body: parts.length > 0 ? `${parts.join(' · ')} 남았어요.` : '',
   };
 }
