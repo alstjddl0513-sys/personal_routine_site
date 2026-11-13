@@ -21,11 +21,11 @@ export default async function QuestionsSettingsPage() {
           className="inline-flex w-fit items-center gap-1 text-xs text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
         >
           <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
-          설정으로 돌아가기
+          설정
         </Link>
         <h1 className="text-xl font-semibold">학습 질문</h1>
         <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          면접 준비 중 만난 질문을 여기에 모아두세요. 추가하면 바로 오늘의 학습·복습에 같이 나와요.
+          면접 준비하며 만난 질문을 모아두세요. 추가하면 오늘의 학습 · 복습에 같이 나와요.
         </p>
       </header>
 

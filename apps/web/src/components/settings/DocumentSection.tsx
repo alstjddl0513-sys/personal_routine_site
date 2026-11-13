@@ -9,6 +9,8 @@ interface Props {
   kind: DocumentKind;
   title: string;
   description: string;
+  /** 빈 상태 "아직 올린 이력서가 없어요." */
+  emptyText: string;
   maxBytes?: number;
   rows: Document[];
 }
@@ -18,10 +20,12 @@ export function DocumentSection({
   kind,
   title,
   description,
+  emptyText,
   maxBytes,
   rows,
 }: Props) {
-  const activeCount = rows.filter((r) => r.isActive).length;
+  // 링크엔 대표가 없음
+  const activeCount = kind === 'link' ? 0 : rows.filter((r) => r.isActive).length;
 
   return (
     <section className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
@@ -42,7 +46,7 @@ export function DocumentSection({
 
       {rows.length === 0 ? (
         <div className="rounded-md border border-dashed border-zinc-300 p-6 text-center text-xs text-zinc-500 dark:border-zinc-700">
-          아직 등록된 항목이 없어요.
+          {emptyText}
         </div>
       ) : (
         <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">

@@ -70,7 +70,7 @@ export function LinkForm() {
           className="inline-flex min-h-9 items-center gap-1 rounded bg-zinc-900 px-3 text-xs text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
         >
           <Plus className="h-3.5 w-3.5" aria-hidden />
-          {pending ? '추가 중...' : '추가'}
+          {pending ? '추가 중…' : '추가'}
         </button>
       </div>
       {error ? (
