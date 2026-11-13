@@ -34,19 +34,18 @@ export function UploadButton({ kind, maxBytes, title }: Props) {
     if (!file) return;
 
     if (!(DOCUMENT_ALLOWED_MIME as readonly string[]).includes(file.type)) {
-      setError(`PDF 파일만 업로드할 수 있어요. (${file.type || '알 수 없는 형식'})`);
+      setError('PDF 파일만 올릴 수 있어요.');
       return;
     }
     if (file.size > maxBytes) {
       const mb = Math.round(maxBytes / 1024 / 1024);
-      setError(`${mb}MB 이하 파일만 업로드할 수 있어요.`);
+      setError(`${mb}MB보다 큰 파일은 올릴 수 없어요.`);
       return;
     }
 
     startTransition(async () => {
       try {
-        // 제목은 파일명(확장자 제거)을 기본값으로. 나중에 편집 UI 붙이기 전까지
-        // 그대로 사용.
+        // 제목은 파일명(확장자 제거)을 기본값으로 — 목록에서 ✎로 바꿀 수 있음.
         const defaultTitle =
           file.name.replace(/\.pdf$/i, '').slice(0, 200) || title;
         const { uploadUrl } = await initDocumentUpload({
@@ -74,7 +73,7 @@ export function UploadButton({ kind, maxBytes, title }: Props) {
         className="inline-flex items-center gap-1.5 self-start rounded-md border border-dashed border-zinc-300 bg-zinc-50 px-3 py-1.5 text-xs text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
       >
         <Upload className="h-3.5 w-3.5" aria-hidden />
-        {pending ? '업로드 중...' : `+ PDF 업로드`}
+        {pending ? '올리는 중…' : 'PDF 올리기'}
       </button>
       <input
         ref={inputRef}

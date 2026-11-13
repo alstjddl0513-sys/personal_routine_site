@@ -16,21 +16,24 @@ export function DocumentsManager({ initial }: { initial: Document[] }) {
       <DocumentSection
         kind="resume"
         title="이력서"
-        description="여러 버전을 올려두고 지금 쓸 대표 문서 하나를 정해두세요. PDF, 최대 10MB."
+        description="지금 쓸 대표 문서 하나를 정해두세요. PDF, 최대 10MB."
+        emptyText="아직 올린 이력서가 없어요."
         maxBytes={DOCUMENT_MAX_BYTES.resume}
         rows={resumes}
       />
       <DocumentSection
         kind="portfolio"
         title="포트폴리오"
-        description="이미지가 많은 포트폴리오는 PDF로 묶어 올려주세요. 최대 50MB."
+        description="이미지가 많으면 PDF로 묶어 올려주세요. PDF, 최대 50MB."
+        emptyText="아직 올린 포트폴리오가 없어요."
         maxBytes={DOCUMENT_MAX_BYTES.portfolio}
         rows={portfolios}
       />
       <DocumentSection
         kind="link"
         title="외부 링크"
-        description="노션·GitHub·개인 사이트 링크를 저장해두면 지원할 때 바로 꺼내 쓸 수 있어요."
+        description="노션 · GitHub · 개인 사이트 링크를 모아두세요."
+        emptyText="아직 저장한 링크가 없어요."
         rows={links}
       />
     </div>

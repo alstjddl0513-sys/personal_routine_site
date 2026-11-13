@@ -17,7 +17,7 @@ import {
   deleteQuestion,
   patchQuestion,
 } from '../../lib/api';
-import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { ListConfirmDialog } from './lists/ListConfirmDialog';
 import { Select, type SelectOption } from '../ui/Select';
 
 type Draft = {
@@ -60,6 +60,8 @@ export function QuestionsManager({
   const [draft, setDraft] = useState<Draft | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [confirmDeleteRow, setConfirmDeleteRow] = useState<Question | null>(null);
+  // 카테고리 필터 — 'all' 또는 카테고리 key. 질문이 많아져도 찾을 수 있게.
+  const [filter, setFilter] = useState<string>('all');
   const [isPending, startTransition] = useTransition();
 
   const categoryOptions = useMemo<SelectOption[]>(
@@ -72,6 +74,14 @@ export function QuestionsManager({
     for (const c of categories) map.set(c.key, c.label);
     return map;
   }, [categories]);
+
+  const filterChips = useMemo(
+    () => [{ key: 'all', label: '전체' }, ...categories.map((c) => ({ key: c.key, label: c.label }))],
+    [categories],
+  );
+  // 지운 카테고리를 보고 있었으면 전체로
+  const activeFilter = filterChips.some((c) => c.key === filter) ? filter : 'all';
+  const visibleRows = activeFilter === 'all' ? rows : rows.filter((r) => r.categoryKey === activeFilter);
 
   function beginEdit(row: Question) {
     setExpandedId(row.id);
@@ -139,9 +149,46 @@ export function QuestionsManager({
         </div>
       ) : null}
 
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="mr-1 text-sm text-zinc-600 dark:text-zinc-400">질문 {rows.length}개</span>
+        {rows.length === 0 ? null : filterChips.map((c) => (
+          <button
+            key={c.key}
+            type="button"
+            aria-pressed={activeFilter === c.key}
+            onClick={() => setFilter(c.key)}
+            className={`inline-flex min-h-8 items-center rounded-full border px-3 text-xs ${
+              activeFilter === c.key
+                ? 'border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900'
+                : 'border-zinc-300 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-900'
+            }`}
+          >
+            {c.label}
+          </button>
+        ))}
+      </div>
+
       <div className="rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+        {/* 새 질문이 목록 맨 위에 생기니 추가 줄도 맨 위 */}
+        <AddRow
+          onAdd={(row) => {
+            setRows((prev) => [row, ...prev]);
+            // 다른 카테고리를 보고 있었으면 방금 추가한 질문이 안 보이니 전체로
+            if (activeFilter !== 'all' && activeFilter !== row.categoryKey) setFilter('all');
+          }}
+          onError={setError}
+          categoryOptions={categoryOptions}
+          defaultCategoryKey={activeFilter !== 'all' ? activeFilter : categories[0]?.key ?? ''}
+        />
+        {visibleRows.length === 0 ? (
+          <p className="px-3 py-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
+            {rows.length === 0
+              ? '아직 추가한 질문이 없어요. 기본 질문은 오늘의 학습에 나와요.'
+              : '이 카테고리엔 추가한 질문이 없어요.'}
+          </p>
+        ) : null}
         <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
-          {rows.map((row) => {
+          {visibleRows.map((row) => {
             const isExpanded = expandedId === row.id;
             const categoryLabel = row.categoryKey
               ? categoryLabelByKey.get(row.categoryKey) ?? row.categoryKey
@@ -195,31 +242,12 @@ export function QuestionsManager({
           })}
         </ul>
 
-        <AddRow
-          onAdd={(row) => setRows((prev) => [row, ...prev])}
-          onError={setError}
-          categoryOptions={categoryOptions}
-          defaultCategoryKey={categories[0]?.key ?? ''}
-        />
       </div>
 
-      <p className="text-xs text-zinc-500 dark:text-zinc-400">
-        여기에 추가한 질문은 바로 <strong>오늘의 학습</strong>에 같이 나와요.
-        기본 제공 질문은 이 목록에 뜨지 않고 학습 페이지에서만 등장해요.
-      </p>
-
-      <ConfirmDialog
+      <ListConfirmDialog
         open={!!confirmDeleteRow}
-        title="질문 삭제"
-        description={
-          <p>
-            <span className="font-medium text-zinc-900 dark:text-zinc-100">
-              &ldquo;{confirmDeleteRow?.content}&rdquo;
-            </span>
-            를 삭제할까요? 이 질문에 남긴 <strong>이해완료·복습필요 기록도 함께 사라져요</strong>.
-            되돌릴 수 없어요.
-          </p>
-        }
+        title={`'${shorten(confirmDeleteRow?.content ?? '')}'을(를) 삭제할까요?`}
+        body="이 질문에 남긴 이해완료 · 복습필요 기록도 함께 사라져요. 되돌릴 수 없어요."
         confirmLabel={isPending ? '삭제 중…' : '삭제'}
         pending={isPending}
         onConfirm={() => confirmDeleteRow && performDelete(confirmDeleteRow)}
@@ -278,7 +306,7 @@ function EditForm({
             disabled={isPending}
             rows={3}
             maxLength={2000}
-            placeholder="답을 열어본 뒤 이어질 만한 후속 질문 1~2개. 줄바꿈으로 구분."
+            placeholder="이어서 나올 만한 질문. 줄마다 하나씩"
             className="resize-y rounded border border-zinc-300 bg-white px-2 py-1 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
           />
         </Field>
@@ -374,10 +402,13 @@ function AddRow({
 
   if (!open) {
     return (
-      <div className="border-t border-zinc-100 p-2 dark:border-zinc-800">
+      <div className="border-b border-zinc-100 p-2 dark:border-zinc-800">
         <button
           type="button"
-          onClick={() => setOpen(true)}
+          onClick={() => {
+            setDraft(initialDraft);
+            setOpen(true);
+          }}
           className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
         >
           <Plus className="h-3.5 w-3.5" aria-hidden />
@@ -390,7 +421,7 @@ function AddRow({
   return (
     <form
       onSubmit={submit}
-      className="flex flex-col gap-3 border-t border-zinc-100 bg-zinc-50/50 px-3 py-3 dark:border-zinc-800 dark:bg-zinc-900/40"
+      className="flex flex-col gap-3 border-b border-zinc-100 bg-zinc-50/50 px-3 py-3 dark:border-zinc-800 dark:bg-zinc-900/40"
     >
       <Field label="질문">
         <textarea
@@ -422,7 +453,7 @@ function AddRow({
           disabled={isPending}
           rows={3}
           maxLength={2000}
-          placeholder="답을 열어본 뒤 이어질 만한 후속 질문 1~2개. 줄바꿈으로 구분."
+          placeholder="이어서 나올 만한 질문. 줄마다 하나씩"
           className="resize-y rounded border border-zinc-300 bg-white px-2 py-1 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
         />
       </Field>
@@ -500,4 +531,10 @@ function IconButton({
       {children}
     </button>
   );
+}
+
+// 확인 창 제목에 넣을 질문 — 길면 앞부분만
+function shorten(text: string, max = 40): string {
+  const t = text.trim();
+  return t.length > max ? `${t.slice(0, max)}…` : t;
 }
