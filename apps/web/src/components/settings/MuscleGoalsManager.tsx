@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, Check, Minus, Plus } from 'lucide-react';
+import { Minus, Plus } from 'lucide-react';
 import { DEFAULT_MUSCLE_GOALS, type MuscleGoal } from '@repo/shared';
 import { MUSCLE_OPTIONS } from '../../lib/muscle-groups';
 import { putMuscleGoal } from '../../lib/api';
+import { FOCUS_RING, ListError, SaveStatus } from './lists/ListCard';
 
 // 부위별 주간 세트 — − / + 로 바꾸면 바로 저장(줄마다 [저장] 버튼 X).
 // 연달아 누르면 마지막으로 누르고 SAVE_DELAY_MS 뒤 한 번만 보냄.
@@ -17,7 +18,7 @@ type RowState = {
 const MIN = 1;
 const MAX = 50;
 const SAVE_DELAY_MS = 600;
-const SAVED_FLASH_MS = 2000;
+const SAVED_FLASH_MS = 3000;
 
 export function MuscleGoalsManager({ initial }: { initial: MuscleGoal[] }) {
   const router = useRouter();
@@ -106,76 +107,74 @@ export function MuscleGoalsManager({ initial }: { initial: MuscleGoal[] }) {
     );
   }
 
+  const groups = [
+    { key: 'upper', label: '상체' },
+    { key: 'lower', label: '하체' },
+  ] as const;
+
   return (
-    <div className="flex flex-col gap-4">
-      {error ? (
-        <div
-          role="alert"
-          className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300"
-        >
-          <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
-          <span>{error}</span>
+    <div className="flex flex-col gap-3">
+      <ListError message={error} />
+
+      <section className="rounded-lg border border-line bg-surface px-5 pt-4.5 pb-2">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-[17px] font-bold text-heading">부위별 세트</h2>
+          <p className="text-[13px] text-ink-muted">무게·횟수를 모두 적은 세트만 세요.</p>
         </div>
-      ) : null}
+        {groups.map((g, gi) => {
+          const opts = MUSCLE_OPTIONS.filter((o) => o.group === g.key);
+          if (opts.length === 0) return null;
+          return (
+            <div key={g.key} className={gi > 0 ? 'mt-1 border-t border-rule pt-3' : 'pt-3.5'}>
+              <h3 className="text-[13px] font-bold text-ink-muted">{g.label}</h3>
+              <ul className="flex flex-col [&>li]:border-b [&>li]:border-divider [&>li:last-child]:border-b-0">
+                {opts.map((opt) => {
+                  const row = rows[opt.key];
+                  if (!row) return null;
+                  const saving = savingKeys.has(opt.key);
+                  const justSaved = savedKey === opt.key && row.value === row.serverValue && !saving;
+                  return (
+                    <li key={opt.key} className="flex min-h-14 items-center gap-3 py-2">
+                      <span className="min-w-0 flex-1 text-[15px] font-semibold text-ink-strong">{opt.label}</span>
+                      <div className="flex items-center">
+                        <StepButton
+                          label={`${opt.label} 세트 줄이기`}
+                          disabled={row.value <= MIN}
+                          onClick={() => step(opt.key, -1)}
+                        >
+                          <Minus className="h-4 w-4" aria-hidden />
+                        </StepButton>
+                        <span
+                          aria-label={`${opt.label} 한 주 ${row.value}세트`}
+                          className="w-18 text-center tabular-nums"
+                        >
+                          <span className="text-[17px] font-semibold text-ink-strong">{row.value}</span>
+                          <span className="text-[15px] text-ink-muted">세트</span>
+                        </span>
+                        <StepButton
+                          label={`${opt.label} 세트 늘리기`}
+                          disabled={row.value >= MAX}
+                          onClick={() => step(opt.key, 1)}
+                        >
+                          <Plus className="h-4 w-4" aria-hidden />
+                        </StepButton>
+                      </div>
+                      <SaveStatus saving={saving} saved={justSaved} />
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          );
+        })}
+      </section>
 
-      <div className="rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-        <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
-          {MUSCLE_OPTIONS.map((opt) => {
-            const row = rows[opt.key];
-            if (!row) return null;
-            const saving = savingKeys.has(opt.key);
-            const justSaved = savedKey === opt.key && row.value === row.serverValue && !saving;
-            return (
-              <li key={opt.key} className="flex items-center gap-3 px-4 py-2 text-sm">
-                <span className="min-w-16 text-zinc-800 dark:text-zinc-200">{opt.label}</span>
-                <span className="text-[10px] text-zinc-400 dark:text-zinc-500">
-                  {opt.group === 'upper' ? '상체' : '하체'}
-                </span>
-                <span role="status" className="ml-auto text-xs text-zinc-500 dark:text-zinc-400">
-                  {saving ? (
-                    '저장 중…'
-                  ) : justSaved ? (
-                    <span className="inline-flex items-center gap-1">
-                      <Check className="h-3 w-3" aria-hidden />
-                      저장됨
-                    </span>
-                  ) : null}
-                </span>
-                <div className="flex items-center">
-                  <StepButton
-                    label={`${opt.label} 세트 줄이기`}
-                    disabled={row.value <= MIN}
-                    onClick={() => step(opt.key, -1)}
-                  >
-                    <Minus className="h-4 w-4" />
-                  </StepButton>
-                  <span
-                    aria-label={`${opt.label} 한 주 ${row.value}세트`}
-                    className="w-14 text-center tabular-nums"
-                  >
-                    {row.value}세트
-                  </span>
-                  <StepButton
-                    label={`${opt.label} 세트 늘리기`}
-                    disabled={row.value >= MAX}
-                    onClick={() => step(opt.key, 1)}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </StepButton>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-
-      <p className="text-xs text-zinc-500 dark:text-zinc-400">
-        기본값: 등 10 · 가슴 10 · 어깨 10 · 팔 8 · 하체 12세트
-      </p>
+      <p className="text-[13px] text-ink-muted">기본값: 등 10 · 가슴 10 · 어깨 10 · 팔 8 · 하체 12세트</p>
     </div>
   );
 }
 
+// 40px 테두리 아이콘 버튼 — 끝(1 · 50)에 닿으면 divider 테두리 + icon-faint
 function StepButton({
   label,
   disabled,
@@ -194,7 +193,7 @@ function StepButton({
       title={label}
       disabled={disabled}
       onClick={onClick}
-      className="inline-flex h-10 w-10 items-center justify-center rounded text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-30 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+      className={`inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-md border border-btn-border bg-btn-bg text-ink-soft hover:border-heading hover:text-ink disabled:cursor-default disabled:border-divider disabled:text-icon-faint disabled:hover:border-divider ${FOCUS_RING}`}
     >
       {children}
     </button>

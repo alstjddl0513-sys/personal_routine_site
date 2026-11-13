@@ -1,12 +1,25 @@
 'use client';
 
-import { useState, useTransition, type FormEvent, type ReactNode } from 'react';
+import { useState, useTransition, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, Check, Pencil, Plus, Trash2, X } from 'lucide-react';
-import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { Check, Pencil, Trash2, X } from 'lucide-react';
+import { BUTTON_PRIMARY, BUTTON_SECONDARY, POPOVER_INPUT_BASE } from '../jobs/cells/popover-style';
+import {
+  AddLine,
+  INPUT_ERROR,
+  ListBody,
+  ListCard,
+  ListEmpty,
+  ListError,
+  ListRow,
+  ROW_ACTION,
+  RowAction,
+  StatusBadge,
+} from './lists/ListCard';
+import { ListConfirmDialog } from './lists/ListConfirmDialog';
 
-// 이름 하나짜리 목록 관리(회사 유형 · 학습 카테고리) — 두 화면이 같은 코드를 따로 갖고 있던 걸 합침.
-// 줄마다 이름 고치기(Enter 저장 · Esc 취소) · 삭제(확인 창), 맨 아래 [추가].
+// 이름 하나짜리 목록 관리(회사 유형 · 학습 카테고리) — 두 화면이 같이 씀.
+// 줄 안에서 이름 고치기(Enter 저장 · Esc 취소) · 삭제(확인 창), 카드 맨 아래 [+ 추가].
 export interface LabelItem {
   id: string;
   label: string;
@@ -24,11 +37,15 @@ export interface LabelListManagerProps<T extends LabelItem> {
   addLabel: string;
   /** "이름 (예: 내 유형)" */
   placeholder: string;
-  /** "회사 유형 삭제" */
-  deleteTitle: string;
-  /** 확인 창 본문 — 이름 강조는 여기서 */
-  deleteDescription: (label: ReactNode) => ReactNode;
+  /** 빈 상태 "아직 만든 유형이 없어요." */
+  emptyText: string;
+  /** 확인 창 제목(질문) — "'스타트업' 유형을 삭제할까요?" */
+  deleteTitle: (label: string) => string;
+  /** 확인 창 본문(결과) */
+  deleteBody: string;
 }
+
+const INPUT = `${POPOVER_INPUT_BASE} flex-1 text-[15px]`;
 
 export function LabelListManager<T extends LabelItem>({
   initial,
@@ -38,18 +55,21 @@ export function LabelListManager<T extends LabelItem>({
   remove,
   addLabel,
   placeholder,
+  emptyText,
   deleteTitle,
-  deleteDescription,
+  deleteBody,
 }: LabelListManagerProps<T>) {
   const router = useRouter();
   const [rows, setRows] = useState<T[]>(initial);
   const [edits, setEdits] = useState<Record<string, string>>({});
+  const [editError, setEditError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [deleteTarget, setDeleteTarget] = useState<T | null>(null);
 
   function beginEdit(row: T) {
     setEdits((prev) => ({ ...prev, [row.id]: row.label }));
+    setEditError(null);
   }
 
   function cancelEdit(id: string) {
@@ -58,6 +78,7 @@ export function LabelListManager<T extends LabelItem>({
       delete next[id];
       return next;
     });
+    setEditError(null);
   }
 
   function saveEdit(row: T) {
@@ -65,7 +86,7 @@ export function LabelListManager<T extends LabelItem>({
     if (draft === undefined) return;
     const label = draft.trim();
     if (!label) {
-      setError('이름을 입력하세요.');
+      setEditError('이름을 입력하세요.');
       return;
     }
     if (label === row.label) {
@@ -105,77 +126,83 @@ export function LabelListManager<T extends LabelItem>({
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      {error ? (
-        <div
-          role="alert"
-          className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300"
-        >
-          <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
-          <span>{error}</span>
-        </div>
-      ) : null}
+    <div className="flex flex-col gap-3">
+      <ListError message={error} />
 
-      <div className="rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-        <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
+      <ListCard>
+        {rows.length === 0 ? <ListEmpty>{emptyText}</ListEmpty> : null}
+        <ListBody>
           {rows.map((row) => {
             const draft = edits[row.id];
-            const isEditing = draft !== undefined;
-            return (
-              <li key={row.id} className="flex items-center gap-2 px-3 py-1 text-sm">
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={draft}
-                    aria-label={`${row.label} 이름`}
-                    onChange={(e) => setEdits((prev) => ({ ...prev, [row.id]: e.target.value }))}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') saveEdit(row);
-                      if (e.key === 'Escape') cancelEdit(row.id);
-                    }}
-                    disabled={isPending}
-                    autoFocus
-                    className="flex-1 rounded border border-zinc-300 bg-white px-2 py-1 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
-                  />
-                ) : (
-                  <span className="min-w-0 flex-1 truncate">{row.label}</span>
-                )}
-                {row.isDefault ? (
-                  <span className="shrink-0 rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-                    기본
-                  </span>
-                ) : null}
-
-                <div className="ml-auto flex shrink-0 items-center">
-                  {isEditing ? (
-                    <>
-                      <IconButton onClick={() => saveEdit(row)} disabled={isPending} label="저장">
-                        <Check className="h-4 w-4" />
-                      </IconButton>
-                      <IconButton onClick={() => cancelEdit(row.id)} disabled={isPending} label="취소">
-                        <X className="h-4 w-4" />
-                      </IconButton>
-                    </>
-                  ) : (
-                    <>
-                      <IconButton onClick={() => beginEdit(row)} disabled={isPending} label={`${row.label} 이름 고치기`}>
-                        <Pencil className="h-4 w-4" />
-                      </IconButton>
-                      <IconButton
-                        onClick={() => setDeleteTarget(row)}
+            if (draft !== undefined) {
+              return (
+                <li key={row.id}>
+                  <div className="flex min-h-14 flex-col justify-center gap-1 py-2">
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="text"
+                        value={draft}
+                        aria-label={`${row.label} 이름`}
+                        aria-invalid={!!editError}
+                        onChange={(e) => {
+                          setEdits((prev) => ({ ...prev, [row.id]: e.target.value }));
+                          setEditError(null);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') saveEdit(row);
+                          if (e.key === 'Escape') cancelEdit(row.id);
+                        }}
                         disabled={isPending}
-                        label={`${row.label} 삭제`}
-                        danger
+                        autoFocus
+                        className={`${INPUT} mr-1 ${editError ? INPUT_ERROR : ''}`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => saveEdit(row)}
+                        disabled={isPending}
+                        aria-label="저장 (Enter)"
+                        title="저장 (Enter)"
+                        aria-keyshortcuts="Enter"
+                        className={`${BUTTON_PRIMARY} h-10 w-10 px-0!`}
                       >
-                        <Trash2 className="h-4 w-4" />
-                      </IconButton>
-                    </>
-                  )}
-                </div>
-              </li>
+                        <Check className="h-4 w-4" aria-hidden />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => cancelEdit(row.id)}
+                        disabled={isPending}
+                        aria-label="취소 (Esc)"
+                        title="취소 (Esc)"
+                        aria-keyshortcuts="Escape"
+                        className={`${ROW_ACTION} -mr-1.5`}
+                      >
+                        <X className="h-4 w-4" aria-hidden />
+                      </button>
+                    </div>
+                    {editError ? <p className="text-[13px] text-alert">{editError}</p> : null}
+                  </div>
+                </li>
+              );
+            }
+            return (
+              <ListRow
+                key={row.id}
+                name={row.label}
+                badges={row.isDefault ? <StatusBadge>기본</StatusBadge> : null}
+                actions={
+                  <>
+                    <RowAction label={`${row.label} 이름 고치기`} title="이름 고치기" onClick={() => beginEdit(row)} disabled={isPending}>
+                      <Pencil className="h-4 w-4" aria-hidden />
+                    </RowAction>
+                    <RowAction label={`${row.label} 삭제`} title="삭제" onClick={() => setDeleteTarget(row)} disabled={isPending}>
+                      <Trash2 className="h-4 w-4" aria-hidden />
+                    </RowAction>
+                  </>
+                }
+              />
             );
           })}
-        </ul>
+        </ListBody>
 
         <AddRow
           keyPrefix={keyPrefix}
@@ -185,14 +212,12 @@ export function LabelListManager<T extends LabelItem>({
           onAdd={(row) => setRows((prev) => [...prev, row])}
           onError={setError}
         />
-      </div>
+      </ListCard>
 
-      <ConfirmDialog
+      <ListConfirmDialog
         open={!!deleteTarget}
-        title={deleteTitle}
-        description={deleteDescription(
-          <span className="font-medium text-zinc-900 dark:text-zinc-100">{deleteTarget?.label}</span>,
-        )}
+        title={deleteTarget ? deleteTitle(deleteTarget.label) : ''}
+        body={deleteBody}
         confirmLabel={isPending ? '삭제 중…' : '삭제'}
         pending={isPending}
         onConfirm={confirmDelete}
@@ -220,11 +245,13 @@ function AddRow<T extends LabelItem>({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [label, setLabel] = useState('');
+  const [fieldError, setFieldError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function reset() {
     setLabel('');
     setOpen(false);
+    setFieldError(null);
     onError(null);
   }
 
@@ -232,7 +259,7 @@ function AddRow<T extends LabelItem>({
     e.preventDefault();
     const l = label.trim();
     if (!l) {
-      onError('이름을 입력하세요.');
+      setFieldError('이름을 입력하세요.');
       return;
     }
     onError(null);
@@ -249,86 +276,37 @@ function AddRow<T extends LabelItem>({
     });
   }
 
-  if (!open) {
-    return (
-      <div className="border-t border-zinc-100 p-1 dark:border-zinc-800">
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="inline-flex min-h-10 items-center gap-1 rounded px-2 text-sm text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
-        >
-          <Plus className="h-4 w-4" aria-hidden />
-          {addLabel}
+  if (!open) return <AddLine label={addLabel} onClick={() => setOpen(true)} />;
+
+  return (
+    <form onSubmit={submit} className="flex flex-col gap-1 border-t border-divider py-2">
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          value={label}
+          onChange={(e) => {
+            setLabel(e.target.value);
+            setFieldError(null);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') reset();
+          }}
+          placeholder={placeholder}
+          aria-label={addLabel}
+          aria-invalid={!!fieldError}
+          disabled={isPending}
+          autoFocus
+          className={`${INPUT} ${fieldError ? INPUT_ERROR : ''}`}
+        />
+        <button type="submit" disabled={isPending} className={BUTTON_PRIMARY}>
+          {isPending ? '추가 중…' : '추가'}
+        </button>
+        <button type="button" onClick={reset} disabled={isPending} className={BUTTON_SECONDARY}>
+          취소
         </button>
       </div>
-    );
-  }
-
-  return (
-    <form
-      onSubmit={submit}
-      className="flex flex-wrap items-center gap-2 border-t border-zinc-100 p-2 dark:border-zinc-800"
-    >
-      <input
-        type="text"
-        value={label}
-        onChange={(e) => setLabel(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Escape') reset();
-        }}
-        placeholder={placeholder}
-        aria-label={addLabel}
-        disabled={isPending}
-        autoFocus
-        className="flex-1 rounded border border-zinc-300 bg-white px-2 py-1 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
-      />
-      <button
-        type="submit"
-        disabled={isPending || !label.trim()}
-        className="min-h-10 rounded bg-zinc-900 px-3 text-sm text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-      >
-        {isPending ? '추가 중…' : '추가'}
-      </button>
-      <button
-        type="button"
-        onClick={reset}
-        disabled={isPending}
-        className="min-h-10 rounded px-2 text-sm text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
-      >
-        취소
-      </button>
+      {fieldError ? <p className="text-[13px] text-alert">{fieldError}</p> : null}
     </form>
-  );
-}
-
-function IconButton({
-  onClick,
-  disabled,
-  label,
-  danger,
-  children,
-}: {
-  onClick: () => void;
-  disabled: boolean;
-  label: string;
-  danger?: boolean;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-label={label}
-      title={label}
-      className={`inline-flex h-10 w-10 items-center justify-center rounded text-zinc-500 transition-colors disabled:opacity-40 ${
-        danger
-          ? 'hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/40 dark:hover:text-red-300'
-          : 'hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100'
-      }`}
-    >
-      {children}
-    </button>
   );
 }
 
