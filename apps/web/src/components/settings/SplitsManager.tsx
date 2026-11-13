@@ -2,17 +2,18 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronDown, ChevronUp, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, Pencil, Plus, Trash2 } from 'lucide-react';
 import type { Exercise, WorkoutSplit } from '@repo/shared';
 import {
   deleteAllWorkoutSplits,
   deleteWorkoutSplit,
   reorderWorkoutSplits,
 } from '../../lib/api';
-import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { BUTTON_PRIMARY } from '../jobs/cells/popover-style';
 import { SplitCreateDialog } from '../workouts/splits/SplitCreateDialog';
 import { SplitEditDialog } from '../workouts/splits/SplitEditDialog';
+import { FOCUS_RING, ListBody, ListCard, ListError, RowAction, TagChip } from './lists/ListCard';
+import { ListConfirmDialog } from './lists/ListConfirmDialog';
 
 interface Props {
   initial: WorkoutSplit[];
@@ -20,12 +21,8 @@ interface Props {
   exercises: Exercise[];
 }
 
-const ICON_BTN =
-  'inline-flex h-10 w-10 items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-zinc-800 disabled:opacity-30 dark:hover:bg-zinc-800 dark:hover:text-zinc-200';
-
 // 분할 = 이름 + 종목 목록 + 순서. 순서대로 돌아가며 운동(요일 고정 X).
-// 만들기·편집 창은 운동 기록 화면과 같은 것(components/workouts/splits). 목록 본문은
-// 설정의 다른 관리 화면과 같은 톤 — 설정 개편 때 함께.
+// 만들기·편집 창은 운동 기록 화면과 같은 것(components/workouts/splits). 목록은 설정 목록 카드(lists/ListCard).
 export function SplitsManager({ initial, exercises }: Props) {
   const router = useRouter();
   const [splits, setSplits] = useState(initial);
@@ -69,93 +66,67 @@ export function SplitsManager({ initial, exercises }: Props) {
 
   return (
     <div className="flex flex-col gap-3">
+      <ListError message={error} />
+
       {splits.length === 0 ? (
-        <div className="flex flex-col items-start gap-3 rounded-lg border border-line bg-surface p-6">
-          <p className="text-sm text-ink-soft">
-            분할을 만들면 운동 기록에서 오늘 할 종목만 볼 수 있어요.
-          </p>
-          <button
-            type="button"
-            onClick={() => setCreating(true)}
-            className={`${BUTTON_PRIMARY} gap-1`}
-          >
-            <Plus className="h-4 w-4" aria-hidden />
+        <div className="flex flex-col items-center gap-4 rounded-lg border border-line bg-surface px-5 py-8 text-center">
+          <p className="text-[15px] text-ink-soft">분할을 만들면 운동 기록에서 오늘 할 종목만 볼 수 있어요.</p>
+          <button type="button" onClick={() => setCreating(true)} className={BUTTON_PRIMARY}>
             분할 만들기
           </button>
         </div>
       ) : (
         <>
-          <ol className="divide-y divide-zinc-100 rounded-md border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-950">
-            {splits.map((s, idx) => (
-              <li key={s.id} className="flex items-center gap-3 px-3 py-2.5">
-                <span className="w-5 shrink-0 text-center text-xs tabular-nums text-zinc-400">
-                  {idx + 1}
-                </span>
-                <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <span className="text-sm font-medium">{s.name}</span>
-                  {s.exerciseIds.length === 0 ? (
-                    <span className="text-xs text-zinc-400">아직 담은 종목이 없어요</span>
-                  ) : (
-                    <span className="flex flex-wrap gap-1">
-                      {s.exerciseIds
-                        .map((id) => nameById.get(id))
-                        .filter((n): n is string => !!n)
-                        .map((n) => (
-                          <span
-                            key={n}
-                            className="rounded bg-zinc-100 px-1.5 py-0.5 text-[11px] text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
-                          >
-                            {n}
-                          </span>
-                        ))}
-                    </span>
-                  )}
-                </div>
-                <div className="flex shrink-0 items-center">
-                  <button
-                    type="button"
-                    onClick={() => move(idx, -1)}
-                    disabled={idx === 0 || isPending}
-                    aria-label={`${s.name} 앞으로`}
-                    className={ICON_BTN}
+          <ListCard>
+            <ListBody ordered>
+              {splits.map((s, idx) => (
+                <li key={s.id} className="flex min-h-16 items-center gap-3 py-2.5">
+                  <span
+                    aria-label={`${idx + 1}번째`}
+                    className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-tag-bg text-sm font-bold text-ink-soft"
                   >
-                    <ChevronUp className="h-4 w-4" aria-hidden />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => move(idx, 1)}
-                    disabled={idx === splits.length - 1 || isPending}
-                    aria-label={`${s.name} 뒤로`}
-                    className={ICON_BTN}
-                  >
-                    <ChevronDown className="h-4 w-4" aria-hidden />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditing(s)}
-                    aria-label={`${s.name} 편집`}
-                    className={ICON_BTN}
-                  >
-                    <Pencil className="h-3.5 w-3.5" aria-hidden />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDeleteTarget(s)}
-                    aria-label={`${s.name} 삭제`}
-                    className={`${ICON_BTN} hover:text-rose-600 dark:hover:text-rose-400`}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" aria-hidden />
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ol>
+                    {idx + 1}
+                  </span>
+                  <div className="flex min-w-0 flex-1 flex-col gap-1">
+                    <span className="text-[15px] font-semibold text-ink-strong">{s.name}</span>
+                    {s.exerciseIds.length === 0 ? (
+                      <span className="text-[13px] text-ink-muted">아직 담은 종목이 없어요</span>
+                    ) : (
+                      <span className="flex flex-wrap gap-1.5">
+                        {s.exerciseIds
+                          .map((id) => nameById.get(id))
+                          .filter((n): n is string => !!n)
+                          .map((n) => (
+                            <TagChip key={n}>{n}</TagChip>
+                          ))}
+                      </span>
+                    )}
+                  </div>
+                  <div className="-mr-1.5 flex shrink-0 items-center gap-0.5">
+                    <RowAction label={`${s.name} 앞으로`} title="앞으로" onClick={() => move(idx, -1)} disabled={idx === 0 || isPending}>
+                      <ArrowUp className="h-4 w-4" aria-hidden />
+                    </RowAction>
+                    <RowAction label={`${s.name} 뒤로`} title="뒤로" onClick={() => move(idx, 1)} disabled={idx === splits.length - 1 || isPending}>
+                      <ArrowDown className="h-4 w-4" aria-hidden />
+                    </RowAction>
+                    <span aria-hidden className="mx-1 h-5 w-px bg-divider" />
+                    <RowAction label={`${s.name} 편집`} title="편집" onClick={() => setEditing(s)}>
+                      <Pencil className="h-4 w-4" aria-hidden />
+                    </RowAction>
+                    <RowAction label={`${s.name} 삭제`} title="삭제" onClick={() => setDeleteTarget(s)}>
+                      <Trash2 className="h-4 w-4" aria-hidden />
+                    </RowAction>
+                  </div>
+                </li>
+              ))}
+            </ListBody>
+          </ListCard>
           <UnassignedNote splits={splits} exercises={exercises} />
           <div className="flex flex-wrap items-center justify-between gap-2">
             <button
               type="button"
               onClick={() => setEditing('new')}
-              className="inline-flex min-h-10 w-fit items-center gap-1 rounded px-2 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+              className={`-ml-1 inline-flex h-10 cursor-pointer items-center gap-1.5 rounded-md px-1 text-sm font-medium text-btn-fg hover:text-heading ${FOCUS_RING}`}
             >
               <Plus className="h-4 w-4" aria-hidden />
               분할 추가
@@ -164,15 +135,13 @@ export function SplitsManager({ initial, exercises }: Props) {
               type="button"
               onClick={() => setResetOpen(true)}
               disabled={isPending}
-              className="min-h-10 rounded px-2 text-sm text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+              className={`-mr-1 inline-flex h-10 cursor-pointer items-center rounded-md px-1 text-sm text-ink-muted hover:text-ink disabled:opacity-50 ${FOCUS_RING}`}
             >
               처음부터 다시 짜기
             </button>
           </div>
         </>
       )}
-
-      {error ? <p className="text-xs text-rose-600 dark:text-rose-400">{error}</p> : null}
 
       {creating ? (
         <SplitCreateDialog
@@ -206,14 +175,10 @@ export function SplitsManager({ initial, exercises }: Props) {
         />
       ) : null}
 
-      <ConfirmDialog
+      <ListConfirmDialog
         open={!!deleteTarget}
-        title="분할 삭제"
-        description={
-          <p>
-            <span className="font-medium">{deleteTarget?.name}</span> 분할을 삭제할까요? 운동 기록은 남아요.
-          </p>
-        }
+        title={`'${deleteTarget?.name ?? ''}' 분할을 삭제할까요?`}
+        body="운동 기록은 남아요."
         confirmLabel={isPending ? '삭제 중…' : '삭제'}
         pending={isPending}
         onCancel={() => setDeleteTarget(null)}
@@ -228,11 +193,11 @@ export function SplitsManager({ initial, exercises }: Props) {
         }}
       />
 
-      {/* 처음부터 다시 짜기 — 전부 지우면 바로 '분할 만들기'로 이어짐 */}
-      <ConfirmDialog
+      {/* 처음부터 다시 짜기 — 전부 지우면 바로 분할 만들기 창으로 이어짐 */}
+      <ListConfirmDialog
         open={resetOpen}
-        title="처음부터 다시 짜기"
-        description={<p>분할 {splits.length}개를 모두 지우고 새로 짤까요? 운동 기록은 남아요.</p>}
+        title={`분할 ${splits.length}개를 모두 지우고 새로 짤까요?`}
+        body="운동 기록은 남아요."
         confirmLabel={isPending ? '지우는 중…' : '지우기'}
         pending={isPending}
         onCancel={() => setResetOpen(false)}
@@ -249,7 +214,7 @@ export function SplitsManager({ initial, exercises }: Props) {
   );
 }
 
-// 어느 분할에도 없는 종목 — 놓치지 않게 목록 아래 한 줄.
+// 어느 분할에도 없는 종목 — 놓치지 않게 카드 아래 한 줄(warn 점).
 function UnassignedNote({
   splits,
   exercises,
@@ -261,8 +226,11 @@ function UnassignedNote({
   const left = exercises.filter((e) => !inAny.has(e.id));
   if (left.length === 0) return null;
   return (
-    <p className="text-xs text-zinc-500 dark:text-zinc-400">
-      어느 분할에도 없는 종목 {left.length}개: {left.map((e) => e.name).join(', ')}
+    <p className="flex items-start gap-2 text-sm text-ink-soft">
+      <span aria-hidden className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-warn" />
+      <span>
+        어느 분할에도 없는 종목 {left.length}개: {left.map((e) => e.name).join(', ')}
+      </span>
     </p>
   );
 }

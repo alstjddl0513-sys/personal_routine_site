@@ -2,14 +2,28 @@
 
 import { useState, useTransition, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, Check, ChevronDown, ChevronRight, PauseCircle, PlayCircle, Plus, Trash2, X } from 'lucide-react';
+import { Play, Trash2 } from 'lucide-react';
 import type { BlogSource } from '@repo/shared';
 import {
   createBlogSource,
   deleteBlogSource,
   patchBlogSource,
 } from '../../lib/api';
-import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { BUTTON_PRIMARY, BUTTON_SECONDARY, POPOVER_INPUT } from '../jobs/cells/popover-style';
+import {
+  AddLine,
+  ExpandPanel,
+  Field,
+  INPUT_ERROR,
+  ListBody,
+  ListCard,
+  ListEmpty,
+  ListError,
+  ListRow,
+  RowAction,
+  StatusBadge,
+} from './lists/ListCard';
+import { ListConfirmDialog } from './lists/ListConfirmDialog';
 
 type Draft = {
   name: string;
@@ -27,14 +41,30 @@ function draftFromSource(s: BlogSource): Draft {
   };
 }
 
-function validateDraft(d: Draft): string | null {
-  if (!d.name.trim()) return '이름을 입력하세요.';
+type DraftError = { field: keyof Draft; message: string };
+
+function validateDraft(d: Draft): DraftError | null {
+  if (!d.name.trim()) return { field: 'name', message: '이름을 입력하세요.' };
   const url = d.rssUrl.trim();
-  if (!url) return 'RSS 주소를 입력하세요.';
-  if (!/^https?:\/\//i.test(url)) return 'RSS 주소는 http:// 또는 https://로 시작해야 해요.';
+  if (!url) return { field: 'rssUrl', message: 'RSS 주소를 입력하세요.' };
+  if (!/^https?:\/\//i.test(url))
+    return { field: 'rssUrl', message: 'RSS 주소는 http:// 또는 https://로 시작해야 해요.' };
   const site = d.siteUrl.trim();
-  if (site && !/^https?:\/\//i.test(site)) return '사이트 주소는 http:// 또는 https://로 시작해야 해요.';
+  if (site && !/^https?:\/\//i.test(site))
+    return { field: 'siteUrl', message: '사이트 주소는 http:// 또는 https://로 시작해야 해요.' };
   return null;
+}
+
+// RSS 주소는 고정폭 글꼴(ui-monospace)
+const MONO = 'font-[ui-monospace,SFMono-Regular,Menlo,monospace]';
+
+// 일시중지 — lucide Pause는 속 빈 사각형 두 개라 시안처럼 세로선 두 개로
+function PauseLines() {
+  return (
+    <svg aria-hidden viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round">
+      <path d="M9 5.5v13M15 5.5v13" />
+    </svg>
+  );
 }
 
 export function BlogSourcesManager({ initial }: { initial: BlogSource[] }) {
@@ -42,6 +72,7 @@ export function BlogSourcesManager({ initial }: { initial: BlogSource[] }) {
   const [rows, setRows] = useState<BlogSource[]>(initial);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [draftError, setDraftError] = useState<DraftError | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [confirmDeleteRow, setConfirmDeleteRow] = useState<BlogSource | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -49,20 +80,21 @@ export function BlogSourcesManager({ initial }: { initial: BlogSource[] }) {
   function beginEdit(row: BlogSource) {
     setExpandedId(row.id);
     setDraft(draftFromSource(row));
+    setDraftError(null);
     setError(null);
   }
 
   function cancelEdit() {
     setExpandedId(null);
     setDraft(null);
-    setError(null);
+    setDraftError(null);
   }
 
   function saveEdit(row: BlogSource) {
     if (!draft) return;
-    const msg = validateDraft(draft);
-    if (msg) {
-      setError(msg);
+    const invalid = validateDraft(draft);
+    if (invalid) {
+      setDraftError(invalid);
       return;
     }
     const patch = {
@@ -79,7 +111,7 @@ export function BlogSourcesManager({ initial }: { initial: BlogSource[] }) {
         router.refresh();
       } catch (err) {
         console.error(err);
-        setError('고치지 못했어요. 주소를 확인하고 다시 해보세요.');
+        setDraftError({ field: 'rssUrl', message: '고치지 못했어요. 주소를 확인하고 다시 해보세요.' });
       }
     });
   }
@@ -114,109 +146,77 @@ export function BlogSourcesManager({ initial }: { initial: BlogSource[] }) {
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      {error ? (
-        <div
-          role="alert"
-          className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300"
-        >
-          <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
-          <span>{error}</span>
-        </div>
-      ) : null}
+    <div className="flex flex-col gap-3">
+      <ListError message={error} />
 
-      <div className="rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-        <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
+      <ListCard>
+        {rows.length === 0 ? <ListEmpty>아직 구독한 블로그가 없어요.</ListEmpty> : null}
+        <ListBody>
           {rows.map((row) => {
             const isExpanded = expandedId === row.id;
+            const paused = !row.isActive;
             return (
-              <li key={row.id} className={row.isActive ? '' : 'opacity-60'}>
-                <div className="flex items-center gap-2 px-3 py-2 text-sm">
-                  <button
-                    type="button"
-                    onClick={() => (isExpanded ? cancelEdit() : beginEdit(row))}
-                    className="flex min-w-0 flex-1 items-center gap-2 text-left"
-                    aria-expanded={isExpanded}
-                  >
-                    {isExpanded ? (
-                      <ChevronDown className="h-3.5 w-3.5 shrink-0 text-zinc-400" aria-hidden />
-                    ) : (
-                      <ChevronRight className="h-3.5 w-3.5 shrink-0 text-zinc-400" aria-hidden />
-                    )}
-                    <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-2">
-                      <span className="truncate font-medium">{row.name}</span>
-                      <span className="truncate font-mono text-[11px] text-zinc-500">
-                        {row.rssUrl}
-                      </span>
-                    </div>
-                    {!row.isActive ? (
-                      <span className="shrink-0 rounded bg-zinc-200 px-1.5 py-0.5 text-[10px] text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
-                        일시중지됨
-                      </span>
-                    ) : null}
-                  </button>
-
-                  <div className="flex shrink-0 items-center">
-                    <IconButton
+              <ListRow
+                key={row.id}
+                name={row.name}
+                dimmed={paused}
+                badges={paused ? <StatusBadge>일시중지됨</StatusBadge> : null}
+                sub={<span className={`block max-w-110 truncate text-[12.5px] ${MONO}`}>{row.rssUrl}</span>}
+                expand={{
+                  open: isExpanded,
+                  onToggle: () => (isExpanded ? cancelEdit() : beginEdit(row)),
+                  label: `${row.name} 고치기`,
+                }}
+                actions={
+                  <>
+                    <RowAction
+                      label={paused ? `${row.name} 다시 받기` : `${row.name} 일시중지`}
+                      title={paused ? '다시 받기' : '일시중지 — 새 글을 잠시 안 가져와요. 가져온 글은 남아요'}
                       onClick={() => toggleActive(row)}
                       disabled={isPending}
-                      label={row.isActive ? `${row.name} 일시중지` : `${row.name} 다시 받기`}
-                      title={
-                        row.isActive
-                          ? '일시중지 — 새 글을 잠시 안 가져와요. 가져온 글은 남아요'
-                          : '다시 받기'
-                      }
                     >
-                      {row.isActive ? (
-                        <PauseCircle className="h-4 w-4" />
-                      ) : (
-                        <PlayCircle className="h-4 w-4" />
-                      )}
-                    </IconButton>
-                    <IconButton
-                      onClick={() => setConfirmDeleteRow(row)}
-                      disabled={isPending}
-                      label={`${row.name} 삭제`}
-                      title="삭제"
-                      danger
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </IconButton>
-                  </div>
-                </div>
-
-                {isExpanded && draft ? (
-                  <EditForm
-                    draft={draft}
-                    onChange={setDraft}
-                    onSave={() => saveEdit(row)}
-                    onCancel={cancelEdit}
-                    isPending={isPending}
-                  />
-                ) : null}
-              </li>
+                      {paused ? <Play className="h-4 w-4" aria-hidden /> : <PauseLines />}
+                    </RowAction>
+                    <RowAction label={`${row.name} 삭제`} title="삭제" onClick={() => setConfirmDeleteRow(row)} disabled={isPending}>
+                      <Trash2 className="h-4 w-4" aria-hidden />
+                    </RowAction>
+                  </>
+                }
+                panel={
+                  isExpanded && draft ? (
+                    <ExpandPanel>
+                      <BlogFields
+                        draft={draft}
+                        onChange={setDraft}
+                        error={draftError}
+                        onClearError={() => setDraftError(null)}
+                        isPending={isPending}
+                        onEnter={() => saveEdit(row)}
+                        onEscape={cancelEdit}
+                      />
+                      <div className="flex justify-end gap-2">
+                        <button type="button" onClick={cancelEdit} disabled={isPending} className={BUTTON_SECONDARY}>
+                          취소
+                        </button>
+                        <button type="button" onClick={() => saveEdit(row)} disabled={isPending} className={BUTTON_PRIMARY}>
+                          {isPending ? '저장 중…' : '저장'}
+                        </button>
+                      </div>
+                    </ExpandPanel>
+                  ) : null
+                }
+              />
             );
           })}
-        </ul>
+        </ListBody>
 
-        <AddRow
-          onAdd={(row) => setRows((prev) => [...prev, row])}
-          onError={setError}
-        />
-      </div>
+        <AddRow onAdd={(row) => setRows((prev) => [...prev, row])} onError={setError} />
+      </ListCard>
 
-      <ConfirmDialog
+      <ListConfirmDialog
         open={!!confirmDeleteRow}
-        title="구독한 블로그 삭제"
-        description={
-          <p>
-            <span className="font-medium text-zinc-900 dark:text-zinc-100">
-              {confirmDeleteRow?.name}
-            </span>
-            을(를) 삭제할까요? 이 블로그에서 가져온{' '}
-            <strong>글도 전부 함께 사라져요</strong>. 되돌릴 수 없어요.
-          </p>
-        }
+        title={`'${confirmDeleteRow?.name ?? ''}'을(를) 삭제할까요?`}
+        body="이 블로그에서 가져온 글도 전부 함께 사라져요. 되돌릴 수 없어요."
         confirmLabel={isPending ? '삭제 중…' : '삭제'}
         pending={isPending}
         onConfirm={() => confirmDeleteRow && performDelete(confirmDeleteRow)}
@@ -226,80 +226,78 @@ export function BlogSourcesManager({ initial }: { initial: BlogSource[] }) {
   );
 }
 
-function EditForm({
+// 펼침 · 추가 칸 공통 — 이름 · RSS 주소 / 사이트 주소(grid 1fr 1.6fr)
+function BlogFields({
   draft,
   onChange,
-  onSave,
-  onCancel,
+  error,
+  onClearError,
   isPending,
+  onEnter,
+  onEscape,
+  placeholders,
 }: {
   draft: Draft;
   onChange: (d: Draft) => void;
-  onSave: () => void;
-  onCancel: () => void;
+  error: DraftError | null;
+  onClearError: () => void;
   isPending: boolean;
+  onEnter?: () => void;
+  onEscape: () => void;
+  placeholders?: Partial<Record<keyof Draft, string>>;
 }) {
+  const set = (k: keyof Draft, v: string) => {
+    onChange({ ...draft, [k]: v });
+    if (error) onClearError();
+  };
+  const keys = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && onEnter) onEnter();
+    if (e.key === 'Escape') onEscape();
+  };
+  const errOf = (k: keyof Draft) => (error?.field === k ? error.message : null);
+  const cls = (k: keyof Draft, extra = '') => `${POPOVER_INPUT} ${extra} ${error?.field === k ? INPUT_ERROR : ''}`;
   return (
-    <div className="border-t border-zinc-100 bg-zinc-50/50 px-3 py-3 dark:border-zinc-800 dark:bg-zinc-900/40">
-      <div className="flex flex-col gap-3">
-        <Field label="이름">
-          <input
-            type="text"
-            value={draft.name}
-            onChange={(e) => onChange({ ...draft, name: e.target.value })}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') onSave();
-              if (e.key === 'Escape') onCancel();
-            }}
-            disabled={isPending}
-            maxLength={100}
-            autoFocus
-            className="rounded border border-zinc-300 bg-white px-2 py-1 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
-          />
-        </Field>
-        <Field label="RSS 주소">
-          <input
-            type="url"
-            value={draft.rssUrl}
-            onChange={(e) => onChange({ ...draft, rssUrl: e.target.value })}
-            disabled={isPending}
-            maxLength={500}
-            placeholder="https://..."
-            className="rounded border border-zinc-300 bg-white px-2 py-1 font-mono text-xs outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
-          />
-        </Field>
-        <Field label="사이트 주소 (선택)">
-          <input
-            type="url"
-            value={draft.siteUrl}
-            onChange={(e) => onChange({ ...draft, siteUrl: e.target.value })}
-            disabled={isPending}
-            maxLength={500}
-            placeholder="https://..."
-            className="rounded border border-zinc-300 bg-white px-2 py-1 font-mono text-xs outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
-          />
-        </Field>
-        <div className="flex items-center justify-end gap-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={isPending}
-            className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
-          >
-            <X className="h-3.5 w-3.5" />
-            취소
-          </button>
-          <button
-            type="button"
-            onClick={onSave}
-            disabled={isPending}
-            className="inline-flex items-center gap-1 rounded bg-zinc-900 px-3 py-1 text-xs text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-          >
-            <Check className="h-3.5 w-3.5" />
-            {isPending ? '저장 중…' : '저장'}
-          </button>
-        </div>
-      </div>
+    <div className="grid grid-cols-1 gap-x-3 gap-y-2.5 md:grid-cols-[1fr_1.6fr]">
+      <Field label="이름" error={errOf('name')}>
+        <input
+          type="text"
+          value={draft.name}
+          onChange={(e) => set('name', e.target.value)}
+          onKeyDown={keys}
+          disabled={isPending}
+          maxLength={100}
+          autoFocus
+          placeholder={placeholders?.name}
+          aria-invalid={error?.field === 'name'}
+          className={cls('name', 'text-[15px]')}
+        />
+      </Field>
+      <Field label="RSS 주소" error={errOf('rssUrl')}>
+        <input
+          type="url"
+          value={draft.rssUrl}
+          onChange={(e) => set('rssUrl', e.target.value)}
+          onKeyDown={keys}
+          disabled={isPending}
+          maxLength={500}
+          placeholder={placeholders?.rssUrl ?? 'https://...'}
+          aria-invalid={error?.field === 'rssUrl'}
+          className={cls('rssUrl', `text-[13.5px] ${MONO}`)}
+        />
+      </Field>
+      <Field label="사이트 주소" hint="선택" error={errOf('siteUrl')}>
+        <input
+          type="url"
+          value={draft.siteUrl}
+          onChange={(e) => set('siteUrl', e.target.value)}
+          onKeyDown={keys}
+          disabled={isPending}
+          maxLength={500}
+          placeholder={placeholders?.siteUrl ?? 'https://...'}
+          aria-invalid={error?.field === 'siteUrl'}
+          className={cls('siteUrl', 'text-[15px]')}
+        />
+      </Field>
     </div>
   );
 }
@@ -314,19 +312,21 @@ function AddRow({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<Draft>(ADD_DEFAULTS);
+  const [draftError, setDraftError] = useState<DraftError | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function reset() {
     setDraft(ADD_DEFAULTS);
+    setDraftError(null);
     setOpen(false);
     onError(null);
   }
 
   function submit(e: FormEvent) {
     e.preventDefault();
-    const msg = validateDraft(draft);
-    if (msg) {
-      onError(msg);
+    const invalid = validateDraft(draft);
+    if (invalid) {
+      setDraftError(invalid);
       return;
     }
     onError(null);
@@ -342,129 +342,35 @@ function AddRow({
         router.refresh();
       } catch (err) {
         console.error(err);
-        onError('추가하지 못했어요. 주소를 확인하고 다시 해보세요.');
+        // 실패 원인이 대개 주소(중복 · 형식)라 RSS 칸 아래에 붙임
+        setDraftError({ field: 'rssUrl', message: '추가하지 못했어요. 주소를 확인하고 다시 해보세요.' });
       }
     });
   }
 
-  if (!open) {
-    return (
-      <div className="border-t border-zinc-100 p-1 dark:border-zinc-800">
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="inline-flex min-h-10 items-center gap-1 rounded px-2 text-sm text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
-        >
-          <Plus className="h-4 w-4" aria-hidden />
-          블로그 추가
-        </button>
-      </div>
-    );
-  }
+  if (!open) return <AddLine label="블로그 추가" onClick={() => setOpen(true)} />;
 
   return (
-    <form
-      onSubmit={submit}
-      className="flex flex-col gap-3 border-t border-zinc-100 bg-zinc-50/50 px-3 py-3 dark:border-zinc-800 dark:bg-zinc-900/40"
-    >
-      <Field label="이름">
-        <input
-          type="text"
-          value={draft.name}
-          onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-          disabled={isPending}
-          autoFocus
-          maxLength={100}
-          placeholder="예: 카카오 tech"
-          className="rounded border border-zinc-300 bg-white px-2 py-1 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
+    <form onSubmit={submit}>
+      <ExpandPanel last>
+        <BlogFields
+          draft={draft}
+          onChange={setDraft}
+          error={draftError}
+          onClearError={() => setDraftError(null)}
+          isPending={isPending}
+          onEscape={reset}
+          placeholders={{ name: '예: 카카오 tech', rssUrl: 'https://example.com/feed', siteUrl: 'https://example.com' }}
         />
-      </Field>
-      <Field label="RSS 주소">
-        <input
-          type="url"
-          value={draft.rssUrl}
-          onChange={(e) => setDraft({ ...draft, rssUrl: e.target.value })}
-          disabled={isPending}
-          maxLength={500}
-          placeholder="https://example.com/feed"
-          className="rounded border border-zinc-300 bg-white px-2 py-1 font-mono text-xs outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
-        />
-      </Field>
-      <Field label="사이트 주소 (선택)">
-        <input
-          type="url"
-          value={draft.siteUrl}
-          onChange={(e) => setDraft({ ...draft, siteUrl: e.target.value })}
-          disabled={isPending}
-          maxLength={500}
-          placeholder="https://example.com"
-          className="rounded border border-zinc-300 bg-white px-2 py-1 font-mono text-xs outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
-        />
-      </Field>
-      <div className="flex items-center justify-end gap-2">
-        <button
-          type="button"
-          onClick={reset}
-          disabled={isPending}
-          className="rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
-        >
-          취소
-        </button>
-        <button
-          type="submit"
-          disabled={isPending}
-          className="rounded bg-zinc-900 px-3 py-1 text-xs text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-        >
-          {isPending ? '추가 중…' : '추가'}
-        </button>
-      </div>
+        <div className="flex justify-end gap-2">
+          <button type="button" onClick={reset} disabled={isPending} className={BUTTON_SECONDARY}>
+            취소
+          </button>
+          <button type="submit" disabled={isPending} className={BUTTON_PRIMARY}>
+            {isPending ? '추가 중…' : '추가'}
+          </button>
+        </div>
+      </ExpandPanel>
     </form>
   );
 }
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="flex flex-col gap-1">
-      <span className="text-xs text-zinc-500 dark:text-zinc-400">
-        {label}
-      </span>
-      {children}
-    </label>
-  );
-}
-
-function IconButton({
-  onClick,
-  disabled,
-  label,
-  title,
-  danger,
-  children,
-}: {
-  onClick: () => void;
-  disabled: boolean;
-  /** 스크린리더 이름(블로그 이름 포함) */
-  label: string;
-  /** 마우스를 올리면 보이는 설명 */
-  title: string;
-  danger?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-label={label}
-      title={title}
-      className={`inline-flex h-10 w-10 items-center justify-center rounded text-zinc-500 transition-colors disabled:opacity-40 ${
-        danger
-          ? 'hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/40 dark:hover:text-red-300'
-          : 'hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100'
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
-

@@ -25,15 +25,15 @@ export function Segment<T extends string | number>({
   disabled?: boolean;
   /** 묶음 이름(스크린리더) */
   label: string;
-  /** md = 38px · sm = 32px */
-  size?: 'md' | 'sm';
+  /** lg = 40px(칸 최소 52px) · md = 38px · sm = 32px */
+  size?: 'lg' | 'md' | 'sm';
 }) {
   return (
     <div
       role="group"
       aria-label={label}
       className={`inline-flex shrink-0 overflow-hidden rounded-md border border-btn-border ${
-        size === 'sm' ? 'h-8' : 'h-9.5'
+        size === 'sm' ? 'h-8' : size === 'lg' ? 'h-10' : 'h-9.5'
       }`}
     >
       {options.map((o, i) => {
@@ -48,7 +48,7 @@ export function Segment<T extends string | number>({
             disabled={disabled}
             onClick={() => onChange(o.value)}
             className={`inline-flex items-center justify-center gap-1 text-sm outline-none focus-visible:shadow-[inset_0_0_0_2px_var(--rally-chip-on-border)] ${
-              size === 'sm' ? 'min-w-12 px-2.5' : 'min-w-16 px-3'
+              size === 'sm' ? 'min-w-12 px-2.5' : size === 'lg' ? 'min-w-13 px-2.5' : 'min-w-16 px-3'
             } ${i > 0 ? 'border-l border-btn-border' : ''} ${
               disabled
                 ? on

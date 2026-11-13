@@ -23,6 +23,7 @@
 | `rally-learn-stats(-dark).html` · `rally-learn-stats-parts.html` | 학습 통계 · 요약 띠 · 묵은 복습필요 · 주별 막대 · 히트맵 · 카테고리 표 · 숫자 0 · 빈 상태 | `/learn/statistics` `components/learn/stats/*` |
 | `rally-blog(-dark).html` · `rally-blog-parts.html` | 기술 블로그 · 칩 · 가져오기 결과 · 글 목록(새 글 · 읽음 · hover · 포커스) · 더 보기 · 빈 상태 | `/blog` `components/blog/*` |
 | `rally-settings(-dark).html` · `rally-settings-parts.html` | 설정 첫 화면 · 닉네임 · 비밀번호 · 백업 · 알림 창 · 피드백 창 · 계정 삭제 창 | `/settings` `components/settings/*` |
+| `rally-settings-lists(-dark).html` · `rally-settings-lists-parts.html` | 설정 목록 관리 6화면(회사 유형 · 학습 카테고리 · 운동 종목 · 분할 · 주간 운동 목표 · 구독한 블로그) + 편집 · 추가 · 오류 · 확인 창 | `/settings/{company-types,question-categories,exercises,splits,muscle-goals,blog-sources}` `components/settings/lists/*` |
 
 **현재 상태**: 숲색 `#1F3D30` · 메리골드 `#E9B949`(로고·챌린지 포인트, 시안의 황토 `#C8963E`에서 변경) · 바탕 `#F6F7F5`, IBM Plex Sans KR + Noto Serif KR(인사말). 사이드바(전 페이지)와 `/today`에 적용. 다른 페이지 본문은 zinc — 페이지별로 개편할 때 같은 토큰으로 확산. 모바일(BottomNav)은 별도 시안 예정.
 
@@ -179,6 +180,14 @@
 - 비밀번호 변경: 창 → 계정 카드 안 그 자리 입력. 두 칸 폭을 맞춤(첫 칸도 [변경] 앞에서 끝남). 모르는 오류도 원문 대신 "비밀번호를 바꾸지 못했어요…"
 - 공용 `ui/Switch`(role=switch, Space 토글) · `ui/Segment` · `settings/SettingsDialog` 새로. 권한은 `lib/notif-permission` 한 곳(허용 요청 뒤 모든 항목이 같이 풀림)
 - 모바일: 프로필 카드는 그대로(모바일 개편 때), 닉네임 · 비밀번호 입력은 좁은 화면에서 이름 아래 줄로
+
+**설정 목록 관리** (`/settings/*` 6화면, 2026-11-13) — 동작 · 문구는 #196 그대로
+- 공통 부품 `settings/lists/ListCard`(ListCard · ListRow · RowAction · StatusBadge · TagChip · AddLine · ExpandPanel · Field · ListError · SaveStatus) + 페이지 래퍼 `settings/SettingsSubPage`. 회사 유형 · 학습 카테고리는 같은 `LabelListManager`
+- 확인 창은 시안대로 **제목 = 질문, 본문 = 결과**("'스타트업' 유형을 삭제할까요?" / "이미 이 유형을 …"). 새 `ListConfirmDialog`(SettingsDialog `compact`) — 공용 `ui/ConfirmDialog`는 관리자 · 챌린지도 써서 그대로
+- 입력 오류는 목록 위 상자 → **칸 alert 테두리 + 칸 아래 한 줄**. 목록 위 한 줄은 서버 실패(고치기 · 삭제 · 일시중지)만. 블로그 추가 · 저장 실패는 대개 주소 문제라 RSS 칸 아래에
+- 일시중지 아이콘은 lucide `Pause`(속 빈 사각형 두 개) 대신 시안의 세로선 두 개(인라인 SVG)
+- 운동 종목 · 블로그 펼침 칸은 좁은 화면(md 미만)에서 이름 · 부위를 한 줄씩(시안은 데스크톱 grid만)
+- 빈 상태는 서버에서 목록을 받아 그려서 스크린샷으로 확인 못 함(코드로만 — 회사 유형 · 카테고리 · 종목 · 블로그 "아직 … 없어요.", 분할은 기존 빈 화면)
 
 **채운 버튼(숲색) 규칙** (2026-11-12) — 한 화면에서 **가장 먼저 누를 버튼 하나만** `BUTTON_PRIMARY`(bg-button). 빈 상태의 유일한 행동도 채움. 반복되는 버튼([세트 추가] 등) · 이동 · 보조 · 창 안 [취소]는 테두리
 - 테두리 → 채움으로 바꾼 곳: 운동 기록 첫 사용 안내 [분할 만들기], 블로그 [새 글 가져오기] · 빈 상태 [전체 보기], 학습 · 복습 빈 상태 [전체 보기]

@@ -14,6 +14,7 @@ export function SettingsDialog({
   onClose,
   busy,
   widthClass = 'md:max-w-130',
+  compact,
   children,
 }: {
   open: boolean;
@@ -23,6 +24,8 @@ export function SettingsDialog({
   busy?: boolean;
   /** md 이상 최대 폭(기본 520px) */
   widthClass?: string;
+  /** 확인 창 — 제목 18px(질문) · 간격 14px */
+  compact?: boolean;
   children: ReactNode;
 }) {
   useEffect(() => {
@@ -53,10 +56,10 @@ export function SettingsDialog({
         }}
       >
         <div
-          className={`flex max-h-[85vh] w-full flex-col gap-4.5 overflow-y-auto rounded-t-2xl bg-surface px-7 pt-5.5 pb-6 font-plex text-[15px] text-ink shadow-lg md:max-h-[calc(100vh-2rem)] md:rounded-lg ${widthClass}`}
+          className={`flex max-h-[85vh] w-full flex-col ${compact ? 'gap-3.5' : 'gap-4.5'} overflow-y-auto rounded-t-2xl bg-surface px-7 pt-5.5 pb-6 font-plex text-[15px] text-ink shadow-lg md:max-h-[calc(100vh-2rem)] md:rounded-lg ${widthClass}`}
         >
           <header className="-mr-2.5 flex items-center justify-between gap-2">
-            <h2 id={labelId} className="text-xl font-bold">
+            <h2 id={labelId} className={compact ? 'text-lg font-bold' : 'text-xl font-bold'}>
               {title}
             </h2>
             <button
