@@ -343,6 +343,7 @@ function QuestionFields({
           options={categoryOptions}
           disabled={isPending}
           ariaLabel="카테고리"
+          tone="rally"
           placeholder="카테고리 없음"
           triggerClassName={`${POPOVER_INPUT} w-55! cursor-pointer text-[15px]`}
         />

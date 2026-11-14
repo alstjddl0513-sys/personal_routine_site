@@ -40,6 +40,7 @@ export function TargetMuscleSelect({
       options={groups}
       disabled={disabled}
       ariaLabel="타겟 부위"
+      tone="rally"
       placeholder="기타"
       triggerClassName={
         className ??
