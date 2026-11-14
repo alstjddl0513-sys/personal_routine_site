@@ -30,7 +30,7 @@ export function GoogleButton({
         options: { redirectTo: callback.toString() },
       });
       if (oauthError) {
-        onError('Google 로그인을 시작하지 못했어요. 잠시 후 다시 시도해주세요.');
+        onError('Google 로그인을 시작하지 못했어요. 잠시 후 다시 해보세요.');
       }
       // 성공 시 브라우저가 Google로 redirect됨.
     } catch {

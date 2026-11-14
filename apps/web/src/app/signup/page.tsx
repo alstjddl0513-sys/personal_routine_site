@@ -114,9 +114,9 @@ export default function SignupPage() {
         await upsertMyProfile(nickname);
       } catch (err) {
         if (err instanceof HttpError && err.status === 409) {
-          setError('닉네임이 방금 다른 사람에게 선점됐어요. 다른 닉네임으로 다시 시도해주세요.');
+          setError('이미 사용 중인 닉네임이에요. 다른 닉네임으로 다시 해보세요.');
         } else {
-          setError('프로필을 저장하지 못했어요. 잠시 후 다시 시도해주세요.');
+          setError('프로필을 저장하지 못했어요. 잠시 후 다시 해보세요.');
         }
         // 세션은 살아있음 — 사용자가 닉네임만 바꿔 재시도 가능.
         setSubmitting(false);
