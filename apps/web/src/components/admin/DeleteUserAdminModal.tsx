@@ -24,7 +24,6 @@ export function DeleteUserAdminModal({
   onConfirm,
   onCancel,
 }: Props) {
-  const [checked, setChecked] = useState(false);
   const [typed, setTyped] = useState('');
   const typedRef = useRef<HTMLInputElement>(null);
 
@@ -35,7 +34,6 @@ export function DeleteUserAdminModal({
   if (prevOpen !== open) {
     setPrevOpen(open);
     if (!open) {
-      setChecked(false);
       setTyped('');
     }
   }
@@ -51,7 +49,8 @@ export function DeleteUserAdminModal({
 
   if (!open || !target) return null;
 
-  const canConfirm = checked && typed.trim() === CONFIRM_WORD && !pending;
+  // 확인은 '삭제' 입력 한 번만(체크박스와 같은 확인을 두 번 받지 않음)
+  const canConfirm = typed.trim() === CONFIRM_WORD && !pending;
 
   return (
     <div
@@ -90,26 +89,15 @@ export function DeleteUserAdminModal({
               {target.nickname ?? target.email ?? target.id}
             </span>
             {' '}계정과 이 사용자의 모든 데이터가{' '}
-            <strong>영구히 삭제</strong>돼요. 복구 불가.
+            <strong>영구히 삭제</strong>돼요. 되돌릴 수 없어요.
           </p>
           <ul className="ml-4 list-disc space-y-0.5 text-xs text-zinc-600 dark:text-zinc-400">
             <li>계정 · 프로필 · 닉네임</li>
             <li>채용 · 루틴 · 운동 · 블로그 · 학습 데이터 전부</li>
           </ul>
 
-          <label className="mt-1 flex cursor-pointer items-start gap-2 text-xs">
-            <input
-              type="checkbox"
-              checked={checked}
-              onChange={(e) => setChecked(e.target.checked)}
-              disabled={pending}
-              className="mt-0.5 h-4 w-4 cursor-pointer rounded border-zinc-300 accent-red-600 dark:border-zinc-600"
-            />
-            <span>이 사용자의 데이터를 영구 삭제하는 데 동의합니다.</span>
-          </label>
-
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-zinc-500 dark:text-zinc-400">
+            <label htmlFor="admin-delete-confirm" className="text-xs text-zinc-500 dark:text-zinc-400">
               정말 삭제하려면 아래에{' '}
               <span className="font-semibold text-red-600 dark:text-red-400">
                 {CONFIRM_WORD}
@@ -117,6 +105,7 @@ export function DeleteUserAdminModal({
               라고 입력하세요.
             </label>
             <input
+              id="admin-delete-confirm"
               ref={typedRef}
               type="text"
               value={typed}

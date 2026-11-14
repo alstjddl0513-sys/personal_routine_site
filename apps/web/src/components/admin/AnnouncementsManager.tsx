@@ -44,7 +44,7 @@ export function AnnouncementsManager({ initial }: Props) {
         router.refresh();
       } catch (err) {
         console.error(err);
-        setError('공지 생성에 실패했어요.');
+        setError('공지를 만들지 못했어요. 잠시 후 다시 해보세요.');
       }
     });
   }
@@ -59,7 +59,7 @@ export function AnnouncementsManager({ initial }: Props) {
         router.refresh();
       } catch (err) {
         console.error(err);
-        setError('공지 수정에 실패했어요.');
+        setError('공지를 저장하지 못했어요. 잠시 후 다시 해보세요.');
       }
     });
   }
@@ -76,7 +76,7 @@ export function AnnouncementsManager({ initial }: Props) {
         router.refresh();
       } catch (err) {
         console.error(err);
-        setError('공지 삭제에 실패했어요.');
+        setError('공지를 삭제하지 못했어요. 잠시 후 다시 해보세요.');
         setDeleteTarget(null);
       }
     });
@@ -206,7 +206,7 @@ function AnnouncementRow({
             </span>
             {!row.isActive ? (
               <span className="rounded bg-zinc-200 px-1.5 py-0.5 text-[10px] text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
-                비활성
+                숨김
               </span>
             ) : null}
             <span className="text-[10px] text-zinc-400">
@@ -219,7 +219,7 @@ function AnnouncementRow({
               title={
                 row.stats.targets > 0
                   ? `${row.stats.reads}명 읽음 (${row.stats.targets}명 중)`
-                  : '아직 대상 유저가 없어요'
+                  : '받을 사람이 아직 없어요'
               }
             >
               읽음 {row.stats.reads}/{row.stats.targets}
@@ -291,7 +291,7 @@ function IconButton({
 }
 
 function formatWindow(startsAt: string | null, endsAt: string | null): string {
-  if (!startsAt && !endsAt) return '기간 무제한';
+  if (!startsAt && !endsAt) return '기간 제한 없음';
   const fmt = (iso: string) =>
     new Date(iso).toLocaleString('ko-KR', {
       month: '2-digit',

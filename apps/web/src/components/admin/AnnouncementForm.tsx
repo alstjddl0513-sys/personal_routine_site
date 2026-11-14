@@ -69,28 +69,32 @@ export function AnnouncementForm({ initial, pending, onSubmit, onCancel }: Props
             onChange={(e) => setIsActive(e.target.checked)}
             disabled={pending}
           />
-          활성
+          사용자에게 보이기
         </label>
       </div>
 
-      <input
-        type="text"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="제목"
-        disabled={pending}
-        maxLength={200}
-        className="rounded border border-zinc-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
-      />
-      <textarea
-        value={body}
-        onChange={(e) => setBody(e.target.value)}
-        placeholder="본문"
-        disabled={pending}
-        maxLength={4000}
-        rows={4}
-        className="rounded border border-zinc-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
-      />
+      <label className="flex flex-col gap-1 text-xs text-zinc-500">
+        제목
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          disabled={pending}
+          maxLength={200}
+          className="rounded border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-900 outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+        />
+      </label>
+      <label className="flex flex-col gap-1 text-xs text-zinc-500">
+        본문
+        <textarea
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          disabled={pending}
+          maxLength={4000}
+          rows={4}
+          className="rounded border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-900 outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+        />
+      </label>
 
       <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-500">
         <label className="flex items-center gap-1">
@@ -113,7 +117,7 @@ export function AnnouncementForm({ initial, pending, onSubmit, onCancel }: Props
             className="rounded border border-zinc-300 bg-white px-2 py-1 text-xs dark:border-zinc-700 dark:bg-zinc-900"
           />
         </label>
-        <span className="text-[10px] text-zinc-400">비우면 무제한</span>
+        <span className="text-[10px] text-zinc-400">비우면 제한 없음</span>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -124,10 +128,10 @@ export function AnnouncementForm({ initial, pending, onSubmit, onCancel }: Props
           className="inline-flex items-center gap-1 rounded border border-zinc-300 bg-white px-2 py-1 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800"
         >
           <Users className="h-3.5 w-3.5" aria-hidden />
-          타겟 지정
+          받는 사람 고르기
         </button>
         <span className="text-zinc-500">
-          {targets.length === 0 ? '전체 사용자 대상' : `${targets.length}명 지정`}
+          {targets.length === 0 ? '전체에게 보내요' : `${targets.length}명 지정`}
         </span>
         {targets.length > 0 ? (
           <button
@@ -136,7 +140,7 @@ export function AnnouncementForm({ initial, pending, onSubmit, onCancel }: Props
             disabled={pending}
             className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
           >
-            초기화
+            전체로 되돌리기
           </button>
         ) : null}
       </div>
