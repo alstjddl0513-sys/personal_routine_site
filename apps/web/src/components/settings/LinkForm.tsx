@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition, type FormEvent } from 'react';
+import { useState, useTransition, type SubmitEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { createLinkDocument } from '../../lib/api';
 import { BUTTON_PRIMARY, BUTTON_SECONDARY, POPOVER_INPUT_BASE } from '../jobs/cells/popover-style';
@@ -24,7 +24,7 @@ export function LinkForm() {
     setOpen(false);
   }
 
-  function submit(e: FormEvent) {
+  function submit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     const t = title.trim();
     const u = url.trim();

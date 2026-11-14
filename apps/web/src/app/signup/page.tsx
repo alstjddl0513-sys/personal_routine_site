@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type SubmitEvent, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { Check, Dices, Loader2, Mail, X } from 'lucide-react';
 import { GoogleButton, OrDivider } from '@/components/auth/GoogleButton';
@@ -98,7 +98,7 @@ export default function SignupPage() {
     passwordsMatch &&
     !submitting;
 
-  async function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setSubmitting(true);

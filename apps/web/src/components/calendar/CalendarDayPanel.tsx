@@ -5,7 +5,7 @@ import {
   useRef,
   useState,
   useTransition,
-  type FormEvent,
+  type SubmitEvent,
 } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -84,7 +84,7 @@ export function CalendarDayPanel({ iso, events, onClose }: Props) {
 
   const dirty = draft !== savedContent;
 
-  function save(e?: FormEvent) {
+  function save(e?: SubmitEvent<HTMLFormElement>) {
     e?.preventDefault();
     if (!dirty) return;
     startTransition(async () => {

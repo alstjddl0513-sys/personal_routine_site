@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition, type FormEvent } from 'react';
+import { useState, useTransition, type SubmitEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { Check, Pencil, Trash2, X } from 'lucide-react';
 import { BUTTON_PRIMARY, BUTTON_SECONDARY, POPOVER_INPUT_BASE } from '../jobs/cells/popover-style';
@@ -255,7 +255,7 @@ function AddRow<T extends LabelItem>({
     onError(null);
   }
 
-  function submit(e: FormEvent) {
+  function submit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     const l = label.trim();
     if (!l) {

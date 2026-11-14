@@ -5,7 +5,7 @@ import {
   useRef,
   useState,
   useTransition,
-  type FormEvent,
+  type SubmitEvent,
   type RefObject,
 } from 'react';
 import { useRouter } from 'next/navigation';
@@ -265,7 +265,7 @@ export function EventsEditor({
   const [type, setType] = useState<CompanyEventType>('interview');
   const [note, setNote] = useState('');
 
-  function submit(e: FormEvent) {
+  function submit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!date) return;
     onCreate({ date, type, note: note.trim() || undefined });

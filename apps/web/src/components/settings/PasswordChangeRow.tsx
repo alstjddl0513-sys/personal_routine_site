@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition, type FormEvent } from 'react';
+import { useState, useTransition, type SubmitEvent } from 'react';
 import { Check, KeyRound } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { SettingsRow } from './SettingsRow';
@@ -35,7 +35,7 @@ export function PasswordChangeRow() {
     setError(null);
   }
 
-  function handleSubmit(e: FormEvent) {
+  function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!canSubmit) return;
     setError(null);
