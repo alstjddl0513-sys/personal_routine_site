@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { useId, useState } from 'react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import {
   ANNOUNCEMENT_KINDS,
   ANNOUNCEMENT_KIND_LABELS,
@@ -15,6 +15,7 @@ import {
   BUTTON_SECONDARY,
   BUTTON_TEXT,
   POPOVER_INPUT,
+  POPOVER_INPUT_BASE,
 } from '../jobs/cells/popover-style';
 import { Field } from '../settings/lists/ListCard';
 import { Checkbox } from './admin-ui';
@@ -46,6 +47,8 @@ export function AnnouncementForm({ initial, pending, onSubmit, onCancel }: Props
   const [endsAt, setEndsAt] = useState(toLocalInput(initial?.endsAt));
   const [targets, setTargets] = useState<string[]>(initial?.targetUserIds ?? []);
   const [pickerOpen, setPickerOpen] = useState(false);
+  // 폼이 두 개(추가 · 편집) 동시에 열릴 수 있어 id는 useId로
+  const targetsId = useId();
 
   function submit() {
     if (!title.trim() || !body.trim()) return;
@@ -128,28 +131,35 @@ export function AnnouncementForm({ initial, pending, onSubmit, onCancel }: Props
         </Field>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2.5">
-        <button
-          type="button"
-          onClick={() => setPickerOpen(true)}
-          disabled={pending}
-          className={BUTTON_SECONDARY}
-        >
-          받는 사람 고르기
-        </button>
-        <span className="text-sm text-ink-muted">
-          {targets.length === 0 ? '전체에게 보내요' : `${targets.length}명 지정`}
+      {/* 다른 칸처럼 라벨 + 고르는 칸(종류 Select와 같은 모양) — 누르면 받는 사람 창 */}
+      <div className="flex flex-col gap-1.5">
+        <span id={`${targetsId}-label`} className="text-[13px] font-semibold text-ink-soft">
+          받는 사람
         </span>
-        {targets.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            onClick={() => setTargets([])}
+            onClick={() => setPickerOpen(true)}
             disabled={pending}
-            className={`${BUTTON_TEXT} -ml-1 px-2`}
+            aria-labelledby={`${targetsId}-label ${targetsId}-value`}
+            className={`${POPOVER_INPUT_BASE} inline-flex w-50 cursor-pointer items-center justify-between px-3 text-[15px]`}
           >
-            전체로 되돌리기
+            <span id={`${targetsId}-value`}>
+              {targets.length === 0 ? '전체' : `${targets.length}명 지정`}
+            </span>
+            <ChevronRight className="h-4 w-4 text-ink-muted" aria-hidden />
           </button>
-        ) : null}
+          {targets.length > 0 ? (
+            <button
+              type="button"
+              onClick={() => setTargets([])}
+              disabled={pending}
+              className={`${BUTTON_TEXT} px-2`}
+            >
+              전체로 되돌리기
+            </button>
+          ) : null}
+        </div>
       </div>
 
       <div className="flex justify-end gap-2">
