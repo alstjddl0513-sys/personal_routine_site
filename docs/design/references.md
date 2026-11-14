@@ -28,6 +28,7 @@
 | `rally-notif-drawer(-dark).html` · `rally-notif-drawer-parts.html` | 알림 내역 창(사이드바 🔔) — 꺼짐 안내 · 칩 · 알림 줄 · 공지 줄 · 빈 상태 · 🔔 안 읽음 | `components/NotifLogDrawer.tsx` `NotifBell.tsx` |
 | `rally-error(-dark).html` | 404 · 오류 · 앱 전체 오류 화면 | `app/not-found.tsx` `app/error.tsx` `app/global-error.tsx` `components/ErrorIcons.tsx` |
 | `rally-jobs-report(-dark).html` · `rally-jobs-report-parts.html` | 채용 리포트(인쇄용 취업활동 표) + 지원일 팝오버 · 빈 상태 · 인쇄본 | `/jobs/report` `components/jobs/report/*` `cells/AppliedAtPopover.tsx` · globals.css `@media print` |
+| `rally-auth(-dark).html` · `rally-auth-parts.html` | 로그인 · 가입 · 비밀번호 재설정 · 새 비밀번호 · 로그인 필요 + 메일 안내 · 링크 만료 · 완료 · 닉네임 상태 | `/login` `/signup` `/forgot-password` `/auth/reset-password` `/unauthorized` `components/auth/*` |
 
 **현재 상태**: 숲색 `#1F3D30` · 메리골드 `#E9B949`(로고·챌린지 포인트, 시안의 황토 `#C8963E`에서 변경) · 바탕 `#F6F7F5`, IBM Plex Sans KR + Noto Serif KR(인사말). 사이드바(전 페이지)와 `/today`에 적용. 다른 페이지 본문은 zinc — 페이지별로 개편할 때 같은 토큰으로 확산. 모바일(BottomNav)은 별도 시안 예정.
 
@@ -225,6 +226,14 @@
 - 지원일 팝오버: [취소] · "요일:" 줄 · 빨간 "삭제" → ✕ + "지우기"(시안). 지원일 없으면 "+ 지원일"(인쇄본엔 "—")
 - 인쇄본: 머리 줄 #EEE 바탕(다른 후보: 바탕 없이 두꺼운 선), 줄 높이 1.45 · 칸 5/6px, 제목 아래 1.5px 선, 쪽 번호 "1 / 9"(@page 오른쪽 아래), 메모 줄바꿈 합침, 지원상태 점 숨김
 - 빈 상태면 [인쇄]를 막음(툴팁 "인쇄할 회사가 없어요") — "0건"만 찍힌 종이는 쓸 데가 없어서. 지원상태 점은 화면에서 유지(결과를 훑기 쉬움)
+
+**로그인 계열** (5화면, 2026-11-15) — 동작 · 문구는 #205 그대로(인증 · 세션 · OAuth · 닉네임 확인 · 메일 발송 로직 손대지 않음), 공용 부품 `components/auth/AuthShell.tsx`
+- 사이드바를 가리는 전체 화면(`fixed inset-0 z-40`) — 세로로 짧은 창에선 스크롤
+- [로그인으로 돌아가기]는 테두리 버튼(지금 할 일은 메일함 확인이라)
+- 메일 안내는 제목 + 본문으로 나눔, 굵게는 메일 주소만. 링크 만료 · 비밀번호 바뀜 화면에도 제목 줄
+- 닉네임 형식 오류 문구는 앱 그대로 "한글·영문·숫자·언더바만 사용할 수 있어요."
+- "비밀번호를 잊었나요?"는 라벨 줄 오른쪽에 보이지만 DOM은 입력칸 뒤(grid) — Tab 순서: 이메일 → 비밀번호 → 잊었나요 → 로그인 → Google
+- Google 버튼은 브랜드 색(흰 바탕 · #DADCE0 테두리) 고정, 다크에서도 흰색
 
 **채운 버튼(숲색) 규칙** (2026-11-12) — 한 화면에서 **가장 먼저 누를 버튼 하나만** `BUTTON_PRIMARY`(bg-button). 빈 상태의 유일한 행동도 채움. 반복되는 버튼([세트 추가] 등) · 이동 · 보조 · 창 안 [취소]는 테두리
 - 테두리 → 채움으로 바꾼 곳: 운동 기록 첫 사용 안내 [분할 만들기], 블로그 [새 글 가져오기] · 빈 상태 [전체 보기], 학습 · 복습 빈 상태 [전체 보기]
