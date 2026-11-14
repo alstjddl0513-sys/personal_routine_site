@@ -403,17 +403,47 @@ body {
     padding: 0 !important;
     margin: 0 !important;
   }
+  /* 채용 리포트 인쇄본 (docs/design/rally-jobs-report-parts.html 04) — 흰 바탕 · 검은 글자 · 검은 칸 선 */
+  [data-report-root] {
+    background: #fff !important;
+  }
+  [data-report-header] {
+    border-bottom: 1.5px solid #000 !important;
+    padding-bottom: 8px;
+    margin-bottom: 4px;
+  }
+  [data-report-header] * {
+    color: #000 !important;
+  }
   [data-report-table] {
     border: 1px solid #000;
     border-collapse: collapse;
     font-size: 10pt;
+    line-height: 1.45;
     width: 100%;
   }
   [data-report-table] th,
   [data-report-table] td {
     border: 1px solid #000;
-    padding: 4px 6px;
+    padding: 5px 6px !important;
     background: transparent !important;
+    color: #000 !important;
+  }
+  /* 머리 줄 회색 바탕 — 칸 선만으로는 머리 줄이 안 구분됨 */
+  [data-report-table] thead th {
+    background: #eee !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  /* 긴 메모는 줄바꿈을 한 칸으로 합침 — 종이에서 줄 높이가 들쭉날쭉하지 않게 */
+  [data-report-memo] {
+    white-space: normal !important;
+  }
+  [data-report-table] button {
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: inherit !important;
     color: #000 !important;
   }
   tr {
@@ -436,4 +466,10 @@ body {
 @page {
   size: A4 landscape;
   margin: 12mm;
+  /* 오른쪽 아래 쪽 번호 "1 / 2" */
+  @bottom-right {
+    content: counter(page) ' / ' counter(pages);
+    font-size: 9pt;
+    color: #000;
+  }
 }

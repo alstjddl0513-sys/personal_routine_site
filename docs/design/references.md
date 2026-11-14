@@ -26,6 +26,8 @@
 | `rally-settings-lists(-dark).html` · `rally-settings-lists-parts.html` | 설정 목록 관리 6화면(회사 유형 · 학습 카테고리 · 운동 종목 · 분할 · 주간 운동 목표 · 구독한 블로그) + 편집 · 추가 · 오류 · 확인 창 | `/settings/{company-types,question-categories,exercises,splits,muscle-goals,blog-sources}` `components/settings/lists/*` |
 | `rally-settings-docs(-dark).html` · `rally-settings-docs-parts.html` | 설정 이력서 · 포트폴리오 · 학습 질문 + 이름 고치기 · 올리는 중 · 올리다 멈춤 · 확인 창 · 미리보기 창 · 질문 펼침 | `/settings/documents` `/settings/questions` `components/settings/Document*` `QuestionsManager` |
 | `rally-notif-drawer(-dark).html` · `rally-notif-drawer-parts.html` | 알림 내역 창(사이드바 🔔) — 꺼짐 안내 · 칩 · 알림 줄 · 공지 줄 · 빈 상태 · 🔔 안 읽음 | `components/NotifLogDrawer.tsx` `NotifBell.tsx` |
+| `rally-error(-dark).html` | 404 · 오류 · 앱 전체 오류 화면 | `app/not-found.tsx` `app/error.tsx` `app/global-error.tsx` `components/ErrorIcons.tsx` |
+| `rally-jobs-report(-dark).html` · `rally-jobs-report-parts.html` | 채용 리포트(인쇄용 취업활동 표) + 지원일 팝오버 · 빈 상태 · 인쇄본 | `/jobs/report` `components/jobs/report/*` `cells/AppliedAtPopover.tsx` · globals.css `@media print` |
 
 **현재 상태**: 숲색 `#1F3D30` · 메리골드 `#E9B949`(로고·챌린지 포인트, 시안의 황토 `#C8963E`에서 변경) · 바탕 `#F6F7F5`, IBM Plex Sans KR + Noto Serif KR(인사말). 사이드바(전 페이지)와 `/today`에 적용. 다른 페이지 본문은 zinc — 페이지별로 개편할 때 같은 토큰으로 확산. 모바일(BottomNav)은 별도 시안 예정.
 
@@ -210,6 +212,18 @@
 - 시안 parts의 "챌린지" 칩은 안 만듦 — 챌린지 알림은 지금처럼 "루틴"에 묶음(동작 그대로)
 - 칩은 학습 화면 `ChipButton`에 `count` 추가해서 공유. 열고 닫기 150ms 슬라이드(motion-reduce면 없음), 열면 ✕에 포커스 · Tab 창 안에서만 · 닫으면 🔔로
 - 시각: 1시간 안 "방금 · 12분 전", 오늘 "오전 8:00", 어제 "어제 오후 9:00", 7일 안 "11/10 (화)", 그 전 "11/6"(시안의 "12시간 전 · 2일 전"에서 바꿈 — 24시간 단위라 어젯밤 알림이 아침에 "10시간 전"으로 보였음)
+
+**오류 화면** (404 · 오류 · 앱 전체 오류, 2026-11-14)
+- 경고색 없음(사용자 잘못이 아니고 빨강은 "큰일" 느낌) — 아이콘만 흐리게(icon-faint), 404 나침반 · 오류 끊긴 맥박선
+- 본문 자리 가운데, 바탕이 끝까지 이어지게 min-h-screen(시안 그대로 70vh면 다크에서 아래가 다른 색으로 보였음)
+- 앱 전체 오류(global-error)는 토큰 대신 시안 색 값 인라인 + system-ui, 라이트 고정
+
+**채용 리포트** (`/jobs/report`, 2026-11-14) — 동작 · 문구는 #203 그대로
+- 표는 시안의 CSS grid 대신 진짜 `<table>` + colgroup(인쇄 때 머리 줄 반복 · 칸 선)
+- 우선순위 글자: 시안 "높음 · 보통 · 낮음" → 앱 그대로 "긴급 · 상 · 하" / 기본 기간: 시안 "올해" → 지금처럼 "전체"
+- 기간은 세그먼트(배타 선택), 칩은 여러 개 고르는 필터에만. [인쇄]가 유일한 채운 버튼
+- 지원일 팝오버: [취소] · "요일:" 줄 · 빨간 "삭제" → ✕ + "지우기"(시안). 지원일 없으면 "+ 지원일"(인쇄본엔 "—")
+- 인쇄본: 머리 줄 #EEE 바탕(다른 후보: 바탕 없이 두꺼운 선), 줄 높이 1.45 · 칸 5/6px, 제목 아래 1.5px 선, 쪽 번호 "1 / 9"(@page 오른쪽 아래), 메모 줄바꿈 합침, 지원상태 점 숨김
 
 **채운 버튼(숲색) 규칙** (2026-11-12) — 한 화면에서 **가장 먼저 누를 버튼 하나만** `BUTTON_PRIMARY`(bg-button). 빈 상태의 유일한 행동도 채움. 반복되는 버튼([세트 추가] 등) · 이동 · 보조 · 창 안 [취소]는 테두리
 - 테두리 → 채움으로 바꾼 곳: 운동 기록 첫 사용 안내 [분할 만들기], 블로그 [새 글 가져오기] · 빈 상태 [전체 보기], 학습 · 복습 빈 상태 [전체 보기]
