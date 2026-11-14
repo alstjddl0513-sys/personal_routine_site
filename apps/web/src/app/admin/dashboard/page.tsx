@@ -25,21 +25,11 @@ async function DashboardContent() {
         <StatCard label="전체 사용자" value={stats.totalUsers} />
         <StatCard label="신규 가입 (7일)" value={stats.signups7d} />
         <StatCard label="신규 가입 (30일)" value={stats.signups30d} />
-        <StatCard
-          label="DAU"
-          value={stats.dau}
-          description="24시간 내 로그인"
-        />
-        <StatCard
-          label="WAU"
-          value={stats.wau}
-          description="7일 내 로그인"
-        />
-        <StatCard
-          label="MAU"
-          value={stats.mau}
-          description="30일 내 로그인"
-        />
+        {/* 마지막 로그인 시각 기준 — 로그인을 유지한 채 쓰는 사람은 안 잡혀서
+            '활성 사용자(DAU)'가 아니라 측정 그대로 이름 붙임 */}
+        <StatCard label="24시간 안에 로그인" value={stats.dau} />
+        <StatCard label="7일 안에 로그인" value={stats.wau} />
+        <StatCard label="30일 안에 로그인" value={stats.mau} />
       </section>
 
       <p className="text-[11px] text-zinc-400 dark:text-zinc-500">
@@ -66,5 +56,5 @@ function formatDateTime(iso: string): string {
   const dd = String(d.getDate()).padStart(2, '0');
   const hh = String(d.getHours()).padStart(2, '0');
   const mi = String(d.getMinutes()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
+  return `${yyyy}.${mm}.${dd} ${hh}:${mi}`;
 }

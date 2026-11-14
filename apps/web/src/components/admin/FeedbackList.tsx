@@ -8,6 +8,7 @@ import {
   type FeedbackCategory,
 } from '@repo/shared';
 import { deleteFeedbackAsAdmin } from '../../lib/api';
+import { ListConfirmDialog } from '../settings/lists/ListConfirmDialog';
 
 interface Props {
   initial: AdminFeedback[];
@@ -21,10 +22,10 @@ export function FeedbackList({ initial }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  const [deleteTarget, setDeleteTarget] = useState<AdminFeedback | null>(null);
+
   function handleDelete(target: AdminFeedback) {
-    if (!confirm(`이 피드백을 삭제할까요?\n\n${target.body.slice(0, 80)}${target.body.length > 80 ? '…' : ''}`)) {
-      return;
-    }
+    setDeleteTarget(null);
     setError(null);
     const prev = rows;
     setRows((r) => r.filter((x) => x.id !== target.id));
@@ -33,7 +34,7 @@ export function FeedbackList({ initial }: Props) {
         await deleteFeedbackAsAdmin(target.id);
       } catch (err) {
         console.error(err);
-        setError('삭제에 실패했어요. 잠시 후 다시 시도해주세요.');
+        setError('삭제하지 못했어요. 잠시 후 다시 해보세요.');
         setRows(prev);
       }
     });
@@ -80,7 +81,7 @@ export function FeedbackList({ initial }: Props) {
             ) : null}
             <button
               type="button"
-              onClick={() => handleDelete(row)}
+              onClick={() => setDeleteTarget(row)}
               disabled={isPending}
               aria-label="삭제"
               className="ml-auto inline-flex h-7 w-7 items-center justify-center rounded text-zinc-400 transition-colors hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
@@ -88,11 +89,21 @@ export function FeedbackList({ initial }: Props) {
               <Trash2 className="h-3.5 w-3.5" aria-hidden />
             </button>
           </header>
-          <p className="whitespace-pre-wrap break-words text-sm text-zinc-800 dark:text-zinc-200">
+          <p className="whitespace-pre-wrap wrap-break-word text-sm text-zinc-800 dark:text-zinc-200">
             {row.body}
           </p>
         </article>
       ))}
+      <ListConfirmDialog
+        open={deleteTarget !== null}
+        title="이 피드백을 삭제할까요?"
+        body={
+          <p className="line-clamp-3 whitespace-pre-wrap">{deleteTarget?.body}</p>
+        }
+        confirmLabel="삭제"
+        onConfirm={() => deleteTarget && handleDelete(deleteTarget)}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

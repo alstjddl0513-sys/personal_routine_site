@@ -74,7 +74,7 @@ export function UserPickerModal({
         setUsers(fresh);
       } catch (err) {
         console.error(err);
-        setError('사용자 목록을 불러오지 못했어요.');
+        setError('사용자 목록을 불러오지 못했어요. 잠시 후 다시 해보세요.');
       }
     });
   }, [open]);
@@ -121,7 +121,7 @@ export function UserPickerModal({
         <div className="flex items-start justify-between gap-3 border-b border-zinc-100 p-4 dark:border-zinc-800">
           <div className="flex items-center gap-2">
             <Users className="h-5 w-5 text-zinc-500" aria-hidden />
-            <h2 className="text-base font-semibold">타겟 사용자 선택</h2>
+            <h2 className="text-base font-semibold">받는 사람 고르기</h2>
           </div>
           <button
             type="button"
@@ -139,7 +139,7 @@ export function UserPickerModal({
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="닉네임/이메일 검색"
+            placeholder="닉네임 · 이메일로 검색"
             className="w-full rounded border border-zinc-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
           />
         </div>
@@ -180,7 +180,7 @@ export function UserPickerModal({
         <div className="flex items-center justify-between border-t border-zinc-100 p-3 dark:border-zinc-800">
           <span className="text-xs text-zinc-500">
             {selected.size === 0
-              ? '선택 안 함 (전체 사용자)'
+              ? '고르지 않으면 전체에게 보내요'
               : `${selected.size}명 선택됨`}
           </span>
           <div className="flex gap-2">

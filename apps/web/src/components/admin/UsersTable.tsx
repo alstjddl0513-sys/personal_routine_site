@@ -48,16 +48,23 @@ export function UsersTable({ initial }: Props) {
     setError(null);
     startTransition(async () => {
       try {
-        const fresh = await listAdminUsers({
-          page: next.page ?? data.page,
+        const query = {
           perPage: data.perPage,
           search: next.search ?? search,
           sortBy: next.sortBy ?? sortBy,
-        });
+        };
+        let fresh = await listAdminUsers({ ...query, page: next.page ?? data.page });
+        // 마지막 쪽의 마지막 사람을 지우면 빈 쪽이 됨 → 남은 마지막 쪽으로
+        if (fresh.users.length === 0 && fresh.page > 1 && fresh.total > 0) {
+          fresh = await listAdminUsers({
+            ...query,
+            page: Math.ceil(fresh.total / fresh.perPage),
+          });
+        }
         setData(fresh);
       } catch (err) {
         console.error(err);
-        setError('목록을 불러오지 못했어요. Supabase Admin API 상태를 확인해주세요.');
+        setError('목록을 불러오지 못했어요. 잠시 후 다시 해보세요.');
       }
     });
   }
@@ -74,7 +81,7 @@ export function UsersTable({ initial }: Props) {
         router.refresh();
       } catch (err) {
         console.error(err);
-        setError('차단에 실패했습니다.');
+        setError('차단하지 못했어요. 잠시 후 다시 해보세요.');
         setBanTarget(null);
       }
     });
@@ -89,7 +96,7 @@ export function UsersTable({ initial }: Props) {
         router.refresh();
       } catch (err) {
         console.error(err);
-        setError('차단 해제에 실패했습니다.');
+        setError('차단을 풀지 못했어요. 잠시 후 다시 해보세요.');
       }
     });
   }
@@ -106,11 +113,14 @@ export function UsersTable({ initial }: Props) {
         router.refresh();
       } catch (err) {
         console.error(err);
-        setError('삭제에 실패했습니다.');
+        setError('계정을 삭제하지 못했어요. 잠시 후 다시 해보세요.');
         setDeleteTarget(null);
       }
     });
   }
+
+  // total = 검색 결과 수(서버가 전체에서 검색 · 정렬 후 자름). 0명이어도 1쪽
+  const pageCount = Math.max(1, Math.ceil(data.total / data.perPage));
 
   return (
     <div className="flex flex-col gap-4">
@@ -172,7 +182,7 @@ export function UsersTable({ initial }: Props) {
               <th className="hidden px-3 py-2 text-left lg:table-cell">가입일</th>
               <th className="hidden px-3 py-2 text-left lg:table-cell">최근 로그인</th>
               <th className="px-3 py-2 text-left">상태</th>
-              <th className="px-3 py-2 text-right">액션</th>
+              <th className="px-3 py-2 text-right">관리</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -277,7 +287,7 @@ export function UsersTable({ initial }: Props) {
 
       <div className="flex items-center justify-between text-xs text-zinc-500">
         <span>
-          총 {data.total}명 · {data.page}페이지 (페이지당 {data.perPage})
+          총 {data.total}명 · {data.page} / {pageCount}쪽
         </span>
         <div className="flex gap-1">
           <button
@@ -291,7 +301,7 @@ export function UsersTable({ initial }: Props) {
           <button
             type="button"
             onClick={() => refetch({ page: data.page + 1 })}
-            disabled={data.users.length < data.perPage || isPending}
+            disabled={data.page >= pageCount || isPending}
             className="rounded px-2 py-1 hover:bg-zinc-100 disabled:opacity-40 dark:hover:bg-zinc-900"
           >
             다음

@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import type { User } from '@supabase/supabase-js';
 import { desc, eq, inArray, sql } from 'drizzle-orm';
 import type {
   AdminAnnouncement,
@@ -77,25 +78,38 @@ export class AdminService {
     }
   }
 
-  // Supabase Admin listUsers + profiles LEFT JOIN. 검색·정렬은 앱 레벨.
-  // SDK가 검색 미지원 + 초기 유저 수 작아 pull 후 filter가 단순.
+  // Supabase auth.users 전량 pull(200/page 반복). SDK가 검색 · 정렬을 지원하지 않아
+  // 목록 · 개요 둘 다 앱 레벨에서 처리 — 유저 규모 소수라 충분. 커지면 DB 뷰로 승격.
+  private async listAllAuthUsers(context: string) {
+    const admin = getSupabaseAdmin();
+    const perPage = 200;
+    const all: User[] = [];
+    let page = 1;
+    // Supabase는 페이지 초과 시 빈 배열 반환. batch.length < perPage 시 종료.
+    while (true) {
+      const { data, error } = await admin.auth.admin.listUsers({
+        page,
+        perPage,
+      });
+      if (error) {
+        throw new InternalServerErrorException(
+          `${context} failed: ${error.message}`,
+        );
+      }
+      all.push(...data.users);
+      if (data.users.length < perPage) break;
+      page += 1;
+    }
+    return all;
+  }
+
+  // 전체 사용자 + profiles 닉네임 → 검색 · 정렬 → 페이지로 자름.
+  // (예전엔 Supabase 한 페이지 안에서만 검색 · 정렬해서 51번째부터는 검색에 안 걸렸음)
   async listUsers(query: QueryUsersDto): Promise<AdminUsersPage> {
     const page = query.page ?? 1;
     const perPage = query.perPage ?? PER_PAGE_DEFAULT;
-    const admin = getSupabaseAdmin();
 
-    // Supabase page는 1-base. perPage 상한은 SDK 200이라 DTO에서 이미 검증.
-    const { data, error } = await admin.auth.admin.listUsers({
-      page,
-      perPage,
-    });
-    if (error) {
-      throw new InternalServerErrorException(
-        `listUsers failed: ${error.message}`,
-      );
-    }
-
-    const authUsers = data.users;
+    const authUsers = await this.listAllAuthUsers('listUsers');
     const ids = authUsers.map((u) => u.id);
     const nicknameRows = ids.length
       ? await db
@@ -121,58 +135,42 @@ export class AdminService {
 
     const filtered = filterUsersRows(mappedRows, query.search);
     const sorted = sortUsersRows(filtered, query.sortBy ?? 'createdAt');
+    const from = (page - 1) * perPage;
 
     return {
       page,
       perPage,
-      total: data.total ?? authUsers.length,
-      users: sorted,
+      // 검색 결과 수(검색어 없으면 전체 사용자 수)
+      total: sorted.length,
+      users: sorted.slice(from, from + perPage),
     };
   }
 
-  // 개요 지표. Supabase auth.users를 전량 pull(200/page 반복)해서 카운터 계산.
-  // 유저 규모 소수라 O(n) 앱 레벨 집계로 충분. 커지면 DB 뷰나 캐시로 승격.
+  // 개요 지표. 전체 사용자에서 카운터 계산. dau/wau/mau = last_sign_in_at 기준
+  // (로그인 유지한 채 쓰는 사람은 안 잡힘 — 화면 라벨도 "N일 안에 로그인").
   async getStatsOverview(): Promise<AdminStatsOverview> {
-    const admin = getSupabaseAdmin();
     const now = Date.now();
     const DAY_MS = 24 * 60 * 60 * 1000;
     const cutoff24h = now - DAY_MS;
     const cutoff7d = now - 7 * DAY_MS;
     const cutoff30d = now - 30 * DAY_MS;
-    const perPage = 200;
-
     let totalUsers = 0;
     let dau = 0;
     let wau = 0;
     let mau = 0;
     let signups7d = 0;
     let signups30d = 0;
-    let page = 1;
-    // Supabase는 페이지 초과 시 빈 배열 반환. batch.length < perPage 시 종료.
-    while (true) {
-      const { data, error } = await admin.auth.admin.listUsers({
-        page,
-        perPage,
-      });
-      if (error) {
-        throw new InternalServerErrorException(
-          `getStatsOverview failed: ${error.message}`,
-        );
+    for (const u of await this.listAllAuthUsers('getStatsOverview')) {
+      totalUsers += 1;
+      if (u.last_sign_in_at) {
+        const ts = Date.parse(u.last_sign_in_at);
+        if (ts >= cutoff24h) dau += 1;
+        if (ts >= cutoff7d) wau += 1;
+        if (ts >= cutoff30d) mau += 1;
       }
-      for (const u of data.users) {
-        totalUsers += 1;
-        if (u.last_sign_in_at) {
-          const ts = Date.parse(u.last_sign_in_at);
-          if (ts >= cutoff24h) dau += 1;
-          if (ts >= cutoff7d) wau += 1;
-          if (ts >= cutoff30d) mau += 1;
-        }
-        const cts = Date.parse(u.created_at);
-        if (cts >= cutoff7d) signups7d += 1;
-        if (cts >= cutoff30d) signups30d += 1;
-      }
-      if (data.users.length < perPage) break;
-      page += 1;
+      const cts = Date.parse(u.created_at);
+      if (cts >= cutoff7d) signups7d += 1;
+      if (cts >= cutoff30d) signups30d += 1;
     }
 
     return {

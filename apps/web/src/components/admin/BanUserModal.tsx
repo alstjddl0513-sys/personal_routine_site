@@ -70,8 +70,8 @@ export function BanUserModal({
           <span className="font-medium text-zinc-900 dark:text-zinc-100">
             {target.nickname ?? target.email ?? target.id}
           </span>
-          {' '}계정을 지정한 기간 동안 로그인하지 못하게 해요. 진행 중인 세션은
-          토큰이 만료되기 전까지는 이어질 수 있어요.
+          {' '}계정을 지정한 기간 동안 로그인하지 못하게 해요. 이미 로그인한 기기에선
+          최대 1시간 더 쓸 수 있어요.
         </p>
         <fieldset className="mb-4 flex flex-col gap-2">
           <legend className="mb-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
