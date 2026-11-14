@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type SubmitEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { CircleCheck, Loader2, Unlink } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
@@ -79,7 +79,7 @@ export default function ResetPasswordPage() {
   const matches = next.length > 0 && next === nextConfirm;
   const canSubmit = next.length >= MIN_PASSWORD_LENGTH && matches && !submitting;
 
-  async function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!canSubmit) return;
     setError(null);

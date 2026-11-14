@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useTransition, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useState, useTransition, type SubmitEvent, type ReactNode } from 'react';
 import { Check, ChevronLeft, X } from 'lucide-react';
 import { WORKOUT_SPLIT_NAME_MAX, type Exercise, type WorkoutSplit } from '@repo/shared';
 import { createWorkoutSplit, patchWorkoutSplit } from '../../../lib/api';
@@ -108,7 +108,7 @@ export function SplitEditDialog({
     });
   }
 
-  function submit(e: FormEvent) {
+  function submit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     const trimmed = name.trim();
     if (!trimmed) {

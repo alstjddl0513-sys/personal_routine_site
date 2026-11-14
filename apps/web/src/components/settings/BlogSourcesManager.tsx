@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition, type FormEvent } from 'react';
+import { useState, useTransition, type SubmitEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { Play, Trash2 } from 'lucide-react';
 import type { BlogSource } from '@repo/shared';
@@ -323,7 +323,7 @@ function AddRow({
     onError(null);
   }
 
-  function submit(e: FormEvent) {
+  function submit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     const invalid = validateDraft(draft);
     if (invalid) {
