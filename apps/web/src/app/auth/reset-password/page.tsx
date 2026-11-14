@@ -90,13 +90,13 @@ export default function ResetPasswordPage() {
         router.refresh();
       }, 1500);
     } catch {
-      setError('네트워크 오류가 발생했어요. 다시 시도해주세요.');
+      setError('연결이 잠깐 끊겼어요. 잠시 후 다시 해보세요.');
       setSubmitting(false);
     }
   }
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-zinc-50 via-white to-zinc-100 px-4 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
+    <div className="fixed inset-0 flex items-center justify-center bg-linear-to-br from-zinc-50 via-white to-zinc-100 px-4 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <h1 className="inline-flex items-center gap-2 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
@@ -118,7 +118,7 @@ export default function ResetPasswordPage() {
                 <p>
                   링크가 만료됐거나 유효하지 않아요.
                   <br />
-                  다시 재설정 메일을 받아주세요.
+                  재설정 메일을 다시 받아주세요.
                 </p>
               </div>
               <div className="mt-2 flex justify-end">
@@ -207,5 +207,6 @@ function translateAuthError(message: string): string {
   if (m.includes('auth session missing') || m.includes('invalid') && m.includes('token')) {
     return '링크가 만료됐거나 유효하지 않아요. 재설정 메일을 다시 받아주세요.';
   }
-  return message;
+  // 모르는 오류도 원문(영문) 대신 한글 한 줄
+  return '비밀번호를 바꾸지 못했어요. 잠시 후 다시 해보세요.';
 }
