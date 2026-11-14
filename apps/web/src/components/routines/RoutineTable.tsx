@@ -36,10 +36,10 @@ import {
   toggleRoutineCheck,
 } from '../../lib/api';
 import { toISODate } from '../../lib/routines-week';
-import { useOutsideClick } from '../../lib/useOutsideClick';
 import { AddTimeBlockRow } from './AddTimeBlockRow';
 import { TimeCell } from './TimeCell';
-import { objectParticle } from '../../lib/korean';
+import { deleteConfirmTitle } from '../../lib/korean';
+import { ListConfirmDialog } from '../settings/lists/ListConfirmDialog';
 
 const REORDER_DEBOUNCE_MS = 300;
 
@@ -502,17 +502,6 @@ function DeleteBlockButton({ block }: { block: TimeBlock }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const dialogRef = useRef<HTMLDivElement>(null);
-  useOutsideClick(dialogRef, () => !isPending && setOpen(false), open);
-
-  useEffect(() => {
-    if (!open) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape' && !isPending) setOpen(false);
-    }
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [open, isPending]);
 
   function confirmDelete() {
     startTransition(async () => {
@@ -536,47 +525,15 @@ function DeleteBlockButton({ block }: { block: TimeBlock }) {
       >
         <Trash2 className="h-3.75 w-3.75" strokeWidth={1.8} aria-hidden />
       </button>
-      {open ? (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-          role="dialog"
-          aria-modal="true"
-        >
-          <div
-            ref={dialogRef}
-            className="w-full max-w-sm rounded-lg border border-zinc-200 bg-white p-5 shadow-xl dark:border-zinc-800 dark:bg-zinc-900"
-          >
-            <div className="mb-3 flex items-center gap-2">
-              <Trash2 className="h-5 w-5 text-rose-600 dark:text-rose-400" aria-hidden />
-              <h2 className="text-base font-semibold">루틴 삭제</h2>
-            </div>
-            <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-              <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                {block.label}
-              </span>
-              {objectParticle(block.label) ?? ''} 삭제할까요? 이 루틴의 체크 기록도 같이 사라져요.
-            </p>
-            <div className="flex items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                disabled={isPending}
-                className="rounded px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
-              >
-                취소
-              </button>
-              <button
-                type="button"
-                onClick={confirmDelete}
-                disabled={isPending}
-                className="rounded bg-rose-600 px-3 py-1.5 text-sm text-white hover:bg-rose-700 disabled:opacity-50"
-              >
-                {isPending ? '삭제 중...' : '삭제'}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <ListConfirmDialog
+        open={open}
+        title={deleteConfirmTitle(block.label)}
+        body="이 루틴의 체크 기록도 같이 사라져요."
+        confirmLabel={isPending ? '삭제 중…' : '삭제'}
+        pending={isPending}
+        onConfirm={confirmDelete}
+        onCancel={() => setOpen(false)}
+      />
     </>
   );
 }
