@@ -355,7 +355,7 @@ export function Sidebar() {
           <NotifBell
             className={SIDE_ICON_BTN}
             unreadClassName={SIDE_ICON_BTN.replace('text-side-fg', 'bg-side-active text-white')}
-            dotClassName="absolute top-1.5 right-1.5 h-[7px] w-[7px] rounded-full bg-side-strong ring-2 ring-side-active"
+            dotClassName="absolute top-1.5 right-1.5 h-1.75 w-1.75 rounded-full bg-side-strong ring-2 ring-side-active"
           />
         </div>
       </div>
