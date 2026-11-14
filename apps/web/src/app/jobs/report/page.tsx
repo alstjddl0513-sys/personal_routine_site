@@ -123,7 +123,7 @@ async function ReportContent({ sp }: { sp: ReportSearchParams }) {
   return (
     <>
       <ReportHeader from={from} to={to} count={rows.length} />
-      <ReportToolbar />
+      <ReportToolbar canPrint={rows.length > 0} />
       {rows.length === 0 ? (
         <div className="rounded-lg border border-line bg-surface px-6 py-15 text-center text-[15px] text-ink-soft print:hidden">
           이 기간에 지원한 회사가 없어요. 기간을 바꾸거나 미지원 · 지원취소를 포함해보세요.

@@ -30,7 +30,8 @@ function yearStartIso(): string {
 
 type Preset = '3m' | 'year' | 'all';
 
-export function ReportToolbar() {
+// canPrint: 표에 회사가 있을 때만 [인쇄] — "0건"만 찍힌 종이는 쓸 데가 없어서 빈 상태면 막음
+export function ReportToolbar({ canPrint }: { canPrint: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -109,10 +110,18 @@ export function ReportToolbar() {
         </span>
         미지원 · 지원취소 포함
       </label>
-      <button type="button" onClick={() => window.print()} className={`${BUTTON_PRIMARY} ml-auto gap-1.5`}>
-        <Printer className="h-4 w-4" aria-hidden />
-        인쇄
-      </button>
+      {/* 막힌 버튼은 툴팁이 안 뜨는 브라우저가 있어 감싼 span에 title */}
+      <span className="ml-auto" title={canPrint ? undefined : '인쇄할 회사가 없어요'}>
+        <button
+          type="button"
+          onClick={() => window.print()}
+          disabled={!canPrint}
+          className={`${BUTTON_PRIMARY} gap-1.5 disabled:cursor-not-allowed`}
+        >
+          <Printer className="h-4 w-4" aria-hidden />
+          인쇄
+        </button>
+      </span>
     </div>
   );
 }
