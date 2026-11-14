@@ -11,7 +11,14 @@ export const dynamic = 'force-dynamic';
 
 export default function AdminFeedbackPage() {
   return (
-    <Suspense fallback={<Skeleton className="h-64" />}>
+    <Suspense
+      fallback={
+        <div className="flex flex-col gap-3">
+          <Skeleton className="h-36 rounded-lg" />
+          <Skeleton className="h-28 rounded-lg" />
+        </div>
+      }
+    >
       <FeedbackContent />
     </Suspense>
   );
