@@ -28,11 +28,14 @@ export function ReportHeader({ from, to, count }: Props) {
           : '전체';
 
   return (
-    <header className="flex items-baseline justify-between border-b border-zinc-200 pb-2 dark:border-zinc-800">
-      <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-        Rally · 취업활동 표 · {rangeLabel} · {count}건
-      </h1>
-      <p className="text-xs text-zinc-500 dark:text-zinc-500">
+    <header data-report-header className="flex items-end justify-between gap-4 border-b border-rule pb-3">
+      <div className="flex flex-col gap-1">
+        <h1 className="text-xl font-bold text-ink-strong">Rally · 취업활동 표</h1>
+        <p className="text-sm text-ink-soft">
+          {rangeLabel} · {count}건
+        </p>
+      </div>
+      <p className="shrink-0 text-[13px] text-ink-muted">
         <PrintedAt />
       </p>
     </header>

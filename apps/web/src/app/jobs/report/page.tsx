@@ -46,10 +46,13 @@ export default async function JobsReportPage({
 }: PageProps<'/jobs/report'>) {
   const sp = await searchParams;
   return (
-    <div className="flex flex-col gap-3 p-6" data-report-root>
+    // 본문 최대 1120px — A4 가로 인쇄 폭(≈1032px)과 비슷해서 화면 줄바꿈이 인쇄본과 거의 같음
+    <div className="min-h-screen bg-paper font-plex text-[15px] leading-normal text-ink tabular-nums">
+    <div className="mx-auto flex max-w-280 flex-col gap-4 px-4 pt-6 pb-14 md:px-9 md:pt-8" data-report-root>
       <Suspense fallback={<ReportSkeleton />}>
         <ReportContent sp={sp} />
       </Suspense>
+    </div>
     </div>
   );
 }
@@ -120,9 +123,9 @@ async function ReportContent({ sp }: { sp: ReportSearchParams }) {
   return (
     <>
       <ReportHeader from={from} to={to} count={rows.length} />
-      <ReportToolbar />
+      <ReportToolbar canPrint={rows.length > 0} />
       {rows.length === 0 ? (
-        <div className="rounded-md border border-dashed border-zinc-300 p-10 text-center text-sm text-zinc-500 print:hidden dark:border-zinc-700">
+        <div className="rounded-lg border border-line bg-surface px-6 py-15 text-center text-[15px] text-ink-soft print:hidden">
           이 기간에 지원한 회사가 없어요. 기간을 바꾸거나 미지원 · 지원취소를 포함해보세요.
         </div>
       ) : (

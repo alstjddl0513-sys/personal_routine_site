@@ -2,10 +2,13 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Printer } from 'lucide-react';
+import { ArrowLeft, Check, Printer } from 'lucide-react';
+import { Segment } from '../../ui/Segment';
+import { BUTTON_PRIMARY } from '../cells/popover-style';
 
-// 인쇄용이 아니라 화면에서만 노출되는 조작 툴바. print CSS로 숨김.
-// 기간 프리셋(from/to)과 상태 필터(includeAll)를 URL로 반영.
+// 인쇄용이 아니라 화면에서만 노출되는 조작 줄. print CSS로 숨김. (docs/design/rally-jobs-report*.html)
+// "← 채용 리스트" │ 기간 세그먼트(셋 중 하나만 — 배타 선택이라 칩 아님) │ 미지원 · 지원취소 포함 … [인쇄](유일한 채운 버튼)
+// 기간(from/to)과 상태 필터(includeAll)는 URL로 반영.
 
 function todayIso(): string {
   const d = new Date();
@@ -25,7 +28,10 @@ function yearStartIso(): string {
   return `${y}-01-01`;
 }
 
-export function ReportToolbar() {
+type Preset = '3m' | 'year' | 'all';
+
+// canPrint: 표에 회사가 있을 때만 [인쇄] — "0건"만 찍힌 종이는 쓸 데가 없어서 빈 상태면 막음
+export function ReportToolbar({ canPrint }: { canPrint: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -36,64 +42,55 @@ export function ReportToolbar() {
   }
 
   const includeAll = searchParams.get('includeAll') === '1';
-  // 지금 고른 기간 버튼 — 주소의 from/to가 버튼 값과 같으면 선택 모양(어느 걸 눌렀는지 보이게)
+  // 지금 고른 기간 — 주소의 from/to가 버튼 값과 같으면 선택 모양. 주소로 직접 넣은 기간이면 아무것도 선택 X
   const from = searchParams.get('from');
   const to = searchParams.get('to');
   const today = todayIso();
-  const activePreset =
+  const activePreset: Preset | '' =
     !from && !to
       ? 'all'
       : to === today && from === threeMonthsAgoIso()
         ? '3m'
         : to === today && from === yearStartIso()
           ? 'year'
-          : null;
+          : '';
+
+  function pick(preset: Preset) {
+    updateParams((p) => {
+      if (preset === 'all') {
+        p.delete('from');
+        p.delete('to');
+      } else {
+        p.set('from', preset === '3m' ? threeMonthsAgoIso() : yearStartIso());
+        p.set('to', todayIso());
+      }
+    });
+  }
 
   return (
-    <div
-      className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-200 py-3 print:hidden dark:border-zinc-800"
-      data-toolbar
-    >
-      <div className="flex flex-wrap items-center gap-1">
-        <Link
-          href={`/jobs${searchParams.size ? `?${searchParams.toString()}` : ''}`}
-          className="mr-1 inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" aria-hidden /> 채용 리스트
-        </Link>
-        <span className="mx-1 text-xs text-zinc-400">·</span>
-        <PresetButton
-          label="최근 3개월"
-          active={activePreset === '3m'}
-          onClick={() =>
-            updateParams((p) => {
-              p.set('from', threeMonthsAgoIso());
-              p.set('to', todayIso());
-            })
-          }
-        />
-        <PresetButton
-          label="올해"
-          active={activePreset === 'year'}
-          onClick={() =>
-            updateParams((p) => {
-              p.set('from', yearStartIso());
-              p.set('to', todayIso());
-            })
-          }
-        />
-        <PresetButton
-          label="전체"
-          active={activePreset === 'all'}
-          onClick={() =>
-            updateParams((p) => {
-              p.delete('from');
-              p.delete('to');
-            })
-          }
-        />
-        <span className="mx-1 text-xs text-zinc-400">·</span>
-        <label className="inline-flex cursor-pointer items-center gap-1 rounded px-2 py-1 text-xs text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800">
+    <div className="flex flex-wrap items-center gap-3 print:hidden" data-toolbar>
+      <Link
+        href={`/jobs${searchParams.size ? `?${searchParams.toString()}` : ''}`}
+        className="-ml-1 inline-flex h-10 items-center gap-1 rounded-md px-1 text-sm text-btn-fg outline-none hover:text-heading focus-visible:shadow-[0_0_0_2px_var(--rally-chip-on-border)]"
+      >
+        <ArrowLeft className="h-4 w-4" aria-hidden /> 채용 리스트
+      </Link>
+      <span aria-hidden className="h-6 w-px bg-rule" />
+      <Segment<Preset | ''>
+        label="기간"
+        size="lg"
+        value={activePreset}
+        onChange={(v) => {
+          if (v) pick(v);
+        }}
+        options={[
+          { value: '3m', label: '최근 3개월' },
+          { value: 'year', label: '올해' },
+          { value: 'all', label: '전체' },
+        ]}
+      />
+      <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 text-sm text-ink-soft">
+        <span className="relative inline-flex h-5 w-5 shrink-0">
           <input
             type="checkbox"
             checked={includeAll}
@@ -103,44 +100,28 @@ export function ReportToolbar() {
                 else p.delete('includeAll');
               })
             }
-            className="h-3 w-3"
+            className="peer h-5 w-5 cursor-pointer appearance-none rounded-sm border border-btn-border bg-surface outline-none checked:border-primary checked:bg-primary focus-visible:shadow-[0_0_0_2px_var(--rally-surface),0_0_0_4px_var(--rally-chip-on-border)]"
           />
-          미지원 · 지원취소 포함
-        </label>
-      </div>
-      <button
-        type="button"
-        onClick={() => window.print()}
-        className="inline-flex items-center gap-1.5 rounded-md bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-      >
-        <Printer className="h-3.5 w-3.5" aria-hidden />
-        인쇄
-      </button>
+          <Check
+            aria-hidden
+            strokeWidth={2.5}
+            className="pointer-events-none absolute inset-0 m-auto hidden h-3.5 w-3.5 text-white peer-checked:block dark:text-paper"
+          />
+        </span>
+        미지원 · 지원취소 포함
+      </label>
+      {/* 막힌 버튼은 툴팁이 안 뜨는 브라우저가 있어 감싼 span에 title */}
+      <span className="ml-auto" title={canPrint ? undefined : '인쇄할 회사가 없어요'}>
+        <button
+          type="button"
+          onClick={() => window.print()}
+          disabled={!canPrint}
+          className={`${BUTTON_PRIMARY} gap-1.5 disabled:cursor-not-allowed`}
+        >
+          <Printer className="h-4 w-4" aria-hidden />
+          인쇄
+        </button>
+      </span>
     </div>
-  );
-}
-
-function PresetButton({
-  label,
-  active,
-  onClick,
-}: {
-  label: string;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={`rounded px-2 py-1 text-xs ${
-        active
-          ? 'bg-zinc-900 font-medium text-white dark:bg-zinc-100 dark:text-zinc-900'
-          : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800'
-      }`}
-    >
-      {label}
-    </button>
   );
 }

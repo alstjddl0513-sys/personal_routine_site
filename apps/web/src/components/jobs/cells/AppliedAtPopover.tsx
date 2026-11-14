@@ -14,14 +14,15 @@ import { patchCompany } from '../../../lib/api';
 import { useOutsideClick } from '../../../lib/useOutsideClick';
 import { usePopoverPosition } from '../../../lib/usePopoverPosition';
 import { Portal } from '../../ui/Portal';
+import { BUTTON_PRIMARY, BUTTON_TEXT, POPOVER_CARD, POPOVER_INPUT } from './popover-style';
 
-// DeadlinePopover 미러. 다른 점:
+// 채용 리포트 지원일 칸 (docs/design/rally-jobs-report-parts.html) — DeadlinePopover 미러. 다른 점:
 // - 값이 date(YYYY-MM-DD) 문자열 그대로 (timestamptz 파싱 불필요)
 // - input type="date" (시간 없음, 로컬 자정 개념)
-// - 요일 힌트만 표시. 저장 시 문자열 그대로 API 전달.
+// 팝오버: 제목 "지원일" + ✕ · 날짜 입력 · [지우기](저장된 값 있을 때만) … [저장]. 닫기는 ✕ · Esc · 바깥 클릭.
 
-const POPOVER_WIDTH = 240;
-const POPOVER_HEIGHT = 150;
+const POPOVER_WIDTH = 236;
+const POPOVER_HEIGHT = 170;
 const WEEKDAY_KO = ['일', '월', '화', '수', '목', '금', '토'];
 
 function parseDate(raw: string | null): Date | null {
@@ -34,9 +35,9 @@ function parseDate(raw: string | null): Date | null {
   return new Date(Number(y), Number(mo) - 1, Number(d));
 }
 
-function formatDisplay(raw: string | null): string {
+function formatDisplay(raw: string | null): string | null {
   const d = parseDate(raw);
-  if (!d) return '—';
+  if (!d) return null;
   const pad = (n: number) => String(n).padStart(2, '0');
   // 리포트 머리 기간 · 마감일과 같은 점 표기("2026.11.03 (화)")
   return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())} (${WEEKDAY_KO[d.getDay()]})`;
@@ -94,12 +95,19 @@ export function AppliedAtPopover({
         type="button"
         onClick={() => setOpen((v) => !v)}
         disabled={isPending}
-        className="-mx-1 inline-flex items-center gap-1 rounded px-1 py-0.5 text-xs text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
+        className={`-mx-1 inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md px-1.5 text-sm whitespace-nowrap outline-none hover:bg-row-hover focus-visible:shadow-[inset_0_0_0_2px_var(--rally-chip-on-border)] disabled:opacity-50 ${
+          display ? 'text-ink' : 'text-ink-muted'
+        }`}
         aria-label={current ? '지원일 편집' : '지원일 추가'}
         aria-expanded={open}
       >
-        {current ? <Calendar className="h-3.5 w-3.5 shrink-0" aria-hidden /> : null}
-        <span className="whitespace-nowrap">{display}</span>
+        <Calendar className="h-3.25 w-3.25 shrink-0 text-icon-faint print:hidden" aria-hidden />
+        {display ?? (
+          <>
+            <span className="print:hidden">+ 지원일</span>
+            <span className="hidden print:inline">—</span>
+          </>
+        )}
       </button>
       {open && pos ? (
         <Portal>
@@ -110,7 +118,7 @@ export function AppliedAtPopover({
             left={pos.left}
             popoverRef={popoverRef}
             onCommit={commit}
-            onCancel={() => setOpen(false)}
+            onClose={() => setOpen(false)}
           />
         </Portal>
       ) : null}
@@ -125,7 +133,7 @@ interface BodyProps {
   left: number;
   popoverRef: RefObject<HTMLDivElement | null>;
   onCommit: (next: string | null) => void;
-  onCancel: () => void;
+  onClose: () => void;
 }
 
 function AppliedAtPopoverBody({
@@ -135,7 +143,7 @@ function AppliedAtPopoverBody({
   left,
   popoverRef,
   onCommit,
-  onCancel,
+  onClose,
 }: BodyProps) {
   const [draft, setDraft] = useState(initialValue);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -148,65 +156,52 @@ function AppliedAtPopoverBody({
     onCommit(draft ? draft : null);
   }
 
-  const draftWeekday = draft
-    ? WEEKDAY_KO[parseDate(draft)?.getDay() ?? 0]
-    : null;
-
   return (
     <div
       ref={popoverRef}
+      role="dialog"
+      aria-label="지원일"
       style={{ position: 'fixed', top, left, width: POPOVER_WIDTH, zIndex: 50 }}
-      className="rounded-md border border-zinc-200 bg-white p-2 text-left shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
+      className={`${POPOVER_CARD} gap-2.5! px-4! pt-3.5! pb-4!`}
     >
-      <label className="flex flex-col gap-1 text-xs text-zinc-500 dark:text-zinc-400">
-        지원일
-        <input
-          ref={inputRef}
-          type="date"
-          value={draft}
-          min="2020-01-01"
-          max="2099-12-31"
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              save();
-            }
-          }}
-          className="rounded border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-800 outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200"
-        />
-      </label>
-      {draftWeekday && draft ? (
-        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-          요일: <span className="font-medium">{draftWeekday}</span>
-        </p>
-      ) : null}
-      <div className="mt-2 flex items-center justify-between gap-1">
+      <div className="-mr-2 flex items-center justify-between">
+        <span className="text-sm font-semibold text-ink-soft">지원일</span>
         <button
           type="button"
-          onClick={() => onCommit(null)}
-          disabled={!hasCurrent}
-          className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-rose-600 hover:bg-rose-50 disabled:opacity-40 dark:text-rose-400 dark:hover:bg-rose-950/40"
+          onClick={onClose}
+          aria-label="닫기"
+          className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-md text-ink-muted hover:bg-row-hover hover:text-ink"
         >
-          <X className="h-3 w-3" aria-hidden />
-          삭제
+          <X className="h-4 w-4" aria-hidden />
         </button>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-          >
-            취소
+      </div>
+      <input
+        ref={inputRef}
+        type="date"
+        aria-label="지원일"
+        value={draft}
+        min="2020-01-01"
+        max="2099-12-31"
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            save();
+          }
+        }}
+        className={`${POPOVER_INPUT} text-[15px]`}
+      />
+      <div className="flex items-center justify-between gap-2">
+        {hasCurrent ? (
+          <button type="button" onClick={() => onCommit(null)} className={`${BUTTON_TEXT} -ml-3`}>
+            지우기
           </button>
-          <button
-            type="button"
-            onClick={save}
-            className="rounded bg-zinc-900 px-2 py-1 text-xs text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-          >
-            저장
-          </button>
-        </div>
+        ) : (
+          <span />
+        )}
+        <button type="button" onClick={save} className={`${BUTTON_PRIMARY} min-h-9!`}>
+          저장
+        </button>
       </div>
     </div>
   );
