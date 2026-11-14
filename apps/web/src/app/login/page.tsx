@@ -1,12 +1,20 @@
 'use client';
 
 import { Suspense, useState, type FormEvent } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { LogIn, AlertCircle } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { GoogleButton, OrDivider } from '@/components/auth/GoogleButton';
+import {
+  AUTH_CARD,
+  AUTH_INPUT,
+  AUTH_LABEL,
+  AUTH_PRIMARY,
+  AuthError,
+  AuthFooterLink,
+  AuthShell,
+  BusyLabel,
+} from '@/components/auth/AuthShell';
 
 export default function LoginPage() {
   return (
@@ -18,7 +26,7 @@ export default function LoginPage() {
 
 function LoginShell() {
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-linear-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950" />
+    <div className="fixed inset-0 z-40 bg-paper" />
   );
 }
 
@@ -74,117 +82,81 @@ function LoginForm() {
   }
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-linear-to-br from-zinc-50 via-white to-zinc-100 px-4 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
-      <div className="w-full max-w-sm">
-        <div className="mb-8 text-center">
-          <h1 className="inline-flex items-center gap-2 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-            <Image src="/icon.svg" alt="" aria-hidden width={36} height={36} className="h-9 w-9" priority />
-            Rally
-          </h1>
-          <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-            취준 루틴 · 커리어 트래커
-          </p>
+    <AuthShell
+      title="취준 루틴 · 커리어 트래커"
+      footer={
+        <>
+          계정이 없다면 <AuthFooterLink href="/signup">회원가입</AuthFooterLink>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className={AUTH_CARD}>
+        <AuthError message={displayError} />
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="email" className={AUTH_LABEL}>
+            이메일
+          </label>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={submitting}
+            className={AUTH_INPUT}
+          />
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
-        >
-          <div className="space-y-4">
-            <div>
-              <label
-                htmlFor="email"
-                className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400"
-              >
-                이메일
-              </label>
-              <input
-                id="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={submitting}
-                className="block min-h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-base text-zinc-900 outline-none transition-colors placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-200 disabled:opacity-60 md:min-h-0 md:text-sm dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:placeholder:text-zinc-500 dark:focus:border-zinc-500 dark:focus:ring-zinc-800"
-              />
-            </div>
-
-            <div>
-              <div className="mb-1.5 flex items-center justify-between gap-2">
-                <label
-                  htmlFor="password"
-                  className="block text-xs font-medium text-zinc-600 dark:text-zinc-400"
-                >
-                  비밀번호
-                </label>
-                {/* 비밀번호 찾기 화면으로 가는 길이 재설정 실패 화면뿐이었음 */}
-                <Link
-                  href="/forgot-password"
-                  className="text-xs text-zinc-500 underline-offset-4 hover:text-zinc-900 hover:underline dark:text-zinc-400 dark:hover:text-zinc-100"
-                >
-                  비밀번호를 잊었나요?
-                </Link>
-              </div>
-              <input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={submitting}
-                className="block min-h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-base text-zinc-900 outline-none transition-colors placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-200 disabled:opacity-60 md:min-h-0 md:text-sm dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:placeholder:text-zinc-500 dark:focus:border-zinc-500 dark:focus:ring-zinc-800"
-              />
-            </div>
-
-            {displayError ? (
-              <div
-                role="alert"
-                className="flex items-start gap-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700 dark:bg-red-950/40 dark:text-red-300"
-              >
-                <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
-                <span>{displayError}</span>
-              </div>
-            ) : null}
-
-            <button
-              type="submit"
-              disabled={submitting || !email || !password}
-              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 md:min-h-0 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
-            >
-              <LogIn className="h-4 w-4" aria-hidden />
-              {submitting ? '로그인 중…' : '로그인'}
-            </button>
-
-            <OrDivider />
-
-            <GoogleButton
-              nextPath={nextPath}
-              disabled={submitting}
-              onStart={() => {
-                setError(null);
-                setSubmitting(true);
-              }}
-              onError={(msg) => {
-                setError(msg);
-                setSubmitting(false);
-              }}
-            />
-          </div>
-        </form>
-
-        <p className="mt-6 text-center text-xs text-zinc-500 dark:text-zinc-500">
-          계정이 없다면{' '}
+        {/* "잊었나요?"는 라벨 줄 오른쪽에 보이지만 DOM은 입력칸 뒤 — Tab이 비밀번호 → 잊었나요 → 로그인 순서 */}
+        <div className="grid grid-cols-[1fr_auto] items-center gap-x-2 gap-y-2">
+          <label htmlFor="password" className={`${AUTH_LABEL} col-start-1 row-start-1`}>
+            비밀번호
+          </label>
+          <input
+            id="password"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={submitting}
+            className={`${AUTH_INPUT} col-span-2 row-start-2`}
+          />
           <Link
-            href="/signup"
-            className="font-medium text-zinc-900 underline-offset-4 hover:underline dark:text-zinc-100"
+            href="/forgot-password"
+            className="col-start-2 row-start-1 rounded-sm text-[13px] text-btn-fg underline-offset-4 outline-none hover:underline focus-visible:shadow-[0_0_0_2px_var(--rally-chip-on-border)]"
           >
-            회원가입
+            비밀번호를 잊었나요?
           </Link>
-        </p>
-      </div>
-    </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={submitting || !email || !password}
+          data-busy={submitting}
+          className={AUTH_PRIMARY}
+        >
+          <BusyLabel busy={submitting} idle="로그인" busyText="로그인 중…" />
+        </button>
+
+        <OrDivider />
+
+        <GoogleButton
+          nextPath={nextPath}
+          disabled={submitting}
+          onStart={() => {
+            setError(null);
+            setSubmitting(true);
+          }}
+          onError={(msg) => {
+            setError(msg);
+            setSubmitting(false);
+          }}
+        />
+      </form>
+    </AuthShell>
   );
 }
 

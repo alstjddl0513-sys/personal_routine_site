@@ -43,7 +43,8 @@ export function GoogleButton({
       type="button"
       onClick={handleGoogle}
       disabled={disabled}
-      className="inline-flex min-h-11 w-full items-center justify-center gap-3 rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60 md:min-h-0 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:bg-zinc-900"
+      // Google 브랜드 규칙 — 흰 바탕 · #DADCE0 테두리 · #1F1F1F 글자, 다크에서도 그대로(토큰 X)
+      className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-md border border-[#DADCE0] bg-white px-4 text-[15px] font-semibold text-[#1F1F1F] outline-none hover:bg-[#F8F9FA] focus-visible:shadow-[0_0_0_2px_var(--rally-paper),0_0_0_4px_var(--rally-chip-on-border)] disabled:cursor-not-allowed disabled:opacity-60"
     >
       <GoogleIcon />
       Google로 계속하기
@@ -79,10 +80,10 @@ function GoogleIcon() {
 /** 로그인 · 가입 화면 공용 "또는" 구분선 */
 export function OrDivider() {
   return (
-    <div className="flex items-center gap-2 text-xs text-zinc-400 dark:text-zinc-500">
-      <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
+    <div className="flex items-center gap-3 text-[13px] text-ink-muted">
+      <span aria-hidden className="h-px flex-1 bg-divider" />
       또는
-      <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
+      <span aria-hidden className="h-px flex-1 bg-divider" />
     </div>
   );
 }

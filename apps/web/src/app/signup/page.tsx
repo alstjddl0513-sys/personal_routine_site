@@ -1,11 +1,21 @@
 'use client';
 
-import { useEffect, useRef, useState, type FormEvent } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, Check, Dices, Mail, UserPlus, X } from 'lucide-react';
+import { Check, Dices, Loader2, Mail, X } from 'lucide-react';
 import { GoogleButton, OrDivider } from '@/components/auth/GoogleButton';
+import {
+  AUTH_CARD,
+  AUTH_INPUT,
+  AUTH_INPUT_ERROR,
+  AUTH_LABEL,
+  AUTH_PRIMARY,
+  AuthError,
+  AuthFooterLink,
+  AuthNotice,
+  AuthShell,
+  BusyLabel,
+} from '@/components/auth/AuthShell';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { checkNicknameAvailability, HttpError, upsertMyProfile } from '@/lib/api';
 import { randomNickname } from '@/lib/nickname';
@@ -130,172 +140,137 @@ export default function SignupPage() {
     }
   }
 
-  return (
-    <div className="fixed inset-0 flex items-center justify-center bg-linear-to-br from-zinc-50 via-white to-zinc-100 px-4 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
-      <div className="w-full max-w-sm">
-        <div className="mb-8 text-center">
-          <h1 className="inline-flex items-center gap-2 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-            <Image src="/icon.svg" alt="" aria-hidden width={36} height={36} className="h-9 w-9" priority />
-            Rally
-          </h1>
-          <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">회원가입</p>
-        </div>
+  const footer = (
+    <>
+      이미 계정이 있다면 <AuthFooterLink href="/login">로그인</AuthFooterLink>
+    </>
+  );
 
-        {sentTo ? (
-          <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-6 text-sm text-zinc-700 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
-            <div className="flex items-start gap-2">
-              <Mail className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" aria-hidden />
-              <p>
-                <strong>{sentTo}</strong>로 가입 확인 메일을 보냈어요.
-                <br />
-                메일의 링크를 눌러 가입을 마쳐주세요. 링크가 안 보이면 스팸함도 살펴봐 주세요.
-              </p>
-            </div>
-            <div className="mt-2 flex justify-end">
-              <Link
-                href="/login"
-                className="inline-flex min-h-11 items-center rounded-lg bg-zinc-900 px-4 text-sm font-medium text-white hover:bg-zinc-800 md:min-h-0 md:py-1.5 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
-              >
-                로그인으로 돌아가기
-              </Link>
-            </div>
-          </div>
-        ) : (
-        <form
-          onSubmit={handleSubmit}
-          className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
+  // 확인 메일을 보냈으면 폼 대신 안내 카드 — 강조는 메일 주소 한 군데
+  if (sentTo) {
+    return (
+      <AuthShell title="회원가입">
+        <AuthNotice
+          icon={Mail}
+          title="가입 확인 메일을 보냈어요"
+          action={{ href: '/login', label: '로그인으로 돌아가기', tone: 'secondary' }}
         >
-          <div className="space-y-4">
-            <Field htmlFor="email" label="이메일">
-              <input
-                id="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={submitting}
-                className={inputCls}
-              />
-            </Field>
+          <p>
+            <strong className="font-bold text-ink-strong">{sentTo}</strong>로 보냈어요.
+            <br />
+            메일의 링크를 눌러 가입을 마쳐주세요.
+          </p>
+          <p>링크가 안 보이면 스팸함도 살펴봐 주세요.</p>
+        </AuthNotice>
+      </AuthShell>
+    );
+  }
 
-            <Field
-              htmlFor="nickname"
-              label="닉네임"
-              hint="2~20자, 한글/영문/숫자/언더바"
-            >
-              <div className="relative">
-                <input
-                  id="nickname"
-                  type="text"
-                  autoComplete="off"
-                  required
-                  value={nickname}
-                  onChange={(e) => updateNickname(e.target.value)}
-                  disabled={submitting}
-                  className={`${inputCls} pr-20`}
-                />
-                <div className="absolute inset-y-0 right-0 flex items-center gap-1 pr-2">
-                  <NicknameStatusIcon status={nicknameStatus} />
-                  <button
-                    type="button"
-                    onClick={() => updateNickname(randomNickname())}
-                    disabled={submitting}
-                    aria-label="랜덤 닉네임 생성"
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-40 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
-                  >
-                    <Dices className="h-4 w-4" aria-hidden />
-                  </button>
-                </div>
-              </div>
-              <NicknameStatusMessage status={nicknameStatus} />
-            </Field>
+  const nicknameBad = nicknameStatus.kind === 'taken' || nicknameStatus.kind === 'invalid' || nicknameStatus.kind === 'error';
+  const confirmBad = passwordConfirm.length > 0 && password !== passwordConfirm;
 
-            <Field htmlFor="password" label="비밀번호" hint="8자 이상">
-              <input
-                id="password"
-                type="password"
-                autoComplete="new-password"
-                required
-                minLength={8}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={submitting}
-                className={inputCls}
-              />
-            </Field>
+  return (
+    <AuthShell title="회원가입" footer={footer}>
+      <form onSubmit={handleSubmit} className={AUTH_CARD}>
+        <AuthError message={error} />
 
-            <Field htmlFor="passwordConfirm" label="비밀번호 확인">
-              <input
-                id="passwordConfirm"
-                type="password"
-                autoComplete="new-password"
-                required
-                minLength={8}
-                value={passwordConfirm}
-                onChange={(e) => setPasswordConfirm(e.target.value)}
-                disabled={submitting}
-                className={inputCls}
-              />
-              {passwordConfirm.length > 0 && password !== passwordConfirm ? (
-                <p className="mt-1 text-xs text-red-600 dark:text-red-400">
-                  비밀번호가 일치하지 않아요.
-                </p>
-              ) : null}
-            </Field>
+        <Field htmlFor="email" label="이메일">
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={submitting}
+            className={AUTH_INPUT}
+          />
+        </Field>
 
-            {error ? (
-              <div
-                role="alert"
-                className="flex items-start gap-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700 dark:bg-red-950/40 dark:text-red-300"
-              >
-                <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
-                <span>{error}</span>
-              </div>
-            ) : null}
-
-            <button
-              type="submit"
-              disabled={!canSubmit}
-              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 md:min-h-0 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
-            >
-              <UserPlus className="h-4 w-4" aria-hidden />
-              {submitting ? '가입 중…' : '회원가입'}
-            </button>
-
-            <OrDivider />
-
-            <GoogleButton
+        <Field htmlFor="nickname" label="닉네임">
+          {/* 칸 안 오른쪽에 상태 아이콘(✓ · ✕ · 회전) + 🎲 40px. 아이콘만으로 판단하지 않게 칸 아래 글자 한 줄 */}
+          <div className="relative">
+            <input
+              id="nickname"
+              type="text"
+              autoComplete="off"
+              required
+              placeholder="2~20자, 한글/영문/숫자/언더바"
+              value={nickname}
+              onChange={(e) => updateNickname(e.target.value)}
               disabled={submitting}
-              onStart={() => {
-                setError(null);
-                setSubmitting(true);
-              }}
-              onError={(msg) => {
-                setError(msg);
-                setSubmitting(false);
-              }}
+              aria-invalid={nicknameBad}
+              aria-describedby="nickname-status"
+              className={`${AUTH_INPUT} pr-21 ${nicknameBad ? AUTH_INPUT_ERROR : ''}`}
             />
+            <div className="absolute inset-y-0 right-0.5 flex items-center gap-0.5">
+              <NicknameStatusIcon status={nicknameStatus} />
+              <button
+                type="button"
+                onClick={() => updateNickname(randomNickname())}
+                disabled={submitting}
+                aria-label="랜덤 닉네임"
+                title="랜덤 닉네임"
+                className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-md text-ink-muted outline-none hover:bg-row-hover hover:text-ink focus-visible:shadow-[inset_0_0_0_2px_var(--rally-chip-on-border)] disabled:opacity-40"
+              >
+                <Dices className="h-4 w-4" aria-hidden />
+              </button>
+            </div>
           </div>
-        </form>
-        )}
+          <NicknameStatusMessage status={nicknameStatus} />
+        </Field>
 
-        <p className="mt-6 text-center text-xs text-zinc-500 dark:text-zinc-500">
-          이미 계정이 있다면{' '}
-          <Link
-            href="/login"
-            className="font-medium text-zinc-900 underline-offset-4 hover:underline dark:text-zinc-100"
-          >
-            로그인
-          </Link>
-        </p>
-      </div>
-    </div>
+        <Field htmlFor="password" label="비밀번호" hint="8자 이상">
+          <input
+            id="password"
+            type="password"
+            autoComplete="new-password"
+            required
+            minLength={8}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={submitting}
+            className={AUTH_INPUT}
+          />
+        </Field>
+
+        <Field htmlFor="passwordConfirm" label="비밀번호 확인">
+          <input
+            id="passwordConfirm"
+            type="password"
+            autoComplete="new-password"
+            required
+            minLength={8}
+            value={passwordConfirm}
+            onChange={(e) => setPasswordConfirm(e.target.value)}
+            disabled={submitting}
+            aria-invalid={confirmBad}
+            className={`${AUTH_INPUT} ${confirmBad ? AUTH_INPUT_ERROR : ''}`}
+          />
+          {confirmBad ? <p className="text-[13px] text-alert">비밀번호가 일치하지 않아요.</p> : null}
+        </Field>
+
+        <button type="submit" disabled={!canSubmit} data-busy={submitting} className={AUTH_PRIMARY}>
+          <BusyLabel busy={submitting} idle="회원가입" busyText="가입 중…" />
+        </button>
+
+        <OrDivider />
+
+        <GoogleButton
+          disabled={submitting}
+          onStart={() => {
+            setError(null);
+            setSubmitting(true);
+          }}
+          onError={(msg) => {
+            setError(msg);
+            setSubmitting(false);
+          }}
+        />
+      </form>
+    </AuthShell>
   );
 }
-
-const inputCls =
-  'block min-h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-base text-zinc-900 outline-none transition-colors placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-200 disabled:opacity-60 md:min-h-0 md:text-sm dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:placeholder:text-zinc-500 dark:focus:border-zinc-500 dark:focus:ring-zinc-800';
 
 function Field({
   htmlFor,
@@ -309,12 +284,10 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <div>
-      <label
-        htmlFor={htmlFor}
-        className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400"
-      >
-        {label} {hint ? <span className="text-zinc-400">({hint})</span> : null}
+    <div className="flex flex-col gap-2">
+      <label htmlFor={htmlFor} className={AUTH_LABEL}>
+        {label}
+        {hint ? <span className="ml-1.5 font-normal text-ink-muted">{hint}</span> : null}
       </label>
       {children}
     </div>
@@ -323,40 +296,40 @@ function Field({
 
 function NicknameStatusIcon({ status }: { status: NicknameStatus }) {
   if (status.kind === 'checking') {
-    return (
-      <span
-        className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-zinc-300 border-t-transparent"
-        aria-hidden
-      />
-    );
+    return <Loader2 className="h-4 w-4 animate-spin text-ink-faint" aria-hidden />;
   }
   if (status.kind === 'available') {
-    return <Check className="h-4 w-4 text-emerald-500" aria-label="사용 가능" />;
+    return <Check className="h-4 w-4 text-primary" aria-label="사용 가능" />;
   }
   if (status.kind === 'taken' || status.kind === 'invalid') {
-    return <X className="h-4 w-4 text-red-500" aria-label="사용 불가" />;
+    return <X className="h-4 w-4 text-alert" aria-label="사용 불가" />;
   }
   return null;
 }
 
+// 칸 아래 13px 한 줄 — 확인 중(ink-faint) · 사용할 수 있어요(primary + ✓) · 사용 중 · 형식 · 오류(alert)
 function NicknameStatusMessage({ status }: { status: NicknameStatus }) {
-  if (status.kind === 'invalid') {
-    return <p className="mt-1 text-xs text-red-600 dark:text-red-400">{status.message}</p>;
-  }
-  if (status.kind === 'taken') {
-    return (
-      <p className="mt-1 text-xs text-red-600 dark:text-red-400">이미 사용 중인 닉네임이에요.</p>
+  const base = 'flex items-center gap-1 text-[13px]';
+  let content: ReactNode = null;
+  if (status.kind === 'checking') {
+    content = <span className={`${base} text-ink-faint`}>확인 중…</span>;
+  } else if (status.kind === 'available') {
+    content = (
+      <span className={`${base} text-primary`}>
+        <Check className="h-3.5 w-3.5" aria-hidden />
+        사용할 수 있어요.
+      </span>
     );
+  } else if (status.kind === 'taken') {
+    content = <span className={`${base} text-alert`}>이미 사용 중인 닉네임이에요.</span>;
+  } else if (status.kind === 'invalid' || status.kind === 'error') {
+    content = <span className={`${base} text-alert`}>{status.message}</span>;
   }
-  if (status.kind === 'available') {
-    return (
-      <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-400">사용할 수 있어요.</p>
-    );
-  }
-  if (status.kind === 'error') {
-    return <p className="mt-1 text-xs text-red-600 dark:text-red-400">{status.message}</p>;
-  }
-  return null;
+  return (
+    <p id="nickname-status" role="status" className="min-h-0 empty:hidden">
+      {content}
+    </p>
+  );
 }
 
 function translateAuthError(message: string): string {
