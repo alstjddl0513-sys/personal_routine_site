@@ -37,13 +37,13 @@ export default function ForgotPasswordPage() {
       }
       setSent(true);
     } catch {
-      setError('네트워크 오류가 발생했어요. 다시 시도해주세요.');
+      setError('연결이 잠깐 끊겼어요. 잠시 후 다시 해보세요.');
       setSubmitting(false);
     }
   }
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-zinc-50 via-white to-zinc-100 px-4 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
+    <div className="fixed inset-0 flex items-center justify-center bg-linear-to-br from-zinc-50 via-white to-zinc-100 px-4 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <h1 className="inline-flex items-center gap-2 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
@@ -138,10 +138,11 @@ export default function ForgotPasswordPage() {
 function translateAuthError(message: string): string {
   const m = message.toLowerCase();
   if (m.includes('for security purposes') && m.includes('wait')) {
-    return '너무 자주 시도했어요. 잠시 후 다시 해주세요.';
+    return '너무 자주 시도했어요. 잠시 후 다시 해보세요.';
   }
   if (m.includes('invalid email') || m.includes('unable to validate email')) {
     return '이메일 형식을 확인해주세요.';
   }
-  return message;
+  // 모르는 오류도 원문(영문) 대신 한글 한 줄
+  return '재설정 링크를 보내지 못했어요. 잠시 후 다시 해보세요.';
 }

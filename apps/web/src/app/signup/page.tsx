@@ -4,13 +4,14 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, Check, Dices, UserPlus, X } from 'lucide-react';
+import { AlertCircle, Check, Dices, Mail, UserPlus, X } from 'lucide-react';
+import { GoogleButton, OrDivider } from '@/components/auth/GoogleButton';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { checkNicknameAvailability, HttpError, upsertMyProfile } from '@/lib/api';
 import { randomNickname } from '@/lib/nickname';
 
-// Google signup 진입은 /login의 "Google로 계속하기"로 통일 (OAuth 콜백에서
-// 신규 유저면 자동 프로필 생성). /signup은 이메일/비번 전용으로 단순화.
+// [Google로 계속하기]는 로그인 화면과 같은 GoogleButton — OAuth 콜백에서 신규 유저면 프로필 자동 생성.
+// 가입 화면에도 둬서 Google로 가입하려는 사람이 로그인 화면을 찾지 않아도 되게.
 
 type NicknameStatus =
   | { kind: 'idle' }
@@ -40,6 +41,8 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [error, setError] = useState<string | null>(null);
+  // 가입 확인 메일을 보낸 주소 — 있으면 폼 대신 "메일을 보냈어요" 안내(전엔 빨간 오류 상자로 떴음)
+  const [sentTo, setSentTo] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -70,11 +73,9 @@ export default function SignupPage() {
       try {
         const { available } = await checkNicknameAvailability(next);
         setNicknameStatus({ kind: available ? 'available' : 'taken' });
-      } catch (err) {
-        setNicknameStatus({
-          kind: 'error',
-          message: err instanceof Error ? err.message : '닉네임을 확인하지 못했어요',
-        });
+      } catch {
+        // 서버 오류 원문 대신 한 줄
+        setNicknameStatus({ kind: 'error', message: '닉네임을 확인하지 못했어요. 잠시 후 다시 해보세요.' });
       }
     }, 400);
   }
@@ -105,9 +106,7 @@ export default function SignupPage() {
         data: { session },
       } = await supabase.auth.getSession();
       if (!session) {
-        setError(
-          '가입 확인 메일을 보냈어요. 메일의 링크를 눌러 가입을 마쳐주세요.',
-        );
+        setSentTo(email);
         setSubmitting(false);
         return;
       }
@@ -115,9 +114,9 @@ export default function SignupPage() {
         await upsertMyProfile(nickname);
       } catch (err) {
         if (err instanceof HttpError && err.status === 409) {
-          setError('닉네임이 방금 다른 사람에게 선점됐어요. 다른 닉네임으로 다시 시도해주세요.');
+          setError('이미 사용 중인 닉네임이에요. 다른 닉네임으로 다시 해보세요.');
         } else {
-          setError('프로필을 저장하지 못했어요. 잠시 후 다시 시도해주세요.');
+          setError('프로필을 저장하지 못했어요. 잠시 후 다시 해보세요.');
         }
         // 세션은 살아있음 — 사용자가 닉네임만 바꿔 재시도 가능.
         setSubmitting(false);
@@ -126,13 +125,13 @@ export default function SignupPage() {
       router.replace('/today');
       router.refresh();
     } catch {
-      setError('네트워크 오류가 발생했어요. 다시 시도해주세요.');
+      setError('연결이 잠깐 끊겼어요. 잠시 후 다시 해보세요.');
       setSubmitting(false);
     }
   }
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-zinc-50 via-white to-zinc-100 px-4 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
+    <div className="fixed inset-0 flex items-center justify-center bg-linear-to-br from-zinc-50 via-white to-zinc-100 px-4 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <h1 className="inline-flex items-center gap-2 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
@@ -142,6 +141,26 @@ export default function SignupPage() {
           <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">회원가입</p>
         </div>
 
+        {sentTo ? (
+          <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-6 text-sm text-zinc-700 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
+            <div className="flex items-start gap-2">
+              <Mail className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" aria-hidden />
+              <p>
+                <strong>{sentTo}</strong>로 가입 확인 메일을 보냈어요.
+                <br />
+                메일의 링크를 눌러 가입을 마쳐주세요. 링크가 안 보이면 스팸함도 살펴봐 주세요.
+              </p>
+            </div>
+            <div className="mt-2 flex justify-end">
+              <Link
+                href="/login"
+                className="inline-flex min-h-11 items-center rounded-lg bg-zinc-900 px-4 text-sm font-medium text-white hover:bg-zinc-800 md:min-h-0 md:py-1.5 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
+              >
+                로그인으로 돌아가기
+              </Link>
+            </div>
+          </div>
+        ) : (
         <form
           onSubmit={handleSubmit}
           className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
@@ -243,8 +262,23 @@ export default function SignupPage() {
               <UserPlus className="h-4 w-4" aria-hidden />
               {submitting ? '가입 중…' : '회원가입'}
             </button>
+
+            <OrDivider />
+
+            <GoogleButton
+              disabled={submitting}
+              onStart={() => {
+                setError(null);
+                setSubmitting(true);
+              }}
+              onError={(msg) => {
+                setError(msg);
+                setSubmitting(false);
+              }}
+            />
           </div>
         </form>
+        )}
 
         <p className="mt-6 text-center text-xs text-zinc-500 dark:text-zinc-500">
           이미 계정이 있다면{' '}
@@ -340,5 +374,6 @@ function translateAuthError(message: string): string {
   if (m.includes('invalid email') || m.includes('unable to validate email')) {
     return '이메일 형식을 확인해주세요.';
   }
-  return message;
+  // 모르는 오류도 원문(영문) 대신 한글 한 줄
+  return '가입하지 못했어요. 잠시 후 다시 해보세요.';
 }
