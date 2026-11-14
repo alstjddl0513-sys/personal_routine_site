@@ -11,7 +11,7 @@ export const metadata = {
 // 경고색 없음 — 사용자 잘못이 아니라서. 갈 곳이 하나라 [오늘 화면으로]가 채운 버튼.
 export default function NotFound() {
   return (
-    <div className="flex min-h-[70vh] items-center justify-center bg-paper px-4 py-16 font-plex">
+    <div className="flex min-h-screen items-center justify-center bg-paper px-4 py-16 font-plex">
       <div className="flex w-full max-w-105 flex-col items-center gap-3.5 text-center">
         <LostIcon className="h-10 w-10 text-icon-faint" />
         <h1 className="text-[22px] font-bold text-ink-strong">페이지를 찾을 수 없어요</h1>

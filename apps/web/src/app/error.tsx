@@ -24,7 +24,7 @@ export default function GlobalRouteError({
   }, [error]);
 
   return (
-    <div className="flex min-h-[70vh] items-center justify-center bg-paper px-4 py-16 font-plex">
+    <div className="flex min-h-screen items-center justify-center bg-paper px-4 py-16 font-plex">
       <div className="flex w-full max-w-105 flex-col items-center gap-3.5 text-center">
         <DisconnectedIcon className="h-10 w-10 text-icon-faint" />
         <h1 className="text-[22px] font-bold text-ink-strong">화면을 불러오지 못했어요</h1>
