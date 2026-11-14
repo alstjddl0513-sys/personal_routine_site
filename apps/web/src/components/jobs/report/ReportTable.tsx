@@ -19,7 +19,8 @@ function formatDeadline(raw: string | null): string {
   const d = new Date(s);
   if (isNaN(d.getTime())) return '—';
   const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  // 머리의 기간("2026.11.13")과 같은 점 표기
+  return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}`;
 }
 
 // 5+컬럼 표. 인쇄 CSS가 `data-report-table`을 셀렉터로 씀.
@@ -58,11 +59,12 @@ export function ReportTable({ rows, companyTypes }: Props) {
               <AppliedAtPopover id={c.id} value={c.appliedAt} />
             </td>
             <td className="px-2 py-1.5 font-medium">{c.name}</td>
-            <td className="px-2 py-1.5 text-center text-zinc-600 dark:text-zinc-400">
-              {COMPANY_TYPE_1_LABELS[c.type1]}
-            </td>
+            {/* 유형 = type2(서비스 · SI …, 설정에서 고치는 것), 규모 = type1(대기업 · 중소 …) — 채용 리스트와 같게. 전엔 두 칸이 뒤바뀌어 있었음 */}
             <td className="px-2 py-1.5 text-center text-zinc-600 dark:text-zinc-400">
               {type2Labels[c.type2] ?? c.type2}
+            </td>
+            <td className="px-2 py-1.5 text-center text-zinc-600 dark:text-zinc-400">
+              {COMPANY_TYPE_1_LABELS[c.type1]}
             </td>
             <td className="px-2 py-1.5 text-center text-zinc-600 dark:text-zinc-400">
               {PRIORITY_LABELS[c.priority]}
@@ -79,7 +81,7 @@ export function ReportTable({ rows, companyTypes }: Props) {
                 formatDeadline(c.applicationDeadline)
               )}
             </td>
-            <td className="px-2 py-1.5 whitespace-pre-wrap break-words text-zinc-600 dark:text-zinc-400">
+            <td className="px-2 py-1.5 whitespace-pre-wrap wrap-break-word text-zinc-600 dark:text-zinc-400">
               {c.note ? c.note : <span className="text-zinc-400">—</span>}
             </td>
           </tr>

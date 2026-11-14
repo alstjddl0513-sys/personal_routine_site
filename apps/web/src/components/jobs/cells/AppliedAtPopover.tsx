@@ -38,7 +38,8 @@ function formatDisplay(raw: string | null): string {
   const d = parseDate(raw);
   if (!d) return '—';
   const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} (${WEEKDAY_KO[d.getDay()]})`;
+  // 리포트 머리 기간 · 마감일과 같은 점 표기("2026.11.03 (화)")
+  return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())} (${WEEKDAY_KO[d.getDay()]})`;
 }
 
 export function AppliedAtPopover({

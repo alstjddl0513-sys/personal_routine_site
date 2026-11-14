@@ -21,16 +21,16 @@ export default function GlobalError({
       <body style={rootStyle}>
         <div style={cardStyle}>
           <div style={iconStyle}>!</div>
-          <h1 style={titleStyle}>서비스가 잠깐 멈췄어요</h1>
-          <p style={descStyle}>새로고침하거나 잠시 후 다시 열어봐주세요.</p>
-          {error.digest ? <p style={digestStyle}>digest: {error.digest}</p> : null}
+          <h1 style={titleStyle}>화면을 불러오지 못했어요</h1>
+          <p style={descStyle}>잠시 후 다시 해보세요. 계속 안 되면 피드백으로 알려주세요.</p>
+          {error.digest ? <p style={digestStyle}>오류 코드 {error.digest}</p> : null}
           <div style={buttonRowStyle}>
             <button type="button" onClick={reset} style={primaryButtonStyle}>
-              다시 시도
+              다시 불러오기
             </button>
-            {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- root error boundary is outside RootLayout, next/link is unavailable */}
-            <a href="/" style={linkButtonStyle}>
-              홈으로
+            {/* 앱 전체 오류 화면은 RootLayout 밖이라 next/link 대신 <a> */}
+            <a href="/today" style={linkButtonStyle}>
+              오늘 화면으로
             </a>
           </div>
         </div>
