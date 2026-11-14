@@ -120,10 +120,12 @@
   --rally-side-line: #2a4237;
 
   --rally-admin: #8cc8c2;
-  --rally-admin-side-bg: #1c3a3b;
-  --rally-admin-side-border: #30595a;
-  --rally-admin-side-active-bg: #94c6c2;
-  --rally-admin-side-active-fg: #0f2626;
+  /* 사이드바 관리자 줄 다크 — rally-admin-dark.html에서 정함(2026-11-15) */
+  --rally-admin-side-bg: #1e3c3e;
+  --rally-admin-side-fg: #bce0dc;
+  --rally-admin-side-border: #335e5c;
+  --rally-admin-side-active-bg: #8cc8c2;
+  --rally-admin-side-active-fg: #0f2a29;
 
   --rally-heart: #f0675b;
   --rally-row-flash: #3a3322;

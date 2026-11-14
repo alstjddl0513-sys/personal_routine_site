@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Users } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import {
   ANNOUNCEMENT_KINDS,
   ANNOUNCEMENT_KIND_LABELS,
@@ -10,12 +10,23 @@ import {
   type CreateAnnouncementInput,
 } from '@repo/shared';
 import { Select } from '../ui/Select';
+import {
+  BUTTON_PRIMARY,
+  BUTTON_SECONDARY,
+  BUTTON_TEXT,
+  POPOVER_INPUT,
+} from '../jobs/cells/popover-style';
+import { Field } from '../settings/lists/ListCard';
+import { Checkbox } from './admin-ui';
 import { UserPickerModal } from './UserPickerModal';
 
 const KIND_OPTIONS = ANNOUNCEMENT_KINDS.map((k) => ({
   value: k,
   label: ANNOUNCEMENT_KIND_LABELS[k],
 }));
+
+// 비어 있을 때 [저장] — 흐린 숲색 대신 divider 바탕(시안)
+const SAVE_DISABLED = 'disabled:cursor-default disabled:border-divider disabled:bg-divider disabled:text-icon-faint disabled:opacity-100';
 
 interface Props {
   initial?: Announcement;
@@ -24,9 +35,8 @@ interface Props {
   onCancel: () => void;
 }
 
-// 공지 생성/수정 공용 폼. datetime-local input은 로컬 시각으로 표시하고
-// 서버엔 ISO(UTC)로 변환해 전달. 빈 값 = null(무제한).
-
+// 공지 생성/수정 공용 폼 — 목록 카드 안 thead 바탕 블록(카드 좌우 끝까지).
+// datetime-local input은 로컬 시각으로 표시하고 서버엔 ISO(UTC)로 변환해 전달. 빈 값 = null(제한 없음).
 export function AnnouncementForm({ initial, pending, onSubmit, onCancel }: Props) {
   const [kind, setKind] = useState<AnnouncementKind>(initial?.kind ?? 'notice');
   const [title, setTitle] = useState(initial?.title ?? '');
@@ -51,20 +61,23 @@ export function AnnouncementForm({ initial, pending, onSubmit, onCancel }: Props
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-md border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-      <div className="flex flex-wrap items-center gap-2">
-        <label className="text-xs text-zinc-500">종류</label>
-        <Select
-          value={kind}
-          onChange={(v) => setKind(v as AnnouncementKind)}
-          options={KIND_OPTIONS}
-          disabled={pending}
-          ariaLabel="종류"
-          triggerClassName="rounded border border-zinc-300 bg-white px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-        />
-        <label className="ml-auto flex items-center gap-1 text-xs text-zinc-500">
-          <input
-            type="checkbox"
+    <div className="-mx-5 flex flex-col gap-3.5 border-b border-divider bg-thead px-5 pt-4.5 pb-5">
+      <div className="grid grid-cols-[200px_minmax(0,1fr)] gap-3">
+        <div className="flex min-w-0 flex-col gap-1.5">
+          <span className="text-[13px] font-semibold text-ink-soft">종류</span>
+          <Select
+            value={kind}
+            onChange={(v) => setKind(v as AnnouncementKind)}
+            options={KIND_OPTIONS}
+            disabled={pending}
+            ariaLabel="종류"
+            tone="rally"
+            triggerSuffix={<ChevronDown className="ml-auto h-4 w-4 text-ink-muted" aria-hidden />}
+            triggerClassName={`${POPOVER_INPUT} cursor-pointer justify-between px-3 text-[15px]`}
+          />
+        </div>
+        <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 self-end text-sm text-ink">
+          <Checkbox
             checked={isActive}
             onChange={(e) => setIsActive(e.target.checked)}
             disabled={pending}
@@ -73,64 +86,58 @@ export function AnnouncementForm({ initial, pending, onSubmit, onCancel }: Props
         </label>
       </div>
 
-      <label className="flex flex-col gap-1 text-xs text-zinc-500">
-        제목
+      <Field label="제목">
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           disabled={pending}
           maxLength={200}
-          className="rounded border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-900 outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+          className={`${POPOVER_INPUT} px-3 text-[15px]`}
         />
-      </label>
-      <label className="flex flex-col gap-1 text-xs text-zinc-500">
-        본문
+      </Field>
+      <Field label="본문">
         <textarea
           value={body}
           onChange={(e) => setBody(e.target.value)}
           disabled={pending}
           maxLength={4000}
           rows={4}
-          className="rounded border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-900 outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+          className={`${POPOVER_INPUT} resize-y px-3 py-2 text-[15px] leading-[1.6]`}
         />
-      </label>
+      </Field>
 
-      <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-500">
-        <label className="flex items-center gap-1">
-          시작
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="시작" hint="비우면 제한 없음">
           <input
             type="datetime-local"
             value={startsAt}
             onChange={(e) => setStartsAt(e.target.value)}
             disabled={pending}
-            className="rounded border border-zinc-300 bg-white px-2 py-1 text-xs dark:border-zinc-700 dark:bg-zinc-900"
+            className={`${POPOVER_INPUT} text-[14.5px]`}
           />
-        </label>
-        <label className="flex items-center gap-1">
-          종료
+        </Field>
+        <Field label="종료" hint="비우면 제한 없음">
           <input
             type="datetime-local"
             value={endsAt}
             onChange={(e) => setEndsAt(e.target.value)}
             disabled={pending}
-            className="rounded border border-zinc-300 bg-white px-2 py-1 text-xs dark:border-zinc-700 dark:bg-zinc-900"
+            className={`${POPOVER_INPUT} text-[14.5px]`}
           />
-        </label>
-        <span className="text-[10px] text-zinc-400">비우면 제한 없음</span>
+        </Field>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 text-xs">
+      <div className="flex flex-wrap items-center gap-2.5">
         <button
           type="button"
           onClick={() => setPickerOpen(true)}
           disabled={pending}
-          className="inline-flex items-center gap-1 rounded border border-zinc-300 bg-white px-2 py-1 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+          className={BUTTON_SECONDARY}
         >
-          <Users className="h-3.5 w-3.5" aria-hidden />
           받는 사람 고르기
         </button>
-        <span className="text-zinc-500">
+        <span className="text-sm text-ink-muted">
           {targets.length === 0 ? '전체에게 보내요' : `${targets.length}명 지정`}
         </span>
         {targets.length > 0 ? (
@@ -138,27 +145,22 @@ export function AnnouncementForm({ initial, pending, onSubmit, onCancel }: Props
             type="button"
             onClick={() => setTargets([])}
             disabled={pending}
-            className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+            className={`${BUTTON_TEXT} -ml-1 px-2`}
           >
             전체로 되돌리기
           </button>
         ) : null}
       </div>
 
-      <div className="mt-1 flex items-center justify-end gap-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={pending}
-          className="rounded px-3 py-1.5 text-xs text-zinc-500 hover:bg-zinc-100 disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
-        >
+      <div className="flex justify-end gap-2">
+        <button type="button" onClick={onCancel} disabled={pending} className={BUTTON_SECONDARY}>
           취소
         </button>
         <button
           type="button"
           onClick={submit}
           disabled={pending || !title.trim() || !body.trim()}
-          className="rounded bg-zinc-900 px-3 py-1.5 text-xs text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+          className={`${BUTTON_PRIMARY} ${SAVE_DISABLED}`}
         >
           {pending ? '저장 중…' : '저장'}
         </button>

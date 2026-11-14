@@ -29,6 +29,7 @@
 | `rally-error(-dark).html` | 404 · 오류 · 앱 전체 오류 화면 | `app/not-found.tsx` `app/error.tsx` `app/global-error.tsx` `components/ErrorIcons.tsx` |
 | `rally-jobs-report(-dark).html` · `rally-jobs-report-parts.html` | 채용 리포트(인쇄용 취업활동 표) + 지원일 팝오버 · 빈 상태 · 인쇄본 | `/jobs/report` `components/jobs/report/*` `cells/AppliedAtPopover.tsx` · globals.css `@media print` |
 | `rally-auth(-dark).html` · `rally-auth-parts.html` | 로그인 · 가입 · 비밀번호 재설정 · 새 비밀번호 · 로그인 필요 + 메일 안내 · 링크 만료 · 완료 · 닉네임 상태 | `/login` `/signup` `/forgot-password` `/auth/reset-password` `/unauthorized` `components/auth/*` |
+| `rally-admin(-dark).html` · `rally-admin-parts.html` | 관리자 페이지 4탭(개요 · 사용자 · 공지 · 피드백) + 차단 · 강제 탈퇴 · 받는 사람 · 삭제 창 · 공지 폼 · 배지 색 · 빈 상태 · 오류 | `/admin/*` `components/admin/*` · `admin-ui.tsx` · `lib/announcement-kind.ts` |
 
 **현재 상태**: 숲색 `#1F3D30` · 메리골드 `#E9B949`(로고·챌린지 포인트, 시안의 황토 `#C8963E`에서 변경) · 바탕 `#F6F7F5`, IBM Plex Sans KR + Noto Serif KR(인사말). 사이드바(전 페이지)와 `/today`에 적용. 다른 페이지 본문은 zinc — 페이지별로 개편할 때 같은 토큰으로 확산. 모바일(BottomNav)은 별도 시안 예정.
 
@@ -234,6 +235,14 @@
 - 닉네임 형식 오류 문구는 앱 그대로 "한글·영문·숫자·언더바만 사용할 수 있어요."
 - "비밀번호를 잊었나요?"는 라벨 줄 오른쪽에 보이지만 DOM은 입력칸 뒤(grid) — Tab 순서: 이메일 → 비밀번호 → 잊었나요 → 로그인 → Google
 - Google 버튼은 브랜드 색(흰 바탕 · #DADCE0 테두리) 고정, 다크에서도 흰색
+
+**관리자 페이지** (`/admin/*`, 2026-11-15) — 동작 · 문구는 #208 그대로, 공용 작은 부품 `components/admin/admin-ui.tsx`(DotBadge · AdminError · Checkbox · Radio · 서울 기준 날짜)
+- 청록(`--rally-admin`)은 탭 활성 · "관리자" 배지 · 사이드바 줄 세 곳만. 채운 버튼은 숲색 그대로(다른 후보: 채운 버튼까지 청록)
+- 다크 사이드바 관리자 줄 토큰 새 값(#1E3C3E · 테두리 #335E5C · 글자 #BCE0DC, 활성 #8CC8C2 / #0F2A29) — 다크에 `--rally-admin-side-fg` 새로 추가
+- 개요 카드 6개를 '가입' · '로그인' 두 묶음으로(다른 후보: 3×2 한 묶음), 라벨 "신규 가입 · 7일", 숫자 뒤 "명"
+- 공지 종류 · 피드백 분류 색은 새 색 없이 캘린더 일정 유형 색 재사용(공지 ev-other · 업데이트 ev-test · 점검 warn · 이벤트 ev-interview / 버그 alert · 제안 ev-test · 기타 ink-muted)
+- 정렬 · 종류 고르기는 앱 `Select`(시안은 브라우저 기본 select 모양), 본문 최대 1060px 왼쪽 정렬(시안대로)
+- 날짜는 서울 기준으로 고정(서버 UTC 렌더와 브라우저 글자가 어긋나지 않게), 영구 차단 줄은 "…까지 차단" 대신 "영구 차단"
 
 **채운 버튼(숲색) 규칙** (2026-11-12) — 한 화면에서 **가장 먼저 누를 버튼 하나만** `BUTTON_PRIMARY`(bg-button). 빈 상태의 유일한 행동도 채움. 반복되는 버튼([세트 추가] 등) · 이동 · 보조 · 창 안 [취소]는 테두리
 - 테두리 → 채움으로 바꾼 곳: 운동 기록 첫 사용 안내 [분할 만들기], 블로그 [새 글 가져오기] · 빈 상태 [전체 보기], 학습 · 복습 빈 상태 [전체 보기]
