@@ -51,6 +51,7 @@
   /* 관리자 (사이드바 '관리자 페이지' 줄 + 관리자 페이지 내부 대표색) — 숲색·메리골드·
      마감 빨강과 겹치지 않는 청록 계열 */
   --rally-admin: #2e6e6b; /* 관리자 페이지 내부 대표색 */
+  --rally-admin-button: #2e6e6b; /* 관리자 화면 채운 버튼 (흰 글자) */
   --rally-admin-side-bg: #24484a;
   --rally-admin-side-fg: #d2ecea;
   --rally-admin-side-border: #3b6e6b;
@@ -120,10 +121,14 @@
   --rally-side-line: #2a4237;
 
   --rally-admin: #8cc8c2;
-  --rally-admin-side-bg: #1c3a3b;
-  --rally-admin-side-border: #30595a;
-  --rally-admin-side-active-bg: #94c6c2;
-  --rally-admin-side-active-fg: #0f2626;
+  /* 다크 채운 버튼은 흰 글자가 읽히게 라이트 청록 그대로(#8CC8C2 바탕엔 흰 글자 대비 부족) */
+  --rally-admin-button: #2e6e6b;
+  /* 사이드바 관리자 줄 다크 — rally-admin-dark.html에서 정함(2026-11-15) */
+  --rally-admin-side-bg: #1e3c3e;
+  --rally-admin-side-fg: #bce0dc;
+  --rally-admin-side-border: #335e5c;
+  --rally-admin-side-active-bg: #8cc8c2;
+  --rally-admin-side-active-fg: #0f2a29;
 
   --rally-heart: #f0675b;
   --rally-row-flash: #3a3322;
@@ -224,6 +229,16 @@ body {
      예외적으로 긴 URL/토큰이 컨테이너를 넘길 때만 break-word로 강제 개행. */
   word-break: keep-all;
   overflow-wrap: break-word;
+}
+
+/* 관리자 구역 — 안에서는 '지금 누를 색'(채운 버튼 · 체크 · 라디오 · 입력 포커스 · 포커스 링)을 숲색 대신 청록으로.
+   @theme inline이라 유틸리티가 var(--rally-*)를 바로 읽어서 여기서 덮으면 그 안에만 적용됨.
+   본문 래퍼(admin/layout) + body로 빠지는 창 · 드롭다운(Portal의 PortalScope)에 같은 클래스. 경고(alert)는 그대로 */
+.admin-scope {
+  --rally-button: var(--rally-admin-button);
+  --rally-primary: var(--rally-admin);
+  --rally-heading: var(--rally-admin);
+  --rally-chip-on-border: var(--rally-admin);
 }
 
 /* Slim scrollbar for scrollable popovers (Select dropdown, etc.).

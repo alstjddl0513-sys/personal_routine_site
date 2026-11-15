@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { FOCUS_RING } from '../settings/lists/ListCard';
 
 const TABS = [
   { href: '/admin/dashboard', label: '개요' },
@@ -10,13 +11,11 @@ const TABS = [
   { href: '/admin/feedback', label: '피드백' },
 ];
 
+// 페이지 이동 탭 — 활성은 관리자 청록 2px 밑줄 + 글자(관리자 구역 표시).
 export function AdminSubNav() {
   const pathname = usePathname();
   return (
-    <nav
-      aria-label="관리자 서브 탭"
-      className="flex gap-1 border-b border-zinc-200 dark:border-zinc-800"
-    >
+    <nav aria-label="관리자 메뉴" className="flex gap-1 border-b border-divider">
       {TABS.map((tab) => {
         const active =
           pathname === tab.href || pathname.startsWith(`${tab.href}/`);
@@ -25,10 +24,10 @@ export function AdminSubNav() {
             key={tab.href}
             href={tab.href}
             aria-current={active ? 'page' : undefined}
-            className={`border-b-2 px-4 py-2 text-sm transition-colors ${
+            className={`-mb-px inline-flex min-h-11 items-center rounded-t-md border-b-2 px-3.5 text-[15px] transition-colors ${FOCUS_RING} ${
               active
-                ? 'border-zinc-900 font-medium text-zinc-900 dark:border-zinc-100 dark:text-zinc-100'
-                : 'border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-900 dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:text-zinc-100'
+                ? 'border-admin font-bold text-admin'
+                : 'border-transparent font-medium text-ink-soft hover:text-ink'
             }`}
           >
             {tab.label}

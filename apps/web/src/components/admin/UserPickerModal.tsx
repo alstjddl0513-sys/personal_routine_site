@@ -1,10 +1,16 @@
 'use client';
 
-import { useEffect, useRef, useState, useTransition } from 'react';
-import { Users, X } from 'lucide-react';
+import { useEffect, useId, useState, useTransition } from 'react';
+import { Search } from 'lucide-react';
 import type { AdminUserRow } from '@repo/shared';
 import { listAdminUsers } from '../../lib/api';
-import { useOutsideClick } from '../../lib/useOutsideClick';
+import { SettingsDialog } from '../settings/SettingsDialog';
+import {
+  BUTTON_PRIMARY,
+  BUTTON_SECONDARY,
+  POPOVER_INPUT,
+} from '../jobs/cells/popover-style';
+import { Checkbox } from './admin-ui';
 
 interface Props {
   open: boolean;
@@ -13,7 +19,7 @@ interface Props {
   onCancel: () => void;
 }
 
-// 공지 타겟 지정용. 검색 → 목록 → 다중 선택 → 확인. AnnouncementForm에서 호출.
+// 공지 받는 사람 고르기. 검색 → 목록 → 다중 선택 → 확인. AnnouncementForm에서 호출.
 // 데이터 fetch는 listAdminUsers 재활용. 페이지 세션 동안 모듈 캐시에 담아
 // 재사용 — 여닫기마다 API 재호출하면 throttle에 걸리고 어드민이 답답함.
 // 진짜 최신화가 필요하면 새로고침.
@@ -42,6 +48,7 @@ export function UserPickerModal({
   onConfirm,
   onCancel,
 }: Props) {
+  const labelId = useId();
   const [selected, setSelected] = useState<Set<string>>(
     () => new Set(initialSelected),
   );
@@ -49,12 +56,9 @@ export function UserPickerModal({
   const [search, setSearch] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  const dialogRef = useRef<HTMLDivElement>(null);
-  useOutsideClick(dialogRef, () => !isPending && onCancel(), open);
 
-  // open transition에서 로컬 상태 리셋. React가 derived state 리셋에 공식
-  // 권장하는 "adjust during render" 패턴 — ref는 렌더 중 접근 금지라서
-  // useState로 이전 값 추적. fetch는 async라 아래 useEffect에서 별도 진행.
+  // open transition에서 로컬 상태 리셋("adjust during render" 패턴).
+  // fetch는 async라 아래 useEffect에서 별도 진행.
   const [prevOpen, setPrevOpen] = useState(open);
   if (prevOpen !== open) {
     setPrevOpen(open);
@@ -79,17 +83,6 @@ export function UserPickerModal({
     });
   }, [open]);
 
-  useEffect(() => {
-    if (!open) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape' && !isPending) onCancel();
-    }
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [open, isPending, onCancel]);
-
-  if (!open) return null;
-
   const q = search.trim().toLowerCase();
   const filtered = q
     ? users.filter(
@@ -109,100 +102,79 @@ export function UserPickerModal({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-      role="dialog"
-      aria-modal="true"
+    <SettingsDialog
+      open={open}
+      title="받는 사람 고르기"
+      labelId={labelId}
+      onClose={onCancel}
+      busy={isPending}
+      widthClass="md:max-w-115"
+      compact
     >
-      <div
-        ref={dialogRef}
-        className="flex max-h-[80vh] w-full max-w-md flex-col rounded-lg border border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-900"
-      >
-        <div className="flex items-start justify-between gap-3 border-b border-zinc-100 p-4 dark:border-zinc-800">
-          <div className="flex items-center gap-2">
-            <Users className="h-5 w-5 text-zinc-500" aria-hidden />
-            <h2 className="text-base font-semibold">받는 사람 고르기</h2>
-          </div>
+      <span className="relative block">
+        <Search
+          className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-icon-faint"
+          aria-hidden
+        />
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          aria-label="받는 사람 검색"
+          placeholder="닉네임 · 이메일로 검색"
+          className={`${POPOVER_INPUT} pr-3 pl-9.5 text-[15px]`}
+        />
+      </span>
+
+      <div className="max-h-65 overflow-y-auto rounded-md border border-divider">
+        {error ? (
+          <p className="px-4 py-6 text-center text-sm text-alert">{error}</p>
+        ) : filtered.length === 0 ? (
+          <p className="px-4 py-6 text-center text-sm text-ink-muted">
+            {isPending ? '불러오는 중…' : '일치하는 사용자가 없어요.'}
+          </p>
+        ) : (
+          <ul className="flex flex-col [&>li:last-child>label]:border-b-0">
+            {filtered.map((u) => (
+              <li key={u.id}>
+                <label className="flex min-h-13 cursor-pointer items-center gap-3 border-b border-divider px-3.5 py-2 hover:bg-row-hover">
+                  <Checkbox checked={selected.has(u.id)} onChange={() => toggle(u.id)} />
+                  <span className="flex min-w-0 flex-col">
+                    <span className="truncate text-sm font-semibold text-ink">
+                      {u.nickname ?? <span className="font-normal text-ink-muted">닉네임 없음</span>}
+                    </span>
+                    <span className="truncate text-[12.5px] text-ink-muted">{u.email ?? u.id}</span>
+                  </span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+        <span className="text-[13.5px] text-ink-muted">
+          {selected.size > 0 ? (
+            <>
+              <strong className="font-semibold text-ink">{selected.size}명 선택됨</strong> ·{' '}
+            </>
+          ) : null}
+          고르지 않으면 전체에게 보내요
+        </span>
+        <span className="flex gap-2">
+          <button type="button" onClick={onCancel} disabled={isPending} className={BUTTON_SECONDARY}>
+            취소
+          </button>
           <button
             type="button"
-            onClick={onCancel}
+            onClick={() => onConfirm([...selected])}
             disabled={isPending}
-            className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 disabled:opacity-50 dark:hover:bg-zinc-800"
-            aria-label="닫기"
+            className={BUTTON_PRIMARY}
           >
-            <X className="h-4 w-4" />
+            확인
           </button>
-        </div>
-
-        <div className="border-b border-zinc-100 p-3 dark:border-zinc-800">
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="닉네임 · 이메일로 검색"
-            className="w-full rounded border border-zinc-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
-          />
-        </div>
-
-        <div className="min-h-0 flex-1 overflow-y-auto">
-          {error ? (
-            <p className="p-4 text-xs text-red-600 dark:text-red-400">{error}</p>
-          ) : filtered.length === 0 ? (
-            <p className="p-4 text-center text-xs text-zinc-500">
-              {isPending ? '불러오는 중…' : '일치하는 사용자가 없어요.'}
-            </p>
-          ) : (
-            <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
-              {filtered.map((u) => (
-                <li key={u.id}>
-                  <label className="flex cursor-pointer items-center gap-3 px-4 py-2 text-sm hover:bg-zinc-50 dark:hover:bg-zinc-900">
-                    <input
-                      type="checkbox"
-                      checked={selected.has(u.id)}
-                      onChange={() => toggle(u.id)}
-                      className="h-4 w-4"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate font-medium text-zinc-800 dark:text-zinc-200">
-                        {u.nickname ?? <span className="text-zinc-400">닉네임 없음</span>}
-                      </div>
-                      <div className="truncate text-xs text-zinc-500">
-                        {u.email ?? u.id}
-                      </div>
-                    </div>
-                  </label>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        <div className="flex items-center justify-between border-t border-zinc-100 p-3 dark:border-zinc-800">
-          <span className="text-xs text-zinc-500">
-            {selected.size === 0
-              ? '고르지 않으면 전체에게 보내요'
-              : `${selected.size}명 선택됨`}
-          </span>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={onCancel}
-              disabled={isPending}
-              className="rounded px-3 py-1.5 text-xs text-zinc-500 hover:bg-zinc-100 disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
-            >
-              취소
-            </button>
-            <button
-              type="button"
-              onClick={() => onConfirm([...selected])}
-              disabled={isPending}
-              className="rounded bg-zinc-900 px-3 py-1.5 text-xs text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-            >
-              확인
-            </button>
-          </div>
-        </div>
+        </span>
       </div>
-    </div>
+    </SettingsDialog>
   );
 }
