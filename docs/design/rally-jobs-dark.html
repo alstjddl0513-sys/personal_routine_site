@@ -1,0 +1,1074 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rally 채용 리스트</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=Noto+Serif+KR:wght@600&amp;display=swap">
+<style>
+body{margin:0;background:#121514}
+</style>
+</head>
+<body>
+
+<div style="min-height: 100vh; box-sizing: border-box; display: flex; flex-wrap: wrap; background: #121514; color: #E9ECE9; font-family: 'IBM Plex Sans KR', system-ui, sans-serif; font-size: 15px; line-height: 1.55; word-break: keep-all; font-variant-numeric: tabular-nums">
+
+  <!-- 사이드바 (공통) — 채용 > 리스트 활성 -->
+  <aside style="flex: 1 1 216px; max-width: 100%; box-sizing: border-box; padding: 28px 12px 16px; display: flex; flex-direction: column; gap: 28px; background: #16271F; border-right: 1px solid #22372D">
+    <a href="#" style="display: flex; align-items: center; gap: 9px; padding: 0 12px; text-decoration: none; color: #F4F2EC">
+      <svg width="20" height="22" viewBox="0 0 20 22" fill="none" aria-hidden="true"><path d="M3.5 21V1.8" stroke="#F4F2EC" stroke-width="2" stroke-linecap="round"></path><path d="M4.5 2.2L18 7.4L4.5 12.4Z" fill="#E9B949"></path></svg>
+      <span style="font-size: 20px; font-weight: 700; letter-spacing: -0.01em">Rally</span>
+    </a>
+    <nav aria-label="주 메뉴" style="flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: none; display: flex; flex-direction: column; gap: 2px">
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border-radius: 6px; color: #BAC6BE; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.5L12 5l8 6.5V20h-5v-5.5H9V20H4z"></path></svg>
+        오늘
+      </a>
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border-radius: 6px; color: #BAC6BE; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="1.5"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg>
+        캘린더
+      </a>
+      <div style="display: flex; flex-direction: column">
+        <button type="button" aria-expanded="true" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: #FFFFFF; font: inherit; font-weight: 600; text-align: left; cursor: pointer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="1.5"></rect><path d="M9 7V4.5h6V7"></path></svg>
+          <span style="flex: 1 1 auto">채용</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+        </button>
+        <a href="#" aria-current="page" style="display: flex; align-items: center; min-height: 32px; padding: 0 12px 0 42px; border-radius: 6px; background: #25443A; color: #FFFFFF; text-decoration: none; font-size: 14px; font-weight: 600">리스트</a>
+        <a href="#" style="display: flex; align-items: center; min-height: 32px; padding: 0 12px 0 42px; border-radius: 6px; color: #9FB0A5; text-decoration: none; font-size: 14px">통계</a>
+      </div>
+      <button type="button" aria-expanded="false" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: #BAC6BE; font: inherit; text-align: left; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h3M4 12h3M4 18h3M10 6h10M10 12h10M10 18h6"></path></svg>
+        <span style="flex: 1 1 auto">루틴</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </button>
+      <button type="button" aria-expanded="false" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: #BAC6BE; font: inherit; text-align: left; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5v11M17.5 6.5v11M3 9.5v5M21 9.5v5M6.5 12h11"></path></svg>
+        <span style="flex: 1 1 auto">운동</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </button>
+      <button type="button" aria-expanded="false" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: #BAC6BE; font: inherit; text-align: left; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h6a2 2 0 0 1 2 2v13a1.5 1.5 0 0 0-1.5-1.5H4zM20 5h-6a2 2 0 0 0-2 2v13a1.5 1.5 0 0 1 1.5-1.5H20z"></path></svg>
+        <span style="flex: 1 1 auto">학습</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </button>
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border-radius: 6px; color: #BAC6BE; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5h14M5 10h14M5 15h9M5 20h6"></path></svg>
+        블로그
+      </a>
+    </nav>
+    <div style="display: flex; align-items: center; gap: 2px; padding-top: 12px; border-top: 1px solid #2A4237">
+      <a href="#" style="flex: 1 1 auto; display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border-radius: 6px; color: #BAC6BE; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"></path></svg>
+        설정
+      </a>
+      <button type="button" aria-label="라이트 모드 전환" style="width: 40px; height: 40px; flex: none; border: 0; border-radius: 6px; background: transparent; display: inline-flex; align-items: center; justify-content: center; color: #BAC6BE; cursor: pointer">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8a4 4 0 1 0 0 8a4 4 0 0 0 0-8zM12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"></path></svg>
+      </button>
+      <button type="button" aria-label="알림" style="width: 40px; height: 40px; flex: none; border: 0; border-radius: 6px; background: transparent; display: inline-flex; align-items: center; justify-content: center; color: #BAC6BE; cursor: pointer">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 8 2.5 8h-17S6 15 6 9M10.3 20.5a1.9 1.9 0 0 0 3.4 0"></path></svg>
+      </button>
+    </div>
+  </aside>
+
+  <main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 36px 40px 64px">
+    <div style="max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px">
+
+      <!-- 제목 + 도구 -->
+      <header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+        <h1 style="margin: 0; font-size: 26px; line-height: 1.3; font-weight: 700; letter-spacing: -0.01em">채용 리스트</h1>
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+          <label style="position: relative; display: flex; align-items: center">
+            <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">회사명 검색</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A9B1AC" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="position: absolute; left: 12px"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+            <input type="search" placeholder="회사명으로 찾기" style="width: 240px; min-height: 40px; box-sizing: border-box; padding: 0 12px 0 36px; border: 1px solid #3D4541; border-radius: 6px; background: #1A1E1C; color: #E9ECE9; font: inherit; font-size: 14px">
+          </label>
+          <button type="button" aria-pressed="false" style="min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border: 1px solid #3D4541; border-radius: 6px; background: #1A1E1C; color: #C3CAC5; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>
+            즐겨찾기만
+          </button>
+          <a href="#" style="min-height: 40px; box-sizing: border-box; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border: 1px solid #3D4541; border-radius: 6px; background: #1A1E1C; color: #C3CAC5; font-size: 14px; font-weight: 500; text-decoration: none">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M7 9V4h10v5M7 17H5a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-2M7 14h10v6H7z"></path></svg>
+            인쇄
+          </a>
+          <button type="button" style="min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 16px; border: 1px solid #2F5A47; border-radius: 6px; background: #2F5A47; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+            추가하기
+          </button>
+        </div>
+      </header>
+
+      <!-- 필터 -->
+      <section aria-label="필터" style="display: flex; flex-direction: column; gap: 10px; padding: 16px 0 14px; border-top: 1px solid #2E3531; border-bottom: 1px solid #2E3531">
+        
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px 24px">
+            
+              <div role="group" aria-label="유형" style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; ">
+                <span style="width: 64px; flex: none; font-size: 13px; font-weight: 600; color: #A9B1AC">유형</span>
+                
+                  <button type="button" aria-pressed="false" style="min-height: 36px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid #3D4541; background: #1A1E1C; color: #C3CAC5; font-weight: 400">
+                    
+                    서비스
+                  </button>
+                
+                  <button type="button" aria-pressed="false" style="min-height: 36px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid #3D4541; background: #1A1E1C; color: #C3CAC5; font-weight: 400">
+                    
+                    솔루션
+                  </button>
+                
+                  <button type="button" aria-pressed="false" style="min-height: 36px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid #3D4541; background: #1A1E1C; color: #C3CAC5; font-weight: 400">
+                    
+                    SI
+                  </button>
+                
+                  <button type="button" aria-pressed="false" style="min-height: 36px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid #3D4541; background: #1A1E1C; color: #C3CAC5; font-weight: 400">
+                    
+                    인하우스
+                  </button>
+                
+                  <button type="button" aria-pressed="false" style="min-height: 36px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid #3D4541; background: #1A1E1C; color: #C3CAC5; font-weight: 400">
+                    
+                    랩
+                  </button>
+                
+                  <button type="button" aria-pressed="false" style="min-height: 36px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid #3D4541; background: #1A1E1C; color: #C3CAC5; font-weight: 400">
+                    
+                    프리랜서
+                  </button>
+                
+                
+                  <a href="#" style="margin-left: 4px; min-height: 36px; display: inline-flex; align-items: center; font-size: 13px; color: #A9B1AC">유형 관리</a>
+                
+              </div>
+            
+          </div>
+        
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px 24px">
+            
+              <div role="group" aria-label="규모" style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; ">
+                <span style="width: 64px; flex: none; font-size: 13px; font-weight: 600; color: #A9B1AC">규모</span>
+                
+                  <button type="button" aria-pressed="false" style="min-height: 36px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid #3D4541; background: #1A1E1C; color: #C3CAC5; font-weight: 400">
+                    
+                    대기업
+                  </button>
+                
+                  <button type="button" aria-pressed="false" style="min-height: 36px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid #3D4541; background: #1A1E1C; color: #C3CAC5; font-weight: 400">
+                    
+                    중소
+                  </button>
+                
+                  <button type="button" aria-pressed="false" style="min-height: 36px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid #3D4541; background: #1A1E1C; color: #C3CAC5; font-weight: 400">
+                    
+                    스타트업
+                  </button>
+                
+                  <button type="button" aria-pressed="false" style="min-height: 36px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid #3D4541; background: #1A1E1C; color: #C3CAC5; font-weight: 400">
+                    
+                    외국계
+                  </button>
+                
+                  <button type="button" aria-pressed="false" style="min-height: 36px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid #3D4541; background: #1A1E1C; color: #C3CAC5; font-weight: 400">
+                    
+                    공공
+                  </button>
+                
+                
+              </div>
+            
+              <div role="group" aria-label="우선순위" style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding-left: 24px; border-left: 1px solid #2E3531">
+                <span style="width: 64px; flex: none; font-size: 13px; font-weight: 600; color: #A9B1AC">우선순위</span>
+                
+                  <button type="button" aria-pressed="false" style="min-height: 36px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid #3D4541; background: #1A1E1C; color: #C3CAC5; font-weight: 400">
+                    
+                    긴급
+                  </button>
+                
+                  <button type="button" aria-pressed="false" style="min-height: 36px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid #3D4541; background: #1A1E1C; color: #C3CAC5; font-weight: 400">
+                    
+                    상
+                  </button>
+                
+                  <button type="button" aria-pressed="false" style="min-height: 36px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid #3D4541; background: #1A1E1C; color: #C3CAC5; font-weight: 400">
+                    
+                    하
+                  </button>
+                
+                
+              </div>
+            
+              <div role="group" aria-label="채용중" style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding-left: 24px; border-left: 1px solid #2E3531">
+                <span style="width: 64px; flex: none; font-size: 13px; font-weight: 600; color: #A9B1AC">채용중</span>
+                
+                  <button type="button" aria-pressed="true" style="min-height: 36px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid #8FB5A0; background: #1F3328; color: #CFE3D6; font-weight: 600">
+                    
+                    채용중
+                  </button>
+                
+                  <button type="button" aria-pressed="false" style="min-height: 36px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid #3D4541; background: #1A1E1C; color: #C3CAC5; font-weight: 400">
+                    
+                    채용 안 함
+                  </button>
+                
+                
+              </div>
+            
+          </div>
+        
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px 24px">
+            
+              <div role="group" aria-label="지원상태" style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; ">
+                <span style="width: 64px; flex: none; font-size: 13px; font-weight: 600; color: #A9B1AC">지원상태</span>
+                
+                  <button type="button" aria-pressed="false" style="min-height: 36px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid #3D4541; background: #1A1E1C; color: #C3CAC5; font-weight: 400">
+                    
+                      <span style="width: 7px; height: 7px; border-radius: 50%; background: transparent; box-shadow: inset 0 0 0 1.5px #8C948F"></span>
+                    
+                    미지원
+                  </button>
+                
+                  <button type="button" aria-pressed="false" style="min-height: 36px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid #3D4541; background: #1A1E1C; color: #C3CAC5; font-weight: 400">
+                    
+                      <span style="width: 7px; height: 7px; border-radius: 50%; background: #9DB5D8"></span>
+                    
+                    지원
+                  </button>
+                
+                  <button type="button" aria-pressed="false" style="min-height: 36px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid #3D4541; background: #1A1E1C; color: #C3CAC5; font-weight: 400">
+                    
+                      <span style="width: 7px; height: 7px; border-radius: 50%; background: #9CC7B5"></span>
+                    
+                    서류합격
+                  </button>
+                
+                  <button type="button" aria-pressed="false" style="min-height: 36px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid #3D4541; background: #1A1E1C; color: #C3CAC5; font-weight: 400">
+                    
+                      <span style="width: 7px; height: 7px; border-radius: 50%; background: #59605C"></span>
+                    
+                    서류탈락
+                  </button>
+                
+                  <button type="button" aria-pressed="false" style="min-height: 36px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid #3D4541; background: #1A1E1C; color: #C3CAC5; font-weight: 400">
+                    
+                      <span style="width: 7px; height: 7px; border-radius: 50%; background: #86C4B3"></span>
+                    
+                    1차합격
+                  </button>
+                
+                  <button type="button" aria-pressed="false" style="min-height: 36px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid #3D4541; background: #1A1E1C; color: #C3CAC5; font-weight: 400">
+                    
+                      <span style="width: 7px; height: 7px; border-radius: 50%; background: #59605C"></span>
+                    
+                    1차탈락
+                  </button>
+                
+                  <button type="button" aria-pressed="false" style="min-height: 36px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid #3D4541; background: #1A1E1C; color: #C3CAC5; font-weight: 400">
+                    
+                      <span style="width: 7px; height: 7px; border-radius: 50%; background: #A9CBB7"></span>
+                    
+                    2차합격
+                  </button>
+                
+                  <button type="button" aria-pressed="false" style="min-height: 36px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid #3D4541; background: #1A1E1C; color: #C3CAC5; font-weight: 400">
+                    
+                      <span style="width: 7px; height: 7px; border-radius: 50%; background: #59605C"></span>
+                    
+                    2차탈락
+                  </button>
+                
+                  <button type="button" aria-pressed="false" style="min-height: 36px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid #3D4541; background: #1A1E1C; color: #C3CAC5; font-weight: 400">
+                    
+                      <span style="width: 7px; height: 7px; border-radius: 50%; background: #CFE3D6; box-shadow: 0 0 0 2px #1A1E1C, 0 0 0 3.5px #CFE3D6"></span>
+                    
+                    최종합격
+                  </button>
+                
+                  <button type="button" aria-pressed="false" style="min-height: 36px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid #3D4541; background: #1A1E1C; color: #C3CAC5; font-weight: 400">
+                    
+                      <span style="width: 7px; height: 7px; border-radius: 50%; background: #59605C"></span>
+                    
+                    최종탈락
+                  </button>
+                
+                  <button type="button" aria-pressed="false" style="min-height: 36px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid #3D4541; background: #1A1E1C; color: #C3CAC5; font-weight: 400">
+                    
+                      <span style="width: 7px; height: 7px; border-radius: 50%; background: transparent; box-shadow: inset 0 0 0 1.5px #59605C"></span>
+                    
+                    지원취소
+                  </button>
+                
+                
+              </div>
+            
+          </div>
+        
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding-top: 4px">
+          <span style="font-size: 14px; color: #C3CAC5"><strong style="color: #E9ECE9; font-weight: 600">24</strong>개</span>
+          <button type="button" style="min-height: 36px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: #A9CBB7; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer">필터 초기화</button>
+          <div style="margin-left: auto; display: flex; align-items: center; gap: 8px">
+            <span style="padding: 2px 8px; border: 1px dashed #3D4541; border-radius: 4px; font-size: 12px; color: #A9B1AC">제안</span>
+            <div role="group" aria-label="열 보기" style="display: inline-flex; border: 1px solid #3D4541; border-radius: 6px; overflow: hidden">
+              <button type="button" aria-pressed="false" style="min-height: 36px; padding: 0 12px; border: 0; font: inherit; font-size: 13px; cursor: pointer; background: #1A1E1C; color: #C3CAC5; font-weight: 400">간단히</button>
+              <button type="button" aria-pressed="true" style="min-height: 36px; padding: 0 12px; border: 0; border-left: 1px solid #3D4541; font: inherit; font-size: 13px; cursor: pointer; background: #1F3328; color: #CFE3D6; font-weight: 600">전체 열</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 표 -->
+      <div style="overflow-x: auto; border: 1px solid #2C3330; border-radius: 8px; background: #1A1E1C">
+        <table style="width: 100%; min-width: 940px; border-collapse: collapse; font-size: 14px">
+          <thead>
+            <tr style="background: #171B19; border-bottom: 1px solid #2C3330">
+              <th scope="col" style="width: 44px; padding: 0"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">즐겨찾기</span></th>
+              <th scope="col" style="padding: 12px 8px; text-align: left; font-size: 13px; font-weight: 600; color: #A9B1AC">회사 <span style="font-weight: 400">· 유형 · 규모</span></th>
+              <th scope="col" style="width: 72px; padding: 12px 8px; text-align: center; font-size: 13px; font-weight: 600; color: #A9B1AC">우선순위</th>
+              <th scope="col" style="width: 68px; padding: 12px 8px; text-align: center; font-size: 13px; font-weight: 600; color: #A9B1AC">채용중</th>
+              <th scope="col" style="width: 128px; padding: 12px 8px; text-align: center; font-size: 13px; font-weight: 600; color: #C3CAC5">지원상태</th>
+              <th scope="col" style="width: 150px; padding: 12px 8px; text-align: center; font-size: 13px; font-weight: 600; color: #C3CAC5">마감일</th>
+              
+              
+              <th scope="col" style="width: 52px; padding: 12px 4px; text-align: center; font-size: 12px; font-weight: 500; color: #A9B1AC; border-left: 1px solid #262C29">일정</th>
+              <th scope="col" style="width: 48px; padding: 12px 4px; text-align: center; font-size: 12px; font-weight: 500; color: #A9B1AC">공고</th>
+              <th scope="col" style="width: 56px; padding: 12px 4px; text-align: center; font-size: 12px; font-weight: 500; color: #A9B1AC">제출본</th>
+              <th scope="col" style="width: 48px; padding: 12px 4px; text-align: center; font-size: 12px; font-weight: 500; color: #A9B1AC">메모</th>
+              
+              <th scope="col" style="width: 44px; padding: 0"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">삭제</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            
+              <tr style="background: #1A1E1C; border-bottom: 1px solid #262C29">
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="즐겨찾기" aria-pressed="true" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="#F0675B" stroke="#F0675B" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>
+                  </button>
+                </td>
+                <td style="padding: 10px 8px">
+                  <div style="display: flex; flex-direction: column; gap: 1px">
+                    <button type="button" style="align-self: flex-start; padding: 0; border: 0; background: transparent; color: #E9ECE9; font: inherit; font-size: 15px; font-weight: 600; text-align: left; cursor: pointer">[회사 A]</button>
+                    <span style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: #A9B1AC">
+                      <button type="button" aria-label="유형 변경" style="padding: 2px 2px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer">서비스</button>
+                      <span aria-hidden="true">·</span>
+                      <button type="button" aria-label="규모 변경" style="padding: 2px 2px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer">스타트업</button>
+                    </span>
+                  </div>
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  <button type="button" style="min-height: 40px; display: inline-flex; align-items: center; gap: 4px; padding: 0 6px; border: 0; border-radius: 4px; background: transparent; color: #E8957A; font: inherit; font-weight: 600; cursor: pointer">긴급</button>
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  <button type="button" role="switch" aria-checked="true" style="min-height: 40px; padding: 0 6px; border: 0; background: transparent; color: #C3CAC5; font: inherit; cursor: pointer">채용중</button>
+                </td>
+                <td style="padding: 0 4px; position: relative; text-align: center">
+                  <button type="button" aria-haspopup="listbox" style="min-height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 8px; border: 0; border-radius: 4px; background: transparent; color: #A9B1AC; font: inherit; font-weight: 400; cursor: pointer">
+                    <span style="width: 8px; height: 8px; flex: none; border-radius: 50%; background: transparent; box-shadow: inset 0 0 0 1.5px #8C948F"></span>미지원
+                  </button>
+                  
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  
+                    <button type="button" style="min-height: 40px; display: inline-flex; align-items: baseline; gap: 8px; padding: 0 6px; border: 0; background: transparent; font: inherit; cursor: pointer; text-align: left">
+                      <span style="min-width: 32px; color: #E8957A; font-weight: 600">오늘</span>
+                      <span style="font-size: 13px; color: #A9B1AC">10.24 토 18:00</span>
+                    </button>
+                  
+                  
+                  
+                </td>
+                
+                
+                <td style="padding: 0; text-align: center; border-left: 1px solid #262C29">
+                  <button type="button" aria-label="일정 1건" style="min-width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 3px; border: 0; background: transparent; color: #C3CAC5; font: inherit; font-size: 13px; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14.5" rx="1.5"></rect><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"></path></svg><span>1</span>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="공고 링크" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: transparent; color: #C3CAC5; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"></path></svg>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="제출본 0개" style="min-width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 3px; border: 0; background: transparent; color: #6E7672; font: inherit; font-size: 13px; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h8l4 4V20.5H6z"></path><path d="M14 3.5v4h4"></path></svg>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="메모" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: transparent; color: #C3CAC5; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5h14v11l-4 4H5z"></path><path d="M9 9h6M9 12.5h4"></path></svg>
+                  </button>
+                </td>
+                
+                <td style="padding: 0; text-align: center">
+                  
+                </td>
+              </tr>
+            
+              <tr style="background: #3A3322; border-bottom: 1px solid #262C29">
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="즐겨찾기" aria-pressed="false" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6E7672" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>
+                  </button>
+                </td>
+                <td style="padding: 10px 8px">
+                  <div style="display: flex; flex-direction: column; gap: 1px">
+                    <button type="button" style="align-self: flex-start; padding: 0; border: 0; background: transparent; color: #E9ECE9; font: inherit; font-size: 15px; font-weight: 600; text-align: left; cursor: pointer">[회사 B]</button>
+                    <span style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: #A9B1AC">
+                      <button type="button" aria-label="유형 변경" style="padding: 2px 2px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer">솔루션</button>
+                      <span aria-hidden="true">·</span>
+                      <button type="button" aria-label="규모 변경" style="padding: 2px 2px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer">중소</button>
+                    </span>
+                  </div>
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  <button type="button" style="min-height: 40px; display: inline-flex; align-items: center; gap: 4px; padding: 0 6px; border: 0; border-radius: 4px; background: transparent; color: #C3CAC5; font: inherit; font-weight: 400; cursor: pointer">상</button>
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  <button type="button" role="switch" aria-checked="true" style="min-height: 40px; padding: 0 6px; border: 0; background: transparent; color: #C3CAC5; font: inherit; cursor: pointer">채용중</button>
+                </td>
+                <td style="padding: 0 4px; position: relative; text-align: center">
+                  <button type="button" aria-haspopup="listbox" style="min-height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 8px; border: 0; border-radius: 4px; background: transparent; color: #E9ECE9; font: inherit; font-weight: 500; cursor: pointer">
+                    <span style="width: 8px; height: 8px; flex: none; border-radius: 50%; background: #9DB5D8"></span>지원
+                  </button>
+                  
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  
+                    <button type="button" style="min-height: 40px; display: inline-flex; align-items: baseline; gap: 8px; padding: 0 6px; border: 0; background: transparent; font: inherit; cursor: pointer; text-align: left">
+                      <span style="min-width: 32px; color: #E9ECE9; font-weight: 600">D-2</span>
+                      <span style="font-size: 13px; color: #A9B1AC">10.26 월 23:59</span>
+                    </button>
+                  
+                  
+                  
+                </td>
+                
+                
+                <td style="padding: 0; text-align: center; border-left: 1px solid #262C29">
+                  <button type="button" aria-label="일정 1건" style="min-width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 3px; border: 0; background: transparent; color: #C3CAC5; font: inherit; font-size: 13px; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14.5" rx="1.5"></rect><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"></path></svg><span>1</span>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="공고 링크" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: transparent; color: #C3CAC5; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"></path></svg>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="제출본 1개" style="min-width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 3px; border: 0; background: transparent; color: #C3CAC5; font: inherit; font-size: 13px; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h8l4 4V20.5H6z"></path><path d="M14 3.5v4h4"></path></svg><span>1</span>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="메모" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: transparent; color: #6E7672; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5h14v11l-4 4H5z"></path><path d="M9 9h6M9 12.5h4"></path></svg>
+                  </button>
+                </td>
+                
+                <td style="padding: 0; text-align: center">
+                  
+                </td>
+              </tr>
+            
+              <tr style="background: #1F2422; border-bottom: 1px solid #262C29">
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="즐겨찾기" aria-pressed="true" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="#F0675B" stroke="#F0675B" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>
+                  </button>
+                </td>
+                <td style="padding: 10px 8px">
+                  <div style="display: flex; flex-direction: column; gap: 1px">
+                    <button type="button" style="align-self: flex-start; padding: 0; border: 0; background: transparent; color: #E9ECE9; font: inherit; font-size: 15px; font-weight: 600; text-align: left; cursor: pointer">[회사 C]</button>
+                    <span style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: #A9B1AC">
+                      <button type="button" aria-label="유형 변경" style="padding: 2px 2px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer">서비스</button>
+                      <span aria-hidden="true">·</span>
+                      <button type="button" aria-label="규모 변경" style="padding: 2px 2px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer">대기업</button>
+                    </span>
+                  </div>
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  <button type="button" style="min-height: 40px; display: inline-flex; align-items: center; gap: 4px; padding: 0 6px; border: 0; border-radius: 4px; background: transparent; color: #C3CAC5; font: inherit; font-weight: 400; cursor: pointer">상<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  <button type="button" role="switch" aria-checked="true" style="min-height: 40px; padding: 0 6px; border: 0; background: transparent; color: #C3CAC5; font: inherit; cursor: pointer">채용중</button>
+                </td>
+                <td style="padding: 0 4px; position: relative; text-align: center">
+                  <button type="button" aria-haspopup="listbox" style="min-height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 8px; border: 0; border-radius: 4px; background: #1A1E1C; color: #E9ECE9; font: inherit; font-weight: 500; cursor: pointer">
+                    <span style="width: 8px; height: 8px; flex: none; border-radius: 50%; background: #9CC7B5"></span>서류합격<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+                  </button>
+                  
+                    <div role="listbox" aria-label="지원상태" style="position: absolute; z-index: 5; top: 46px; left: 50%; transform: translateX(-50%); width: 184px; text-align: left; box-sizing: border-box; padding: 6px; background: #1A1E1C; border: 1px solid #2C3330; border-radius: 8px; box-shadow: 0 12px 28px rgba(0,0,0,0.45)">
+                      
+                        <div role="option" aria-selected="false" style="min-height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 10px; border-radius: 4px; background: #1A1E1C; color: #A9B1AC; font-weight: 400; font-size: 14px">
+                          <span style="width: 8px; height: 8px; flex: none; border-radius: 50%; background: transparent; box-shadow: inset 0 0 0 1.5px #8C948F"></span>
+                          <span style="flex: 1 1 auto">미지원</span>
+                          
+                        </div>
+                      
+                        <div role="option" aria-selected="false" style="min-height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 10px; border-radius: 4px; background: #1A1E1C; color: #E9ECE9; font-weight: 500; font-size: 14px">
+                          <span style="width: 8px; height: 8px; flex: none; border-radius: 50%; background: #9DB5D8"></span>
+                          <span style="flex: 1 1 auto">지원</span>
+                          
+                        </div>
+                      
+                        <div role="option" aria-selected="true" style="min-height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 10px; border-radius: 4px; background: #1F3328; color: #E9ECE9; font-weight: 500; font-size: 14px">
+                          <span style="width: 8px; height: 8px; flex: none; border-radius: 50%; background: #9CC7B5"></span>
+                          <span style="flex: 1 1 auto">서류합격</span>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>
+                        </div>
+                      
+                        <div role="option" aria-selected="false" style="min-height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 10px; border-radius: 4px; background: #1A1E1C; color: #A9B1AC; font-weight: 400; font-size: 14px">
+                          <span style="width: 8px; height: 8px; flex: none; border-radius: 50%; background: #59605C"></span>
+                          <span style="flex: 1 1 auto">서류탈락</span>
+                          
+                        </div>
+                      
+                        <div role="option" aria-selected="false" style="min-height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 10px; border-radius: 4px; background: #1A1E1C; color: #E9ECE9; font-weight: 500; font-size: 14px">
+                          <span style="width: 8px; height: 8px; flex: none; border-radius: 50%; background: #86C4B3"></span>
+                          <span style="flex: 1 1 auto">1차합격</span>
+                          
+                        </div>
+                      
+                        <div role="option" aria-selected="false" style="min-height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 10px; border-radius: 4px; background: #1A1E1C; color: #A9B1AC; font-weight: 400; font-size: 14px">
+                          <span style="width: 8px; height: 8px; flex: none; border-radius: 50%; background: #59605C"></span>
+                          <span style="flex: 1 1 auto">1차탈락</span>
+                          
+                        </div>
+                      
+                        <div role="option" aria-selected="false" style="min-height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 10px; border-radius: 4px; background: #1A1E1C; color: #E9ECE9; font-weight: 600; font-size: 14px">
+                          <span style="width: 8px; height: 8px; flex: none; border-radius: 50%; background: #A9CBB7"></span>
+                          <span style="flex: 1 1 auto">2차합격</span>
+                          
+                        </div>
+                      
+                        <div role="option" aria-selected="false" style="min-height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 10px; border-radius: 4px; background: #1A1E1C; color: #A9B1AC; font-weight: 400; font-size: 14px">
+                          <span style="width: 8px; height: 8px; flex: none; border-radius: 50%; background: #59605C"></span>
+                          <span style="flex: 1 1 auto">2차탈락</span>
+                          
+                        </div>
+                      
+                        <div role="option" aria-selected="false" style="min-height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 10px; border-radius: 4px; background: #1A1E1C; color: #CFE3D6; font-weight: 700; font-size: 14px">
+                          <span style="width: 8px; height: 8px; flex: none; border-radius: 50%; background: #CFE3D6; box-shadow: 0 0 0 2px #1A1E1C, 0 0 0 3.5px #CFE3D6"></span>
+                          <span style="flex: 1 1 auto">최종합격</span>
+                          
+                        </div>
+                      
+                        <div role="option" aria-selected="false" style="min-height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 10px; border-radius: 4px; background: #1A1E1C; color: #A9B1AC; font-weight: 400; font-size: 14px">
+                          <span style="width: 8px; height: 8px; flex: none; border-radius: 50%; background: #59605C"></span>
+                          <span style="flex: 1 1 auto">최종탈락</span>
+                          
+                        </div>
+                      
+                        <div role="option" aria-selected="false" style="min-height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 10px; border-radius: 4px; background: #1A1E1C; color: #8C948F; font-weight: 400; font-size: 14px">
+                          <span style="width: 8px; height: 8px; flex: none; border-radius: 50%; background: transparent; box-shadow: inset 0 0 0 1.5px #59605C"></span>
+                          <span style="flex: 1 1 auto">지원취소</span>
+                          
+                        </div>
+                      
+                    </div>
+                  
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  
+                  
+                    <button type="button" style="min-height: 40px; padding: 0 6px; border: 0; background: transparent; color: #A9B1AC; font: inherit; cursor: pointer">상시채용</button>
+                  
+                  
+                </td>
+                
+                
+                <td style="padding: 0; text-align: center; border-left: 1px solid #262C29">
+                  <button type="button" aria-label="일정 2건" style="min-width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 3px; border: 0; background: transparent; color: #C3CAC5; font: inherit; font-size: 13px; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14.5" rx="1.5"></rect><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"></path></svg><span>2</span>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="공고 링크" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: transparent; color: #C3CAC5; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"></path></svg>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="제출본 2개" style="min-width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 3px; border: 0; background: transparent; color: #C3CAC5; font: inherit; font-size: 13px; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h8l4 4V20.5H6z"></path><path d="M14 3.5v4h4"></path></svg><span>2</span>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="메모" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: transparent; color: #C3CAC5; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5h14v11l-4 4H5z"></path><path d="M9 9h6M9 12.5h4"></path></svg>
+                  </button>
+                </td>
+                
+                <td style="padding: 0; text-align: center">
+                  
+                    <button type="button" aria-label="[회사 C] 삭제" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: transparent; color: #E8957A; cursor: pointer">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"></path></svg>
+                    </button>
+                  
+                </td>
+              </tr>
+            
+              <tr style="background: #1A1E1C; border-bottom: 1px solid #262C29">
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="즐겨찾기" aria-pressed="false" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6E7672" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>
+                  </button>
+                </td>
+                <td style="padding: 10px 8px">
+                  <div style="display: flex; flex-direction: column; gap: 1px">
+                    <button type="button" style="align-self: flex-start; padding: 0; border: 0; background: transparent; color: #E9ECE9; font: inherit; font-size: 15px; font-weight: 600; text-align: left; cursor: pointer">[회사 D]</button>
+                    <span style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: #A9B1AC">
+                      <button type="button" aria-label="유형 변경" style="padding: 2px 2px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer">인하우스</button>
+                      <span aria-hidden="true">·</span>
+                      <button type="button" aria-label="규모 변경" style="padding: 2px 2px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer">외국계</button>
+                    </span>
+                  </div>
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  <button type="button" style="min-height: 40px; display: inline-flex; align-items: center; gap: 4px; padding: 0 6px; border: 0; border-radius: 4px; background: transparent; color: #E8957A; font: inherit; font-weight: 600; cursor: pointer">긴급</button>
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  <button type="button" role="switch" aria-checked="true" style="min-height: 40px; padding: 0 6px; border: 0; background: transparent; color: #C3CAC5; font: inherit; cursor: pointer">채용중</button>
+                </td>
+                <td style="padding: 0 4px; position: relative; text-align: center">
+                  <button type="button" aria-haspopup="listbox" style="min-height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 8px; border: 0; border-radius: 4px; background: transparent; color: #E9ECE9; font: inherit; font-weight: 500; cursor: pointer">
+                    <span style="width: 8px; height: 8px; flex: none; border-radius: 50%; background: #86C4B3"></span>1차합격
+                  </button>
+                  
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  
+                    <button type="button" style="min-height: 40px; display: inline-flex; align-items: baseline; gap: 8px; padding: 0 6px; border: 0; background: transparent; font: inherit; cursor: pointer; text-align: left">
+                      <span style="min-width: 32px; color: #A9B1AC; font-weight: 600">지남</span>
+                      <span style="font-size: 13px; color: #A9B1AC">10.12 월</span>
+                    </button>
+                  
+                  
+                  
+                </td>
+                
+                
+                <td style="padding: 0; text-align: center; border-left: 1px solid #262C29">
+                  <button type="button" aria-label="일정 1건" style="min-width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 3px; border: 0; background: transparent; color: #C3CAC5; font: inherit; font-size: 13px; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14.5" rx="1.5"></rect><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"></path></svg><span>1</span>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="공고 링크" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: transparent; color: #C3CAC5; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"></path></svg>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="제출본 2개" style="min-width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 3px; border: 0; background: transparent; color: #C3CAC5; font: inherit; font-size: 13px; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h8l4 4V20.5H6z"></path><path d="M14 3.5v4h4"></path></svg><span>2</span>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="메모" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: transparent; color: #C3CAC5; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5h14v11l-4 4H5z"></path><path d="M9 9h6M9 12.5h4"></path></svg>
+                  </button>
+                </td>
+                
+                <td style="padding: 0; text-align: center">
+                  
+                </td>
+              </tr>
+            
+              <tr style="background: #1A1E1C; border-bottom: 1px solid #262C29">
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="즐겨찾기" aria-pressed="true" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="#F0675B" stroke="#F0675B" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>
+                  </button>
+                </td>
+                <td style="padding: 10px 8px">
+                  <div style="display: flex; flex-direction: column; gap: 1px">
+                    <button type="button" style="align-self: flex-start; padding: 0; border: 0; background: transparent; color: #E9ECE9; font: inherit; font-size: 15px; font-weight: 600; text-align: left; cursor: pointer">[회사 E]</button>
+                    <span style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: #A9B1AC">
+                      <button type="button" aria-label="유형 변경" style="padding: 2px 2px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer">서비스</button>
+                      <span aria-hidden="true">·</span>
+                      <button type="button" aria-label="규모 변경" style="padding: 2px 2px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer">스타트업</button>
+                    </span>
+                  </div>
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  <button type="button" style="min-height: 40px; display: inline-flex; align-items: center; gap: 4px; padding: 0 6px; border: 0; border-radius: 4px; background: transparent; color: #C3CAC5; font: inherit; font-weight: 400; cursor: pointer">상</button>
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  <button type="button" role="switch" aria-checked="true" style="min-height: 40px; padding: 0 6px; border: 0; background: transparent; color: #C3CAC5; font: inherit; cursor: pointer">채용중</button>
+                </td>
+                <td style="padding: 0 4px; position: relative; text-align: center">
+                  <button type="button" aria-haspopup="listbox" style="min-height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 8px; border: 0; border-radius: 4px; background: transparent; color: #A9B1AC; font: inherit; font-weight: 400; cursor: pointer">
+                    <span style="width: 8px; height: 8px; flex: none; border-radius: 50%; background: transparent; box-shadow: inset 0 0 0 1.5px #8C948F"></span>미지원
+                  </button>
+                  
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  
+                    <button type="button" style="min-height: 40px; display: inline-flex; align-items: baseline; gap: 8px; padding: 0 6px; border: 0; background: transparent; font: inherit; cursor: pointer; text-align: left">
+                      <span style="min-width: 32px; color: #E8957A; font-weight: 600">내일</span>
+                      <span style="font-size: 13px; color: #A9B1AC">10.25 일 18:00</span>
+                    </button>
+                  
+                  
+                  
+                </td>
+                
+                
+                <td style="padding: 0; text-align: center; border-left: 1px solid #262C29">
+                  <button type="button" aria-label="일정 0건" style="min-width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 3px; border: 0; background: transparent; color: #6E7672; font: inherit; font-size: 13px; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14.5" rx="1.5"></rect><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"></path></svg>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="공고 링크" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: transparent; color: #C3CAC5; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"></path></svg>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="제출본 0개" style="min-width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 3px; border: 0; background: transparent; color: #6E7672; font: inherit; font-size: 13px; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h8l4 4V20.5H6z"></path><path d="M14 3.5v4h4"></path></svg>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="메모" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: transparent; color: #6E7672; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5h14v11l-4 4H5z"></path><path d="M9 9h6M9 12.5h4"></path></svg>
+                  </button>
+                </td>
+                
+                <td style="padding: 0; text-align: center">
+                  
+                </td>
+              </tr>
+            
+              <tr style="background: #1A1E1C; border-bottom: 1px solid #262C29">
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="즐겨찾기" aria-pressed="false" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6E7672" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>
+                  </button>
+                </td>
+                <td style="padding: 10px 8px">
+                  <div style="display: flex; flex-direction: column; gap: 1px">
+                    <button type="button" style="align-self: flex-start; padding: 0; border: 0; background: transparent; color: #E9ECE9; font: inherit; font-size: 15px; font-weight: 600; text-align: left; cursor: pointer">[회사 F]</button>
+                    <span style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: #A9B1AC">
+                      <button type="button" aria-label="유형 변경" style="padding: 2px 2px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer">SI</button>
+                      <span aria-hidden="true">·</span>
+                      <button type="button" aria-label="규모 변경" style="padding: 2px 2px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer">중소</button>
+                    </span>
+                  </div>
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  <button type="button" style="min-height: 40px; display: inline-flex; align-items: center; gap: 4px; padding: 0 6px; border: 0; border-radius: 4px; background: transparent; color: #A9B1AC; font: inherit; font-weight: 400; cursor: pointer">하</button>
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  <button type="button" role="switch" aria-checked="true" style="min-height: 40px; padding: 0 6px; border: 0; background: transparent; color: #C3CAC5; font: inherit; cursor: pointer">채용중</button>
+                </td>
+                <td style="padding: 0 4px; position: relative; text-align: center">
+                  <button type="button" aria-haspopup="listbox" style="min-height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 8px; border: 0; border-radius: 4px; background: transparent; color: #A9B1AC; font: inherit; font-weight: 400; cursor: pointer">
+                    <span style="width: 8px; height: 8px; flex: none; border-radius: 50%; background: transparent; box-shadow: inset 0 0 0 1.5px #8C948F"></span>미지원
+                  </button>
+                  
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  
+                    <button type="button" style="min-height: 40px; display: inline-flex; align-items: baseline; gap: 8px; padding: 0 6px; border: 0; background: transparent; font: inherit; cursor: pointer; text-align: left">
+                      <span style="min-width: 32px; color: #E9ECE9; font-weight: 600">D-5</span>
+                      <span style="font-size: 13px; color: #A9B1AC">10.29 목 18:00</span>
+                    </button>
+                  
+                  
+                  
+                </td>
+                
+                
+                <td style="padding: 0; text-align: center; border-left: 1px solid #262C29">
+                  <button type="button" aria-label="일정 0건" style="min-width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 3px; border: 0; background: transparent; color: #6E7672; font: inherit; font-size: 13px; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14.5" rx="1.5"></rect><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"></path></svg>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="공고 링크" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: transparent; color: #C3CAC5; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"></path></svg>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="제출본 0개" style="min-width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 3px; border: 0; background: transparent; color: #6E7672; font: inherit; font-size: 13px; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h8l4 4V20.5H6z"></path><path d="M14 3.5v4h4"></path></svg>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="메모" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: transparent; color: #6E7672; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5h14v11l-4 4H5z"></path><path d="M9 9h6M9 12.5h4"></path></svg>
+                  </button>
+                </td>
+                
+                <td style="padding: 0; text-align: center">
+                  
+                </td>
+              </tr>
+            
+              <tr style="background: #1A1E1C; border-bottom: 1px solid #262C29">
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="즐겨찾기" aria-pressed="false" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6E7672" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>
+                  </button>
+                </td>
+                <td style="padding: 10px 8px">
+                  <div style="display: flex; flex-direction: column; gap: 1px">
+                    <button type="button" style="align-self: flex-start; padding: 0; border: 0; background: transparent; color: #E9ECE9; font: inherit; font-size: 15px; font-weight: 600; text-align: left; cursor: pointer">[회사 G]</button>
+                    <span style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: #A9B1AC">
+                      <button type="button" aria-label="유형 변경" style="padding: 2px 2px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer">서비스</button>
+                      <span aria-hidden="true">·</span>
+                      <button type="button" aria-label="규모 변경" style="padding: 2px 2px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer">스타트업</button>
+                    </span>
+                  </div>
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  <button type="button" style="min-height: 40px; display: inline-flex; align-items: center; gap: 4px; padding: 0 6px; border: 0; border-radius: 4px; background: transparent; color: #C3CAC5; font: inherit; font-weight: 400; cursor: pointer">상</button>
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  <button type="button" role="switch" aria-checked="true" style="min-height: 40px; padding: 0 6px; border: 0; background: transparent; color: #C3CAC5; font: inherit; cursor: pointer">채용중</button>
+                </td>
+                <td style="padding: 0 4px; position: relative; text-align: center">
+                  <button type="button" aria-haspopup="listbox" style="min-height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 8px; border: 0; border-radius: 4px; background: transparent; color: #A9B1AC; font: inherit; font-weight: 400; cursor: pointer">
+                    <span style="width: 8px; height: 8px; flex: none; border-radius: 50%; background: #59605C"></span>서류탈락
+                  </button>
+                  
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  
+                    <button type="button" style="min-height: 40px; display: inline-flex; align-items: baseline; gap: 8px; padding: 0 6px; border: 0; background: transparent; font: inherit; cursor: pointer; text-align: left">
+                      <span style="min-width: 32px; color: #A9B1AC; font-weight: 600">지남</span>
+                      <span style="font-size: 13px; color: #A9B1AC">10.15 목</span>
+                    </button>
+                  
+                  
+                  
+                </td>
+                
+                
+                <td style="padding: 0; text-align: center; border-left: 1px solid #262C29">
+                  <button type="button" aria-label="일정 1건" style="min-width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 3px; border: 0; background: transparent; color: #C3CAC5; font: inherit; font-size: 13px; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14.5" rx="1.5"></rect><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"></path></svg><span>1</span>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="공고 링크" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: transparent; color: #C3CAC5; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"></path></svg>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="제출본 1개" style="min-width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 3px; border: 0; background: transparent; color: #C3CAC5; font: inherit; font-size: 13px; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h8l4 4V20.5H6z"></path><path d="M14 3.5v4h4"></path></svg><span>1</span>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="메모" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: transparent; color: #C3CAC5; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5h14v11l-4 4H5z"></path><path d="M9 9h6M9 12.5h4"></path></svg>
+                  </button>
+                </td>
+                
+                <td style="padding: 0; text-align: center">
+                  
+                </td>
+              </tr>
+            
+              <tr style="background: #1A1E1C; border-bottom: 1px solid #262C29">
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="즐겨찾기" aria-pressed="false" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6E7672" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>
+                  </button>
+                </td>
+                <td style="padding: 10px 8px">
+                  <div style="display: flex; flex-direction: column; gap: 1px">
+                    <button type="button" style="align-self: flex-start; padding: 0; border: 0; background: transparent; color: #E9ECE9; font: inherit; font-size: 15px; font-weight: 600; text-align: left; cursor: pointer">[회사 H]</button>
+                    <span style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: #A9B1AC">
+                      <button type="button" aria-label="유형 변경" style="padding: 2px 2px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer">랩</button>
+                      <span aria-hidden="true">·</span>
+                      <button type="button" aria-label="규모 변경" style="padding: 2px 2px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer">공공</button>
+                    </span>
+                  </div>
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  <button type="button" style="min-height: 40px; display: inline-flex; align-items: center; gap: 4px; padding: 0 6px; border: 0; border-radius: 4px; background: transparent; color: #A9B1AC; font: inherit; font-weight: 400; cursor: pointer">하</button>
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  <button type="button" role="switch" aria-checked="true" style="min-height: 40px; padding: 0 6px; border: 0; background: transparent; color: #C3CAC5; font: inherit; cursor: pointer">채용중</button>
+                </td>
+                <td style="padding: 0 4px; position: relative; text-align: center">
+                  <button type="button" aria-haspopup="listbox" style="min-height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 8px; border: 0; border-radius: 4px; background: transparent; color: #A9B1AC; font: inherit; font-weight: 400; cursor: pointer">
+                    <span style="width: 8px; height: 8px; flex: none; border-radius: 50%; background: transparent; box-shadow: inset 0 0 0 1.5px #8C948F"></span>미지원
+                  </button>
+                  
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  
+                  
+                  
+                    <button type="button" style="min-height: 40px; padding: 0 6px; border: 0; background: transparent; color: #A9B1AC; font: inherit; font-size: 13px; cursor: pointer">+ 마감일 추가</button>
+                  
+                </td>
+                
+                
+                <td style="padding: 0; text-align: center; border-left: 1px solid #262C29">
+                  <button type="button" aria-label="일정 0건" style="min-width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 3px; border: 0; background: transparent; color: #6E7672; font: inherit; font-size: 13px; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14.5" rx="1.5"></rect><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"></path></svg>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="공고 링크" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: transparent; color: #6E7672; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"></path></svg>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="제출본 0개" style="min-width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 3px; border: 0; background: transparent; color: #6E7672; font: inherit; font-size: 13px; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h8l4 4V20.5H6z"></path><path d="M14 3.5v4h4"></path></svg>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="메모" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: transparent; color: #6E7672; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5h14v11l-4 4H5z"></path><path d="M9 9h6M9 12.5h4"></path></svg>
+                  </button>
+                </td>
+                
+                <td style="padding: 0; text-align: center">
+                  
+                </td>
+              </tr>
+            
+              <tr style="background: #1A1E1C; border-bottom: 1px solid #262C29">
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="즐겨찾기" aria-pressed="true" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="#F0675B" stroke="#F0675B" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>
+                  </button>
+                </td>
+                <td style="padding: 10px 8px">
+                  <div style="display: flex; flex-direction: column; gap: 1px">
+                    <button type="button" style="align-self: flex-start; padding: 0; border: 0; background: transparent; color: #E9ECE9; font: inherit; font-size: 15px; font-weight: 600; text-align: left; cursor: pointer">[회사 I]</button>
+                    <span style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: #A9B1AC">
+                      <button type="button" aria-label="유형 변경" style="padding: 2px 2px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer">솔루션</button>
+                      <span aria-hidden="true">·</span>
+                      <button type="button" aria-label="규모 변경" style="padding: 2px 2px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer">외국계</button>
+                    </span>
+                  </div>
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  <button type="button" style="min-height: 40px; display: inline-flex; align-items: center; gap: 4px; padding: 0 6px; border: 0; border-radius: 4px; background: transparent; color: #C3CAC5; font: inherit; font-weight: 400; cursor: pointer">상</button>
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  <button type="button" role="switch" aria-checked="true" style="min-height: 40px; padding: 0 6px; border: 0; background: transparent; color: #C3CAC5; font: inherit; cursor: pointer">채용중</button>
+                </td>
+                <td style="padding: 0 4px; position: relative; text-align: center">
+                  <button type="button" aria-haspopup="listbox" style="min-height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 8px; border: 0; border-radius: 4px; background: transparent; color: #E9ECE9; font: inherit; font-weight: 600; cursor: pointer">
+                    <span style="width: 8px; height: 8px; flex: none; border-radius: 50%; background: #A9CBB7"></span>2차합격
+                  </button>
+                  
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  
+                    <button type="button" style="min-height: 40px; display: inline-flex; align-items: baseline; gap: 8px; padding: 0 6px; border: 0; background: transparent; font: inherit; cursor: pointer; text-align: left">
+                      <span style="min-width: 32px; color: #A9B1AC; font-weight: 600">지남</span>
+                      <span style="font-size: 13px; color: #A9B1AC">10.08 목</span>
+                    </button>
+                  
+                  
+                  
+                </td>
+                
+                
+                <td style="padding: 0; text-align: center; border-left: 1px solid #262C29">
+                  <button type="button" aria-label="일정 3건" style="min-width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 3px; border: 0; background: transparent; color: #C3CAC5; font: inherit; font-size: 13px; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14.5" rx="1.5"></rect><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"></path></svg><span>3</span>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="공고 링크" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: transparent; color: #C3CAC5; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"></path></svg>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="제출본 2개" style="min-width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 3px; border: 0; background: transparent; color: #C3CAC5; font: inherit; font-size: 13px; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h8l4 4V20.5H6z"></path><path d="M14 3.5v4h4"></path></svg><span>2</span>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="메모" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: transparent; color: #C3CAC5; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5h14v11l-4 4H5z"></path><path d="M9 9h6M9 12.5h4"></path></svg>
+                  </button>
+                </td>
+                
+                <td style="padding: 0; text-align: center">
+                  
+                </td>
+              </tr>
+            
+              <tr style="background: #1A1E1C; border-bottom: 1px solid #262C29">
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="즐겨찾기" aria-pressed="false" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6E7672" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>
+                  </button>
+                </td>
+                <td style="padding: 10px 8px">
+                  <div style="display: flex; flex-direction: column; gap: 1px">
+                    <button type="button" style="align-self: flex-start; padding: 0; border: 0; background: transparent; color: #E9ECE9; font: inherit; font-size: 15px; font-weight: 600; text-align: left; cursor: pointer">[회사 J]</button>
+                    <span style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: #A9B1AC">
+                      <button type="button" aria-label="유형 변경" style="padding: 2px 2px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer">서비스</button>
+                      <span aria-hidden="true">·</span>
+                      <button type="button" aria-label="규모 변경" style="padding: 2px 2px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer">대기업</button>
+                    </span>
+                  </div>
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  <button type="button" style="min-height: 40px; display: inline-flex; align-items: center; gap: 4px; padding: 0 6px; border: 0; border-radius: 4px; background: transparent; color: #A9B1AC; font: inherit; font-weight: 400; cursor: pointer">하</button>
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  <button type="button" role="switch" aria-checked="true" style="min-height: 40px; padding: 0 6px; border: 0; background: transparent; color: #C3CAC5; font: inherit; cursor: pointer">채용중</button>
+                </td>
+                <td style="padding: 0 4px; position: relative; text-align: center">
+                  <button type="button" aria-haspopup="listbox" style="min-height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 8px; border: 0; border-radius: 4px; background: transparent; color: #8C948F; font: inherit; font-weight: 400; cursor: pointer">
+                    <span style="width: 8px; height: 8px; flex: none; border-radius: 50%; background: transparent; box-shadow: inset 0 0 0 1.5px #59605C"></span>지원취소
+                  </button>
+                  
+                </td>
+                <td style="padding: 0 4px; text-align: center">
+                  
+                  
+                    <button type="button" style="min-height: 40px; padding: 0 6px; border: 0; background: transparent; color: #A9B1AC; font: inherit; cursor: pointer">상시채용</button>
+                  
+                  
+                </td>
+                
+                
+                <td style="padding: 0; text-align: center; border-left: 1px solid #262C29">
+                  <button type="button" aria-label="일정 0건" style="min-width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 3px; border: 0; background: transparent; color: #6E7672; font: inherit; font-size: 13px; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14.5" rx="1.5"></rect><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"></path></svg>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="공고 링크" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: transparent; color: #C3CAC5; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"></path></svg>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="제출본 1개" style="min-width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 3px; border: 0; background: transparent; color: #C3CAC5; font: inherit; font-size: 13px; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h8l4 4V20.5H6z"></path><path d="M14 3.5v4h4"></path></svg><span>1</span>
+                  </button>
+                </td>
+                <td style="padding: 0; text-align: center">
+                  <button type="button" aria-label="메모" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: transparent; color: #6E7672; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5h14v11l-4 4H5z"></path><path d="M9 9h6M9 12.5h4"></path></svg>
+                  </button>
+                </td>
+                
+                <td style="padding: 0; text-align: center">
+                  
+                </td>
+              </tr>
+            
+          </tbody>
+        </table>
+      </div>
+      <p style="margin: 0; font-size: 13px; color: #A9B1AC">이름·유형·규모·상태·날짜는 눌러서 바로 고칠 수 있어요. 노란 줄은 캘린더에서 눌러 이동해 온 회사예요.</p>
+    </div>
+  </main>
+</div>
+</body>
+</html>

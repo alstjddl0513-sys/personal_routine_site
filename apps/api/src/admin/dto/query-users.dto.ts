@@ -1,8 +1,7 @@
 import { Type } from 'class-transformer';
 import { IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
-// 사용자 목록 조회 쿼리. 검색·정렬은 앱 레벨(초기 유저 수 작음).
-// listUsers pagination은 Supabase SDK에 위임 — perPage는 SDK 200 상한 존중.
+// 사용자 목록 조회 쿼리. 전체 사용자를 모은 뒤 검색 · 정렬 · 페이지 자르기는 앱 레벨(유저 수 작음).
 export class QueryUsersDto {
   @IsOptional()
   @Type(() => Number)

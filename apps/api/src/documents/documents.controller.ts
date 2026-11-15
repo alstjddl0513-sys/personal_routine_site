@@ -32,6 +32,15 @@ export class DocumentsController {
     return this.service.init(requireUserId(req), dto);
   }
 
+  // 업로드 2단계 — 파일이 Storage에 올라간 뒤 클라가 부름. 확인되면 storage_path를 채움.
+  @Post(':id/complete')
+  complete(
+    @Req() req: AuthedRequest,
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ) {
+    return this.service.complete(requireUserId(req), id);
+  }
+
   @Post('link')
   createLink(@Req() req: AuthedRequest, @Body() dto: CreateLinkDocumentDto) {
     return this.service.createLink(requireUserId(req), dto);

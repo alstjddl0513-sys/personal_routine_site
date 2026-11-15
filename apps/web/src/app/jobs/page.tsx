@@ -1,8 +1,14 @@
+import { unstable_rethrow } from 'next/navigation';
 import { Suspense } from 'react';
 import { HighlightScroller } from '../../components/jobs/HighlightScroller';
 import { JobsClientView } from '../../components/jobs/JobsClientView';
-import { Skeleton } from '../../components/Skeleton';
-import { getCompanies, getCompanyEvents, getCompanyTypes } from '../../lib/api';
+import { JobsSkeleton } from '../../components/jobs/JobsSkeleton';
+import {
+  getCompanies,
+  getCompanyEvents,
+  getCompanyTypes,
+  listDocuments,
+} from '../../lib/api';
 
 type JobsSearchParams = Awaited<PageProps<'/jobs'>['searchParams']>;
 
@@ -12,14 +18,14 @@ function first(raw: string | string[] | undefined): string | undefined {
 
 export default async function JobsPage({ searchParams }: PageProps<'/jobs'>) {
   const sp = await searchParams;
+  // 제목·도구 줄은 JobsFilters가 그림 (docs/design/rally-jobs.html).
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <header>
-        <h1 className="text-xl font-semibold">채용 리스트</h1>
-      </header>
-      <Suspense fallback={<JobsSkeleton />}>
-        <JobsContent sp={sp} />
-      </Suspense>
+    <div className="min-h-screen bg-paper font-plex text-[15px] leading-normal text-ink tabular-nums">
+      <div className="mx-auto flex max-w-310 flex-col gap-5 px-4 pt-6 pb-16 md:px-10 md:pt-9">
+        <Suspense fallback={<JobsSkeleton />}>
+          <JobsContent sp={sp} />
+        </Suspense>
+      </div>
     </div>
   );
 }
@@ -35,7 +41,7 @@ async function JobsContent({ sp }: { sp: JobsSearchParams }) {
   const search = rawQ && rawQ.trim() ? rawQ.trim() : undefined;
   const highlightId = first(sp.highlight);
 
-  const [companyTypes, rows, allEvents] = await Promise.all([
+  const [companyTypes, rows, allEvents, documents] = await Promise.all([
     getCompanyTypes(),
     getCompanies({
       isFavorite: favorite ? true : undefined,
@@ -43,6 +49,12 @@ async function JobsContent({ sp }: { sp: JobsSearchParams }) {
       search,
     }),
     getCompanyEvents(),
+    // 서류 API가 죽어도 채용 목록은 띄움 — 제출본 열만 빈 상태로.
+    listDocuments().catch((e: unknown) => {
+      unstable_rethrow(e);
+      console.error('[jobs] listDocuments', e);
+      return [];
+    }),
   ]);
 
   // 회사별 이벤트 그룹핑. 각 행에 자기 이벤트만 전달해서 EventsPopover 바로 사용.
@@ -59,21 +71,12 @@ async function JobsContent({ sp }: { sp: JobsSearchParams }) {
         allRows={rows}
         companyTypes={companyTypes}
         eventsByCompany={eventsByCompany}
+        documents={documents}
         highlightId={highlightId}
       />
       <Suspense fallback={null}>
         <HighlightScroller />
       </Suspense>
-    </>
-  );
-}
-
-function JobsSkeleton() {
-  return (
-    <>
-      <Skeleton className="h-11 max-w-sm" />
-      <Skeleton className="h-52" />
-      <Skeleton className="h-64" />
     </>
   );
 }

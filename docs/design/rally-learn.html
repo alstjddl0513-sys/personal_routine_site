@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rally 오늘의 학습</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;display=swap">
+<style>body{margin:0;background:#F6F7F5}</style>
+</head>
+<body>
+<div style="min-height: 100vh; box-sizing: border-box; display: flex; flex-wrap: wrap; background: #F6F7F5; color: #1C1F1D; font-family: 'IBM Plex Sans KR', system-ui, sans-serif; font-size: 15px; line-height: 1.55; word-break: keep-all; font-variant-numeric: tabular-nums">
+  <!-- 사이드바 (공통) — 학습 > 오늘의 학습 활성 -->
+  <aside style="flex: 1 1 216px; max-width: 100%; box-sizing: border-box; padding: 28px 12px 16px; display: flex; flex-direction: column; gap: 28px; background: #1F3D30; border-right: 1px solid #1F3D30">
+    <a href="#" style="display: flex; align-items: center; gap: 9px; padding: 0 12px; text-decoration: none; color: #F4F2EC">
+      <svg width="20" height="22" viewBox="0 0 20 22" fill="none" aria-hidden="true"><path d="M3.5 21V1.8" stroke="#F4F2EC" stroke-width="2" stroke-linecap="round"></path><path d="M4.5 2.2L18 7.4L4.5 12.4Z" fill="#E9B949"></path></svg>
+      <span style="font-size: 20px; font-weight: 700; letter-spacing: -0.01em">Rally</span>
+    </a>
+    <nav aria-label="주 메뉴" style="flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: none; display: flex; flex-direction: column; gap: 2px">
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border-radius: 6px; color: #C3CEC6; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.5L12 5l8 6.5V20h-5v-5.5H9V20H4z"></path></svg>
+        오늘
+      </a>
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border-radius: 6px; color: #C3CEC6; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="1.5"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg>
+        캘린더
+      </a>
+      <button type="button" aria-expanded="false" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: #C3CEC6; font: inherit; text-align: left; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="1.5"></rect><path d="M9 7V4.5h6V7"></path></svg>
+        <span style="flex: 1 1 auto">채용</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </button>
+      <button type="button" aria-expanded="false" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: #C3CEC6; font: inherit; text-align: left; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h3M4 12h3M4 18h3M10 6h10M10 12h10M10 18h6"></path></svg>
+        <span style="flex: 1 1 auto">루틴</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </button>
+      <button type="button" aria-expanded="false" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: #C3CEC6; font: inherit; text-align: left; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5v11M17.5 6.5v11M3 9.5v5M21 9.5v5M6.5 12h11"></path></svg>
+        <span style="flex: 1 1 auto">운동</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </button>
+      <div style="display: flex; flex-direction: column">
+        <button type="button" aria-expanded="true" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: #FFFFFF; font: inherit; font-weight: 600; text-align: left; cursor: pointer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h6a2 2 0 0 1 2 2v13a1.5 1.5 0 0 0-1.5-1.5H4zM20 5h-6a2 2 0 0 0-2 2v13a1.5 1.5 0 0 1 1.5-1.5H20z"></path></svg>
+          <span style="flex: 1 1 auto">학습</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+        </button>
+        <a href="#" aria-current="page" style="display: flex; align-items: center; min-height: 32px; padding: 0 12px 0 42px; border-radius: 6px; background: #2C4F40; color: #FFFFFF; text-decoration: none; font-size: 14px; font-weight: 600">오늘의 학습</a>
+        <a href="#" style="display: flex; align-items: center; min-height: 32px; padding: 0 12px 0 42px; border-radius: 6px; color: #A9B8AE; text-decoration: none; font-size: 14px">복습</a>
+        <a href="#" style="display: flex; align-items: center; min-height: 32px; padding: 0 12px 0 42px; border-radius: 6px; color: #A9B8AE; text-decoration: none; font-size: 14px">통계</a>
+      </div>
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border-radius: 6px; color: #C3CEC6; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5h14M5 10h14M5 15h9M5 20h6"></path></svg>
+        블로그
+      </a>
+    </nav>
+    <div style="display: flex; align-items: center; gap: 2px; padding-top: 12px; border-top: 1px solid #36594A">
+      <a href="#" style="flex: 1 1 auto; display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border-radius: 6px; color: #C3CEC6; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"></path></svg>
+        설정
+      </a>
+      <button type="button" aria-label="다크 모드 전환" style="width: 40px; height: 40px; flex: none; border: 0; border-radius: 6px; background: transparent; display: inline-flex; align-items: center; justify-content: center; color: #C3CEC6; cursor: pointer">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 13A8.5 8.5 0 1 1 11 3.5a6.5 6.5 0 0 0 9.5 9.5z"></path></svg>
+      </button>
+      <button type="button" aria-label="알림" style="width: 40px; height: 40px; flex: none; border: 0; border-radius: 6px; background: transparent; display: inline-flex; align-items: center; justify-content: center; color: #C3CEC6; cursor: pointer">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 8 2.5 8h-17S6 15 6 9M10.3 20.5a1.9 1.9 0 0 0 3.4 0"></path></svg>
+      </button>
+    </div>
+  </aside>
+  <main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 36px 40px 64px">
+    <div style="max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px">
+
+      <!-- 안내 문구: 처음 문구("답을 확인한 뒤 '이해완료' 또는 '복습필요'로 표시해두세요.")를 짧게. 다른 후보: "답을 보고 이해했는지 표시해요." -->
+      <header style="display: flex; flex-direction: column; gap: 6px">
+        <h1 style="margin: 0; font-size: 26px; line-height: 1.3; font-weight: 700; letter-spacing: -0.01em">오늘의 학습</h1>
+        <p style="margin: 0; font-size: 15px; color: #3F4441">답을 확인하고 이해완료 · 복습필요로 표시해요.</p>
+      </header>
+      <div role="group" aria-label="카테고리" style="display: flex; flex-wrap: wrap; gap: 8px"><button type="button" aria-pressed="true" style="flex: none; min-height: 36px; padding: 0 14px; border: 0; border-radius: 18px; background: #E6EEE8; box-shadow: inset 0 0 0 2px #1F3D30; color: #1F3D30; font-weight: 700; font-family: inherit; font-size: 14px; cursor: pointer">전체</button><button type="button" aria-pressed="false" style="flex: none; min-height: 36px; padding: 0 14px; border: 0; border-radius: 18px; background: #FFFFFF; box-shadow: inset 0 0 0 1px #BFC4BE; color: #3F4441; font-weight: 500; font-family: inherit; font-size: 14px; cursor: pointer">네트워크</button><button type="button" aria-pressed="false" style="flex: none; min-height: 36px; padding: 0 14px; border: 0; border-radius: 18px; background: #FFFFFF; box-shadow: inset 0 0 0 1px #BFC4BE; color: #3F4441; font-weight: 500; font-family: inherit; font-size: 14px; cursor: pointer">운영체제</button><button type="button" aria-pressed="false" style="flex: none; min-height: 36px; padding: 0 14px; border: 0; border-radius: 18px; background: #FFFFFF; box-shadow: inset 0 0 0 1px #BFC4BE; color: #3F4441; font-weight: 500; font-family: inherit; font-size: 14px; cursor: pointer">데이터베이스</button><button type="button" aria-pressed="false" style="flex: none; min-height: 36px; padding: 0 14px; border: 0; border-radius: 18px; background: #FFFFFF; box-shadow: inset 0 0 0 1px #BFC4BE; color: #3F4441; font-weight: 500; font-family: inherit; font-size: 14px; cursor: pointer">자료구조</button><button type="button" aria-pressed="false" style="flex: none; min-height: 36px; padding: 0 14px; border: 0; border-radius: 18px; background: #FFFFFF; box-shadow: inset 0 0 0 1px #BFC4BE; color: #3F4441; font-weight: 500; font-family: inherit; font-size: 14px; cursor: pointer">JavaScript</button><button type="button" aria-pressed="false" style="flex: none; min-height: 36px; padding: 0 14px; border: 0; border-radius: 18px; background: #FFFFFF; box-shadow: inset 0 0 0 1px #BFC4BE; color: #3F4441; font-weight: 500; font-family: inherit; font-size: 14px; cursor: pointer">React</button></div>
+      <!-- 카드: 왼쪽 정렬, 최대 폭 800px(답 본문은 660px로 한 줄 ~40자). 최소 높이 없음 — 답이 짧으면 짧게, 길면 페이지가 스크롤.
+           다른 후보: 가운데 정렬(지금 화면) — 다른 Rally 페이지는 모두 왼쪽 정렬이라 이 페이지만 떠 보임.
+           넘기기 애니메이션: 큰 넘김 대신 내용만 150ms 옅게 바뀜(가로 8px 이동 + 투명도), prefers-reduced-motion이면 없음 -->
+      <div style="display: flex; align-items: flex-start; gap: 12px">
+        <article aria-label="질문 3" style="max-width: 800px; box-sizing: border-box; padding: 22px 28px 24px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; flex-direction: column; gap: 20px">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 40px"><div style="display: flex; align-items: center; gap: 12px; min-width: 0"><span style="font-size: 13px; font-weight: 600; color: #4F5450">네트워크</span><span aria-hidden="true" style="width: 1px; height: 14px; background: #CDD1CC"></span><span style="font-size: 14px; color: #3F4441"><strong style="font-weight: 600; color: #1C1F1D">3</strong> / 5</span><span role="img" aria-label="5문제 중 3번째, 2개 표시함" style="display: inline-flex; align-items: center; gap: 12px; padding: 0 6px"><span title="1번 · 이해완료" style="width: 8px; height: 8px; border-radius: 50%; background: #1F3D30; "></span><span title="2번 · 복습필요" style="width: 8px; height: 8px; border-radius: 50%; background: #9A6700; "></span><span title="3번 · 표시 안 함" style="width: 8px; height: 8px; border-radius: 50%; background: #E3E6E2; box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4px #1F3D30; "></span><span title="4번 · 표시 안 함" style="width: 8px; height: 8px; border-radius: 50%; background: #E3E6E2; "></span><span title="5번 · 표시 안 함" style="width: 8px; height: 8px; border-radius: 50%; background: #E3E6E2; "></span></span></div><div style="display: flex; align-items: center; gap: 6px"><button type="button" aria-pressed="false" aria-label="별표" title="별표" style="flex: none; width: 40px; height: 40px; margin-left: 4px; border: 0; border-radius: 6px; background: transparent; color: #4F5450; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.8l2.5 5.2 5.7.8-4.1 4 1 5.6L12 16.7l-5.1 2.7 1-5.6-4.1-4 5.7-.8z"></path></svg></button><span style="display: flex; gap: 6px; margin-left: 4px"><button type="button" aria-label="이전 질문" title="이전 (←)" style="flex: none; width: 40px; height: 40px; border: 1px solid #BFC4BE; border-radius: 6px; background: transparent; color: #1F3D30; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button><button type="button" aria-label="다음 질문" title="다음 (→)" style="flex: none; width: 40px; height: 40px; border: 1px solid #BFC4BE; border-radius: 6px; background: transparent; color: #1F3D30; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button></span></div></div><h2 style="margin: 0; display: flex; gap: 10px; font-size: 20px; line-height: 1.45; font-weight: 600; color: #1C1F1D"><span aria-hidden="true" style="flex: none; color: #1F3D30; font-weight: 700">Q.</span><span>TCP 3-way handshake 과정을 설명해주세요.</span></h2><div style="display: flex; flex-direction: column; gap: 10px; padding-top: 20px; border-top: 1px solid #E7E9E6">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: -8px">
+              <span style="font-size: 15px; font-weight: 700; color: #1F3D30">A.</span>
+              <button type="button" style="flex: none; min-height: 40px; padding: 0 8px; border: 0; border-radius: 6px; background: transparent; color: #4F5450; font: inherit; font-size: 14px; cursor: pointer">답 접기</button>
+            </div>
+            <div style="max-width: 660px; display: flex; flex-direction: column; gap: 12px; font-size: 16px; line-height: 1.75; color: #1C1F1D; margin-top: -6px"><p style="margin: 0">TCP는 데이터를 보내기 전에, 양쪽이 서로 보내고 받을 준비가 됐는지 세 번의 메시지로 확인해요.</p><div><ol style="margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px"><li><strong>SYN</strong> — 클라이언트가 연결을 요청하며 자신의 초기 순서 번호(ISN)를 보내요.</li><li><strong>SYN + ACK</strong> — 서버가 요청을 받았다는 ACK(클라이언트 ISN + 1)와 자신의 ISN을 담은 SYN을 함께 보내요.</li><li><strong>ACK</strong> — 클라이언트가 서버 ISN + 1로 답하면 양쪽 모두 ESTABLISHED 상태가 돼요.</li></ol></div><p style="margin: 0">세 번인 이유는 양방향 모두 "보낼 수 있고 받을 수 있다"를 확인해야 해서예요. 두 번으로 끝나면 서버는 자기가 보낸 SYN이 클라이언트에 도착했는지 알 수 없어요.</p><p style="margin: 0">초기 순서 번호를 무작위로 정하는 건, 예전 연결에서 늦게 도착한 패킷과 섞이지 않게 하고 순서 번호를 추측하는 공격을 어렵게 하려는 거예요.</p><p style="margin: 0">연결을 끊을 때는 양쪽이 각자 FIN을 보내고 ACK를 받는 4-way handshake를 써요. 한쪽이 보낼 데이터를 다 보냈어도 다른 쪽은 아직 보낼 게 남아 있을 수 있어서예요.</p></div>
+          </div><div style="display: flex; flex-direction: column; gap: 8px; padding: 14px 18px; background: #FAFBF9; border-left: 2px solid #CDD1CC; border-radius: 0 6px 6px 0; max-width: 660px; box-sizing: border-box">
+              <span style="font-size: 14px; font-weight: 700; color: #3F4441">이어서 물어볼 만한 질문</span>
+              <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; font-size: 15px; line-height: 1.6; color: #3F4441"><li style="display: flex; gap: 10px"><span aria-hidden="true" style="flex: none; color: #8E928D">—</span><span>SYN Flooding 공격은 어떻게 일어나고, 어떻게 막나요?</span></li><li style="display: flex; gap: 10px"><span aria-hidden="true" style="flex: none; color: #8E928D">—</span><span>연결을 끊을 때 TIME_WAIT 상태는 왜 필요한가요?</span></li></ul>
+            </div><div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 16px; border-top: 1px solid #E7E9E6">
+            <div style="display: flex; gap: 8px"><button type="button" aria-pressed="false" title="이해완료 (1)" style="flex: none; min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 16px; border: 0; border-radius: 6px; box-shadow: inset 0 0 0 1px #BFC4BE; background: transparent; color: #1F3D30; font-weight: 500; font-family: inherit; font-size: 14px; cursor: pointer"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>이해완료</button><button type="button" aria-pressed="false" title="복습필요 (2)" style="flex: none; min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 16px; border: 0; border-radius: 6px; box-shadow: inset 0 0 0 1px #BFC4BE; background: transparent; color: #1F3D30; font-weight: 500; font-family: inherit; font-size: 14px; cursor: pointer"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3M19.5 4.5v4h-4"></path></svg>복습필요</button></div>
+            
+          </div>
+      </article>
+        <span style="flex: none; align-self: center; padding: 0 6px; border: 1px dashed #BFC4BE; border-radius: 4px; font-size: 11px; font-weight: 400; color: #4F5450">제안</span>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

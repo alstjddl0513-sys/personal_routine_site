@@ -4,6 +4,7 @@ import {
   IsEnum,
   IsOptional,
   IsString,
+  IsUUID,
   Matches,
   MaxLength,
   MinLength,
@@ -95,4 +96,14 @@ export class CreateCompanyDto {
   @IsString()
   @MaxLength(2000)
   progressNote?: string;
+
+  // null이면 연결 해제(@IsOptional이 null도 통과시킴). kind·owner 검증은
+  // 서비스 레이어(assertDocumentSlot)에서.
+  @IsOptional()
+  @IsUUID()
+  resumeDocumentId?: string | null;
+
+  @IsOptional()
+  @IsUUID()
+  portfolioDocumentId?: string | null;
 }

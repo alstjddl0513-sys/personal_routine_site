@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Rss, Settings, X, type LucideIcon } from 'lucide-react';
+import { Calendar, Rss, Settings, X, type LucideIcon } from 'lucide-react';
 import { Portal } from './ui/Portal';
 
 interface Props {
@@ -19,6 +19,7 @@ interface MoreItem {
 }
 
 const MORE_ITEMS: MoreItem[] = [
+  { href: '/calendar', label: '캘린더', icon: Calendar, matchPrefixes: ['/calendar'] },
   { href: '/blog', label: '블로그', icon: Rss, matchPrefixes: ['/blog'] },
   {
     href: '/settings',
@@ -33,7 +34,7 @@ function isActive(pathname: string, prefixes: string[]): boolean {
 }
 
 // BottomNav의 '⋯ 더보기' 탭에서 열리는 바텀시트. iOS Mail/인스타의 'More' 탭
-// 패턴. 메인 5탭에 못 넣은 블로그·설정 접근 경로. 확장 시 여기에만 추가.
+// 패턴. 메인 5탭에 못 넣은 캘린더·블로그·설정 접근 경로. 확장 시 여기에만 추가.
 export function MoreMenu({ open, onClose }: Props) {
   const pathname = usePathname();
 

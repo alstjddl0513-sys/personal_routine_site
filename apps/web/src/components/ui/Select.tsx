@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
+  type ReactNode,
 } from 'react';
 import { useOutsideClick } from '../../lib/useOutsideClick';
 import { usePopoverPosition } from '../../lib/usePopoverPosition';
@@ -18,6 +19,8 @@ export interface SelectOption {
   /** Applied to both the option row and the trigger (when this option is selected). */
   className?: string;
   disabled?: boolean;
+  /** Shown before the label in both the option row and the trigger (e.g. a status dot). */
+  icon?: ReactNode;
 }
 
 export interface SelectGroup {
@@ -44,6 +47,13 @@ interface Props {
    * - 'ring': inset ring — keeps colored chips visible under highlight
    */
   highlightStyle?: 'bg' | 'ring';
+  /** Rendered after the label inside the trigger (e.g. a hover-only ▾). */
+  triggerSuffix?: ReactNode;
+  /**
+   * Popover look. 'zinc' (default) matches the rest of the app; 'rally' uses
+   * the --rally-* tokens for pages already on the new design (채용 표).
+   */
+  tone?: 'zinc' | 'rally';
 }
 
 const POPOVER_MAX_HEIGHT = 288; // max-h-72
@@ -71,6 +81,8 @@ export function Select({
   triggerClassName,
   placeholder,
   highlightStyle = 'bg',
+  triggerSuffix,
+  tone = 'zinc',
 }: Props) {
   const [open, setOpen] = useState(false);
   const [triggerWidth, setTriggerWidth] = useState(0);
@@ -251,9 +263,11 @@ export function Select({
         aria-expanded={open}
         className={triggerClass}
       >
+        {selectedOption?.icon}
         <span className="truncate">
           {selectedOption?.label ?? placeholder ?? ''}
         </span>
+        {triggerSuffix}
       </button>
 
       {open && pos ? (
@@ -271,7 +285,11 @@ export function Select({
               // one-frame flash at the (usually wrong) estimated position.
               visibility: pxPos ? 'visible' : 'hidden',
             }}
-            className="thin-scrollbar max-h-72 w-max overflow-y-auto rounded-md border border-zinc-200 bg-white py-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
+            className={
+              tone === 'rally'
+                ? 'thin-scrollbar max-h-72 w-max overflow-y-auto rounded-lg border border-line bg-surface p-1.5 font-plex text-ink shadow-[0_12px_28px_rgba(28,31,29,0.12)]'
+                : 'thin-scrollbar max-h-72 w-max overflow-y-auto rounded-md border border-zinc-200 bg-white py-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-900'
+            }
             role="listbox"
             aria-label={ariaLabel}
             aria-activedescendant={
@@ -320,16 +338,21 @@ export function Select({
         aria-disabled={opt.disabled || undefined}
         onMouseEnter={() => !opt.disabled && setHighlightIdx(idx)}
         onClick={() => !opt.disabled && commitAndClose(opt.value)}
-        className={`mx-1 flex cursor-pointer items-center rounded px-2 py-1.5 text-sm ${
+        className={`flex cursor-pointer items-center rounded ${
+          tone === 'rally' ? 'min-h-8.5 gap-2.5 px-2.5 text-sm' : 'mx-1 px-2 py-1.5 text-sm'
+        } ${
           opt.disabled ? 'cursor-not-allowed opacity-40' : ''
         } ${selected ? 'font-medium' : ''} ${opt.className ?? ''} ${
           highlighted && !opt.disabled
             ? highlightStyle === 'ring'
               ? 'ring-2 ring-inset ring-zinc-400 dark:ring-zinc-500'
+              : tone === 'rally'
+              ? 'bg-row-hover'
               : 'bg-zinc-100 dark:bg-zinc-800'
             : ''
         }`}
       >
+        {opt.icon}
         {opt.label}
       </li>
     );

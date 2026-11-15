@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>운동 기록 리뷰</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;display=swap">
+<style>body{margin:0;background:#F6F7F5}</style>
+</head>
+<body>
+<!-- 운동 기록 디자인 리뷰 — '높음' 항목만 부분 시안. 본문 열 폭(1280 화면 기준 ~984px)으로 그림. 사이드바·헤더는 생략 -->
+<div style="width: 1280px; box-sizing: border-box; padding: 48px; background: #F6F7F5; color: #1C1F1D; font-family: 'IBM Plex Sans KR', system-ui, sans-serif; font-size: 15px; line-height: 1.55; word-break: keep-all; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; gap: 48px">
+
+  <!-- 1. 맨 위 줄 — 분할이 없을 때 -->
+  <section style="display: flex; flex-direction: column; gap: 14px">
+    <h2 style="margin: 0; display: flex; align-items: baseline; gap: 10px; font-size: 17px; font-weight: 700; color: #1F3D30"><span style="font-size: 13px; font-weight: 600; color: #4F5450">01 · 03</span>맨 위 줄 — 분할이 없을 때</h2>
+    <div style="width: 1064px; box-sizing: border-box; padding: 24px 40px; background: #F6F7F5; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; flex-direction: column; gap: 20px">
+      <span style="font-size: 13px; font-weight: 600; color: #4F5450">첫 사용 안내 — 한 줄짜리 띠로 따로, 컨디션 줄은 그대로</span>
+      <!-- 제안: 안내를 컨디션과 같은 줄에 두면 2줄 글 + 버튼 2개 + 입력칸이 한 줄에 몰려 높이가 들쭉날쭉함 → 안내만 카드 한 줄(높이 56)로 빼고, 질문과 설명을 한 줄에.
+           닫기는 "분할 없이 쓸게요" 글자 버튼 하나(× 아이콘을 글자 뒤에 붙이지 않음 — 닫기 ✕ 규칙과 섞임).
+           다른 후보: 지금처럼 같은 줄에 두되 설명 문장은 빼고 질문 옆 ⓘ 툴팁으로 -->
+      <div style="display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 8px 12px 8px 18px; box-sizing: border-box; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px">
+        <p style="margin: 0; flex: 1 1 auto; min-width: 0; font-size: 15px; color: #3F4441"><strong style="font-weight: 700; color: #1C1F1D">운동을 나눠서 하나요?</strong>&nbsp; 상체·하체처럼 나눠두면 그날 할 종목만 보여요.</p>
+        <button type="button" style="flex: none; min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border: 1px solid #BFC4BE; border-radius: 6px; background: transparent; color: #1F3D30; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer">분할 만들기</button>
+        <button type="button" style="flex: none; min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 8px; border: 0; border-radius: 6px; background: transparent; color: #1F3D30; font: inherit; font-size: 14px; cursor: pointer">분할 없이 쓸게요</button>
+        <span style="flex: none; align-self: flex-start; padding: 0 6px; border: 1px dashed #BFC4BE; border-radius: 4px; font-size: 11px; color: #4F5450">제안</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px"><label style="flex: 1 1 320px; min-width: 0; display: flex; align-items: center; gap: 10px">
+          <span style="flex: none; font-size: 14px; font-weight: 600; color: #3F4441">컨디션</span>
+          <span style="flex: 1 1 auto; min-width: 0; position: relative; display: block">
+            <input type="text" placeholder="오늘 컨디션 한 줄..." style="width: 100%; min-height: 40px; box-sizing: border-box; padding: 0 72px 0 12px; border: 1px solid #BFC4BE; border-radius: 6px; background: #FFFFFF; color: #1C1F1D; font: inherit; font-size: 15px">
+            <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 13px; color: #7A7E78">저장됨</span>
+          </span>
+        </label></div>
+      <div style="height: 1px; background: #E7E9E6; margin: 4px 0"></div>
+      <span style="font-size: 13px; font-weight: 600; color: #4F5450">안내를 닫은 뒤 — "+ 분할 만들기"는 그대로 두고, 입력칸만 오른쪽 끝까지</span>
+      <!-- 입력칸이 본문 오른쪽 끝(카드 오른쪽 끝, [+ 종목 추가] 오른쪽 끝)과 맞게 flex 1. 저장 상태는 칸 안 오른쪽(padding-right 72px) -->
+      <div style="display: flex; align-items: center; gap: 12px">
+        <button type="button" style="flex: none; min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 8px; border: 0; border-radius: 6px; background: transparent; color: #1F3D30; font: inherit; font-size: 14px; cursor: pointer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>분할 만들기</button>
+        <span aria-hidden="true" style="flex: none; width: 1px; height: 24px; background: #CDD1CC"></span>
+        <label style="flex: 1 1 320px; min-width: 0; display: flex; align-items: center; gap: 10px">
+          <span style="flex: none; font-size: 14px; font-weight: 600; color: #3F4441">컨디션</span>
+          <span style="flex: 1 1 auto; min-width: 0; position: relative; display: block">
+            <input type="text" value="어제보다 가벼움" placeholder="오늘 컨디션 한 줄..." style="width: 100%; min-height: 40px; box-sizing: border-box; padding: 0 72px 0 12px; border: 1px solid #BFC4BE; border-radius: 6px; background: #FFFFFF; color: #1C1F1D; font: inherit; font-size: 15px">
+            <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 13px; color: #7A7E78">저장됨</span>
+          </span>
+        </label>
+      </div>
+    </div>
+  </section>
+  <!-- 2. 분할 탭 -->
+  <section style="display: flex; flex-direction: column; gap: 14px">
+    <h2 style="margin: 0; display: flex; align-items: baseline; gap: 10px; font-size: 17px; font-weight: 700; color: #1F3D30"><span style="font-size: 13px; font-weight: 600; color: #4F5450">새 상태</span>분할이 있을 때 — 분할 탭 + 오늘 차례</h2>
+    <div style="width: 1064px; box-sizing: border-box; padding: 24px 40px; background: #F6F7F5; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; flex-direction: column; gap: 20px">
+      <span style="font-size: 13px; font-weight: 600; color: #4F5450">들어왔을 때 — 오늘 차례(하체)가 선택돼 있음</span>
+      <!-- 탭 높이: 세그먼트 전체를 48px로 고정하고 이름은 세로 가운데 → "오늘 차례" 줄이 있는 탭만 두 줄이어도 높이가 같음. 옆 입력칸(40px)은 align-items: center.
+           "오늘 차례": 12px 600 primary — 11px 흐린 글자는 꼭 읽어야 하는 정보라 약함(ink-faint는 지나가는 상태 전용). 메리골드 X.
+           선택(chip-on 배경·테두리)과 차례(아래 글자)는 표시 위치를 나눔 → 다른 분할을 골라도 차례 표시는 남음.
+           다른 후보: 탭 40px 그대로 + 차례 탭 이름 앞에 6px primary 점, 툴팁 "오늘 차례예요" (줄은 낮지만 점 뜻을 처음엔 모름) -->
+      <div style="display: flex; align-items: center; gap: 12px">
+        <div role="tablist" aria-label="분할" style="flex: none; display: inline-flex; border: 1px solid #BFC4BE; border-radius: 6px; overflow: hidden"><button type="button" role="tab" aria-selected="false" style="min-width: 76px; height: 48px; padding: 0 16px; border-top: 0; border-right: 0; border-bottom: 0; border-left: 0; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font: inherit; font-size: 15px; line-height: 1.3; background: transparent; color: #3F4441; font-weight: 500; cursor: pointer"><span>상체</span></button><button type="button" role="tab" aria-selected="true" title="지난번 상체 다음 차례예요" style="border-left: 1px solid #BFC4BE; min-width: 76px; height: 48px; padding: 0 16px; border-top: 0; border-right: 0; border-bottom: 0; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font: inherit; font-size: 15px; line-height: 1.3; background: #E6EEE8; box-shadow: inset 0 0 0 2px #1F3D30; border-radius: 6px; color: #1F3D30; font-weight: 700; cursor: pointer"><span>하체</span><span style="font-size: 12px; line-height: 1.2; font-weight: 600; color: #1F3D30">오늘 차례</span></button><button type="button" role="tab" aria-selected="false" style="border-left: 1px solid #BFC4BE; min-width: 76px; height: 48px; padding: 0 16px; border-top: 0; border-right: 0; border-bottom: 0; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font: inherit; font-size: 15px; line-height: 1.3; background: transparent; color: #3F4441; font-weight: 500; cursor: pointer"><span>전체</span></button></div>
+        <span style="flex: none; align-self: flex-start; padding: 0 6px; border: 1px dashed #BFC4BE; border-radius: 4px; font-size: 11px; color: #4F5450">제안</span>
+        <span aria-hidden="true" style="flex: none; width: 1px; height: 24px; background: #CDD1CC"></span>
+        <label style="flex: 1 1 320px; min-width: 0; display: flex; align-items: center; gap: 10px">
+          <span style="flex: none; font-size: 14px; font-weight: 600; color: #3F4441">컨디션</span>
+          <span style="flex: 1 1 auto; min-width: 0; position: relative; display: block">
+            <input type="text" value="어제보다 가벼움" placeholder="오늘 컨디션 한 줄..." style="width: 100%; min-height: 40px; box-sizing: border-box; padding: 0 72px 0 12px; border: 1px solid #BFC4BE; border-radius: 6px; background: #FFFFFF; color: #1C1F1D; font: inherit; font-size: 15px">
+            <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 13px; color: #7A7E78">저장됨</span>
+          </span>
+        </label>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 52px; border-bottom: 1px solid #E7E9E6">
+          <p style="margin: 0; font-size: 15px; color: #4F5450"><strong style="font-weight: 700; color: #1F3D30">하체</strong> 종목 4개</p>
+          <button type="button" style="flex: none; min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border: 1px solid #BFC4BE; border-radius: 6px; background: transparent; color: #1F3D30; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>종목 추가</button>
+        </div>
+      <div style="height: 1px; background: #E7E9E6; margin: 4px 0"></div>
+      <span style="font-size: 13px; font-weight: 600; color: #4F5450">다른 분할을 골랐을 때 — 선택은 상체, 차례 표시는 하체에 그대로</span>
+      <div style="display: flex; align-items: center; gap: 12px">
+        <div role="tablist" aria-label="분할" style="flex: none; display: inline-flex; border: 1px solid #BFC4BE; border-radius: 6px; overflow: hidden"><button type="button" role="tab" aria-selected="true" style="min-width: 76px; height: 48px; padding: 0 16px; border-top: 0; border-right: 0; border-bottom: 0; border-left: 0; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font: inherit; font-size: 15px; line-height: 1.3; background: #E6EEE8; box-shadow: inset 0 0 0 2px #1F3D30; border-radius: 6px; color: #1F3D30; font-weight: 700; cursor: pointer"><span>상체</span></button><button type="button" role="tab" aria-selected="false" title="지난번 상체 다음 차례예요" style="border-left: 1px solid #BFC4BE; min-width: 76px; height: 48px; padding: 0 16px; border-top: 0; border-right: 0; border-bottom: 0; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font: inherit; font-size: 15px; line-height: 1.3; background: transparent; color: #3F4441; font-weight: 500; cursor: pointer"><span>하체</span><span style="font-size: 12px; line-height: 1.2; font-weight: 600; color: #1F3D30">오늘 차례</span></button><button type="button" role="tab" aria-selected="false" style="border-left: 1px solid #BFC4BE; min-width: 76px; height: 48px; padding: 0 16px; border-top: 0; border-right: 0; border-bottom: 0; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font: inherit; font-size: 15px; line-height: 1.3; background: transparent; color: #3F4441; font-weight: 500; cursor: pointer"><span>전체</span></button></div>
+        <span aria-hidden="true" style="flex: none; width: 1px; height: 24px; background: #CDD1CC"></span>
+        <label style="flex: 1 1 320px; min-width: 0; display: flex; align-items: center; gap: 10px">
+          <span style="flex: none; font-size: 14px; font-weight: 600; color: #3F4441">컨디션</span>
+          <span style="flex: 1 1 auto; min-width: 0; position: relative; display: block">
+            <input type="text" placeholder="오늘 컨디션 한 줄..." style="width: 100%; min-height: 40px; box-sizing: border-box; padding: 0 72px 0 12px; border: 1px solid #BFC4BE; border-radius: 6px; background: #FFFFFF; color: #1C1F1D; font: inherit; font-size: 15px">
+            <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 13px; color: #7A7E78">저장됨</span>
+          </span>
+        </label>
+      </div>
+      <!-- 카드 위 줄: "하체 · 종목 4개"의 가운뎃점은 빼고 "하체 종목 4개"(분할 이름만 굵게 heading). 높이 52px로 [+ 종목 추가]와 세로 가운데, 아래 divider.
+           [+ 종목 추가]가 지금 분할에 담기는지는 기능 확인 필요(아래 '기능' 메모) -->
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 52px; border-bottom: 1px solid #E7E9E6">
+          <p style="margin: 0; font-size: 15px; color: #4F5450"><strong style="font-weight: 700; color: #1F3D30">상체</strong> 종목 2개</p>
+          <button type="button" style="flex: none; min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border: 1px solid #BFC4BE; border-radius: 6px; background: transparent; color: #1F3D30; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>종목 추가</button>
+        </div>
+    </div>
+  </section>
+  <!-- 3. 종목 카드 -->
+  <section style="display: flex; flex-direction: column; gap: 14px">
+    <h2 style="margin: 0; display: flex; align-items: baseline; gap: 10px; font-size: 17px; font-weight: 700; color: #1F3D30"><span style="font-size: 13px; font-weight: 600; color: #4F5450">07 · 01</span>종목 카드 — 모든 카드 같은 열 폭</h2>
+    <div style="width: 1064px; box-sizing: border-box; padding: 24px 40px; background: #F6F7F5; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; flex-direction: column; gap: 20px">
+      <!-- 열을 카드마다 같게: 번호 22 · 무게 76 · 횟수 60 · 최근 기록 나머지(왼쪽 정렬).
+           - 기록이 없는 카드도 입력칸이 넓어지지 않음(옆 카드와 같은 자리) — 남는 오른쪽은 비워 둠
+           - 최근 기록 값을 입력칸 바로 옆(8px)에 붙여 오늘 값과 눈이 바로 오감. 오른쪽 끝 정렬일 때 생기던 가운데 빈칸이 없어짐
+           - 변화는 값 아래 한 줄: 늘면 primary 600, 줄면 ink-faint. "최고" 꼬리표는 변화 앞
+           다른 후보: 기록 없는 카드는 입력칸을 넓게 두고(지금) 열 머리만 맞춤 — 3열 그리드에서 칸 폭이 카드마다 달라 줄이 안 맞아 보임 -->
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px">
+        <article style="min-width: 0; display: flex; flex-direction: column; gap: 14px; padding: 16px 16px 14px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px">
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <h3 style="margin: 0; font-size: 17px; line-height: 1.35; font-weight: 700; color: #1F3D30">스쿼트</h3>
+            <span style="font-size: 13px; color: #4F5450">하체 · 목표 8~12회</span>
+          </div>
+          <div style="margin-top: -4px; display: flex; flex-direction: column; gap: 2px; font-size: 13px"><span style="display: flex; gap: 10px"><span style="flex: none; width: 56px; white-space: nowrap; color: #4F5450">최근 기록</span><span><strong style="font-weight: 600; color: #1C1F1D">11월 6일</strong></span></span><span style="display: flex; gap: 10px"><span style="flex: none; width: 56px; white-space: nowrap; color: #4F5450">최고 기록</span><span><strong style="font-weight: 600; color: #1C1F1D">102.5kg × 12</strong><span style="color: #4F5450"> · 11월 6일</span></span></span></div>
+          <div role="table" style="display: flex; flex-direction: column; gap: 6px"><div role="row" style="display: grid; grid-template-columns: 22px 76px 60px minmax(0, 1fr); gap: 8px; font-size: 12px; color: #4F5450">
+              <span></span><span style="text-align: center">무게(kg)</span><span style="text-align: center">횟수</span><span style="padding-left: 8px">최근 기록</span>
+            </div><div role="row" style="display: grid; grid-template-columns: 22px 76px 60px minmax(0, 1fr); gap: 8px; align-items: center; min-height: 40px">
+              <span style="text-align: center; font-size: 14px; color: #3F4441">1</span>
+              <input type="text" inputmode="decimal" aria-label="1세트 무게" value="100" style="width: 100%; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 4px; border-radius: 6px; text-align: center; font: inherit; font-size: 15px; border: 1px solid #E7E9E6; background: #FAFBF9; color: #1C1F1D; font-weight: 600">
+              <input type="text" inputmode="numeric" aria-label="1세트 횟수" value="10" style="width: 100%; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 4px; border-radius: 6px; text-align: center; font: inherit; font-size: 15px; border: 1px solid #E7E9E6; background: #FAFBF9; color: #1C1F1D; font-weight: 600">
+              <span style="padding-left: 8px; display: flex; flex-direction: column; align-items: flex-start; font-size: 12.5px; line-height: 1.35"><span style="white-space: nowrap; color: #4F5450">100 × 12</span><span style="display: flex; flex-wrap: wrap; align-items: center; gap: 0 6px; white-space: nowrap"><span style="color: #7A7E78; font-weight: 400">−2회</span></span></span>
+            </div><div role="row" style="display: grid; grid-template-columns: 22px 76px 60px minmax(0, 1fr); gap: 8px; align-items: center; min-height: 40px">
+              <span style="text-align: center; font-size: 14px; color: #3F4441">2</span>
+              <input type="text" inputmode="decimal" aria-label="2세트 무게" value="105" style="width: 100%; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 4px; border-radius: 6px; text-align: center; font: inherit; font-size: 15px; border: 1px solid #E7E9E6; background: #FAFBF9; color: #1C1F1D; font-weight: 600">
+              <input type="text" inputmode="numeric" aria-label="2세트 횟수" value="8" style="width: 100%; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 4px; border-radius: 6px; text-align: center; font: inherit; font-size: 15px; border: 1px solid #E7E9E6; background: #FAFBF9; color: #1C1F1D; font-weight: 600">
+              <span style="padding-left: 8px; display: flex; flex-direction: column; align-items: flex-start; font-size: 12.5px; line-height: 1.35"><span style="white-space: nowrap; color: #4F5450">102.5 × 12</span><span style="display: flex; flex-wrap: wrap; align-items: center; gap: 0 6px; white-space: nowrap"><span style="padding: 0 4px; border: 1px solid #1F3D30; border-radius: 4px; background: #E6EEE8; color: #1F3D30; font-size: 10.5px; font-weight: 700; line-height: 15px">최고</span><span style="color: #1F3D30; font-weight: 600">+2.5kg</span><span style="color: #7A7E78; font-weight: 400">−4회</span></span></span>
+            </div><div role="row" style="display: grid; grid-template-columns: 22px 76px 60px minmax(0, 1fr); gap: 8px; align-items: center; min-height: 40px">
+              <span style="text-align: center; font-size: 14px; color: #4F5450">3</span>
+              <input type="text" inputmode="decimal" aria-label="3세트 무게" value="" style="width: 100%; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 4px; border-radius: 6px; text-align: center; font: inherit; font-size: 15px; border: 1px dashed #BFC4BE; background: transparent">
+              <input type="text" inputmode="numeric" aria-label="3세트 횟수" value="" style="width: 100%; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 4px; border-radius: 6px; text-align: center; font: inherit; font-size: 15px; border: 1px dashed #BFC4BE; background: transparent">
+              <span style="padding-left: 8px; display: flex; flex-direction: column; align-items: flex-start; font-size: 12.5px; line-height: 1.35"><span style="white-space: nowrap; color: #4F5450">100 × 10</span></span>
+            </div></div>
+          <div style="margin-top: auto; display: flex; align-items: center; justify-content: space-between">
+            <button type="button" style="flex: none; min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border: 1px solid #BFC4BE; border-radius: 6px; background: transparent; color: #1F3D30; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>세트 추가</button>
+            <button type="button" style="min-height: 40px; padding: 0 8px; border: 0; background: transparent; color: #4F5450; font: inherit; font-size: 13px">+ RIR</button>
+          </div>
+        </article><article style="min-width: 0; display: flex; flex-direction: column; gap: 14px; padding: 16px 16px 14px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px">
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <h3 style="margin: 0; font-size: 17px; line-height: 1.35; font-weight: 700; color: #1F3D30">테스트</h3>
+            <span style="font-size: 13px; color: #4F5450">어깨 · 목표 8~12회</span>
+          </div>
+          <div style="margin-top: -4px; display: flex; flex-direction: column; gap: 2px; font-size: 13px"><span style="color: #4F5450">아직 기록이 없어요</span></div>
+          <div role="table" style="display: flex; flex-direction: column; gap: 6px"><div role="row" style="display: grid; grid-template-columns: 22px 76px 60px minmax(0, 1fr); gap: 8px; font-size: 12px; color: #4F5450">
+              <span></span><span style="text-align: center">무게(kg)</span><span style="text-align: center">횟수</span><span style="padding-left: 8px"></span>
+            </div><div role="row" style="display: grid; grid-template-columns: 22px 76px 60px minmax(0, 1fr); gap: 8px; align-items: center; min-height: 40px">
+              <span style="text-align: center; font-size: 14px; color: #4F5450">1</span>
+              <input type="text" inputmode="decimal" aria-label="1세트 무게" value="" style="width: 100%; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 4px; border-radius: 6px; text-align: center; font: inherit; font-size: 15px; border: 1px dashed #BFC4BE; background: transparent">
+              <input type="text" inputmode="numeric" aria-label="1세트 횟수" value="" style="width: 100%; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 4px; border-radius: 6px; text-align: center; font: inherit; font-size: 15px; border: 1px dashed #BFC4BE; background: transparent">
+              <span style="padding-left: 8px; display: flex; flex-direction: column; align-items: flex-start; font-size: 12.5px; line-height: 1.35"><span style="white-space: nowrap; color: #4F5450"></span></span>
+            </div><div role="row" style="display: grid; grid-template-columns: 22px 76px 60px minmax(0, 1fr); gap: 8px; align-items: center; min-height: 40px">
+              <span style="text-align: center; font-size: 14px; color: #4F5450">2</span>
+              <input type="text" inputmode="decimal" aria-label="2세트 무게" value="" style="width: 100%; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 4px; border-radius: 6px; text-align: center; font: inherit; font-size: 15px; border: 1px dashed #BFC4BE; background: transparent">
+              <input type="text" inputmode="numeric" aria-label="2세트 횟수" value="" style="width: 100%; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 4px; border-radius: 6px; text-align: center; font: inherit; font-size: 15px; border: 1px dashed #BFC4BE; background: transparent">
+              <span style="padding-left: 8px; display: flex; flex-direction: column; align-items: flex-start; font-size: 12.5px; line-height: 1.35"><span style="white-space: nowrap; color: #4F5450"></span></span>
+            </div><div role="row" style="display: grid; grid-template-columns: 22px 76px 60px minmax(0, 1fr); gap: 8px; align-items: center; min-height: 40px">
+              <span style="text-align: center; font-size: 14px; color: #4F5450">3</span>
+              <input type="text" inputmode="decimal" aria-label="3세트 무게" value="" style="width: 100%; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 4px; border-radius: 6px; text-align: center; font: inherit; font-size: 15px; border: 1px dashed #BFC4BE; background: transparent">
+              <input type="text" inputmode="numeric" aria-label="3세트 횟수" value="" style="width: 100%; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 4px; border-radius: 6px; text-align: center; font: inherit; font-size: 15px; border: 1px dashed #BFC4BE; background: transparent">
+              <span style="padding-left: 8px; display: flex; flex-direction: column; align-items: flex-start; font-size: 12.5px; line-height: 1.35"><span style="white-space: nowrap; color: #4F5450"></span></span>
+            </div></div>
+          <div style="margin-top: auto; display: flex; align-items: center; justify-content: space-between">
+            <button type="button" style="flex: none; min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border: 1px solid #BFC4BE; border-radius: 6px; background: transparent; color: #1F3D30; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>세트 추가</button>
+            <button type="button" style="min-height: 40px; padding: 0 8px; border: 0; background: transparent; color: #4F5450; font: inherit; font-size: 13px">+ RIR</button>
+          </div>
+        </article>
+        <div style="display: flex; flex-direction: column; justify-content: center; gap: 8px; padding: 0 8px; font-size: 13px; color: #3F4441">
+          <span style="font-size: 13px; font-weight: 600; color: #4F5450">바뀐 점</span>
+          <span>· 정보 줄 라벨 폭 56px 고정 → 두 줄 값 시작이 맞음</span>
+          <span>· '최근 기록' 열 왼쪽 정렬, 입력칸에 붙임</span>
+          <span>· 기록 없는 카드도 같은 칸 폭</span>
+          <span style="flex: none; align-self: flex-start; padding: 0 6px; border: 1px dashed #BFC4BE; border-radius: 4px; font-size: 11px; color: #4F5450">제안</span>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- 4. 분할 만들기 미리보기 -->
+  <section style="display: flex; flex-direction: column; gap: 14px">
+    <h2 style="margin: 0; display: flex; align-items: baseline; gap: 10px; font-size: 17px; font-weight: 700; color: #1F3D30"><span style="font-size: 13px; font-weight: 600; color: #4F5450">05b · 05c</span>분할 만들기 — 미리보기</h2>
+    <div style="display: flex; gap: 32px; align-items: flex-start">
+      <div style="flex: none; width: 560px; box-sizing: border-box; padding: 36px 40px; border-radius: 8px; background: rgba(28,31,29,0.32)">
+        <div role="dialog" aria-labelledby="pv" style="background: #FFFFFF; border-radius: 8px; padding: 24px 28px; display: flex; flex-direction: column; gap: 14px">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-right: -10px">
+            <h3 id="pv" style="margin: 0; font-size: 20px; font-weight: 700; color: #1C1F1D">상체 / 하체 만들기</h3>
+            <button type="button" aria-label="닫기" style="width: 40px; height: 40px; border: 0; border-radius: 6px; background: transparent; color: #3F4441; display: inline-flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+          </div>
+          <!-- 미리보기는 누를 수 없는 정보라 테두리 카드 X(05a의 고르는 카드와 모양이 같아 눌러질 것 같음) → divider로 나눈 목록. 번호 = 돌아가는 순서 -->
+          <ol style="margin: 0; padding: 0; list-style: none; border-top: 1px solid #E7E9E6; border-bottom: 1px solid #E7E9E6">
+            <li style="border-bottom: 1px solid #E7E9E6; display: grid; grid-template-columns: 24px 1fr; gap: 4px 8px; padding: 12px 2px"><span style="font-size: 15px; font-weight: 700; color: #4F5450">1</span><span style="font-size: 15px; font-weight: 700; color: #1C1F1D">상체</span><span></span><span style="font-size: 13px; color: #3F4441">랫풀다운 · 테스트</span></li>
+            <li style="display: grid; grid-template-columns: 24px 1fr; gap: 4px 8px; padding: 12px 2px"><span style="font-size: 15px; font-weight: 700; color: #4F5450">2</span><span style="font-size: 15px; font-weight: 700; color: #1C1F1D">하체</span><span></span><span style="font-size: 13px; color: #3F4441">스쿼트</span></li>
+          </ol>
+          <!-- 안 담기는 종목: 무엇이 + 그다음 어떻게 되는지. warn 점 + 글자. "만든 뒤에도 바꿀 수 있어요"는 이 줄에 합침 -->
+          <div style="display: flex; flex-direction: column; gap: 2px; font-size: 13px">
+            <span style="display: flex; align-items: center; gap: 6px; color: #9A6700"><span style="width: 6px; height: 6px; border-radius: 50%; background: #9A6700"></span>테스트2는 어느 분할에도 안 담겨요.</span>
+            <span style="padding-left: 12px; color: #4F5450">'전체' 탭에서 기록할 수 있고, 분할 관리에서 언제든 넣을 수 있어요.</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px">
+            <button type="button" style="min-height: 40px; display: inline-flex; align-items: center; gap: 4px; padding: 0 6px 0 2px; border: 0; background: transparent; color: #1F3D30; font: inherit; font-size: 14px">‹ 다른 예시</button>
+            <div style="display: flex; gap: 8px">
+              <button type="button" style="min-height: 44px; padding: 0 18px; border: 1px solid #BFC4BE; border-radius: 6px; background: #FFFFFF; color: #1C1F1D; font: inherit; font-size: 15px; font-weight: 500">취소</button>
+              <button type="button" style="min-height: 44px; padding: 0 20px; border: 1px solid #1F3D30; border-radius: 6px; background: #1F3D30; color: #FFFFFF; font: inherit; font-size: 15px; font-weight: 600">만들기</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 10px; font-size: 14px; color: #3F4441">
+        <span style="font-size: 13px; font-weight: 600; color: #4F5450">05a 예시 카드 — 설명 줄을 "내 종목이 어떻게 나뉘는지"로</span>
+        <!-- 제안: 지금 설명("종목 부위로 나눠 담아요")은 세 예시가 다 하는 일이라 고르는 데 도움이 안 됨 → 실제 개수. 다른 후보: 설명 줄 없이 제목만 -->
+        <div style="display: flex; flex-direction: column; gap: 8px; max-width: 420px">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px"><span style="flex: 1 1 auto; display: flex; flex-direction: column"><strong style="font-size: 15px; color: #1C1F1D">상체 / 하체</strong><span style="font-size: 13px; color: #4F5450">상체 2개 · 하체 1개</span></span><span style="color: #4F5450">›</span></div>
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px"><span style="flex: 1 1 auto; display: flex; flex-direction: column"><strong style="font-size: 15px; color: #1C1F1D">밀기 / 당기기 / 하체</strong><span style="font-size: 13px; color: #4F5450">밀기 1개 · 당기기 1개 · 하체 1개</span></span><span style="color: #4F5450">›</span></div>
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px"><span style="flex: 1 1 auto; display: flex; flex-direction: column"><strong style="font-size: 15px; color: #1C1F1D">전신</strong><span style="font-size: 13px; color: #4F5450">종목 4개 전부</span></span><span style="color: #4F5450">›</span></div>
+          <span style="flex: none; align-self: flex-start; padding: 0 6px; border: 1px dashed #BFC4BE; border-radius: 4px; font-size: 11px; color: #4F5450">제안</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+</body>
+</html>

@@ -2,23 +2,18 @@ import { Skeleton } from '../../../components/Skeleton';
 
 export default function Loading() {
   return (
-    <div className="flex flex-col gap-4 p-6">
-      <header className="flex flex-col gap-3">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-xl font-semibold">복습</h1>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            &lsquo;복습필요&rsquo;로 표시한 질문을 다시 학습해보세요.
-          </p>
+    <div className="min-h-screen bg-paper font-plex text-[15px] leading-normal text-ink">
+      <div className="mx-auto flex max-w-220 flex-col gap-5 px-4 pt-6 pb-16 md:px-10 md:pt-9">
+        <header className="flex flex-col gap-1">
+          <h1 className="text-[26px] leading-tight font-bold tracking-[-0.01em]">복습</h1>
+          <p className="text-[15px] text-ink-soft">다시 읽고 이해했으면 이해완료로 바꿔요.</p>
+        </header>
+        <div className="flex flex-wrap items-center gap-4">
+          <Skeleton className="h-10 w-48 rounded-md" />
+          <Skeleton className="h-9 w-56 rounded-[18px]" />
         </div>
-        <Skeleton className="h-8 w-40 rounded-full" />
-        <div className="flex flex-wrap gap-1.5">
-          <Skeleton className="h-7 w-12 rounded-full" />
-          <Skeleton className="h-7 w-16 rounded-full" />
-          <Skeleton className="h-7 w-20 rounded-full" />
-          <Skeleton className="h-7 w-14 rounded-full" />
-        </div>
-      </header>
-      <Skeleton className="h-96" />
+        <Skeleton className="h-64 w-full max-w-200" />
+      </div>
     </div>
   );
 }

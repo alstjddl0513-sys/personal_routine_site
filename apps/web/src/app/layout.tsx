@@ -1,5 +1,10 @@
 import type { Metadata, Viewport } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import {
+  Geist,
+  Geist_Mono,
+  IBM_Plex_Sans_KR,
+  Noto_Serif_KR,
+} from 'next/font/google';
 import { BottomNav } from '../components/BottomNav';
 import { ChallengeCelebrator } from '../components/ChallengeCelebrator';
 import { DeadlineNotifier } from '../components/DeadlineNotifier';
@@ -21,6 +26,22 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
+});
+
+// Rally 브랜드 폰트 (사이드바 + /today). 변수만 <html>에 등록되고 실제 파일은
+// font-plex / font-serif-kr 클래스를 쓰는 곳에서만 내려받음.
+// 한글 서브셋이 커서 preload 끔 — unicode-range로 필요한 조각만 지연 로드.
+const plexKr = IBM_Plex_Sans_KR({
+  variable: '--font-plex-kr',
+  weight: ['400', '500', '600', '700'],
+  preload: false,
+});
+
+// /today 인사말 한 줄 전용 세리프.
+const notoSerifKr = Noto_Serif_KR({
+  variable: '--font-noto-serif-kr',
+  weight: '600',
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -53,6 +74,11 @@ const THEME_INIT_SCRIPT = `
     var t = window.localStorage.getItem('rally.theme');
     if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     if (t === 'dark') document.documentElement.classList.add('dark');
+    // 채용 표 열 보기 (components/jobs/useJobsColumns.ts) — 어느 페이지로 처음
+    // 들어와도 /jobs 표가 저장값대로 바로 그려지게.
+    if (window.localStorage.getItem('rally.jobs.columns') === 'compact') {
+      document.documentElement.dataset.jobsColumns = 'compact';
+    }
   } catch (e) {}
 })();
 `;
@@ -86,7 +112,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html
       lang="ko"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${plexKr.variable} ${notoSerifKr.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>

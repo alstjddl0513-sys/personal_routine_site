@@ -31,13 +31,15 @@ export default async function CalendarPage({
     dateParam && ISO_DATE_RE.test(dateParam) ? dateParam : null;
 
   return (
-    <div className="flex flex-col gap-4 p-4 sm:p-6">
-      <Suspense fallback={<CalendarSkeleton />}>
-        <CalendarContent
-          month={month}
-          initialSelectedIso={initialSelectedIso}
-        />
-      </Suspense>
+    <div className="min-h-screen bg-paper font-plex text-[15px] leading-normal text-ink tabular-nums">
+      <div className="mx-auto flex max-w-310 flex-col gap-5 px-4 pt-6 pb-16 md:px-10 md:pt-9">
+        <Suspense fallback={<CalendarSkeleton />}>
+          <CalendarContent
+            month={month}
+            initialSelectedIso={initialSelectedIso}
+          />
+        </Suspense>
+      </div>
     </div>
   );
 }
@@ -62,6 +64,8 @@ async function CalendarContent({
   const todayIso = toISODate(todayInSeoul());
 
   return (
+    // 이미 /calendar에 있을 때 ?date=가 바뀌는 이동(알림 클릭 등)은
+    // CalendarView가 useSearchParams로 직접 따라감.
     <CalendarView
       month={month}
       todayIso={todayIso}
@@ -75,10 +79,10 @@ function CalendarSkeleton() {
   return (
     <>
       <header className="flex items-center justify-between">
-        <Skeleton className="h-7 w-24" />
-        <Skeleton className="h-7 w-40" />
+        <Skeleton className="h-8 w-24" />
+        <Skeleton className="h-10 w-72" />
       </header>
-      <Skeleton className="h-[32rem]" />
+      <Skeleton className="h-170" />
     </>
   );
 }

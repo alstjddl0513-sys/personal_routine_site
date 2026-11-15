@@ -179,12 +179,12 @@ export function formatWorkoutSkipMessage(
 ): NotificationCopy {
   if (daysSince === null) {
     return {
-      title: '운동 리마인더',
+      title: '오늘의 운동',
       body: '한동안 기록이 없어요. 가볍게 다시 시작해봐요.',
     };
   }
   return {
-    title: '운동 리마인더',
+    title: '오늘의 운동',
     body: `${daysSince}일째 기록이 없어요. 오늘 짧게라도 어때요?`,
   };
 }

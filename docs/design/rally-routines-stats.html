@@ -1,0 +1,969 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rally 루틴 통계</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#F6F7F5}
+</style>
+</head>
+<body>
+
+<div style="min-height: 100vh; box-sizing: border-box; display: flex; flex-wrap: wrap; background: #F6F7F5; color: #1C1F1D; font-family: 'IBM Plex Sans KR', system-ui, sans-serif; font-size: 15px; line-height: 1.55; word-break: keep-all; font-variant-numeric: tabular-nums">
+
+  <!-- 사이드바 (공통) — 루틴 > 통계 활성 -->
+  <aside style="flex: 1 1 216px; max-width: 100%; box-sizing: border-box; padding: 28px 12px 16px; display: flex; flex-direction: column; gap: 28px; background: #1F3D30; border-right: 1px solid #1F3D30">
+    <a href="#" style="display: flex; align-items: center; gap: 9px; padding: 0 12px; text-decoration: none; color: #F4F2EC">
+      <svg width="20" height="22" viewBox="0 0 20 22" fill="none" aria-hidden="true"><path d="M3.5 21V1.8" stroke="#F4F2EC" stroke-width="2" stroke-linecap="round"></path><path d="M4.5 2.2L18 7.4L4.5 12.4Z" fill="#E9B949"></path></svg>
+      <span style="font-size: 20px; font-weight: 700; letter-spacing: -0.01em">Rally</span>
+    </a>
+    <nav aria-label="주 메뉴" style="flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: none; display: flex; flex-direction: column; gap: 2px">
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border-radius: 6px; color: #C3CEC6; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.5L12 5l8 6.5V20h-5v-5.5H9V20H4z"></path></svg>
+        오늘
+      </a>
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border-radius: 6px; color: #C3CEC6; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="1.5"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg>
+        캘린더
+      </a>
+      <button type="button" aria-expanded="false" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: #C3CEC6; font: inherit; text-align: left; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="1.5"></rect><path d="M9 7V4.5h6V7"></path></svg>
+        <span style="flex: 1 1 auto">채용</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </button>
+      <div style="display: flex; flex-direction: column">
+        <button type="button" aria-expanded="true" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: #FFFFFF; font: inherit; font-weight: 600; text-align: left; cursor: pointer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h3M4 12h3M4 18h3M10 6h10M10 12h10M10 18h6"></path></svg>
+          <span style="flex: 1 1 auto">루틴</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+        </button>
+        <a href="#" style="display: flex; align-items: center; min-height: 32px; padding: 0 12px 0 42px; border-radius: 6px; color: #A9B8AE; text-decoration: none; font-size: 14px">트래커</a>
+        <a href="#" aria-current="page" style="display: flex; align-items: center; min-height: 32px; padding: 0 12px 0 42px; border-radius: 6px; background: #2C4F40; color: #FFFFFF; text-decoration: none; font-size: 14px; font-weight: 600">통계</a>
+      </div>
+      <button type="button" aria-expanded="false" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: #C3CEC6; font: inherit; text-align: left; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5v11M17.5 6.5v11M3 9.5v5M21 9.5v5M6.5 12h11"></path></svg>
+        <span style="flex: 1 1 auto">운동</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </button>
+      <button type="button" aria-expanded="false" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: #C3CEC6; font: inherit; text-align: left; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h6a2 2 0 0 1 2 2v13a1.5 1.5 0 0 0-1.5-1.5H4zM20 5h-6a2 2 0 0 0-2 2v13a1.5 1.5 0 0 1 1.5-1.5H20z"></path></svg>
+        <span style="flex: 1 1 auto">학습</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </button>
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border-radius: 6px; color: #C3CEC6; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5h14M5 10h14M5 15h9M5 20h6"></path></svg>
+        블로그
+      </a>
+    </nav>
+    <div style="display: flex; align-items: center; gap: 2px; padding-top: 12px; border-top: 1px solid #36594A">
+      <a href="#" style="flex: 1 1 auto; display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border-radius: 6px; color: #C3CEC6; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"></path></svg>
+        설정
+      </a>
+      <button type="button" aria-label="다크 모드 전환" style="width: 40px; height: 40px; flex: none; border: 0; border-radius: 6px; background: transparent; display: inline-flex; align-items: center; justify-content: center; color: #C3CEC6; cursor: pointer">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 13A8.5 8.5 0 1 1 11 3.5a6.5 6.5 0 0 0 9.5 9.5z"></path></svg>
+      </button>
+      <button type="button" aria-label="알림" style="width: 40px; height: 40px; flex: none; border: 0; border-radius: 6px; background: transparent; display: inline-flex; align-items: center; justify-content: center; color: #C3CEC6; cursor: pointer">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 8 2.5 8h-17S6 15 6 9M10.3 20.5a1.9 1.9 0 0 0 3.4 0"></path></svg>
+      </button>
+    </div>
+  </aside>
+
+  <main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 36px 40px 64px">
+    <div style="max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px">
+
+      <!-- 헤더 + 스트릭 한 줄 (채용 통계의 "담아둔 N개 회사 · …" 줄과 같은 자리) -->
+      <header style="display: flex; flex-direction: column; gap: 8px">
+        <h1 style="margin: 0; font-size: 26px; line-height: 1.3; font-weight: 700; letter-spacing: -0.01em">루틴 통계</h1>
+        <p style="margin: 0; display: flex; align-items: center; gap: 6px; font-size: 15px; color: #3F4441">
+          지금 <strong style="font-weight: 700; color: #1C1F1D">4일</strong> 연속 · 최고 12일
+          <span title="블록을 하나라도 체크한 날이 이어진 날수예요. 최고 기록은 최근 180일 안에서 세요." style="display: inline-flex; width: 24px; height: 24px; align-items: center; justify-content: center; color: #4F5450; cursor: help">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path></svg>
+          </span>
+        </p>
+      </header>
+
+      <!-- 요약 띠 (선) -->
+      <section aria-labelledby="sum-title" style="display: flex; flex-direction: column; gap: 6px; padding: 14px 0 22px; border-top: 1px solid #CDD1CC; border-bottom: 1px solid #CDD1CC">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px">
+          <h2 id="sum-title" style="margin: 0; font-size: 17px; font-weight: 700; color: #1F3D30">11월 1주차 <span style="font-weight: 500; font-size: 14px; color: #4F5450">11.02 – 11.08</span></h2>
+          <!-- 제안: [주 | 월] 전환을 요약 띠 오른쪽에 둠 — 이 전환은 요약 지표 3개에만 영향이라 바로 옆이 오해가 적음.
+               다른 후보: 채용 통계처럼 페이지 제목 오른쪽(대신 요일별·꾸준한·11월 루틴은 기간이 고정이라 "왜 안 바뀌지?" 할 수 있음) -->
+          <div style="display: flex; align-items: center; gap: 8px">
+            <span style="padding: 0 6px; border: 1px dashed #BFC4BE; border-radius: 4px; font-size: 11px; color: #4F5450">제안</span>
+            <div role="group" aria-label="기간" style="display: inline-flex; border: 1px solid #BFC4BE; border-radius: 6px; overflow: hidden">
+              <button type="button" aria-pressed="true" style="min-height: 40px; min-width: 56px; padding: 0 14px; border: 0; background: #E6EEE8; box-shadow: inset 0 0 0 2px #1F3D30; border-radius: 6px 0 0 6px; color: #1F3D30; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer">주</button>
+              <button type="button" aria-pressed="false" style="min-height: 40px; min-width: 56px; padding: 0 14px; border: 0; border-left: 1px solid #BFC4BE; background: #FFFFFF; color: #1F3D30; font: inherit; font-size: 14px; cursor: pointer">월</button>
+            </div>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr))">
+          
+            <div title="" style="display: flex; flex-direction: column; gap: 6px; padding: 0 28px; padding-left: 0">
+              <span style="font-size: 14px; font-weight: 600; color: #3F4441">체크</span>
+              <span style="display: flex; align-items: baseline; gap: 4px"><span style="font-size: 40px; line-height: 1.1; font-weight: 600; letter-spacing: -0.02em; color: #1C1F1D">16</span><span style="font-size: 16px; color: #3F4441">회</span></span>
+              
+            </div>
+          
+            <div title="블록을 전부 체크한 날만 세요" style="display: flex; flex-direction: column; gap: 6px; padding: 0 28px; border-left: 1px solid #CDD1CC">
+              <span style="font-size: 14px; font-weight: 600; color: #3F4441">완료한 날</span>
+              <span style="display: flex; align-items: baseline; gap: 4px"><span style="font-size: 40px; line-height: 1.1; font-weight: 600; letter-spacing: -0.02em; color: #1C1F1D">1</span><span style="font-size: 16px; color: #3F4441">/ 7일</span></span>
+              
+                <span style="height: 6px; max-width: 240px; background: #E3E6E2"><span style="display: block; height: 100%; width: 14.3%; background: #1F3D30"></span></span>
+              
+            </div>
+          
+            <div title="49칸 중 16칸 체크" style="display: flex; flex-direction: column; gap: 6px; padding: 0 28px; border-left: 1px solid #CDD1CC">
+              <span style="font-size: 14px; font-weight: 600; color: #3F4441">평균 달성률</span>
+              <span style="display: flex; align-items: baseline; gap: 4px"><span style="font-size: 40px; line-height: 1.1; font-weight: 600; letter-spacing: -0.02em; color: #1C1F1D">33</span><span style="font-size: 16px; color: #3F4441">%</span></span>
+              
+                <span style="height: 6px; max-width: 240px; background: #E3E6E2"><span style="display: block; height: 100%; width: 33%; background: #1F3D30"></span></span>
+              
+            </div>
+          
+        </div>
+      </section>
+
+      <!-- 주요 카드: 요일별 평균 · 요즘 꾸준한 루틴 -->
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 20px; align-items: start">
+        <section aria-labelledby="wd-title" style="padding: 22px 24px 20px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; flex-direction: column; gap: 14px">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px">
+            <h2 id="wd-title" style="margin: 0; font-size: 17px; font-weight: 700; color: #1F3D30">요일별 평균</h2>
+            <span title="최근 8주 동안 그 요일마다 체크한 칸 ÷ (블록 수 × 그 요일 수)" style="font-size: 13px; color: #4F5450">최근 8주</span>
+          </div>
+          <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px">
+            
+              <li style="display: grid; grid-template-columns: 24px minmax(0, 1fr) 44px; align-items: center; gap: 12px; font-size: 14px">
+                <span style="color: #3F4441; font-weight: 400">월</span>
+                <span style="height: 6px; background: #E3E6E2"><span style="display: block; height: 100%; width: 78%; background: #1F3D30"></span></span>
+                <span style="text-align: right; color: #3F4441; font-weight: 400">78%</span>
+              </li>
+            
+              <li style="display: grid; grid-template-columns: 24px minmax(0, 1fr) 44px; align-items: center; gap: 12px; font-size: 14px">
+                <span style="color: #3F4441; font-weight: 400">화</span>
+                <span style="height: 6px; background: #E3E6E2"><span style="display: block; height: 100%; width: 71%; background: #1F3D30"></span></span>
+                <span style="text-align: right; color: #3F4441; font-weight: 400">71%</span>
+              </li>
+            
+              <li style="display: grid; grid-template-columns: 24px minmax(0, 1fr) 44px; align-items: center; gap: 12px; font-size: 14px">
+                <span style="color: #3F4441; font-weight: 400">수</span>
+                <span style="height: 6px; background: #E3E6E2"><span style="display: block; height: 100%; width: 64%; background: #1F3D30"></span></span>
+                <span style="text-align: right; color: #3F4441; font-weight: 400">64%</span>
+              </li>
+            
+              <li style="display: grid; grid-template-columns: 24px minmax(0, 1fr) 44px; align-items: center; gap: 12px; font-size: 14px">
+                <span style="color: #3F4441; font-weight: 400">목</span>
+                <span style="height: 6px; background: #E3E6E2"><span style="display: block; height: 100%; width: 60%; background: #1F3D30"></span></span>
+                <span style="text-align: right; color: #3F4441; font-weight: 400">60%</span>
+              </li>
+            
+              <li style="display: grid; grid-template-columns: 24px minmax(0, 1fr) 44px; align-items: center; gap: 12px; font-size: 14px">
+                <span style="color: #3F4441; font-weight: 400">금</span>
+                <span style="height: 6px; background: #E3E6E2"><span style="display: block; height: 100%; width: 52%; background: #1F3D30"></span></span>
+                <span style="text-align: right; color: #3F4441; font-weight: 400">52%</span>
+              </li>
+            
+              <li style="display: grid; grid-template-columns: 24px minmax(0, 1fr) 44px; align-items: center; gap: 12px; font-size: 14px">
+                <span style="color: #1C1F1D; font-weight: 700">토</span>
+                <span style="height: 6px; background: #E3E6E2"><span style="display: block; height: 100%; width: 31%; background: #1F3D30"></span></span>
+                <span style="text-align: right; color: #1C1F1D; font-weight: 700">31%</span>
+              </li>
+            
+              <li style="display: grid; grid-template-columns: 24px minmax(0, 1fr) 44px; align-items: center; gap: 12px; font-size: 14px">
+                <span style="color: #4F5450; font-weight: 400">일</span>
+                <span style="height: 6px; background: #E3E6E2"><span style="display: block; height: 100%; width: 38%; background: #1F3D30"></span></span>
+                <span style="text-align: right; color: #3F4441; font-weight: 400">38%</span>
+              </li>
+            
+          </ul>
+        </section>
+
+        <section aria-labelledby="steady-title" style="padding: 22px 24px 12px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; flex-direction: column; gap: 6px">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px">
+            <h2 id="steady-title" style="margin: 0; font-size: 17px; font-weight: 700; color: #1F3D30">요즘 꾸준한 루틴</h2>
+            <span title="지난 4주(28일) 중 그 블록을 체크한 날" style="font-size: 13px; color: #4F5450">지난 4주 · 28일 중</span>
+          </div>
+          <ol style="margin: 0; padding: 0; list-style: none">
+            
+              <li style="display: grid; grid-template-columns: 20px 96px minmax(0, 1fr) 100px; align-items: center; gap: 12px; min-height: 42px; border-bottom: 1px solid #E7E9E6; font-size: 14px">
+                <span style="color: #4F5450">1</span>
+                <span style="font-weight: 500; color: #1C1F1D">기상</span>
+                <span style="height: 4px; background: #E3E6E2"><span style="display: block; height: 100%; width: 86%; background: #1F3D30"></span></span>
+                <span style="text-align: right; color: #3F4441"><strong style="font-weight: 600; color: #1C1F1D">24일</strong> · 86%</span>
+              </li>
+            
+              <li style="display: grid; grid-template-columns: 20px 96px minmax(0, 1fr) 100px; align-items: center; gap: 12px; min-height: 42px; border-bottom: 1px solid #E7E9E6; font-size: 14px">
+                <span style="color: #4F5450">2</span>
+                <span style="font-weight: 500; color: #1C1F1D">물 2L</span>
+                <span style="height: 4px; background: #E3E6E2"><span style="display: block; height: 100%; width: 79%; background: #1F3D30"></span></span>
+                <span style="text-align: right; color: #3F4441"><strong style="font-weight: 600; color: #1C1F1D">22일</strong> · 79%</span>
+              </li>
+            
+              <li style="display: grid; grid-template-columns: 20px 96px minmax(0, 1fr) 100px; align-items: center; gap: 12px; min-height: 42px; border-bottom: 1px solid #E7E9E6; font-size: 14px">
+                <span style="color: #4F5450">3</span>
+                <span style="font-weight: 500; color: #1C1F1D">코테 공부</span>
+                <span style="height: 4px; background: #E3E6E2"><span style="display: block; height: 100%; width: 68%; background: #1F3D30"></span></span>
+                <span style="text-align: right; color: #3F4441"><strong style="font-weight: 600; color: #1C1F1D">19일</strong> · 68%</span>
+              </li>
+            
+              <li style="display: grid; grid-template-columns: 20px 96px minmax(0, 1fr) 100px; align-items: center; gap: 12px; min-height: 42px; border-bottom: 1px solid #E7E9E6; font-size: 14px">
+                <span style="color: #4F5450">4</span>
+                <span style="font-weight: 500; color: #1C1F1D">아침 운동</span>
+                <span style="height: 4px; background: #E3E6E2"><span style="display: block; height: 100%; width: 54%; background: #1F3D30"></span></span>
+                <span style="text-align: right; color: #3F4441"><strong style="font-weight: 600; color: #1C1F1D">15일</strong> · 54%</span>
+              </li>
+            
+              <li style="display: grid; grid-template-columns: 20px 96px minmax(0, 1fr) 100px; align-items: center; gap: 12px; min-height: 42px; border-bottom: 1px solid #E7E9E6; font-size: 14px">
+                <span style="color: #4F5450">5</span>
+                <span style="font-weight: 500; color: #1C1F1D">CS 복습</span>
+                <span style="height: 4px; background: #E3E6E2"><span style="display: block; height: 100%; width: 39%; background: #1F3D30"></span></span>
+                <span style="text-align: right; color: #3F4441"><strong style="font-weight: 600; color: #1C1F1D">11일</strong> · 39%</span>
+              </li>
+            
+              <li style="display: grid; grid-template-columns: 20px 96px minmax(0, 1fr) 100px; align-items: center; gap: 12px; min-height: 42px; border-bottom: 1px solid #E7E9E6; font-size: 14px">
+                <span style="color: #4F5450">6</span>
+                <span style="font-weight: 500; color: #1C1F1D">자소서</span>
+                <span style="height: 4px; background: #E3E6E2"><span style="display: block; height: 100%; width: 32%; background: #1F3D30"></span></span>
+                <span style="text-align: right; color: #3F4441"><strong style="font-weight: 600; color: #1C1F1D">9일</strong> · 32%</span>
+              </li>
+            
+              <li style="display: grid; grid-template-columns: 20px 96px minmax(0, 1fr) 100px; align-items: center; gap: 12px; min-height: 42px; border-bottom: 1px solid transparent; font-size: 14px">
+                <span style="color: #4F5450">7</span>
+                <span style="font-weight: 500; color: #1C1F1D">블로그</span>
+                <span style="height: 4px; background: #E3E6E2"><span style="display: block; height: 100%; width: 14%; background: #1F3D30"></span></span>
+                <span style="text-align: right; color: #3F4441"><strong style="font-weight: 600; color: #1C1F1D">4일</strong> · 14%</span>
+              </li>
+            
+          </ol>
+        </section>
+      </div>
+
+      <!-- 이번 주 현황: 트래커 표와 겹쳐서 이 페이지에서는 뺌(제안).
+           다른 후보 A: 요약 띠 아래 한 줄 "이번 주 체크는 트래커에서 보기 ›" 링크 / B: 요일 7칸 × 체크 수 숫자만 있는 얇은 줄로 축소 -->
+
+      <!-- 11월 루틴 -->
+      <section aria-labelledby="month-title" style="display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px">
+          <h2 id="month-title" style="margin: 0; font-size: 17px; font-weight: 700; color: #1F3D30">11월 루틴</h2>
+          <!-- 범례: 완료와 안 한 날이 색으로만 구분돼서 넣음(skill: 색만으로 구분 안 될 때만) -->
+          <span style="display: flex; align-items: center; gap: 14px; font-size: 13px; color: #4F5450">
+            <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; border-radius: 3px; background: #1F3D30"></span>체크한 날</span>
+            <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; border-radius: 3px; background: #E3E6E2"></span>안 한 날</span>
+            <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; border-radius: 3px; box-sizing: border-box; box-shadow: inset 0 0 0 1.5px #1F3D30"></span>오늘</span>
+          </span>
+        </div>
+        <!-- 카드 한 장 = 왼쪽 숫자(이번 달 체크한 날 · 그 블록 연속) + 오른쪽 미니 달력(월~일 6주).
+             미니 달력 칸: 체크한 날 primary 채움 / 안 한 날 track 채움 / 아직 안 온 날 divider 테두리만 / 오늘 button색 테두리(체크했으면 채움 + 바깥 링).
+             연속 0일 문구 "오늘 체크하면 다시 시작해요"는 제안 — 다른 후보: "연속 —"
+             오늘 칸 테두리: 라이트는 button색(#1F3D30). 다크의 button색 #2F5A47은 어두운 칸 위에서 거의 안 보여서 primary(#8FB5A0)를 씀 — 새 색 아님, 다크에서만 토큰을 바꿔 씀 -->
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px">
+          
+            <article style="padding: 16px 18px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; gap: 16px; align-items: stretch">
+              <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+                <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1C1F1D">기상</h3>
+                <span style="display: flex; align-items: baseline; gap: 3px; margin-top: 6px"><span style="font-size: 26px; line-height: 1.1; font-weight: 600; color: #1C1F1D">4</span><span style="font-size: 13px; color: #3F4441">일 체크</span></span>
+                <span style="margin-top: auto; font-size: 13px; line-height: 1.4; color: #3F4441">지금 4일째</span>
+              </div>
+              <div role="img" aria-label="기상, 11월에 4일 체크" style="flex: none; display: flex; flex-direction: column; gap: 4px">
+                <div style="display: grid; grid-template-columns: repeat(7, 16px); gap: 4px; font-size: 10px; line-height: 1; color: #4F5450">
+                  <span style="text-align: center">월</span><span style="text-align: center">화</span><span style="text-align: center">수</span><span style="text-align: center">목</span><span style="text-align: center">금</span><span style="text-align: center">토</span><span style="text-align: center">일</span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(7, 16px); gap: 4px">
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #1F3D30"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #1F3D30"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #1F3D30"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #1F3D30; box-shadow: 0 0 0 1.5px #FFFFFF, 0 0 0 3px #1F3D30"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                </div>
+              </div>
+            </article>
+          
+            <article style="padding: 16px 18px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; gap: 16px; align-items: stretch">
+              <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+                <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1C1F1D">아침 운동</h3>
+                <span style="display: flex; align-items: baseline; gap: 3px; margin-top: 6px"><span style="font-size: 26px; line-height: 1.1; font-weight: 600; color: #1C1F1D">3</span><span style="font-size: 13px; color: #3F4441">일 체크</span></span>
+                <span style="margin-top: auto; font-size: 13px; line-height: 1.4; color: #3F4441">지금 3일째</span>
+              </div>
+              <div role="img" aria-label="아침 운동, 11월에 3일 체크" style="flex: none; display: flex; flex-direction: column; gap: 4px">
+                <div style="display: grid; grid-template-columns: repeat(7, 16px); gap: 4px; font-size: 10px; line-height: 1; color: #4F5450">
+                  <span style="text-align: center">월</span><span style="text-align: center">화</span><span style="text-align: center">수</span><span style="text-align: center">목</span><span style="text-align: center">금</span><span style="text-align: center">토</span><span style="text-align: center">일</span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(7, 16px); gap: 4px">
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #E3E6E2"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #1F3D30"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #1F3D30"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #1F3D30; box-shadow: 0 0 0 1.5px #FFFFFF, 0 0 0 3px #1F3D30"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                </div>
+              </div>
+            </article>
+          
+            <article style="padding: 16px 18px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; gap: 16px; align-items: stretch">
+              <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+                <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1C1F1D">코테 공부</h3>
+                <span style="display: flex; align-items: baseline; gap: 3px; margin-top: 6px"><span style="font-size: 26px; line-height: 1.1; font-weight: 600; color: #1C1F1D">3</span><span style="font-size: 13px; color: #3F4441">일 체크</span></span>
+                <span style="margin-top: auto; font-size: 13px; line-height: 1.4; color: #3F4441">지금 3일째</span>
+              </div>
+              <div role="img" aria-label="코테 공부, 11월에 3일 체크" style="flex: none; display: flex; flex-direction: column; gap: 4px">
+                <div style="display: grid; grid-template-columns: repeat(7, 16px); gap: 4px; font-size: 10px; line-height: 1; color: #4F5450">
+                  <span style="text-align: center">월</span><span style="text-align: center">화</span><span style="text-align: center">수</span><span style="text-align: center">목</span><span style="text-align: center">금</span><span style="text-align: center">토</span><span style="text-align: center">일</span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(7, 16px); gap: 4px">
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #1F3D30"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #1F3D30"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #1F3D30"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1.5px #1F3D30"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                </div>
+              </div>
+            </article>
+          
+            <article style="padding: 16px 18px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; gap: 16px; align-items: stretch">
+              <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+                <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1C1F1D">자소서</h3>
+                <span style="display: flex; align-items: baseline; gap: 3px; margin-top: 6px"><span style="font-size: 26px; line-height: 1.1; font-weight: 600; color: #1C1F1D">2</span><span style="font-size: 13px; color: #3F4441">일 체크</span></span>
+                <span style="margin-top: auto; font-size: 13px; line-height: 1.4; color: #3F4441">지금 2일째</span>
+              </div>
+              <div role="img" aria-label="자소서, 11월에 2일 체크" style="flex: none; display: flex; flex-direction: column; gap: 4px">
+                <div style="display: grid; grid-template-columns: repeat(7, 16px); gap: 4px; font-size: 10px; line-height: 1; color: #4F5450">
+                  <span style="text-align: center">월</span><span style="text-align: center">화</span><span style="text-align: center">수</span><span style="text-align: center">목</span><span style="text-align: center">금</span><span style="text-align: center">토</span><span style="text-align: center">일</span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(7, 16px); gap: 4px">
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #E3E6E2"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #1F3D30"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #1F3D30"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1.5px #1F3D30"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                </div>
+              </div>
+            </article>
+          
+            <article style="padding: 16px 18px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; gap: 16px; align-items: stretch">
+              <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+                <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1C1F1D">CS 복습</h3>
+                <span style="display: flex; align-items: baseline; gap: 3px; margin-top: 6px"><span style="font-size: 26px; line-height: 1.1; font-weight: 600; color: #1C1F1D">1</span><span style="font-size: 13px; color: #3F4441">일 체크</span></span>
+                <span style="margin-top: auto; font-size: 13px; line-height: 1.4; color: #4F5450">오늘 체크하면 다시 시작해요</span>
+              </div>
+              <div role="img" aria-label="CS 복습, 11월에 1일 체크" style="flex: none; display: flex; flex-direction: column; gap: 4px">
+                <div style="display: grid; grid-template-columns: repeat(7, 16px); gap: 4px; font-size: 10px; line-height: 1; color: #4F5450">
+                  <span style="text-align: center">월</span><span style="text-align: center">화</span><span style="text-align: center">수</span><span style="text-align: center">목</span><span style="text-align: center">금</span><span style="text-align: center">토</span><span style="text-align: center">일</span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(7, 16px); gap: 4px">
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #E3E6E2"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #1F3D30"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #E3E6E2"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1.5px #1F3D30"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                </div>
+              </div>
+            </article>
+          
+            <article style="padding: 16px 18px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; gap: 16px; align-items: stretch">
+              <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+                <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1C1F1D">블로그</h3>
+                <span style="display: flex; align-items: baseline; gap: 3px; margin-top: 6px"><span style="font-size: 26px; line-height: 1.1; font-weight: 600; color: #1C1F1D">2</span><span style="font-size: 13px; color: #3F4441">일 체크</span></span>
+                <span style="margin-top: auto; font-size: 13px; line-height: 1.4; color: #3F4441">지금 2일째</span>
+              </div>
+              <div role="img" aria-label="블로그, 11월에 2일 체크" style="flex: none; display: flex; flex-direction: column; gap: 4px">
+                <div style="display: grid; grid-template-columns: repeat(7, 16px); gap: 4px; font-size: 10px; line-height: 1; color: #4F5450">
+                  <span style="text-align: center">월</span><span style="text-align: center">화</span><span style="text-align: center">수</span><span style="text-align: center">목</span><span style="text-align: center">금</span><span style="text-align: center">토</span><span style="text-align: center">일</span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(7, 16px); gap: 4px">
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #E3E6E2"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #1F3D30"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #1F3D30"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1.5px #1F3D30"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                </div>
+              </div>
+            </article>
+          
+            <article style="padding: 16px 18px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; gap: 16px; align-items: stretch">
+              <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+                <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1C1F1D">물 2L</h3>
+                <span style="display: flex; align-items: baseline; gap: 3px; margin-top: 6px"><span style="font-size: 26px; line-height: 1.1; font-weight: 600; color: #1C1F1D">4</span><span style="font-size: 13px; color: #3F4441">일 체크</span></span>
+                <span style="margin-top: auto; font-size: 13px; line-height: 1.4; color: #3F4441">지금 4일째</span>
+              </div>
+              <div role="img" aria-label="물 2L, 11월에 4일 체크" style="flex: none; display: flex; flex-direction: column; gap: 4px">
+                <div style="display: grid; grid-template-columns: repeat(7, 16px); gap: 4px; font-size: 10px; line-height: 1; color: #4F5450">
+                  <span style="text-align: center">월</span><span style="text-align: center">화</span><span style="text-align: center">수</span><span style="text-align: center">목</span><span style="text-align: center">금</span><span style="text-align: center">토</span><span style="text-align: center">일</span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(7, 16px); gap: 4px">
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #1F3D30"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #1F3D30"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #1F3D30"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #1F3D30; box-shadow: 0 0 0 1.5px #FFFFFF, 0 0 0 3px #1F3D30"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent; box-shadow: inset 0 0 0 1px #E7E9E6"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                    <span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: transparent"></span>
+                  
+                </div>
+              </div>
+            </article>
+          
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+</body>
+</html>

@@ -6,10 +6,10 @@ import { usePathname } from 'next/navigation';
 import {
   BookOpen,
   Briefcase,
-  Calendar,
   CalendarCheck2,
   Dumbbell,
   MoreHorizontal,
+  Sun,
   type LucideIcon,
 } from 'lucide-react';
 import { isMoreMenuPath, MoreMenu } from './MoreMenu';
@@ -22,7 +22,8 @@ interface Tab {
 }
 
 const TABS: Tab[] = [
-  { href: '/calendar', label: '캘린더', icon: Calendar, matchPrefixes: ['/calendar'] },
+  // 캘린더는 '오늘'의 다가오는 일정 카드가 대신해서 더보기로 이동.
+  { href: '/today', label: '오늘', icon: Sun, matchPrefixes: ['/today'] },
   { href: '/jobs', label: '채용', icon: Briefcase, matchPrefixes: ['/jobs'] },
   { href: '/routines', label: '루틴', icon: CalendarCheck2, matchPrefixes: ['/routines'] },
   { href: '/workouts', label: '운동', icon: Dumbbell, matchPrefixes: ['/workouts'] },
@@ -33,7 +34,7 @@ function isActive(pathname: string, prefixes: string[]) {
   return prefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
-// 모바일 하단 탭 — 5 메인 + '⋯ 더보기'(블로그/설정). 7탭은 좁은 폭에서 터치
+// 모바일 하단 탭 — 5 메인 + '⋯ 더보기'(캘린더/블로그/설정). 7탭은 좁은 폭에서 터치
 // 타겟이 44pt 하한에 근접해 iOS HIG 가이드라인에 어긋났음. iOS Mail /
 // Instagram More 패턴 미러.
 export function BottomNav() {
@@ -57,7 +58,7 @@ export function BottomNav() {
                 <Link
                   href={tab.href}
                   aria-current={active ? 'page' : undefined}
-                  className={`flex min-h-[3.25rem] flex-col items-center justify-center gap-0.5 py-1.5 text-[10px] leading-tight transition-colors ${
+                  className={`flex min-h-13 flex-col items-center justify-center gap-0.5 py-1.5 text-[10px] leading-tight transition-colors ${
                     active
                       ? 'text-zinc-900 dark:text-zinc-50'
                       : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200'
@@ -80,7 +81,7 @@ export function BottomNav() {
               aria-expanded={moreOpen}
               aria-label="더보기 메뉴 열기"
               aria-current={moreActive ? 'page' : undefined}
-              className={`flex min-h-[3.25rem] w-full flex-col items-center justify-center gap-0.5 py-1.5 text-[10px] leading-tight transition-colors ${
+              className={`flex min-h-13 w-full flex-col items-center justify-center gap-0.5 py-1.5 text-[10px] leading-tight transition-colors ${
                 moreActive
                   ? 'text-zinc-900 dark:text-zinc-50'
                   : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200'

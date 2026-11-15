@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>운동 기록 상태 모음</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#F6F7F5}
+</style>
+</head>
+<body>
+
+<div style="width: 1280px; box-sizing: border-box; padding: 48px; background: #F6F7F5; color: #1C1F1D; font-family: 'IBM Plex Sans KR', system-ui, sans-serif; font-size: 15px; line-height: 1.55; word-break: keep-all; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; gap: 48px">
+
+  <!-- 1. 세트 줄 상태 -->
+  <section style="display: flex; flex-direction: column; gap: 14px">
+    <h2 style="margin: 0; font-size: 17px; font-weight: 700; color: #1F3D30">세트 줄 상태</h2>
+    <!-- 구분은 입력칸 모양으로만: 적은 세트 = 연한 바탕(thead)+굵은 숫자 / 지금 입력 중 = 2px 숲색 테두리 + 세트 번호 굵게 / 빈 세트 = 점선.
+         행 배경은 안 씀(PR·hover와 겹치지 않게).
+         빠른 입력(동작만, 화면 표시 X): 무게 inputmode=decimal, 횟수 numeric → Enter/Tab = 무게 → 횟수 → (RIR) → 다음 세트 무게.
+         마지막 세트 횟수에서 Enter = 세트 추가 후 새 줄 무게로. blur 때 자동 저장. -->
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; align-items: start">
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span style="font-size: 13px; font-weight: 600; color: #4F5450">적은 세트 · 지금 입력 중 · 빈 세트</span>
+        <div style="width: 100%; box-sizing: border-box; padding: 16px 16px 14px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; flex-direction: column; gap: 8px"><div role="row" style="display: grid; grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1fr) 72px; gap: 8px; font-size: 12px; color: #4F5450"><span style="text-align: center">세트</span><span style="text-align: center">무게(kg)</span><span style="text-align: center">횟수</span><span style="text-align: right">지난번</span></div><div role="row" style="display: grid; grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1fr) 72px; gap: 8px; align-items: center; min-height: 40px">
+            <span style="text-align: center; font-size: 14px; color: #3F4441; font-weight: 500">1</span>
+            <input type="text" inputmode="decimal" aria-label="1세트 무게" value="62.5" style="width: 100%; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 4px; border-radius: 6px; text-align: center; font: inherit; font-size: 15px; border: 1px solid #E7E9E6; background: #FAFBF9; color: #1C1F1D; font-weight: 600">
+            <input type="text" inputmode="numeric" aria-label="1세트 횟수" value="10" style="width: 100%; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 4px; border-radius: 6px; text-align: center; font: inherit; font-size: 15px; border: 1px solid #E7E9E6; background: #FAFBF9; color: #1C1F1D; font-weight: 600">
+            <span style="display: flex; flex-direction: column; align-items: flex-end; font-size: 12px; line-height: 1.35"><span style="color: #4F5450">60 × 10</span><span style="display: inline-flex; align-items: center; gap: 4px"><span style="color: #1F3D30; font-weight: 600">+2.5kg</span></span></span>
+          </div><div role="row" style="display: grid; grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1fr) 72px; gap: 8px; align-items: center; min-height: 40px">
+            <span style="text-align: center; font-size: 14px; color: #1F3D30; font-weight: 700">2</span>
+            <input type="text" inputmode="decimal" aria-label="2세트 무게" value="" style="width: 100%; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 4px; border-radius: 6px; text-align: center; font: inherit; font-size: 15px; border: 1px solid #1F3D30; box-shadow: 0 0 0 1px #1F3D30; background: #FFFFFF; color: #1C1F1D">
+            <input type="text" inputmode="numeric" aria-label="2세트 횟수" value="" style="width: 100%; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 4px; border-radius: 6px; text-align: center; font: inherit; font-size: 15px; border: 1px solid #BFC4BE; background: #FFFFFF; color: #1C1F1D">
+            <span style="display: flex; flex-direction: column; align-items: flex-end; font-size: 12px; line-height: 1.35"><span style="color: #4F5450">60 × 9</span></span>
+          </div><div role="row" style="display: grid; grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1fr) 72px; gap: 8px; align-items: center; min-height: 40px">
+            <span style="text-align: center; font-size: 14px; color: #4F5450; font-weight: 400">3</span>
+            <input type="text" inputmode="decimal" aria-label="3세트 무게" value="" style="width: 100%; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 4px; border-radius: 6px; text-align: center; font: inherit; font-size: 15px; border: 1px dashed #BFC4BE; background: transparent">
+            <input type="text" inputmode="numeric" aria-label="3세트 횟수" value="" style="width: 100%; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 4px; border-radius: 6px; text-align: center; font: inherit; font-size: 15px; border: 1px dashed #BFC4BE; background: transparent">
+            <span style="display: flex; flex-direction: column; align-items: flex-end; font-size: 12px; line-height: 1.35"><span style="color: #4F5450">57.5 × 10</span></span>
+          </div></div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span style="font-size: 13px; font-weight: 600; color: #4F5450">PR을 넘긴 세트</span>
+        <!-- PR 표시는 메리골드 X → 선택 상태 토큰(chip-on)으로 작은 "PR" 꼬리표. 숫자만 비교(무게가 더 무겁거나, 같은 무게로 횟수가 더 많을 때). 1RM 추정 X.
+             저장되면 카드 위 PR 줄도 오늘 값으로 바뀜: "PR 82.5kg × 5 (11.04)" -->
+        <div style="width: 100%; box-sizing: border-box; padding: 16px 16px 14px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; flex-direction: column; gap: 8px"><div role="row" style="display: grid; grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1fr) 72px; gap: 8px; font-size: 12px; color: #4F5450"><span style="text-align: center">세트</span><span style="text-align: center">무게(kg)</span><span style="text-align: center">횟수</span><span style="text-align: right">지난번</span></div><div role="row" style="display: grid; grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1fr) 72px; gap: 8px; align-items: center; min-height: 40px">
+            <span style="text-align: center; font-size: 14px; color: #3F4441; font-weight: 500">1</span>
+            <input type="text" inputmode="decimal" aria-label="1세트 무게" value="82.5" style="width: 100%; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 4px; border-radius: 6px; text-align: center; font: inherit; font-size: 15px; border: 1px solid #E7E9E6; background: #FAFBF9; color: #1C1F1D; font-weight: 600">
+            <input type="text" inputmode="numeric" aria-label="1세트 횟수" value="5" style="width: 100%; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 4px; border-radius: 6px; text-align: center; font: inherit; font-size: 15px; border: 1px solid #E7E9E6; background: #FAFBF9; color: #1C1F1D; font-weight: 600">
+            <span style="display: flex; flex-direction: column; align-items: flex-end; font-size: 12px; line-height: 1.35"><span style="color: #4F5450">80 × 5</span><span style="display: inline-flex; align-items: center; gap: 4px"><span style="padding: 0 4px; border: 1px solid #1F3D30; border-radius: 4px; background: #E6EEE8; color: #1F3D30; font-size: 10.5px; font-weight: 700; line-height: 15px">PR</span><span style="color: #1F3D30; font-weight: 600">+2.5kg</span></span></span>
+          </div><div role="row" style="display: grid; grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1fr) 72px; gap: 8px; align-items: center; min-height: 40px">
+            <span style="text-align: center; font-size: 14px; color: #3F4441; font-weight: 500">2</span>
+            <input type="text" inputmode="decimal" aria-label="2세트 무게" value="80" style="width: 100%; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 4px; border-radius: 6px; text-align: center; font: inherit; font-size: 15px; border: 1px solid #E7E9E6; background: #FAFBF9; color: #1C1F1D; font-weight: 600">
+            <input type="text" inputmode="numeric" aria-label="2세트 횟수" value="6" style="width: 100%; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 4px; border-radius: 6px; text-align: center; font: inherit; font-size: 15px; border: 1px solid #E7E9E6; background: #FAFBF9; color: #1C1F1D; font-weight: 600">
+            <span style="display: flex; flex-direction: column; align-items: flex-end; font-size: 12px; line-height: 1.35"><span style="color: #4F5450">80 × 5</span><span style="display: inline-flex; align-items: center; gap: 4px"><span style="padding: 0 4px; border: 1px solid #1F3D30; border-radius: 4px; background: #E6EEE8; color: #1F3D30; font-size: 10.5px; font-weight: 700; line-height: 15px">PR</span><span style="color: #1F3D30; font-weight: 600">+1회</span></span></span>
+          </div></div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span style="font-size: 13px; font-weight: 600; color: #4F5450">저장하지 못했을 때</span>
+        <!-- 제안: 칸 테두리 alert + 줄 아래 한 줄. 다시 시도를 누르거나 칸을 다시 벗어나면 재저장. 다른 후보: 카드 아래 [세트 추가] 줄 왼쪽에 문구 하나만 -->
+        <div style="width: 100%; box-sizing: border-box; padding: 16px 16px 14px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; flex-direction: column; gap: 8px"><div role="row" style="display: grid; grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1fr) 72px; gap: 8px; font-size: 12px; color: #4F5450"><span style="text-align: center">세트</span><span style="text-align: center">무게(kg)</span><span style="text-align: center">횟수</span><span style="text-align: right">지난번</span></div><div role="row" style="display: grid; grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1fr) 72px; gap: 8px; align-items: center; min-height: 40px">
+            <span style="text-align: center; font-size: 14px; color: #3F4441; font-weight: 500">1</span>
+            <input type="text" inputmode="decimal" aria-label="1세트 무게" value="62.5" style="width: 100%; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 4px; border-radius: 6px; text-align: center; font: inherit; font-size: 15px; border: 1px solid #E7E9E6; background: #FAFBF9; color: #1C1F1D; font-weight: 600">
+            <input type="text" inputmode="numeric" aria-label="1세트 횟수" value="10" style="width: 100%; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 4px; border-radius: 6px; text-align: center; font: inherit; font-size: 15px; border: 1px solid #E7E9E6; background: #FAFBF9; color: #1C1F1D; font-weight: 600">
+            <span style="display: flex; flex-direction: column; align-items: flex-end; font-size: 12px; line-height: 1.35"><span style="color: #4F5450">60 × 10</span><span style="display: inline-flex; align-items: center; gap: 4px"><span style="color: #1F3D30; font-weight: 600">+2.5kg</span></span></span>
+          </div><div role="row" style="display: grid; grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1fr) 72px; gap: 8px; align-items: center; min-height: 40px">
+            <span style="text-align: center; font-size: 14px; color: #3F4441; font-weight: 500">2</span>
+            <input type="text" inputmode="decimal" aria-label="2세트 무게" value="62.5" style="width: 100%; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 4px; border-radius: 6px; text-align: center; font: inherit; font-size: 15px; border: 1px solid #A33B20; background: #FFFFFF; color: #1C1F1D; font-weight: 600">
+            <input type="text" inputmode="numeric" aria-label="2세트 횟수" value="9" style="width: 100%; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 4px; border-radius: 6px; text-align: center; font: inherit; font-size: 15px; border: 1px solid #A33B20; background: #FFFFFF; color: #1C1F1D; font-weight: 600">
+            <span style="display: flex; flex-direction: column; align-items: flex-end; font-size: 12px; line-height: 1.35"><span style="color: #4F5450">60 × 9</span><span style="display: inline-flex; align-items: center; gap: 4px"><span style="color: #1F3D30; font-weight: 600">+2.5kg</span></span></span>
+          </div><p role="alert" style="margin: -2px 0 0 36px; display: flex; align-items: center; gap: 4px; font-size: 13px; color: #A33B20">저장하지 못했어요.<button type="button" style="min-height: 32px; padding: 0 6px; border: 0; background: transparent; color: #A33B20; font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer">다시 시도</button><span style="padding: 0 6px; border: 1px dashed #BFC4BE; border-radius: 4px; font-size: 11px; color: #4F5450">제안</span></p></div>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; align-items: start">
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span style="font-size: 13px; font-weight: 600; color: #4F5450">세트가 20개일 때</span>
+        <div style="padding: 14px 16px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px">
+          <button type="button" disabled aria-disabled="true" title="세트는 20개까지 추가할 수 있어요" style="min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border: 1px solid #E7E9E6; border-radius: 6px; background: transparent; color: #8E928D; font: inherit; font-size: 14px; cursor: not-allowed"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>세트 추가</button>
+          <span style="font-size: 13px; color: #4F5450">20세트까지예요</span>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span style="font-size: 13px; font-weight: 600; color: #4F5450">파트 삭제 확인</span>
+        <!-- 되돌릴 수 없는 동작이라 결과를 문구에. 삭제 버튼만 alert 채움 — 이 문서에 위험 버튼 스타일이 없어 새로 씀(확인 창 안에서만) -->
+        <div role="alertdialog" aria-labelledby="pdel" style="padding: 20px 22px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; flex-direction: column; gap: 10px">
+          <h3 id="pdel" style="margin: 0; font-size: 17px; font-weight: 700; color: #1C1F1D">파트 2를 삭제할까요?</h3>
+          <p style="margin: 0; font-size: 14px; color: #3F4441">이 파트의 세트 6개와 컨디션 메모도 함께 지워져요. 되돌릴 수 없어요.</p>
+          <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px">
+            <button type="button" style="min-height: 40px; padding: 0 16px; border: 1px solid #BFC4BE; border-radius: 6px; background: #FFFFFF; color: #1C1F1D; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer">취소</button>
+            <button type="button" style="min-height: 40px; padding: 0 16px; border: 1px solid #A33B20; border-radius: 6px; background: #A33B20; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">삭제</button>
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span style="font-size: 13px; font-weight: 600; color: #4F5450">컨디션 메모 저장 상태</span>
+        <div style="padding: 14px 16px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; flex-direction: column; gap: 10px; font-size: 13px">
+          <span style="display: flex; justify-content: space-between"><span style="color: #4F5450">입력을 멈추고 1초 뒤</span><span style="color: #7A7E78">저장 중…</span></span>
+          <span style="display: flex; justify-content: space-between"><span style="color: #4F5450">저장 끝</span><span style="color: #7A7E78">저장됨</span></span>
+          <span style="display: flex; justify-content: space-between"><span style="color: #4F5450">저장 실패 · 입력 중</span><span style="display: inline-flex; align-items: center; gap: 6px; color: #9A6700"><span style="width: 6px; height: 6px; border-radius: 50%; background: #9A6700"></span>변경사항 있음</span></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. 휴식 타이머 -->
+  <section style="display: flex; flex-direction: column; gap: 14px">
+    <h2 style="margin: 0; font-size: 17px; font-weight: 700; color: #1F3D30">휴식 타이머</h2>
+    <!-- 본문 열 바닥에 붙는 띠(높이 68px). 본문 아래 여백을 띠 높이만큼 더 둬서 마지막 줄 입력칸을 가리지 않음. 사이드바는 덮지 않음 -->
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 13px; font-weight: 600; color: #4F5450">대기 — 시간을 고르면 바로 시작</span>
+      <div style="padding: 10px 24px; background: #FFFFFF; border: 1px solid #D9DCD8; border-top-color: #D9DCD8; border-radius: 8px">
+          <div style="display: flex; align-items: center; gap: 20px; min-height: 48px"><span style="font-size: 14px; font-weight: 600; color: #3F4441">휴식</span><div role="group" aria-label="휴식 시간" style="display: flex; gap: 8px"><button type="button" style="min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border: 1px solid #BFC4BE; border-radius: 6px; background: transparent; color: #1F3D30; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer">60초</button><button type="button" style="min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border: 1px solid #BFC4BE; border-radius: 6px; background: transparent; color: #1F3D30; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer">90초</button><button type="button" style="min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border: 1px solid #BFC4BE; border-radius: 6px; background: transparent; color: #1F3D30; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer">120초</button><button type="button" style="min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border: 1px solid #BFC4BE; border-radius: 6px; background: transparent; color: #1F3D30; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer">180초</button></div><span style="margin-left: auto"></span><button type="button" aria-label="타이머 닫기" style="width: 40px; height: 40px; border: 0; border-radius: 6px; background: transparent; color: #3F4441; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div></div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 13px; font-weight: 600; color: #4F5450">진행 중</span>
+      <div style="padding: 10px 24px; background: #FFFFFF; border: 1px solid #D9DCD8; border-top-color: #D9DCD8; border-radius: 8px">
+          <div style="display: flex; align-items: center; gap: 20px; min-height: 48px"><span style="font-size: 14px; font-weight: 600; color: #3F4441">휴식</span><span role="timer" style="display: flex; align-items: baseline; gap: 6px"><strong style="font-size: 26px; line-height: 1.2; font-weight: 700; color: #1C1F1D">0:42</strong><span style="font-size: 15px; color: #4F5450">/ 1:30</span></span><span style="flex: 0 1 280px; height: 6px; background: #E3E6E2"><span style="display: block; height: 100%; width: 46.7%; background: #1F3D30"></span></span><div style="margin-left: auto; display: flex; align-items: center; gap: 8px"><button type="button" style="min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border: 1px solid #BFC4BE; border-radius: 6px; background: transparent; color: #1F3D30; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 5.5v13M15 5.5v13"></path></svg>일시정지</button><button type="button" style="min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border: 1px solid #BFC4BE; border-radius: 6px; background: transparent; color: #1F3D30; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3M4.5 4.5v4h4"></path></svg>리셋</button><button type="button" aria-label="타이머 닫기" style="width: 40px; height: 40px; border: 0; border-radius: 6px; background: transparent; color: #3F4441; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div></div></div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 13px; font-weight: 600; color: #4F5450">일시정지</span>
+      <div style="padding: 10px 24px; background: #FFFFFF; border: 1px solid #D9DCD8; border-top-color: #D9DCD8; border-radius: 8px">
+          <div style="display: flex; align-items: center; gap: 20px; min-height: 48px"><span style="font-size: 14px; font-weight: 600; color: #3F4441">휴식</span><span role="timer" style="display: flex; align-items: baseline; gap: 6px"><strong style="font-size: 26px; line-height: 1.2; font-weight: 700; color: #1C1F1D">0:42</strong><span style="font-size: 15px; color: #4F5450">/ 1:30 · 일시정지</span></span><span style="flex: 0 1 280px; height: 6px; background: #E3E6E2"><span style="display: block; height: 100%; width: 46.7%; background: #1F3D30"></span></span><div style="margin-left: auto; display: flex; align-items: center; gap: 8px"><button type="button" style="min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border: 1px solid #BFC4BE; border-radius: 6px; background: transparent; color: #1F3D30; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 5.5l11 6.5-11 6.5z"></path></svg>재개</button><button type="button" style="min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border: 1px solid #BFC4BE; border-radius: 6px; background: transparent; color: #1F3D30; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3M4.5 4.5v4h4"></path></svg>리셋</button><button type="button" aria-label="타이머 닫기" style="width: 40px; height: 40px; border: 0; border-radius: 6px; background: transparent; color: #3F4441; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div></div></div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 13px; font-weight: 600; color: #4F5450">완료 — 알림도 함께</span>
+      <!-- 완료: 띠 바탕을 선택 상태 색(chip-on)으로 바꿔 눈에 띄게. 메리골드 X. 프리셋이 다시 나와 다음 휴식을 바로 시작.
+           브라우저 알림(권한 있을 때만): 제목 "휴식 끝" · 본문 "90초 휴식이 끝났어요." 소리는 넣지 않음.
+           다른 후보: 0:00에서 숫자만 warn색으로 깜빡이고 3초 뒤 대기로 -->
+      <div style="padding: 10px 24px; background: #E6EEE8; border: 1px solid #D9DCD8; border-top-color: #1F3D30; border-radius: 8px">
+          <div style="display: flex; align-items: center; gap: 20px; min-height: 48px"><strong role="status" style="font-size: 22px; font-weight: 700; color: #1F3D30">완료!</strong><span style="font-size: 14px; color: #3F4441">90초 휴식이 끝났어요.</span><span style="margin-left: auto"></span><div role="group" aria-label="휴식 시간" style="display: flex; gap: 8px"><button type="button" style="min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border: 1px solid #BFC4BE; border-radius: 6px; background: transparent; color: #1F3D30; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer">60초</button><button type="button" style="min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border: 1px solid #BFC4BE; border-radius: 6px; background: transparent; color: #1F3D30; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer">90초</button><button type="button" style="min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border: 1px solid #BFC4BE; border-radius: 6px; background: transparent; color: #1F3D30; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer">120초</button><button type="button" style="min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border: 1px solid #BFC4BE; border-radius: 6px; background: transparent; color: #1F3D30; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer">180초</button></div><button type="button" aria-label="타이머 닫기" style="width: 40px; height: 40px; border: 0; border-radius: 6px; background: transparent; color: #3F4441; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div></div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 13px; font-weight: 600; color: #4F5450">닫은 뒤 — 헤더에서 다시 열기</span>
+      <!-- 제안: ✕로 닫으면 띠가 사라지고 헤더 오른쪽, 날짜 이동 왼쪽에 [휴식 타이머]가 생김. 다른 후보: 본문 오른쪽 아래 작은 버튼(마지막 카드 입력칸을 가릴 수 있어 뺌) -->
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px">
+        <span style="font-size: 26px; font-weight: 700; color: #1C1F1D">운동 기록</span>
+        <div style="display: flex; align-items: center; gap: 8px">
+          <span style="padding: 0 6px; border: 1px dashed #BFC4BE; border-radius: 4px; font-size: 11px; color: #4F5450">제안</span>
+          <button type="button" style="min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border: 1px solid #BFC4BE; border-radius: 6px; background: transparent; color: #1F3D30; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13.5" r="7"></circle><path d="M12 10v3.5l2 1.5M10 3h4"></path></svg>휴식 타이머</button>
+          <span aria-hidden="true" style="width: 1px; height: 24px; margin: 0 8px; background: #CDD1CC"></span>
+          <span style="font-size: 16px; font-weight: 600; color: #1C1F1D">‹ 11월 4일 (수) ›</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. 종목 추가 모달 · 빈 상태 · 지난 날짜 -->
+  <section style="display: flex; flex-direction: column; gap: 14px">
+    <h2 style="margin: 0; font-size: 17px; font-weight: 700; color: #1F3D30">종목 추가 · 빈 상태 · 지난 날짜</h2>
+    <div style="display: flex; gap: 32px; align-items: flex-start">
+      <div style="flex: none; width: 560px; box-sizing: border-box; padding: 36px 60px; border-radius: 8px; background: rgba(28,31,29,0.32)">
+        <div role="dialog" aria-labelledby="ex-add" style="background: #FFFFFF; border-radius: 8px; padding: 24px 28px; display: flex; flex-direction: column; gap: 18px">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-right: -10px">
+            <h3 id="ex-add" style="margin: 0; font-size: 20px; font-weight: 700">새 종목</h3>
+            <button type="button" aria-label="닫기" style="width: 40px; height: 40px; border: 0; border-radius: 6px; background: transparent; color: #3F4441; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+          </div>
+          <label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600; color: #3F4441">이름<input type="text" value="인클라인 덤벨 프레스" style="min-height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #BFC4BE; border-radius: 6px; font: inherit; font-weight: 400; font-size: 15px; color: #1C1F1D; background: #FFFFFF; border-color: #1F3D30"></label>
+          <label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600; color: #3F4441">타겟 부위<span style="position: relative; display: block"><select style="width: 100%; appearance: none; min-height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #BFC4BE; border-radius: 6px; font: inherit; font-weight: 400; font-size: 15px; color: #1C1F1D; background: #FFFFFF; padding-right: 36px"><option>가슴</option><option>등</option><option>어깨</option><option>팔</option><option>하체</option><option>복근</option><option>기타</option></select><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="position: absolute; right: 12px; top: 15px; pointer-events: none"><path d="M6 9l6 6 6-6"></path></svg></span></label>
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 12px">
+            <label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600; color: #3F4441">기본 세트 수<span style="display: flex; align-items: center; gap: 8px"><input type="number" value="3" min="1" max="20" style="width: 100%; min-height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #BFC4BE; border-radius: 6px; font: inherit; font-weight: 400; font-size: 15px; color: #1C1F1D; background: #FFFFFF"><span style="font-weight: 400">세트</span></span></label>
+            <label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600; color: #3F4441">목표 횟수<span style="display: flex; align-items: center; gap: 8px"><input type="number" aria-label="최소" value="8" min="1" style="width: 100%; min-height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #BFC4BE; border-radius: 6px; font: inherit; font-weight: 400; font-size: 15px; color: #1C1F1D; background: #FFFFFF"><span style="font-weight: 400">~</span><input type="number" aria-label="최대" value="12" min="1" style="width: 100%; min-height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #BFC4BE; border-radius: 6px; font: inherit; font-weight: 400; font-size: 15px; color: #1C1F1D; background: #FFFFFF"><span style="font-weight: 400">회</span></span></label>
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 8px">
+            <button type="button" style="min-height: 44px; padding: 0 18px; border: 1px solid #BFC4BE; border-radius: 6px; background: #FFFFFF; color: #1C1F1D; font: inherit; font-size: 15px; font-weight: 500; cursor: pointer">취소</button>
+            <button type="button" style="min-height: 44px; padding: 0 20px; border: 1px solid #1F3D30; border-radius: 6px; background: #1F3D30; color: #FFFFFF; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer">추가하기</button>
+          </div>
+        </div>
+      </div>
+      <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font-size: 13px; font-weight: 600; color: #4F5450">등록한 종목이 하나도 없을 때 (카드 자리 전체)</span>
+          <div style="padding: 44px 24px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center">
+            <p style="margin: 0; font-size: 15px; color: #3F4441">아직 등록한 운동이 없어요.</p>
+            <button type="button" style="min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 16px; border: 1px solid #1F3D30; border-radius: 6px; background: #1F3D30; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>종목 추가</button>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font-size: 13px; font-weight: 600; color: #4F5450">고른 부위에 종목이 없을 때 (기타 0)</span>
+          <!-- 제안: 탭은 0이어도 누를 수 있음. 다른 후보: 0인 탭은 비활성 -->
+          <div style="padding: 28px 24px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; text-align: center">
+            <p style="margin: 0; font-size: 15px; color: #3F4441">기타 부위 종목이 없어요.</p>
+            <a href="#" style="min-height: 40px; display: inline-flex; align-items: center; font-size: 14px; color: #1F3D30">종목 추가하기 ›</a>
+            <span style="padding: 0 6px; border: 1px dashed #BFC4BE; border-radius: 4px; font-size: 11px; color: #4F5450">제안</span>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font-size: 13px; font-weight: 600; color: #4F5450">지난 날짜를 볼 때</span>
+          <nav aria-label="날짜 이동" style="align-self: flex-end; display: flex; align-items: center; gap: 8px">
+            <button type="button" style="min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border: 1px solid #BFC4BE; border-radius: 6px; background: transparent; color: #1F3D30; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer">오늘</button>
+            <button type="button" aria-label="전날" style="width: 40px; height: 40px; border: 1px solid #BFC4BE; border-radius: 6px; background: transparent; color: #1F3D30; display: inline-flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button>
+            <span style="min-width: 116px; text-align: center; font-size: 16px; font-weight: 600">10월 31일 (토)</span>
+            <button type="button" aria-label="다음날" style="width: 40px; height: 40px; border: 1px solid #BFC4BE; border-radius: 6px; background: transparent; color: #1F3D30; display: inline-flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+            <span style="padding: 0 6px; border: 1px dashed #BFC4BE; border-radius: 4px; font-size: 11px; color: #4F5450">제안</span>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+</body>
+</html>

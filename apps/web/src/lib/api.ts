@@ -20,6 +20,8 @@ import type {
   DocumentKind,
   Exercise,
   ExerciseStats,
+  ExerciseStatsBatch,
+  WorkoutDaySummary,
   Feedback,
   InitDocumentInput,
   InitDocumentResult,
@@ -37,6 +39,7 @@ import type {
   QuestionDetail,
   QuestionHeatmapEntry,
   QuestionLog,
+  QuestionCategoryStat,
   QuestionStatsSummary,
   QuestionStatus,
   MuscleGoal,
@@ -49,6 +52,9 @@ import type {
   WeeklyVolumeEntry,
   WorkoutHeatmapEntry,
   WorkoutSession,
+  WorkoutSplit,
+  WorkoutSplitTemplate,
+  WorkoutSplitsResponse,
   WorkoutSessionContext,
   WorkoutSet,
 } from '@repo/shared';
@@ -71,6 +77,8 @@ export type CompanyPatch = Partial<
     | 'appliedAt'
     | 'applicationDocUrl'
     | 'progressNote'
+    | 'resumeDocumentId'
+    | 'portfolioDocumentId'
   >
 >;
 
@@ -258,19 +266,6 @@ export async function createCompanyEvent(input: {
     body: JSON.stringify(input),
   });
   if (!res.ok) throw new Error(`POST /company-events failed: HTTP ${res.status}`);
-  return (await res.json()) as CompanyEvent;
-}
-
-export async function patchCompanyEvent(
-  id: string,
-  patch: Partial<{ date: string; type: CompanyEventType; note: string | null }>,
-): Promise<CompanyEvent> {
-  const res = await fetch(apiUrl(`/company-events/${id}`), {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
-    body: JSON.stringify(patch),
-  });
-  if (!res.ok) throw new Error(`PATCH /company-events/${id} failed: HTTP ${res.status}`);
   return (await res.json()) as CompanyEvent;
 }
 
@@ -544,6 +539,7 @@ export async function getWorkoutSessionsRange(range: {
 export async function createWorkoutSession(input: {
   date: string;
   note?: string;
+  splitId?: string | null;
 }): Promise<WorkoutSession> {
   const res = await fetch(apiUrl('/workout-sessions'), {
     method: 'POST',
@@ -556,7 +552,7 @@ export async function createWorkoutSession(input: {
 
 export async function patchWorkoutSession(
   id: string,
-  patch: { note?: string | null },
+  patch: { note?: string | null; splitId?: string | null },
 ): Promise<WorkoutSession> {
   const res = await fetch(apiUrl(`/workout-sessions/${id}`), {
     method: 'PATCH',
@@ -565,6 +561,86 @@ export async function patchWorkoutSession(
   });
   if (!res.ok) throw new Error(`PATCH /workout-sessions/${id} failed: HTTP ${res.status}`);
   return (await res.json()) as WorkoutSession;
+}
+
+// --- 운동 분할 ---
+
+// before 이전 마지막 기록 기준으로 다음 차례(nextSplitId)를 같이 받음.
+export async function getWorkoutSplits(before?: string): Promise<WorkoutSplitsResponse> {
+  const qs = before ? `?before=${before}` : '';
+  const res = await fetch(apiUrl(`/workout-splits${qs}`), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) throw new Error(`GET /workout-splits failed: HTTP ${res.status}`);
+  return (await res.json()) as WorkoutSplitsResponse;
+}
+
+export async function createWorkoutSplit(input: {
+  name: string;
+  exerciseIds: string[];
+}): Promise<WorkoutSplit> {
+  const res = await fetch(apiUrl('/workout-splits'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(`POST /workout-splits failed: HTTP ${res.status}`);
+  return (await res.json()) as WorkoutSplit;
+}
+
+export async function patchWorkoutSplit(
+  id: string,
+  patch: { name?: string; exerciseIds?: string[] },
+): Promise<WorkoutSplit> {
+  const res = await fetch(apiUrl(`/workout-splits/${id}`), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok) throw new Error(`PATCH /workout-splits/${id} failed: HTTP ${res.status}`);
+  return (await res.json()) as WorkoutSplit;
+}
+
+export async function deleteWorkoutSplit(id: string): Promise<void> {
+  const res = await fetch(apiUrl(`/workout-splits/${id}`), {
+    method: 'DELETE',
+    headers: await authHeaders(),
+  });
+  if (!res.ok && res.status !== 204) {
+    throw new Error(`DELETE /workout-splits/${id} failed: HTTP ${res.status}`);
+  }
+}
+
+// 처음부터 다시 짜기 — 내 분할 전부 삭제(운동 기록은 남음).
+export async function deleteAllWorkoutSplits(): Promise<void> {
+  const res = await fetch(apiUrl('/workout-splits'), {
+    method: 'DELETE',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) throw new Error(`DELETE /workout-splits failed: HTTP ${res.status}`);
+}
+
+export async function reorderWorkoutSplits(ids: string[]): Promise<WorkoutSplit[]> {
+  const res = await fetch(apiUrl('/workout-splits/order'), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify({ ids }),
+  });
+  if (!res.ok) throw new Error(`PUT /workout-splits/order failed: HTTP ${res.status}`);
+  return (await res.json()) as WorkoutSplit[];
+}
+
+export async function createWorkoutSplitsFromTemplate(
+  kind: WorkoutSplitTemplate,
+): Promise<WorkoutSplit[]> {
+  const res = await fetch(apiUrl('/workout-splits/templates'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    body: JSON.stringify({ kind }),
+  });
+  if (!res.ok) throw new Error(`POST /workout-splits/templates failed: HTTP ${res.status}`);
+  return (await res.json()) as WorkoutSplit[];
 }
 
 export async function deleteWorkoutSession(id: string): Promise<void> {
@@ -687,6 +763,39 @@ export async function getExerciseStats(params: {
   });
   if (!res.ok) throw new Error(`GET /workout-sets/exercise-stats failed: HTTP ${res.status}`);
   return (await res.json()) as ExerciseStats;
+}
+
+// 운동 통계 종목 카드 — 종목 N개를 한 번에.
+export async function getExerciseStatsBatch(params: {
+  exerciseIds: readonly string[];
+  limit?: number;
+}): Promise<ExerciseStatsBatch> {
+  const qs = new URLSearchParams({ exerciseIds: params.exerciseIds.join(',') });
+  if (params.limit !== undefined) qs.set('limit', String(params.limit));
+  const res = await fetch(apiUrl(`/workout-sets/exercise-stats-batch?${qs.toString()}`), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new Error(`GET /workout-sets/exercise-stats-batch failed: HTTP ${res.status}`);
+  }
+  return (await res.json()) as ExerciseStatsBatch;
+}
+
+// 운동한 날(횟수 적힌 세트가 있는 날)만, 최근 날짜부터.
+export async function getWorkoutDailySummary(range: {
+  from: string;
+  to: string;
+}): Promise<WorkoutDaySummary[]> {
+  const qs = new URLSearchParams({ from: range.from, to: range.to });
+  const res = await fetch(apiUrl(`/workout-sets/daily-summary?${qs.toString()}`), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new Error(`GET /workout-sets/daily-summary failed: HTTP ${res.status}`);
+  }
+  return (await res.json()) as WorkoutDaySummary[];
 }
 
 // --- export (backup) ---
@@ -876,6 +985,9 @@ export type PreferencesPatch = {
     reviewCategories?: string[];
     favoritesCategories?: string[];
   };
+  workout?: {
+    weeklyDaysTarget?: number;
+  };
 };
 
 export async function patchMyPreferences(patch: PreferencesPatch): Promise<Profile> {
@@ -1063,6 +1175,17 @@ export async function getQuestionStatsSummary(): Promise<QuestionStatsSummary> {
   return (await res.json()) as QuestionStatsSummary;
 }
 
+export async function getQuestionCategoryStats(): Promise<QuestionCategoryStat[]> {
+  const res = await fetch(apiUrl('/questions/stats/categories'), {
+    cache: 'no-store',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new Error(`GET /questions/stats/categories failed: HTTP ${res.status}`);
+  }
+  return (await res.json()) as QuestionCategoryStat[];
+}
+
 // --- questions (관리 페이지 CRUD) ---
 
 export async function getAllQuestions(
@@ -1221,6 +1344,19 @@ export async function uploadDocumentFile(
     const text = await res.text().catch(() => '');
     throw new Error(`Storage upload failed: HTTP ${res.status} ${text}`);
   }
+}
+
+// 업로드 2단계 — 파일이 실제로 올라간 걸 서버가 확인하고 storage_path를 채움.
+// 이걸 안 부르면(올리다 멈춤) 목록에 "올리다 멈춤"으로 남음.
+export async function completeDocumentUpload(id: string): Promise<Document> {
+  const res = await fetch(apiUrl(`/documents/${id}/complete`), {
+    method: 'POST',
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    throw new HttpError(`POST /documents/${id}/complete failed: HTTP ${res.status}`, res.status);
+  }
+  return res.json();
 }
 
 export async function createLinkDocument(input: {

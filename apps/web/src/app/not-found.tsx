@@ -1,32 +1,24 @@
 import Link from 'next/link';
-import { FileQuestion } from 'lucide-react';
+import { LostIcon } from '../components/ErrorIcons';
+import { BUTTON_PRIMARY } from '../components/jobs/cells/popover-style';
 
 export const metadata = {
-  title: '페이지를 찾을 수 없습니다 · Rally',
+  title: '페이지를 찾을 수 없어요 · Rally',
 };
 
-// Renders for unmatched routes and explicit notFound() calls. Tone matches
-// /unauthorized so the two share the same "friendly card + gradient" look.
+// Renders for unmatched routes and explicit notFound() calls. (docs/design/rally-error*.html)
+// 본문 자리에만 뜸(화면 전체를 덮지 않음) — 사이드바로 다른 화면에 바로 갈 수 있게.
+// 경고색 없음 — 사용자 잘못이 아니라서. 갈 곳이 하나라 [오늘 화면으로]가 채운 버튼.
 export default function NotFound() {
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-zinc-50 via-white to-zinc-100 px-4 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
-      <div className="w-full max-w-sm text-center">
-        <div className="mx-auto mb-6 inline-flex h-14 w-14 items-center justify-center rounded-full bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-          <FileQuestion className="h-6 w-6" aria-hidden />
-        </div>
-        <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-          페이지를 찾을 수 없어요
-        </h1>
-        <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-          주소가 잘못됐거나 사라진 페이지예요.
-        </p>
-
-        <div className="mt-8">
-          <Link
-            href="/"
-            className="inline-flex w-full items-center justify-center rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
-          >
-            홈으로
+    <div className="flex min-h-screen items-center justify-center bg-paper px-4 py-16 font-plex">
+      <div className="flex w-full max-w-105 flex-col items-center gap-3.5 text-center">
+        <LostIcon className="h-10 w-10 text-icon-faint" />
+        <h1 className="text-[22px] font-bold text-ink-strong">페이지를 찾을 수 없어요</h1>
+        <p className="text-[15px] leading-[1.6] text-ink-soft">주소가 잘못됐거나 사라진 페이지예요.</p>
+        <div className="mt-1.5 flex justify-center gap-2">
+          <Link href="/today" className={BUTTON_PRIMARY}>
+            오늘 화면으로
           </Link>
         </div>
       </div>

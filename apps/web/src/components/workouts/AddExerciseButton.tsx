@@ -2,32 +2,73 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, X } from 'lucide-react';
-import { createExercise } from '../../lib/api';
+import { Check, Plus, X } from 'lucide-react';
+import { createExercise, patchWorkoutSplit } from '../../lib/api';
 import { TargetMuscleSelect } from './TargetMuscleSelect';
+import { BUTTON_PRIMARY, BUTTON_SECONDARY, POPOVER_CLOSE } from '../jobs/cells/popover-style';
+
+const FIELD_LABEL = 'flex flex-col gap-1.5 text-sm font-semibold text-ink-soft';
+const FIELD_INPUT =
+  'min-h-11 w-full min-w-0 rounded-md border border-btn-border bg-surface px-3 text-[15px] font-normal text-ink outline-none placeholder:text-ink-faint focus:border-primary';
 
 const DEFAULT_SETS = 3;
 const DEFAULT_REP_MIN = 8;
 const DEFAULT_REP_MAX = 12;
 
-export function AddExerciseButton() {
-  const [open, setOpen] = useState(false);
+/** 분할 탭을 보고 있을 때 — 새 종목을 그 분할에도 담음 */
+export type AddToSplit = { id: string; name: string; exerciseIds: string[] };
+
+export function AddExerciseButton({
+  variant = 'outline',
+  split,
+  defaultOpen = false,
+}: {
+  variant?: 'outline' | 'primary' | 'link';
+  split?: AddToSplit | null;
+  /** ?add=1로 들어왔을 때 창을 바로 엶 */
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  // 연 뒤엔 주소에서 add를 지움 — 새로고침·뒤로 가기로 다시 열리지 않게(서버 다시 안 부름)
+  useEffect(() => {
+    if (!defaultOpen) return;
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has('add')) return;
+    url.searchParams.delete('add');
+    window.history.replaceState(window.history.state, '', url.pathname + url.search);
+  }, [defaultOpen]);
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="inline-flex min-h-11 items-center gap-1 rounded-md border border-zinc-300 bg-white px-3 text-sm text-zinc-700 hover:bg-zinc-50 md:min-h-0 md:py-2 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
-      >
-        <Plus className="h-4 w-4" aria-hidden />
-        운동 추가
-      </button>
-      {open ? <AddExerciseModal onRequestClose={() => setOpen(false)} /> : null}
+      {variant === 'link' ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="inline-flex min-h-10 cursor-pointer items-center text-sm text-heading hover:underline"
+        >
+          종목 추가하기 ›
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className={`${variant === 'primary' ? BUTTON_PRIMARY : BUTTON_SECONDARY} gap-1`}
+        >
+          <Plus className="h-3.5 w-3.5" strokeWidth={2.2} aria-hidden />
+          종목 추가
+        </button>
+      )}
+      {open ? <AddExerciseModal split={split ?? null} onRequestClose={() => setOpen(false)} /> : null}
     </>
   );
 }
 
-function AddExerciseModal({ onRequestClose }: { onRequestClose: () => void }) {
+function AddExerciseModal({
+  split,
+  onRequestClose,
+}: {
+  split: AddToSplit | null;
+  onRequestClose: () => void;
+}) {
   const router = useRouter();
   const [name, setName] = useState('');
   const [targetMuscle, setTargetMuscle] = useState('');
@@ -35,6 +76,10 @@ function AddExerciseModal({ onRequestClose }: { onRequestClose: () => void }) {
   const [repMin, setRepMin] = useState(String(DEFAULT_REP_MIN));
   const [repMax, setRepMax] = useState(String(DEFAULT_REP_MAX));
   const [error, setError] = useState<string | null>(null);
+  // 보고 있는 분할에 같이 담기 — 기본 켜짐(스트레칭처럼 담기 싫으면 끔)
+  const [addToSplit, setAddToSplit] = useState(true);
+  // 종목은 만들었는데 분할에 못 담은 상태 — 다시 누르면 종목이 또 생기므로 [닫기]만
+  const [created, setCreated] = useState(false);
   const [isPending, startTransition] = useTransition();
   const nameRef = useRef<HTMLInputElement>(null);
 
@@ -62,36 +107,47 @@ function AddExerciseModal({ onRequestClose }: { onRequestClose: () => void }) {
     const rMin = Number(repMin);
     const rMax = Number(repMax);
     if (!Number.isInteger(sets) || sets < 1 || sets > 20) {
-      setError('세트 수는 1~20 정수');
+      setError('세트 수는 1~20 사이 숫자로 적어주세요.');
       return;
     }
     if (!Number.isInteger(rMin) || rMin < 1 || rMin > 100) {
-      setError('최소 횟수는 1~100 정수');
+      setError('최소 횟수는 1~100 사이 숫자로 적어주세요.');
       return;
     }
     if (!Number.isInteger(rMax) || rMax < 1 || rMax > 100) {
-      setError('최대 횟수는 1~100 정수');
+      setError('최대 횟수는 1~100 사이 숫자로 적어주세요.');
       return;
     }
     if (rMin > rMax) {
-      setError('최소 횟수는 최대 횟수 이하여야 합니다');
+      setError('최소 횟수가 최대보다 클 수 없어요.');
       return;
     }
 
     startTransition(async () => {
       try {
-        await createExercise({
+        const ex = await createExercise({
           name: trimmedName,
           targetMuscle: trimmedMuscle || undefined,
           defaultSets: sets,
           repMin: rMin,
           repMax: rMax,
         });
+        if (split && addToSplit) {
+          try {
+            await patchWorkoutSplit(split.id, { exerciseIds: [...split.exerciseIds, ex.id] });
+          } catch (err) {
+            console.error(err);
+            router.refresh();
+            setCreated(true);
+            setError(`종목은 추가했지만 ${split.name}에 담지 못했어요. 설정의 분할에서 넣어주세요.`);
+            return;
+          }
+        }
         router.refresh();
         onRequestClose();
       } catch (err) {
         console.error(err);
-        setError('추가에 실패했습니다');
+        setError('추가하지 못했어요. 잠시 후 다시 해보세요.');
       }
     });
   }
@@ -108,27 +164,25 @@ function AddExerciseModal({ onRequestClose }: { onRequestClose: () => void }) {
         if (e.target === e.currentTarget && !isPending) onRequestClose();
       }}
     >
-      <div className="w-full max-w-sm rounded-lg border border-zinc-200 bg-white p-5 shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 id="add-exercise-title" className="text-base font-semibold">
-            운동 추가
+      <div className="w-full max-w-120 rounded-lg bg-surface px-7 py-6 font-plex text-ink shadow-xl">
+        <div className="-mr-2.5 mb-4.5 flex items-center justify-between gap-2">
+          <h2 id="add-exercise-title" className="text-xl font-bold">
+            새 종목
           </h2>
           <button
             type="button"
             onClick={() => !isPending && onRequestClose()}
             disabled={isPending}
-            className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 disabled:opacity-50 dark:hover:bg-zinc-800"
+            className={POPOVER_CLOSE.replace('-mr-2 ', '')}
             aria-label="닫기"
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4" aria-hidden />
           </button>
         </div>
 
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-col gap-1">
-            <label htmlFor="add-ex-name" className="text-xs text-zinc-500 dark:text-zinc-400">
-              이름
-            </label>
+        <div className="flex flex-col gap-4.5">
+          <div className={FIELD_LABEL}>
+            <label htmlFor="add-ex-name">이름</label>
             <input
               id="add-ex-name"
               ref={nameRef}
@@ -146,84 +200,101 @@ function AddExerciseModal({ onRequestClose }: { onRequestClose: () => void }) {
               }}
               maxLength={100}
               placeholder="예: 스쿼트"
-              className="min-h-11 rounded border border-zinc-300 bg-white px-2 py-1.5 text-base outline-none focus:border-zinc-500 md:min-h-0 md:text-sm dark:border-zinc-700 dark:bg-zinc-950"
+              className={FIELD_INPUT}
             />
           </div>
 
-          <div className="flex flex-col gap-1">
-            <label htmlFor="add-ex-muscle" className="text-xs text-zinc-500 dark:text-zinc-400">
-              타겟 부위 <span className="text-zinc-400">(선택)</span>
-            </label>
+          <div className={FIELD_LABEL}>
+            <label htmlFor="add-ex-muscle">타겟 부위</label>
             <TargetMuscleSelect
               id="add-ex-muscle"
               value={targetMuscle}
               onChange={setTargetMuscle}
               disabled={isPending}
+              className="min-h-11 w-full justify-between rounded-md border border-btn-border bg-surface px-3 text-[15px] font-normal text-ink outline-none focus:border-primary"
             />
           </div>
 
-          <div className="flex gap-2">
-            <div className="flex flex-1 flex-col gap-1">
-              <label htmlFor="add-ex-sets" className="text-xs text-zinc-500 dark:text-zinc-400">
-                세트
-              </label>
-              <input
-                id="add-ex-sets"
-                type="number"
-                inputMode="numeric"
-                min={1}
-                max={20}
-                value={defaultSets}
-                onChange={(e) => setDefaultSets(e.target.value)}
-                className="min-h-11 rounded border border-zinc-300 bg-white px-2 py-1.5 text-base tabular-nums outline-none focus:border-zinc-500 md:min-h-0 md:text-sm dark:border-zinc-700 dark:bg-zinc-950"
-              />
+          <div className="grid grid-cols-2 gap-3">
+            <div className={FIELD_LABEL}>
+              <label htmlFor="add-ex-sets">기본 세트 수</label>
+              <span className="flex items-center gap-2">
+                <input
+                  id="add-ex-sets"
+                  type="text"
+                  inputMode="numeric"
+                  value={defaultSets}
+                  onChange={(e) => setDefaultSets(e.target.value)}
+                  className={FIELD_INPUT}
+                />
+                <span className="font-normal">세트</span>
+              </span>
             </div>
-            <div className="flex flex-1 flex-col gap-1">
-              <label htmlFor="add-ex-rmin" className="text-xs text-zinc-500 dark:text-zinc-400">
-                최소 회
-              </label>
-              <input
-                id="add-ex-rmin"
-                type="number"
-                inputMode="numeric"
-                min={1}
-                max={100}
-                value={repMin}
-                onChange={(e) => setRepMin(e.target.value)}
-                className="min-h-11 rounded border border-zinc-300 bg-white px-2 py-1.5 text-base tabular-nums outline-none focus:border-zinc-500 md:min-h-0 md:text-sm dark:border-zinc-700 dark:bg-zinc-950"
-              />
-            </div>
-            <div className="flex flex-1 flex-col gap-1">
-              <label htmlFor="add-ex-rmax" className="text-xs text-zinc-500 dark:text-zinc-400">
-                최대 회
-              </label>
-              <input
-                id="add-ex-rmax"
-                type="number"
-                inputMode="numeric"
-                min={1}
-                max={100}
-                value={repMax}
-                onChange={(e) => setRepMax(e.target.value)}
-                className="min-h-11 rounded border border-zinc-300 bg-white px-2 py-1.5 text-base tabular-nums outline-none focus:border-zinc-500 md:min-h-0 md:text-sm dark:border-zinc-700 dark:bg-zinc-950"
-              />
-            </div>
+            <fieldset className={FIELD_LABEL}>
+              <legend className="mb-1.5">목표 횟수</legend>
+              <span className="flex items-center gap-2">
+                <input
+                  id="add-ex-rmin"
+                  type="text"
+                  inputMode="numeric"
+                  aria-label="최소 횟수"
+                  value={repMin}
+                  onChange={(e) => setRepMin(e.target.value)}
+                  className={FIELD_INPUT}
+                />
+                <span className="font-normal">~</span>
+                <input
+                  id="add-ex-rmax"
+                  type="text"
+                  inputMode="numeric"
+                  aria-label="최대 횟수"
+                  value={repMax}
+                  onChange={(e) => setRepMax(e.target.value)}
+                  className={FIELD_INPUT}
+                />
+                <span className="font-normal">회</span>
+              </span>
+            </fieldset>
           </div>
 
-          {error ? (
-            <p className="text-xs text-rose-600 dark:text-rose-400">{error}</p>
+          {split ? (
+            <label className="flex min-h-10 cursor-pointer items-center gap-2.5 text-[15px]">
+              <input
+                type="checkbox"
+                checked={addToSplit}
+                onChange={(e) => setAddToSplit(e.target.checked)}
+                disabled={isPending || created}
+                className="peer sr-only"
+              />
+              <span
+                aria-hidden
+                className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-[5px] peer-focus-visible:ring-2 peer-focus-visible:ring-primary/40 ${
+                  addToSplit ? 'bg-primary' : 'border-[1.5px] border-check-off'
+                }`}
+              >
+                {addToSplit ? <Check className="h-3.25 w-3.25 text-white dark:text-paper" strokeWidth={3.2} /> : null}
+              </span>
+              <span>
+                <strong className="font-semibold">{split.name}</strong>에도 담기
+              </span>
+            </label>
           ) : null}
 
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            순서는 카드 hover ↑↓ 버튼으로 조정하세요.
-          </p>
+          {error ? <p className="text-[13px] text-alert">{error}</p> : null}
 
-          <div className="mt-1 flex items-center justify-end gap-2">
+          {created ? (
+            <div className="flex justify-end">
+              <button type="button" onClick={onRequestClose} className={`${BUTTON_SECONDARY} min-h-11 px-4.5`}>
+                닫기
+              </button>
+            </div>
+          ) : (
+          <div className="flex items-center justify-end gap-2">
             <button
               type="button"
               onClick={onRequestClose}
               disabled={isPending}
-              className="inline-flex min-h-11 items-center rounded px-3 text-sm text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 md:min-h-0 md:py-1.5 dark:text-zinc-400 dark:hover:bg-zinc-800"
+              className={`${BUTTON_SECONDARY} min-h-11 px-4.5`}
             >
               취소
             </button>
@@ -231,11 +302,12 @@ function AddExerciseModal({ onRequestClose }: { onRequestClose: () => void }) {
               type="button"
               onClick={submit}
               disabled={isPending}
-              className="inline-flex min-h-11 items-center rounded bg-zinc-900 px-3 text-sm text-white hover:bg-zinc-800 disabled:opacity-50 md:min-h-0 md:py-1.5 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+              className={`${BUTTON_PRIMARY} min-h-11`}
             >
-              {isPending ? '추가 중...' : '추가'}
+              {isPending ? '추가 중…' : '추가하기'}
             </button>
           </div>
+          )}
         </div>
       </div>
     </div>

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { PRIORITY_LABELS, PRIORITY_VALUES, type Priority } from '@repo/shared';
 import { patchCompany } from '../../../lib/api';
 import { Select } from '../../ui/Select';
+import { HoverChevron, TABLE_TRIGGER } from './table-style';
 
 const PRIORITY_STYLE: Record<Priority, string> = {
   urgent:
@@ -21,12 +22,26 @@ const OPTIONS = PRIORITY_VALUES.map((v) => ({
   className: PRIORITY_STYLE[v],
 }));
 
+// 표(데스크톱): 긴급만 마감색으로 튀게, 상은 본문, 하는 보조색.
+const TABLE_TONE: Record<Priority, string> = {
+  urgent: 'font-semibold text-alert',
+  important: 'text-ink-soft',
+  normal: 'text-ink-muted',
+};
+const TABLE_OPTIONS = PRIORITY_VALUES.map((v) => ({
+  value: v,
+  label: PRIORITY_LABELS[v],
+  className: TABLE_TONE[v],
+}));
+
 export function PrioritySelect({
   id,
   value,
+  variant,
 }: {
   id: string;
   value: Priority;
+  variant?: 'table';
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -43,6 +58,21 @@ export function PrioritySelect({
         console.error(err);
       }
     });
+  }
+
+  if (variant === 'table') {
+    return (
+      <Select
+        value={current}
+        onChange={commit}
+        options={TABLE_OPTIONS}
+        disabled={isPending}
+        ariaLabel="우선순위"
+        tone="rally"
+        triggerClassName={`${TABLE_TRIGGER} text-sm`}
+        triggerSuffix={<HoverChevron />}
+      />
+    );
   }
 
   return (

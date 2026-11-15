@@ -69,6 +69,9 @@ export interface Company {
   appliedAt: string | null;
   applicationDocUrl: string | null;
   progressNote: string | null;
+  // 이 회사에 낸 이력서 / 포폴(PDF 또는 링크) 버전. documents.id 참조.
+  resumeDocumentId: string | null;
+  portfolioDocumentId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -88,13 +91,6 @@ export const PRIORITY_LABELS: Record<Priority, string> = {
   urgent: '긴급',
   important: '상',
   normal: '하',
-};
-
-export const EMPLOYMENT_TYPE_LABELS: Record<EmploymentType, string> = {
-  intern_to_regular: '인턴→전환',
-  full_time: '정규직',
-  contract: '계약직',
-  etc: '기타',
 };
 
 export const APPLICATION_STATUS_LABELS: Record<ApplicationStatus, string> = {
@@ -152,15 +148,6 @@ export type RoutineChallengeStatus = (typeof ROUTINE_CHALLENGE_STATUSES)[number]
 // 3개: 밀러의 법칙(4±1), GTD 류 "일일 중요 과제 3개" 룰, 데스크톱 3열 그리드
 // 한 줄 정확히 맞음, 희소성이 완주 가치 ↑. 사용자가 답답해하면 늘리기 쉬움.
 export const MAX_ACTIVE_CHALLENGES = 3;
-
-export const ROUTINE_CHALLENGE_STATUS_LABELS: Record<
-  RoutineChallengeStatus,
-  string
-> = {
-  active: '진행중',
-  completed: '완료',
-  abandoned: '포기',
-};
 
 export interface RoutineChallenge {
   id: string;
@@ -250,10 +237,103 @@ export interface Exercise {
   updatedAt: string;
 }
 
+// 운동 부위 값의 정본 — web(선택지·필터·라벨)과 api(분할 템플릿 배정)가 같이 씀.
+// 새 부위 추가는 여기 한 줄.
+export interface MuscleOption {
+  key: string;
+  label: string;
+  group: 'upper' | 'lower';
+}
+
+export const MUSCLE_OPTIONS: MuscleOption[] = [
+  { key: 'back', label: '등', group: 'upper' },
+  { key: 'chest', label: '가슴', group: 'upper' },
+  { key: 'shoulder', label: '어깨', group: 'upper' },
+  { key: 'arm', label: '팔', group: 'upper' },
+  // 부위 탭('하체')과 같은 이름으로 부름 — 저장 값은 leg 그대로
+  { key: 'leg', label: '하체', group: 'lower' },
+];
+
+// 분할(스플릿): 이름 + 종목 목록 + 순서. sortOrder 순서대로 돌아가며 함.
+export interface WorkoutSplit {
+  id: string;
+  name: string;
+  sortOrder: number;
+  exerciseIds: string[];
+}
+
+// GET /workout-splits?before= — 다음 차례는 before 이전 마지막 기록 기준.
+export interface WorkoutSplitsResponse {
+  splits: WorkoutSplit[];
+  /** before 이전에 마지막으로 한 분할 (기록 없으면 null) */
+  lastSplitId: string | null;
+  /** 오늘 할 차례 (분할이 없으면 null) */
+  nextSplitId: string | null;
+}
+
+export const WORKOUT_SPLIT_TEMPLATES = {
+  'upper-lower': 'upper-lower',
+  'push-pull-legs': 'push-pull-legs',
+  'full-body': 'full-body',
+} as const;
+export type WorkoutSplitTemplate = keyof typeof WORKOUT_SPLIT_TEMPLATES;
+
+export const WORKOUT_SPLIT_NAME_MAX = 30;
+
+export interface SplitTemplatePlan {
+  splits: { name: string; exerciseIds: string[] }[];
+  /** 어느 분할에도 자동으로 안 담긴 종목 — 직접 담아야 함 */
+  unassignedIds: string[];
+  /** 왜 안 담겼는지 한 줄 (예: 팔은 밀기·당기기 양쪽이라 직접) */
+  note: string | null;
+}
+
+// 예시 분할 배정 규칙 — api(만들기)와 web(미리보기)이 같은 결과를 보도록 한 곳에.
+// 부위로 확실히 나눌 수 있는 것만 자동: 밀기 = 가슴·어깨, 당기기 = 등, 하체 = leg.
+// 팔(이두·삼두 섞임)·부위 없는 종목은 남겨서 직접 고르게 함.
+export function planSplitTemplate(
+  kind: WorkoutSplitTemplate,
+  exercises: { id: string; targetMuscle: string | null }[],
+): SplitTemplatePlan {
+  const keyOf = (e: { targetMuscle: string | null }) =>
+    e.targetMuscle ? e.targetMuscle.trim().toLowerCase() : '';
+  const groupOf = new Map(MUSCLE_OPTIONS.map((o) => [o.key, o.group]));
+  const pick = (pred: (key: string) => boolean) =>
+    exercises.filter((e) => pred(keyOf(e))).map((e) => e.id);
+
+  let splits: SplitTemplatePlan['splits'];
+  let note: string | null = null;
+  if (kind === 'upper-lower') {
+    splits = [
+      { name: '상체', exerciseIds: pick((k) => groupOf.get(k) === 'upper') },
+      { name: '하체', exerciseIds: pick((k) => groupOf.get(k) === 'lower') },
+    ];
+  } else if (kind === 'push-pull-legs') {
+    splits = [
+      { name: '밀기', exerciseIds: pick((k) => k === 'chest' || k === 'shoulder') },
+      { name: '당기기', exerciseIds: pick((k) => k === 'back') },
+      { name: '하체', exerciseIds: pick((k) => groupOf.get(k) === 'lower') },
+    ];
+    if (exercises.some((e) => keyOf(e) === 'arm')) {
+      note = '팔 종목은 밀기·당기기 양쪽이라 직접 담아주세요.';
+    }
+  } else {
+    splits = [{ name: '전신', exerciseIds: exercises.map((e) => e.id) }];
+  }
+  const assigned = new Set(splits.flatMap((s) => s.exerciseIds));
+  return {
+    splits,
+    unassignedIds: exercises.filter((e) => !assigned.has(e.id)).map((e) => e.id),
+    note,
+  };
+}
+
 export interface WorkoutSession {
   id: string;
   date: string;
   note: string | null;
+  /** 그날 한 분할 (없으면 null) */
+  splitId: string | null;
   startedAt: string | null;
   endedAt: string | null;
   createdAt: string;
@@ -309,6 +389,19 @@ export interface WorkoutHeatmapEntry {
   date: string;
   completedExerciseCount: number;
 }
+
+// 운동 통계 '운동한 날' — 횟수가 적힌 세트가 1개 이상인 날만(무게는 없어도 됨).
+// 컨디션 메모만 적은 날은 빠짐. 스트릭·이번 주 운동한 날·최근 운동한 날 목록이 같이 씀.
+export interface WorkoutDaySummary {
+  date: string;
+  /** 그날 기록에 붙은 분할 이름(예전에 하루 기록이 여러 개면 여러 개). 분할 없이 기록했으면 빈 배열 */
+  splitNames: string[];
+  exerciseCount: number;
+  setCount: number;
+}
+
+// 운동 통계 종목 카드 — 종목 N개를 한 번에. key = exerciseId
+export type ExerciseStatsBatch = Record<string, ExerciseStats>;
 
 export interface WeeklyVolumeEntry {
   /** ISO date of Monday of that week. */
@@ -407,9 +500,19 @@ export interface LearnFilterPreferences {
   favoritesCategories?: string[];
 }
 
+// 주간 운동 목표 — 한 주에 며칠 운동할지. 운동 스트릭·'이번 주 운동한 날'의 기준.
+// 값이 없으면 WORKOUT_WEEKLY_DAYS_DEFAULT(기존 고정값 3)로 읽음 → 시드 불필요.
+export interface WorkoutPreferences {
+  weeklyDaysTarget?: number;
+}
+export const WORKOUT_WEEKLY_DAYS_DEFAULT = 3;
+export const WORKOUT_WEEKLY_DAYS_MIN = 1;
+export const WORKOUT_WEEKLY_DAYS_MAX = 7;
+
 export interface Preferences {
   notif: NotifPreferences;
   learn?: LearnFilterPreferences;
+  workout?: WorkoutPreferences;
 }
 
 // 신규 계정/미마이그 사용자를 위한 시드값. 클라 localStorage 기본값과
@@ -466,6 +569,8 @@ export interface RandomQuestion {
   categoryKey: string | null;
   status: QuestionStatus | null;
   isFavorite: boolean;
+  /** 복습 목록만 — 복습필요로 표시한 날(서울, YYYY-MM-DD). 오늘의 학습·별표는 없음 */
+  markedAt?: string | null;
 }
 
 // Full detail (fetched when the user asks to see the answer).
@@ -515,18 +620,22 @@ export interface QuestionStatsSummary {
   total: number;
   understood: number;
   reviewNeeded: number;
+  /** 복습필요로 표시한 지 14일 넘은 질문 수 */
+  staleReviewNeeded: number;
+}
+
+// 학습 통계 카테고리별 현황 — 질문 수 · 지금 상태. categoryKey null = 카테고리 없음
+export interface QuestionCategoryStat {
+  categoryKey: string | null;
+  total: number;
+  understood: number;
+  reviewNeeded: number;
 }
 
 // --- documents (이력서·포폴·외부 링크) ---
 
 export const DOCUMENT_KIND_VALUES = ['resume', 'portfolio', 'link'] as const;
 export type DocumentKind = (typeof DOCUMENT_KIND_VALUES)[number];
-
-export const DOCUMENT_KIND_LABELS: Record<DocumentKind, string> = {
-  resume: '이력서',
-  portfolio: '포폴',
-  link: '외부 링크',
-};
 
 export interface Document {
   id: string;
@@ -538,6 +647,8 @@ export interface Document {
   fileMime: string | null;
   isActive: boolean;
   notes: string | null;
+  // 이 문서를 제출본으로 연결한 회사 수. GET /documents 목록 응답에만 포함.
+  submittedCount?: number;
   createdAt: string;
   updatedAt: string;
 }

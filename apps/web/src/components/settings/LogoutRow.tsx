@@ -1,9 +1,10 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { LogOut } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
+import { BUTTON_SECONDARY } from '../jobs/cells/popover-style';
 
+// 설정 맨 아래 왼쪽 [로그아웃] — 계정 삭제(오른쪽 끝)와 멀리
 export function LogoutRow() {
   const router = useRouter();
 
@@ -15,20 +16,8 @@ export function LogoutRow() {
   }
 
   return (
-    <button
-      type="button"
-      onClick={handleLogout}
-      className="flex w-full items-center gap-3 border-b border-zinc-100 px-4 py-3 text-left transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900"
-    >
-      <LogOut className="h-4 w-4 text-zinc-500 dark:text-zinc-400" aria-hidden />
-      <div className="flex-1">
-        <div className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
-          로그아웃
-        </div>
-        <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-          다시 들어올때 재로그인이 필요해요.
-        </p>
-      </div>
+    <button type="button" onClick={handleLogout} className={BUTTON_SECONDARY}>
+      로그아웃
     </button>
   );
 }

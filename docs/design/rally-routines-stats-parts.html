@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>루틴 통계 상태 모음</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#F6F7F5}
+</style>
+</head>
+<body>
+
+<div style="width: 1280px; box-sizing: border-box; padding: 48px; background: #F6F7F5; color: #1C1F1D; font-family: 'IBM Plex Sans KR', system-ui, sans-serif; font-size: 15px; line-height: 1.55; word-break: keep-all; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; gap: 44px">
+
+  <!-- 1. [월] 선택 상태 -->
+  <section style="display: flex; flex-direction: column; gap: 12px">
+    <h2 style="margin: 0; font-size: 17px; font-weight: 700; color: #1F3D30">[월]을 골랐을 때 요약 띠</h2>
+    <!-- 평균 달성률 = 체크 16 ÷ (블록 7 × 30일 = 210칸) = 7.6% → 8%. 요청 샘플의 5%와 다름 — 분모를 '지난 날짜까지'로 세는지 확인 필요 -->
+    <div style="display: flex; flex-direction: column; gap: 6px; padding: 14px 0 22px; border-top: 1px solid #CDD1CC; border-bottom: 1px solid #CDD1CC">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px">
+        <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: #1F3D30">11월 <span style="font-weight: 500; font-size: 14px; color: #4F5450">11.01 – 11.30</span></h3>
+        <div role="group" aria-label="기간" style="display: inline-flex; border: 1px solid #BFC4BE; border-radius: 6px; overflow: hidden">
+          <button type="button" aria-pressed="false" style="min-height: 40px; min-width: 56px; padding: 0 14px; border: 0; background: #FFFFFF; color: #1F3D30; font: inherit; font-size: 14px; cursor: pointer">주</button>
+          <button type="button" aria-pressed="true" style="min-height: 40px; min-width: 56px; padding: 0 14px; border: 0; border-left: 1px solid #BFC4BE; background: #E6EEE8; box-shadow: inset 0 0 0 2px #1F3D30; border-radius: 0 6px 6px 0; color: #1F3D30; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer">월</button>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr))">
+        <div style="display: flex; flex-direction: column; gap: 6px; padding-right: 28px">
+          <span style="font-size: 14px; font-weight: 600; color: #3F4441">체크</span>
+          <span style="display: flex; align-items: baseline; gap: 4px"><span style="font-size: 40px; line-height: 1.1; font-weight: 600">16</span><span style="font-size: 16px; color: #3F4441">회</span></span>
+        </div>
+        <div title="블록을 전부 체크한 날만 세요" style="display: flex; flex-direction: column; gap: 6px; padding: 0 28px; border-left: 1px solid #CDD1CC">
+          <span style="font-size: 14px; font-weight: 600; color: #3F4441">완료한 날</span>
+          <span style="display: flex; align-items: baseline; gap: 4px"><span style="font-size: 40px; line-height: 1.1; font-weight: 600">1</span><span style="font-size: 16px; color: #3F4441">/ 30일</span></span>
+          <span style="height: 6px; max-width: 240px; background: #E3E6E2"><span style="display: block; height: 100%; width: 3.3%; background: #1F3D30"></span></span>
+        </div>
+        <div title="210칸 중 16칸 체크" style="display: flex; flex-direction: column; gap: 6px; padding: 0 28px; border-left: 1px solid #CDD1CC">
+          <span style="font-size: 14px; font-weight: 600; color: #3F4441">평균 달성률</span>
+          <span style="display: flex; align-items: baseline; gap: 4px"><span style="font-size: 40px; line-height: 1.1; font-weight: 600">8</span><span style="font-size: 16px; color: #3F4441">%</span></span>
+          <span style="height: 6px; max-width: 240px; background: #E3E6E2"><span style="display: block; height: 100%; width: 8%; background: #1F3D30"></span></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. 숫자가 0일 때 -->
+  <section style="display: flex; flex-direction: column; gap: 12px">
+    <h2 style="margin: 0; font-size: 17px; font-weight: 700; color: #1F3D30">이번 주에 아직 체크가 없을 때</h2>
+    <!-- 0도 셀 수 있는 값이라 "—"가 아니라 0으로 표시. 큰 숫자는 ink-muted로 한 톤 낮춤(읽어야 하는 글자라 ink-faint는 안 씀) -->
+    <p style="margin: 0; font-size: 15px; color: #3F4441">지금 <strong style="font-weight: 700; color: #1C1F1D">0일</strong> 연속 · 최고 12일</p>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 18px 0 22px; border-top: 1px solid #CDD1CC; border-bottom: 1px solid #CDD1CC">
+      <div style="display: flex; flex-direction: column; gap: 6px; padding-right: 28px">
+        <span style="font-size: 14px; font-weight: 600; color: #3F4441">체크</span>
+        <span style="display: flex; align-items: baseline; gap: 4px"><span style="font-size: 40px; line-height: 1.1; font-weight: 600; color: #4F5450">0</span><span style="font-size: 16px; color: #4F5450">회</span></span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px; padding: 0 28px; border-left: 1px solid #CDD1CC">
+        <span style="font-size: 14px; font-weight: 600; color: #3F4441">완료한 날</span>
+        <span style="display: flex; align-items: baseline; gap: 4px"><span style="font-size: 40px; line-height: 1.1; font-weight: 600; color: #4F5450">0</span><span style="font-size: 16px; color: #4F5450">/ 7일</span></span>
+        <span style="height: 6px; max-width: 240px; background: #E3E6E2"></span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px; padding: 0 28px; border-left: 1px solid #CDD1CC">
+        <span style="font-size: 14px; font-weight: 600; color: #3F4441">평균 달성률</span>
+        <span style="display: flex; align-items: baseline; gap: 4px"><span style="font-size: 40px; line-height: 1.1; font-weight: 600; color: #4F5450">0</span><span style="font-size: 16px; color: #4F5450">%</span></span>
+        <span style="height: 6px; max-width: 240px; background: #E3E6E2"></span>
+        <a href="#" style="font-size: 13px; color: #1F3D30">트래커에서 오늘 체크하기 ›</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. 빈 상태 -->
+  <section style="display: flex; flex-direction: column; gap: 12px">
+    <h2 style="margin: 0; font-size: 17px; font-weight: 700; color: #1F3D30">빈 상태</h2>
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 20px; align-items: start">
+      <div style="padding: 22px 24px 28px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; flex-direction: column; gap: 18px">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px">
+          <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: #1F3D30">요즘 꾸준한 루틴</h3>
+          <span style="font-size: 13px; color: #4F5450">지난 4주 · 28일 중</span>
+        </div>
+        <p style="margin: 12px 0; text-align: center; font-size: 15px; color: #3F4441">지난 4주 동안 체크한 루틴이 없어요.</p>
+      </div>
+      <!-- 블록이 하나도 없으면 띠·카드 대신 이 카드 하나만 보여줌.
+           제안: 요청 문구 "트래커에서 하나 추가해보세요."를 skill 규칙("~에서 해주세요" 안내문 대신 행동 링크)에 맞춰 문장 + 링크로 나눔.
+           다른 후보: "아직 만든 시간블록이 없어요. 트래커에서 하나 추가해보세요." 한 줄 그대로 -->
+      <div style="padding: 40px 24px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center">
+        <span style="font-size: 13px; font-weight: 600; color: #4F5450">블록이 하나도 없을 때 (페이지 전체)</span>
+        <p style="margin: 0; font-size: 15px; color: #3F4441">아직 만든 시간블록이 없어요.</p>
+        <a href="#" style="min-height: 40px; box-sizing: border-box; display: inline-flex; align-items: center; gap: 6px; padding: 0 16px; border-radius: 6px; background: #1F3D30; color: #FFFFFF; font-size: 14px; font-weight: 600; text-decoration: none">트래커에서 블록 추가하기 ›</a>
+        <span style="padding: 0 6px; border: 1px dashed #BFC4BE; border-radius: 4px; font-size: 11px; color: #4F5450">제안</span>
+      </div>
+    </div>
+  </section>
+</div>
+</body>
+</html>

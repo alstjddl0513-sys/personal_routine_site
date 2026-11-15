@@ -12,7 +12,8 @@ import {
   type SQL,
 } from 'drizzle-orm';
 import { db } from '../db/client';
-import { questionLogs, questions } from '../db/schema';
+import { questionLogEvents, questionLogs, questions } from '../db/schema';
+import type { QuestionCategoryStat, QuestionStatus } from '@repo/shared';
 import type { CreateQuestionDto } from './dto/create-question.dto';
 import type { FavoriteQuestionDto } from './dto/favorite-question.dto';
 import type { LogQuestionDto } from './dto/log-question.dto';
@@ -25,6 +26,8 @@ import type { QueryStatsRangeDto } from './dto/query-stats-range.dto';
 import type { UpdateQuestionDto } from './dto/update-question.dto';
 
 const DAILY_LIMIT = 5;
+// 학습 통계 '오래 묵은 복습필요' 기준(고정)
+const STALE_REVIEW_DAYS = 14;
 
 @Injectable()
 export class QuestionsService {
@@ -33,17 +36,24 @@ export class QuestionsService {
   // are today's set. Same day → same 10 (refresh-safe). Different day → new
   // 10. No storage; if we ever need "show me yesterday's set" this becomes
   // a table lookup.
+  //
+  // 질문당 기록은 1개(마지막 상태)라 그대로 쓰면 예전에 표시한 질문이 오늘 '이미 한 것'으로
+  // 떠서, 5개가 다 예전 질문이면 하나도 안 풀었는데 '오늘 완료'가 됨. 그래서:
+  //  - status는 오늘(서울, query.date) 표시한 것만 — 이전 날 표시는 null
+  //  - 어제까지 이해완료한 질문은 뒤로(안 푼 질문·복습필요가 먼저, 모자라면 채움).
+  //    오늘 표시해도 앞 묶음 안에서만 움직여 하루 안 5개 구성은 그대로
   async findDaily(ownerId: string, query: QueryDailyDto) {
     const conditions: SQL[] = [eq(questions.ownerId, ownerId)];
     if (query.categories && query.categories.length > 0) {
       conditions.push(inArray(questions.categoryKey, query.categories));
     }
+    const logDay = sql`(${questionLogs.updatedAt} AT TIME ZONE 'Asia/Seoul')::date`;
     return db
       .select({
         id: questions.id,
         content: questions.content,
         categoryKey: questions.categoryKey,
-        status: questionLogs.status,
+        status: sql<QuestionStatus | null>`case when ${logDay} = ${query.date}::date then ${questionLogs.status} else null end`,
         isFavorite: questions.isFavorite,
       })
       .from(questions)
@@ -55,7 +65,10 @@ export class QuestionsService {
         ),
       )
       .where(and(...conditions))
-      .orderBy(sql`md5(${questions.id}::text || ${query.date})`)
+      .orderBy(
+        sql`case when ${questionLogs.status} = 'understood' and ${logDay} < ${query.date}::date then 1 else 0 end`,
+        sql`md5(${questions.id}::text || ${query.date})`,
+      )
       .limit(DAILY_LIMIT);
   }
 
@@ -78,6 +91,8 @@ export class QuestionsService {
         categoryKey: questions.categoryKey,
         status: questionLogs.status,
         isFavorite: questions.isFavorite,
+        // 복습 카드 "11월 2일에 표시" — 복습필요로 표시한 날(서울)
+        markedAt: sql<string>`(${questionLogs.updatedAt} AT TIME ZONE 'Asia/Seoul')::date::text`,
       })
       .from(questions)
       .innerJoin(
@@ -192,37 +207,27 @@ export class QuestionsService {
     };
   }
 
-  // Daily activity counts for the heatmap. Groups by updated_at date in
-  // Asia/Seoul (Rally is Korean-audience) so a KST-morning answer lands on
-  // today rather than yesterday-UTC. Re-answering moves activity to today's
-  // bucket (review also counts as learning). Empty days omitted; client
-  // fills with 0. Hardcoded Seoul is a known limitation — revisit if
-  // internationalizing.
+  // 날짜별 학습한 질문 수(히트맵·스트릭·'오늘 학습'). 표시할 때마다 쌓는 question_log_events 기준 —
+  // question_logs(질문당 1행)로 세면 다시 표시할 때 예전 날짜가 덮여 지난 기록이 줄었음.
+  // 같은 날 같은 질문을 여러 번 바꿔도 1개(질문을 지워도 기록의 question_id는 남음 — FK 없음).
+  // 서울 날짜 기준(국내 사용자). 빈 날은 빠짐 → 클라가 0으로 채움.
   async getHeatmap(ownerId: string, query: QueryStatsRangeDto) {
-    const rows = await db
+    const day = sql`(${questionLogEvents.createdAt} AT TIME ZONE 'Asia/Seoul')::date`;
+    return db
       .select({
-        date: sql<string>`(${questionLogs.updatedAt} AT TIME ZONE 'Asia/Seoul')::date::text`,
-        count: sql<number>`count(*)::int`,
+        date: sql<string>`${day}::text`,
+        count: sql<number>`count(distinct ${questionLogEvents.questionId})::int`,
       })
-      .from(questionLogs)
+      .from(questionLogEvents)
       .where(
         and(
-          eq(questionLogs.ownerId, ownerId),
-          gte(
-            sql`(${questionLogs.updatedAt} AT TIME ZONE 'Asia/Seoul')::date`,
-            query.from,
-          ),
-          lte(
-            sql`(${questionLogs.updatedAt} AT TIME ZONE 'Asia/Seoul')::date`,
-            query.to,
-          ),
+          eq(questionLogEvents.ownerId, ownerId),
+          gte(day, query.from),
+          lte(day, query.to),
         ),
       )
-      .groupBy(sql`(${questionLogs.updatedAt} AT TIME ZONE 'Asia/Seoul')::date`)
-      .orderBy(
-        sql`(${questionLogs.updatedAt} AT TIME ZONE 'Asia/Seoul')::date`,
-      );
-    return rows;
+      .groupBy(day)
+      .orderBy(day);
   }
 
   // Aggregate counts. UNIQUE(owner, question) means one log per question,
@@ -234,6 +239,8 @@ export class QuestionsService {
       .select({
         understood: sql<number>`sum(case when ${questionLogs.status} = 'understood' then 1 else 0 end)::int`,
         reviewNeeded: sql<number>`sum(case when ${questionLogs.status} = 'review_needed' then 1 else 0 end)::int`,
+        // 복습필요로 표시한 지 14일 넘은(서울 날짜) 질문 — "2주 넘게 다시 안 본"
+        staleReviewNeeded: sql<number>`sum(case when ${questionLogs.status} = 'review_needed' and (${questionLogs.updatedAt} AT TIME ZONE 'Asia/Seoul')::date < (now() AT TIME ZONE 'Asia/Seoul')::date - ${STALE_REVIEW_DAYS}::int then 1 else 0 end)::int`,
       })
       .from(questionLogs)
       .where(eq(questionLogs.ownerId, ownerId));
@@ -243,7 +250,30 @@ export class QuestionsService {
       total: understood + reviewNeeded,
       understood,
       reviewNeeded,
+      staleReviewNeeded: logAgg?.staleReviewNeeded ?? 0,
     };
+  }
+
+  // 카테고리별 현황 — 질문 수와 지금 상태(이해완료·복습필요). 표시한 질문 = 둘의 합.
+  // 카테고리 없음은 null 줄(웹에서 지운 카테고리와 함께 '기타'로 묶음).
+  async getCategoryStats(ownerId: string): Promise<QuestionCategoryStat[]> {
+    return db
+      .select({
+        categoryKey: questions.categoryKey,
+        total: sql<number>`count(*)::int`,
+        understood: sql<number>`count(*) filter (where ${questionLogs.status} = 'understood')::int`,
+        reviewNeeded: sql<number>`count(*) filter (where ${questionLogs.status} = 'review_needed')::int`,
+      })
+      .from(questions)
+      .leftJoin(
+        questionLogs,
+        and(
+          eq(questionLogs.questionId, questions.id),
+          eq(questionLogs.ownerId, ownerId),
+        ),
+      )
+      .where(eq(questions.ownerId, ownerId))
+      .groupBy(questions.categoryKey);
   }
 
   // 관리 페이지용 list. 사용자가 직접 추가한 커스텀 질문(is_seed=false)만.
@@ -370,18 +400,24 @@ export class QuestionsService {
       .limit(1);
     if (!q) throw new NotFoundException(`Question ${questionId} not found`);
 
-    const [row] = await db
-      .insert(questionLogs)
-      .values({ ownerId, questionId, status: dto.status })
-      .onConflictDoUpdate({
-        target: [questionLogs.ownerId, questionLogs.questionId],
-        set: { status: dto.status, updatedAt: new Date() },
-      })
-      .returning({
-        status: questionLogs.status,
-        answeredAt: questionLogs.answeredAt,
-        updatedAt: questionLogs.updatedAt,
-      });
-    return row;
+    // 지금 상태(question_logs 1행) + 표시 기록 한 줄(question_log_events)을 한 번에 — 통계 날짜는 기록 쪽
+    return db.transaction(async (tx) => {
+      const [row] = await tx
+        .insert(questionLogs)
+        .values({ ownerId, questionId, status: dto.status })
+        .onConflictDoUpdate({
+          target: [questionLogs.ownerId, questionLogs.questionId],
+          set: { status: dto.status, updatedAt: new Date() },
+        })
+        .returning({
+          status: questionLogs.status,
+          answeredAt: questionLogs.answeredAt,
+          updatedAt: questionLogs.updatedAt,
+        });
+      await tx
+        .insert(questionLogEvents)
+        .values({ ownerId, questionId, status: dto.status });
+      return row;
+    });
   }
 }

@@ -48,7 +48,7 @@ export function ConfirmDialog({
     icon ??
     (variant === 'danger' ? (
       <Trash2
-        className="h-5 w-5 text-rose-600 dark:text-rose-400"
+        className="h-5 w-5 text-alert"
         aria-hidden
       />
     ) : null);
@@ -61,14 +61,14 @@ export function ConfirmDialog({
     >
       <div
         ref={dialogRef}
-        className="w-full max-w-sm rounded-lg border border-zinc-200 bg-white p-5 shadow-xl dark:border-zinc-800 dark:bg-zinc-900"
+        className="w-full max-w-sm rounded-lg border border-line bg-surface p-5 font-plex text-ink shadow-xl"
       >
         <div className="mb-3 flex items-center gap-2">
           {displayIcon}
-          <h2 className="text-base font-semibold">{title}</h2>
+          <h2 className="text-[17px] font-bold">{title}</h2>
         </div>
         {description ? (
-          <div className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+          <div className="mb-4 text-sm leading-normal text-ink-soft">
             {description}
           </div>
         ) : null}
@@ -77,7 +77,7 @@ export function ConfirmDialog({
             type="button"
             onClick={onCancel}
             disabled={pending}
-            className="inline-flex min-h-11 items-center rounded px-3 text-sm text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 md:min-h-0 md:py-1.5 dark:text-zinc-400 dark:hover:bg-zinc-800"
+            className="inline-flex min-h-10 cursor-pointer items-center rounded-md border border-btn-border bg-btn-bg px-4 text-sm text-ink hover:border-heading disabled:opacity-50"
           >
             {cancelLabel}
           </button>
@@ -85,10 +85,11 @@ export function ConfirmDialog({
             type="button"
             onClick={onConfirm}
             disabled={pending}
-            className={`inline-flex min-h-11 items-center rounded px-3 text-sm text-white disabled:opacity-50 md:min-h-0 md:py-1.5 ${
+            className={`inline-flex min-h-10 cursor-pointer items-center rounded-md px-4 text-sm font-semibold text-white disabled:opacity-50 ${
               variant === 'danger'
-                ? 'bg-rose-600 hover:bg-rose-700'
-                : 'bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200'
+                ? // 위험 동작은 확인 창 안에서만 alert 채움. 다크 alert는 밝아서 글자를 어두운 바탕색으로
+                'bg-alert hover:opacity-90 dark:text-paper'
+                : 'bg-button hover:opacity-90'
             }`}
           >
             {confirmLabel}

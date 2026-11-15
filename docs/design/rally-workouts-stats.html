@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rally 운동 통계</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;display=swap">
+<style>body{margin:0;background:#F6F7F5}</style>
+</head>
+<body>
+<div style="min-height: 100vh; box-sizing: border-box; display: flex; flex-wrap: wrap; background: #F6F7F5; color: #1C1F1D; font-family: 'IBM Plex Sans KR', system-ui, sans-serif; font-size: 15px; line-height: 1.55; word-break: keep-all; font-variant-numeric: tabular-nums">
+  <!-- 사이드바 (공통) — 운동 > 통계 활성 -->
+  <aside style="flex: 1 1 216px; max-width: 100%; box-sizing: border-box; padding: 28px 12px 16px; display: flex; flex-direction: column; gap: 28px; background: #1F3D30; border-right: 1px solid #1F3D30">
+    <a href="#" style="display: flex; align-items: center; gap: 9px; padding: 0 12px; text-decoration: none; color: #F4F2EC">
+      <svg width="20" height="22" viewBox="0 0 20 22" fill="none" aria-hidden="true"><path d="M3.5 21V1.8" stroke="#F4F2EC" stroke-width="2" stroke-linecap="round"></path><path d="M4.5 2.2L18 7.4L4.5 12.4Z" fill="#E9B949"></path></svg>
+      <span style="font-size: 20px; font-weight: 700; letter-spacing: -0.01em">Rally</span>
+    </a>
+    <nav aria-label="주 메뉴" style="flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: none; display: flex; flex-direction: column; gap: 2px">
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border-radius: 6px; color: #C3CEC6; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.5L12 5l8 6.5V20h-5v-5.5H9V20H4z"></path></svg>
+        오늘
+      </a>
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border-radius: 6px; color: #C3CEC6; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="1.5"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg>
+        캘린더
+      </a>
+      <button type="button" aria-expanded="false" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: #C3CEC6; font: inherit; text-align: left; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="1.5"></rect><path d="M9 7V4.5h6V7"></path></svg>
+        <span style="flex: 1 1 auto">채용</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </button>
+      <button type="button" aria-expanded="false" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: #C3CEC6; font: inherit; text-align: left; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h3M4 12h3M4 18h3M10 6h10M10 12h10M10 18h6"></path></svg>
+        <span style="flex: 1 1 auto">루틴</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </button>
+      <div style="display: flex; flex-direction: column">
+        <button type="button" aria-expanded="true" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: #FFFFFF; font: inherit; font-weight: 600; text-align: left; cursor: pointer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5v11M17.5 6.5v11M3 9.5v5M21 9.5v5M6.5 12h11"></path></svg>
+          <span style="flex: 1 1 auto">운동</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+        </button>
+        <a href="#" style="display: flex; align-items: center; min-height: 32px; padding: 0 12px 0 42px; border-radius: 6px; color: #A9B8AE; text-decoration: none; font-size: 14px">기록</a>
+        <a href="#" aria-current="page" style="display: flex; align-items: center; min-height: 32px; padding: 0 12px 0 42px; border-radius: 6px; background: #2C4F40; color: #FFFFFF; text-decoration: none; font-size: 14px; font-weight: 600">통계</a>
+      </div>
+      <button type="button" aria-expanded="false" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: #C3CEC6; font: inherit; text-align: left; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h6a2 2 0 0 1 2 2v13a1.5 1.5 0 0 0-1.5-1.5H4zM20 5h-6a2 2 0 0 0-2 2v13a1.5 1.5 0 0 1 1.5-1.5H20z"></path></svg>
+        <span style="flex: 1 1 auto">학습</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </button>
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border-radius: 6px; color: #C3CEC6; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5h14M5 10h14M5 15h9M5 20h6"></path></svg>
+        블로그
+      </a>
+    </nav>
+    <div style="display: flex; align-items: center; gap: 2px; padding-top: 12px; border-top: 1px solid #36594A">
+      <a href="#" style="flex: 1 1 auto; display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border-radius: 6px; color: #C3CEC6; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"></path></svg>
+        설정
+      </a>
+      <button type="button" aria-label="다크 모드 전환" style="width: 40px; height: 40px; flex: none; border: 0; border-radius: 6px; background: transparent; display: inline-flex; align-items: center; justify-content: center; color: #C3CEC6; cursor: pointer">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 13A8.5 8.5 0 1 1 11 3.5a6.5 6.5 0 0 0 9.5 9.5z"></path></svg>
+      </button>
+      <button type="button" aria-label="알림" style="width: 40px; height: 40px; flex: none; border: 0; border-radius: 6px; background: transparent; display: inline-flex; align-items: center; justify-content: center; color: #C3CEC6; cursor: pointer">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 8 2.5 8h-17S6 15 6 9M10.3 20.5a1.9 1.9 0 0 0 3.4 0"></path></svg>
+      </button>
+    </div>
+  </aside>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 36px 40px 64px">
+    <div style="max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px">
+      <h1 style="margin: 0; font-size: 26px; line-height: 1.3; font-weight: 700; letter-spacing: -0.01em">운동 통계</h1>
+      <!-- 요약 띠: 루틴 통계와 같은 선 띠. 기간 전환 없음(이번 주 고정)이라 제목 줄 오른쪽은 비움 -->
+      <section aria-labelledby="sum-title" style="display: flex; flex-direction: column; gap: 6px; padding: 14px 0 20px; border-top: 1px solid #CDD1CC; border-bottom: 1px solid #CDD1CC">
+        <h2 id="sum-title" style="margin: 0 0 10px; font-size: 17px; font-weight: 700; color: #1F3D30">이번 주 <span style="font-weight: 500; font-size: 14px; color: #4F5450">11.09 – 11.15</span></h2>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start"><div style="display: flex; flex-direction: column; gap: 6px; padding-right: 28px"><span style="display: flex; align-items: center; gap: 2px; min-height: 24px; font-size: 14px; font-weight: 600; color: #3F4441">운동 스트릭<span tabindex="0" title="운동한 날이 주 4일 이상인 주가 이어진 수예요. 이번 주는 목표를 채우면 더해져요. 최장 기록은 최근 26주 안에서 세요." style="display: inline-flex; width: 24px; height: 24px; align-items: center; justify-content: center; color: #4F5450; cursor: help"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path></svg></span></span><span style="display: flex; align-items: baseline; gap: 4px"><span style="font-size: 40px; line-height: 1.1; font-weight: 600; letter-spacing: -0.02em; color: #1C1F1D">3</span><span style="font-size: 16px; color: #3F4441">주 연속</span></span><span style="font-size: 13px; color: #4F5450">최장 5주 · 주 4일 이상</span></div><div style="display: flex; flex-direction: column; gap: 6px; padding: 0 28px; border-left: 1px solid #CDD1CC">
+          <span style="display: flex; align-items: center; gap: 2px; min-height: 24px; font-size: 14px; font-weight: 600; color: #3F4441">이번 주 운동한 날<span tabindex="0" title="횟수를 적은 세트가 1개 이상인 날이에요. 컨디션 메모만 적은 날은 세지 않아요." style="display: inline-flex; width: 24px; height: 24px; align-items: center; justify-content: center; color: #4F5450; cursor: help"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path></svg></span></span>
+          <span style="display: flex; align-items: baseline; gap: 4px"><span style="font-size: 40px; line-height: 1.1; font-weight: 600; letter-spacing: -0.02em; color: #1C1F1D">1</span><span style="font-size: 16px; color: #3F4441">/ 목표 4일</span></span>
+          <span style="display: block; height: 6px; max-width: 240px; background: #E3E6E2"><span style="display: block; height: 100%; width: 25.0%; background: #1F3D30"></span></span>
+          <span style="display: flex; align-items: center; justify-content: space-between; gap: 8px; max-width: 240px"><span style="font-size: 13px; color: #3F4441">3일 더 하면 이번 주도 스트릭에 들어가요</span></span>
+          <a href="#" style="align-self: flex-start; margin-top: -6px; min-height: 32px; display: inline-flex; align-items: center; font-size: 13px; color: #1F3D30; text-decoration: none">목표 바꾸기 ›</a>
+        </div><div style="display: flex; flex-direction: column; gap: 6px; padding: 0 28px; border-left: 1px solid #CDD1CC">
+          <span style="display: flex; align-items: center; gap: 2px; min-height: 24px; font-size: 14px; font-weight: 600; color: #3F4441">이번 주 볼륨<span tabindex="0" title="이번 주 세트의 무게 × 횟수를 더한 값이에요. 무게 없는 세트는 빠져요." style="display: inline-flex; width: 24px; height: 24px; align-items: center; justify-content: center; color: #4F5450; cursor: help"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path></svg></span></span>
+          <span style="display: flex; align-items: baseline; gap: 4px"><span style="font-size: 40px; line-height: 1.1; font-weight: 600; letter-spacing: -0.02em; color: #1C1F1D">2,150</span><span style="font-size: 16px; color: #3F4441">kg</span></span>
+          <span style="font-size: 13px; color: #4F5450">지난주 8,450kg <span style="color: #7A7E78; font-weight: 400">−6,300kg</span></span>
+        </div></div>
+      </section>
+      <!-- 배치: 요약 → [주간 볼륨 | 최근 운동한 날] 나란히 → 부위별 목표 한 줄 → 종목별 기록.
+           볼륨 그래프와 최근 운동한 날을 나란히: 둘 다 '최근에 얼마나 했나'라 같이 보면 쉰 주·몰아서 한 날이 한 번에 읽힘. 높이도 비슷(그래프 ~200px, 7줄 ~308px).
+           다른 후보: 세로로(그래프 전체 폭) — 12점짜리 그래프가 984px로 늘어나 성김 -->
+      <div style="display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 20px; align-items: stretch"><section style="min-width: 0; padding: 22px 24px 20px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; flex-direction: column; gap: 14px; "><div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 28px"><h2 style="margin: 0; font-size: 17px; font-weight: 700; color: #1F3D30">주간 볼륨</h2><span style="font-size: 13px; color: #4F5450">최근 12주 · kg</span></div><!-- 이번 주(진행 중)는 빈 원 + 점선. 월요일이라 값이 작아도 "덜 했다"가 아니라 "아직 진행 중"으로 읽힘. 0kg인 주는 0에 점(hover "쉰 주 · 0kg"). 점 hover = 툴팁(이 시안은 10.26 주) --><div style="padding-top: 6px"><svg role="img" aria-label="최근 12주 주간 볼륨" viewBox="0 0 516 290" width="100%" style="display: block; overflow: visible; font-family: inherit; font-variant-numeric: tabular-nums"><line x1="52" y1="256.0" x2="500" y2="256.0" stroke="#E7E9E6" stroke-width="1"></line><text x="42" y="260.0" text-anchor="end" font-size="11" fill="#4F5450">0</text><line x1="52" y1="137.0" x2="500" y2="137.0" stroke="#E7E9E6" stroke-width="1"></line><text x="42" y="141.0" text-anchor="end" font-size="11" fill="#4F5450">5,000</text><line x1="52" y1="18.0" x2="500" y2="18.0" stroke="#E7E9E6" stroke-width="1"></line><text x="42" y="22.0" text-anchor="end" font-size="11" fill="#4F5450">10,000</text><polyline points="52.0,108.4 92.7,87.0 133.5,256.0 174.2,94.2 214.9,79.9 255.6,68.0 296.4,256.0 337.1,75.1 377.8,63.2 418.5,70.4 459.3,54.9" fill="none" stroke="#1F3D30" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></polyline><line x1="459.3" y1="54.9" x2="500.0" y2="204.8" stroke="#1F3D30" stroke-width="2" stroke-dasharray="3 4" stroke-linecap="round"></line><circle cx="52.0" cy="108.4" r="3" fill="#1F3D30"></circle><circle cx="92.7" cy="87.0" r="3" fill="#1F3D30"></circle><circle cx="133.5" cy="256.0" r="3" fill="#1F3D30"></circle><circle cx="174.2" cy="94.2" r="3" fill="#1F3D30"></circle><circle cx="214.9" cy="79.9" r="3" fill="#1F3D30"></circle><circle cx="255.6" cy="68.0" r="3" fill="#1F3D30"></circle><circle cx="296.4" cy="256.0" r="3" fill="#1F3D30"></circle><circle cx="337.1" cy="75.1" r="3" fill="#1F3D30"></circle><circle cx="377.8" cy="63.2" r="3" fill="#1F3D30"></circle><circle cx="418.5" cy="70.4" r="4.5" fill="#1F3D30"></circle><circle cx="459.3" cy="54.9" r="3" fill="#1F3D30"></circle><circle cx="500.0" cy="204.8" r="4" fill="#FFFFFF" stroke="#1F3D30" stroke-width="2"></circle><g><line x1="418.5" y1="18" x2="418.5" y2="256" stroke="#BFC4BE" stroke-width="1" stroke-dasharray="2 3"></line><rect x="359.5" y="32.4" width="118" height="26" rx="5" fill="#1C1F1D"></rect><text x="418.5" y="49.4" text-anchor="middle" font-size="12" fill="#FFFFFF">10.26 주 · 7,800kg</text></g><text x="52.0" y="282" text-anchor="middle" font-size="12" fill="#4F5450">8.24</text><text x="214.9" y="282" text-anchor="middle" font-size="12" fill="#4F5450">9.21</text><text x="377.8" y="282" text-anchor="middle" font-size="12" fill="#4F5450">10.19</text><text x="500.0" y="282" text-anchor="end" font-size="12" font-weight="600" fill="#3F4441">이번 주</text></svg></div></section><section style="min-width: 0; padding: 22px 24px 20px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; flex-direction: column; gap: 14px; "><div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 28px"><h2 style="margin: 0; font-size: 17px; font-weight: 700; color: #1F3D30">최근 운동한 날</h2><span style="font-size: 13px; color: #4F5450">7일</span></div><!-- 줄 전체가 링크(그날 운동 기록으로). hover = row-hover 배경 + › (이 시안은 둘째 줄). 분할 없이 기록한 날은 가운데 칸 비움 --><div style="margin-top: -6px"><ul style="margin: 0; padding: 0; list-style: none"><li style="border-bottom: 1px solid #E7E9E6; "><a href="#" style="display: flex; align-items: center; gap: 14px; min-height: 44px; margin: 0 -10px; padding: 0 10px; border-radius: 6px; background: transparent; color: #1C1F1D; text-decoration: none; font-size: 14px">
+            <span style="flex: none; width: 112px; font-weight: 500">11월 9일 (월)</span><span style="flex: 1 1 auto; min-width: 0; color: #3F4441">상체</span>
+            <span style="flex: none; color: #4F5450">3종목 9세트</span><span style="flex: none; width: 16px; display: inline-flex; color: transparent"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></a></li><li style="border-bottom: 1px solid #E7E9E6; "><a href="#" style="display: flex; align-items: center; gap: 14px; min-height: 44px; margin: 0 -10px; padding: 0 10px; border-radius: 6px; background: #F2F4F1; color: #1C1F1D; text-decoration: none; font-size: 14px">
+            <span style="flex: none; width: 112px; font-weight: 600">11월 7일 (토)</span><span style="flex: 1 1 auto; min-width: 0; color: #3F4441">하체</span>
+            <span style="flex: none; color: #4F5450">2종목 8세트</span><span style="flex: none; width: 16px; display: inline-flex; color: #4F5450"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></a></li><li style="border-bottom: 1px solid #E7E9E6; "><a href="#" style="display: flex; align-items: center; gap: 14px; min-height: 44px; margin: 0 -10px; padding: 0 10px; border-radius: 6px; background: transparent; color: #1C1F1D; text-decoration: none; font-size: 14px">
+            <span style="flex: none; width: 112px; font-weight: 500">11월 6일 (금)</span><span style="flex: 1 1 auto; min-width: 0; color: #3F4441">상체</span>
+            <span style="flex: none; color: #4F5450">3종목 10세트</span><span style="flex: none; width: 16px; display: inline-flex; color: transparent"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></a></li><li style="border-bottom: 1px solid #E7E9E6; "><a href="#" style="display: flex; align-items: center; gap: 14px; min-height: 44px; margin: 0 -10px; padding: 0 10px; border-radius: 6px; background: transparent; color: #1C1F1D; text-decoration: none; font-size: 14px">
+            <span style="flex: none; width: 112px; font-weight: 500">11월 5일 (목)</span><span style="flex: 1 1 auto"></span>
+            <span style="flex: none; color: #4F5450">1종목 3세트</span><span style="flex: none; width: 16px; display: inline-flex; color: transparent"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></a></li><li style="border-bottom: 1px solid #E7E9E6; "><a href="#" style="display: flex; align-items: center; gap: 14px; min-height: 44px; margin: 0 -10px; padding: 0 10px; border-radius: 6px; background: transparent; color: #1C1F1D; text-decoration: none; font-size: 14px">
+            <span style="flex: none; width: 112px; font-weight: 500">11월 4일 (수)</span><span style="flex: 1 1 auto; min-width: 0; color: #3F4441">하체</span>
+            <span style="flex: none; color: #4F5450">2종목 7세트</span><span style="flex: none; width: 16px; display: inline-flex; color: transparent"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></a></li><li style="border-bottom: 1px solid #E7E9E6; "><a href="#" style="display: flex; align-items: center; gap: 14px; min-height: 44px; margin: 0 -10px; padding: 0 10px; border-radius: 6px; background: transparent; color: #1C1F1D; text-decoration: none; font-size: 14px">
+            <span style="flex: none; width: 112px; font-weight: 500">11월 2일 (월)</span><span style="flex: 1 1 auto; min-width: 0; color: #3F4441">상체 · 하체</span>
+            <span style="flex: none; color: #4F5450">5종목 14세트</span><span style="flex: none; width: 16px; display: inline-flex; color: transparent"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></a></li><li style=""><a href="#" style="display: flex; align-items: center; gap: 14px; min-height: 44px; margin: 0 -10px; padding: 0 10px; border-radius: 6px; background: transparent; color: #1C1F1D; text-decoration: none; font-size: 14px">
+            <span style="flex: none; width: 112px; font-weight: 500">10월 31일 (토)</span><span style="flex: 1 1 auto; min-width: 0; color: #3F4441">상체</span>
+            <span style="flex: none; color: #4F5450">3종목 9세트</span><span style="flex: none; width: 16px; display: inline-flex; color: transparent"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></a></li></ul></div></section></div>
+      <section style="min-width: 0; padding: 22px 24px 20px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; flex-direction: column; gap: 14px; gap: 18px"><div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 28px"><h2 style="margin: 0; font-size: 17px; font-weight: 700; color: #1F3D30">부위별 주간 목표</h2><a href="#" style="min-height: 40px; display: inline-flex; align-items: center; font-size: 14px; color: #1F3D30; text-decoration: none">목표 설정 ›</a></div><!-- 5부위를 한 줄 5칸으로 — 막대 5개를 세로로 쌓으면 카드가 길어지고 옆 카드와 높이가 안 맞음. 막대는 목표 대비 진행(평소 primary, 목표를 채우면 메리골드, 100% 넘어도 막대는 100%에서 멈춤 → 숫자에 %). 다른 후보: 최근 운동한 날 옆에 세로 목록(막대 + 숫자 오른쪽) --><div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr))"><div style="display: flex; flex-direction: column; gap: 8px; padding: 2px 20px; padding-left: 0; ">
+            <span style="font-size: 14px; font-weight: 600; color: #3F4441">가슴</span>
+            <span style="font-size: 15px; color: #4F5450"><strong style="font-size: 22px; line-height: 1.2; font-weight: 600; color: #1C1F1D">4</strong> / 10세트</span>
+            <span style="display: block; height: 6px; background: #E3E6E2"><span style="display: block; height: 100%; width: 40%; background: #1F3D30"></span></span>
+          </div><div style="border-left: 1px solid #E7E9E6; display: flex; flex-direction: column; gap: 8px; padding: 2px 20px; ">
+            <span style="font-size: 14px; font-weight: 600; color: #3F4441">등</span>
+            <span style="font-size: 15px; color: #4F5450"><strong style="font-size: 22px; line-height: 1.2; font-weight: 600; color: #4F5450">0</strong> / 10세트</span>
+            <span style="display: block; height: 6px; background: #E3E6E2"><span style="display: block; height: 100%; width: 0%; background: #1F3D30"></span></span>
+          </div><div style="border-left: 1px solid #E7E9E6; display: flex; flex-direction: column; gap: 8px; padding: 2px 20px; ">
+            <span style="font-size: 14px; font-weight: 600; color: #3F4441">어깨</span>
+            <span style="font-size: 15px; color: #4F5450"><strong style="font-size: 22px; line-height: 1.2; font-weight: 600; color: #1C1F1D">3</strong> / 8세트</span>
+            <span style="display: block; height: 6px; background: #E3E6E2"><span style="display: block; height: 100%; width: 38%; background: #1F3D30"></span></span>
+          </div><div style="border-left: 1px solid #E7E9E6; display: flex; flex-direction: column; gap: 8px; padding: 2px 20px; ">
+            <span style="font-size: 14px; font-weight: 600; color: #3F4441">팔</span>
+            <span style="font-size: 15px; color: #4F5450"><strong style="font-size: 22px; line-height: 1.2; font-weight: 600; color: #4F5450">0</strong> / 6세트</span>
+            <span style="display: block; height: 6px; background: #E3E6E2"><span style="display: block; height: 100%; width: 0%; background: #1F3D30"></span></span>
+          </div><div style="border-left: 1px solid #E7E9E6; display: flex; flex-direction: column; gap: 8px; padding: 2px 20px; ">
+            <span style="font-size: 14px; font-weight: 600; color: #3F4441">하체</span>
+            <span style="font-size: 15px; color: #4F5450"><strong style="font-size: 22px; line-height: 1.2; font-weight: 600; color: #4F5450">0</strong> / 12세트</span>
+            <span style="display: block; height: 6px; background: #E3E6E2"><span style="display: block; height: 100%; width: 0%; background: #1F3D30"></span></span>
+          </div></div></section>
+      <section aria-labelledby="ex-title" style="display: flex; flex-direction: column; gap: 18px; margin-top: 8px">
+        <!-- 종목별 기록은 카드 묶음이라 섹션 제목만(카드로 한 번 더 감싸지 않음). 묶음 제목 15px 700 heading + 개수(500 ink-muted).
+             10개 이상일 때: 3열 고정, 카드 높이 ~180px로 낮춤(그래프 48px). 묶음 안은 최근에 한 종목부터.
+             그래프는 최근 12번을 오른쪽 끝에 맞춤 → 기록이 적은 종목은 왼쪽이 비어 "아직 몇 번 안 함"이 보임. 기록 1번이면 점 하나 -->
+        <div style="display: flex; align-items: baseline; justify-content: space-between">
+          <h2 id="ex-title" style="margin: 0; font-size: 17px; font-weight: 700; color: #1F3D30">종목별 기록</h2>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px">
+        <h3 style="margin: 0; display: flex; align-items: baseline; gap: 6px; font-size: 15px; font-weight: 700; color: #1F3D30">상체 <span style="font-weight: 500; color: #4F5450">3</span></h3>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px"><article aria-label="벤치프레스" style="min-width: 0; padding: 16px 18px 14px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <h4 style="margin: 0; font-size: 17px; line-height: 1.35; font-weight: 700; color: #1F3D30">벤치프레스</h4>
+          <span style="font-size: 13px; color: #4F5450">가슴 · 목표 8~12회</span>
+        </div>
+        <span style="display: flex; gap: 10px; font-size: 13px"><span style="flex: none; width: 56px; white-space: nowrap; color: #4F5450">최고 기록</span><span><strong style="font-weight: 600; color: #1C1F1D">70kg × 8</strong><span style="color: #4F5450"> · 11월 9일</span></span></span>
+        <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 2px">
+          <span style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 12px; color: #4F5450">
+            <span>최고 무게 · 최근 12번</span>
+            <span><strong style="font-size: 15px; font-weight: 700; color: #1C1F1D">70kg</strong> 11월 9일</span>
+          </span>
+          <div style="position: relative; margin-right: 4px"><svg viewBox="0 0 260 48" width="100%" height="48" preserveAspectRatio="none" aria-hidden="true" style="display: block; overflow: visible"><line x1="0" y1="47" x2="260" y2="47" stroke="#E7E9E6"></line><polyline points="0.0,42.0 23.6,34.8 47.3,34.8 70.9,34.8 94.5,27.6 118.2,27.6 141.8,20.4 165.5,20.4 189.1,20.4 212.7,13.2 236.4,13.2 260.0,6.0" fill="none" stroke="#1F3D30" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg><span style="position: absolute; right: -4px; top: 2.0px; width: 8px; height: 8px; border-radius: 50%; background: #1F3D30; box-shadow: 0 0 0 2px #FFFFFF"></span></div>
+        </div>
+      </article><article aria-label="랫풀다운" style="min-width: 0; padding: 16px 18px 14px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <h4 style="margin: 0; font-size: 17px; line-height: 1.35; font-weight: 700; color: #1F3D30">랫풀다운</h4>
+          <span style="font-size: 13px; color: #4F5450">등 · 목표 10~12회</span>
+        </div>
+        <span style="display: flex; gap: 10px; font-size: 13px"><span style="flex: none; width: 56px; white-space: nowrap; color: #4F5450">최고 기록</span><span><strong style="font-weight: 600; color: #1C1F1D">55kg × 10</strong><span style="color: #4F5450"> · 11월 6일</span></span></span>
+        <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 2px">
+          <span style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 12px; color: #4F5450">
+            <span>최고 무게 · 최근 12번</span>
+            <span><strong style="font-size: 15px; font-weight: 700; color: #1C1F1D">52.5kg</strong> 11월 9일</span>
+          </span>
+          <div style="position: relative; margin-right: 4px"><svg viewBox="0 0 260 48" width="100%" height="48" preserveAspectRatio="none" aria-hidden="true" style="display: block; overflow: visible"><line x1="0" y1="47" x2="260" y2="47" stroke="#E7E9E6"></line><polyline points="0.0,42.0 23.6,42.0 47.3,33.0 70.9,33.0 94.5,24.0 118.2,24.0 141.8,24.0 165.5,15.0 189.1,15.0 212.7,6.0 236.4,6.0 260.0,15.0" fill="none" stroke="#1F3D30" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg><span style="position: absolute; right: -4px; top: 11.0px; width: 8px; height: 8px; border-radius: 50%; background: #1F3D30; box-shadow: 0 0 0 2px #FFFFFF"></span></div>
+        </div>
+      </article><article aria-label="숄더프레스" style="min-width: 0; padding: 16px 18px 14px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <h4 style="margin: 0; font-size: 17px; line-height: 1.35; font-weight: 700; color: #1F3D30">숄더프레스</h4>
+          <span style="font-size: 13px; color: #4F5450">어깨 · 목표 6~10회</span>
+        </div>
+        <span style="display: flex; gap: 10px; font-size: 13px"><span style="flex: none; width: 56px; white-space: nowrap; color: #4F5450">최고 기록</span><span><strong style="font-weight: 600; color: #1C1F1D">35kg × 8</strong><span style="color: #4F5450"> · 11월 9일</span></span></span>
+        <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 2px">
+          <span style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 12px; color: #4F5450">
+            <span>최고 무게 · 최근 5번</span>
+            <span><strong style="font-size: 15px; font-weight: 700; color: #1C1F1D">35kg</strong> 11월 9일</span>
+          </span>
+          <div style="position: relative; margin-right: 4px"><svg viewBox="0 0 260 48" width="100%" height="48" preserveAspectRatio="none" aria-hidden="true" style="display: block; overflow: visible"><line x1="0" y1="47" x2="260" y2="47" stroke="#E7E9E6"></line><polyline points="165.5,42.0 189.1,42.0 212.7,24.0 236.4,24.0 260.0,6.0" fill="none" stroke="#1F3D30" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg><span style="position: absolute; right: -4px; top: 2.0px; width: 8px; height: 8px; border-radius: 50%; background: #1F3D30; box-shadow: 0 0 0 2px #FFFFFF"></span></div>
+        </div>
+      </article></div>
+      </div>
+        <div style="display: flex; flex-direction: column; gap: 10px">
+        <h3 style="margin: 0; display: flex; align-items: baseline; gap: 6px; font-size: 15px; font-weight: 700; color: #1F3D30">하체 <span style="font-weight: 500; color: #4F5450">2</span></h3>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px"><article aria-label="스쿼트" style="min-width: 0; padding: 16px 18px 14px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <h4 style="margin: 0; font-size: 17px; line-height: 1.35; font-weight: 700; color: #1F3D30">스쿼트</h4>
+          <span style="font-size: 13px; color: #4F5450">하체 · 목표 5~8회</span>
+        </div>
+        <span style="display: flex; gap: 10px; font-size: 13px"><span style="flex: none; width: 56px; white-space: nowrap; color: #4F5450">최고 기록</span><span><strong style="font-weight: 600; color: #1C1F1D">100kg × 6</strong><span style="color: #4F5450"> · 11월 7일</span></span></span>
+        <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 2px">
+          <span style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 12px; color: #4F5450">
+            <span>최고 무게 · 최근 12번</span>
+            <span><strong style="font-size: 15px; font-weight: 700; color: #1C1F1D">100kg</strong> 11월 7일</span>
+          </span>
+          <div style="position: relative; margin-right: 4px"><svg viewBox="0 0 260 48" width="100%" height="48" preserveAspectRatio="none" aria-hidden="true" style="display: block; overflow: visible"><line x1="0" y1="47" x2="260" y2="47" stroke="#E7E9E6"></line><polyline points="0.0,42.0 23.6,37.5 47.3,33.0 70.9,33.0 94.5,28.5 118.2,24.0 141.8,24.0 165.5,19.5 189.1,15.0 212.7,15.0 236.4,10.5 260.0,6.0" fill="none" stroke="#1F3D30" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg><span style="position: absolute; right: -4px; top: 2.0px; width: 8px; height: 8px; border-radius: 50%; background: #1F3D30; box-shadow: 0 0 0 2px #FFFFFF"></span></div>
+        </div>
+      </article><article aria-label="레그프레스" style="min-width: 0; padding: 16px 18px 14px; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <h4 style="margin: 0; font-size: 17px; line-height: 1.35; font-weight: 700; color: #1F3D30">레그프레스</h4>
+          <span style="font-size: 13px; color: #4F5450">하체 · 목표 10~15회</span>
+        </div>
+        <span style="display: flex; gap: 10px; font-size: 13px"><span style="flex: none; width: 56px; white-space: nowrap; color: #4F5450">최고 기록</span><span><strong style="font-weight: 600; color: #1C1F1D">120kg × 12</strong><span style="color: #4F5450"> · 11월 7일</span></span></span>
+        <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 2px">
+          <span style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 12px; color: #4F5450">
+            <span>최고 무게 · 기록 1번</span>
+            <span><strong style="font-size: 15px; font-weight: 700; color: #1C1F1D">120kg</strong> 11월 7일</span>
+          </span>
+          <div style="position: relative; margin-right: 4px"><svg viewBox="0 0 260 48" width="100%" height="48" preserveAspectRatio="none" aria-hidden="true" style="display: block"><line x1="0" y1="24.0" x2="260" y2="24.0" stroke="#E7E9E6" stroke-dasharray="2 4"></line></svg><span style="position: absolute; right: -4px; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; background: #1F3D30; box-shadow: 0 0 0 2px #FFFFFF"></span></div>
+        </div>
+      </article></div>
+      </div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 6px; border-top: 1px solid #E7E9E6"><button type="button" aria-expanded="false" style="align-self: flex-start; min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 4px; margin-left: -4px; border: 0; background: transparent; color: #1F3D30; font: inherit; font-size: 14px; cursor: pointer">무게 기록이 없는 종목 1개 <span style="display: inline-flex; color: #4F5450"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div>
+      </section>
+    </div>
+  </main>
+</div>
+</body>
+</html>

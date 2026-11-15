@@ -1,10 +1,91 @@
 # 삽질 로그
 
-작업 중 만난 문제와 해결법. 세션 끝날 때마다 새 항목 append. 이미 있는 항목이면 skip.
+> **언제 보나**: 에러가 났을 때 — 아래 목차에서 증상으로 찾기. 해결한 새 문제는 해당 분류 끝에 추가(이미 있으면 그 항목에 "재발" 한 줄).
+> 형식: `### 증상 한 줄` + 상황 · 원인 · 해결 3줄.
 
-**형식**: **증상 한 줄** / 상황 · 원인 · 해결.
+<!-- TOC -->
+**개발**
+- [pnpm / 모노레포](#pnpm--모노레포)
+  - [pnpm install 실행이 PowerShell에서 차단됨](#pnpm-install-실행이-powershell에서-차단됨)
+  - [pnpm 11 설치가 exit 1 (ERR_PNPM_IGNORED_BUILDS)](#pnpm-11-설치가-exit-1-err_pnpm_ignored_builds)
+  - [workspace 패키지가 앱에서 import 안 됨](#workspace-패키지가-앱에서-import-안-됨)
+- [Supabase 연결 (로컬 dev 세팅)](#supabase-연결-로컬-dev-세팅)
+  - [getaddrinfo ENOTFOUND db.&lt;ref&gt;.supabase.co](#getaddrinfo-enotfound-dbrefsupabaseco)
+  - [Session Pooler에서 password authentication failed for user "postgres"](#session-pooler에서-password-authentication-failed-for-user-postgres)
+  - [Session Pooler에서 (ENOTFOUND) tenant/user postgres.&lt;ref&gt; not found](#session-pooler에서-enotfound-tenantuser-postgresref-not-found)
+- [NestJS](#nestjs)
+  - [tsconfig.json의 baseUrl deprecated 경고](#tsconfigjson의-baseurl-deprecated-경고)
+  - [Drizzle db.delete가 FK-restrict를 던져도 err.code 매칭이 miss (23503이 catch를 통과)](#drizzle-dbdelete가-fk-restrict를-던져도-errcode-매칭이-miss-23503이-catch를-통과)
+  - [Service insert().values({...})가 DTO의 optional 필드를 조용히 drop](#service-insertvalues가-dto의-optional-필드를-조용히-drop)
+  - [DATABASE_URL is not set — Nest 부트스트랩 전 module import 시점에 env 미로드](#database_url-is-not-set--nest-부트스트랩-전-module-import-시점에-env-미로드)
+  - [Drizzle sql 안 correlated subquery가 항상 빈 결과](#drizzle-sql-안-correlated-subquery가-항상-빈-결과)
+  - [어드민 endpoint에서 여러 클릭 이동 시 HTTP 429](#어드민-endpoint에서-여러-클릭-이동-시-http-429)
+  - [Drizzle 마이그레이션 번호 충돌 (병합 대기 중 다른 PR과)](#drizzle-마이그레이션-번호-충돌-병합-대기-중-다른-pr과)
+- [class-validator / DTO](#class-validator--dto)
+  - [IsEnum이 readonly 배열에서 값 목록을 비운다](#isenum이-readonly-배열에서-값-목록을-비운다)
+  - [enableImplicitConversion: true + @Transform boolean이 뒤엎힌다](#enableimplicitconversion-true--transform-boolean이-뒤엎힌다)
+  - [@IsUrl이 한글 쿼리스트링 채용 URL을 400으로 거부](#isurl이-한글-쿼리스트링-채용-url을-400으로-거부)
+  - [PATCH 400/500 에러가 body 없이 status만 던져지면 원인 파악이 오래 걸림](#patch-400500-에러가-body-없이-status만-던져지면-원인-파악이-오래-걸림)
+- [Next.js 프론트](#nextjs-프론트)
+  - [Hydration mismatch 콘솔 에러 (layout.tsx)](#hydration-mismatch-콘솔-에러-layouttsx)
+  - [PageProps&lt;'/jobs'&gt;가 typecheck에서 does not satisfy '/'로 실패](#pagepropsjobs가-typecheck에서-does-not-satisfy-로-실패)
+  - [삭제한 route가 .next/dev/types/validator.ts에 잔재로 남아 타입 에러](#삭제한-route가-nextdevtypesvalidatorts에-잔재로-남아-타입-에러)
+  - [브랜치 이동 후 pnpm typecheck가 사라진 route validator를 참조하며 실패](#브랜치-이동-후-pnpm-typecheck가-사라진-route-validator를-참조하며-실패)
+  - [@dnd-kit DndContext SSR Hydration mismatch (aria-describedby)](#dnd-kit-dndcontext-ssr-hydration-mismatch-aria-describedby)
+  - [Turbopack: "next/headers를 client 번들에 include" 빌드 실패](#turbopack-nextheaders를-client-번들에-include-빌드-실패)
+  - [Optimistic 토글 버튼이 연타에 반응이 느려짐](#optimistic-토글-버튼이-연타에-반응이-느려짐)
+  - [Nest 핸들러가 null 반환하면 client의 res.json()이 터짐](#nest-핸들러가-null-반환하면-client의-resjson이-터짐)
+  - [세트 값 전부 지워도 잔디에 오늘 셀이 계속 뜸](#세트-값-전부-지워도-잔디에-오늘-셀이-계속-뜸)
+  - [클라이언트 필터 컴포넌트에서 URL → local input state 동기화 안 됨](#클라이언트-필터-컴포넌트에서-url--local-input-state-동기화-안-됨)
+  - [/workouts 세트 입력 시 두 번째 필드 값이 씹힘](#workouts-세트-입력-시-두-번째-필드-값이-씹힘)
+  - [소프트 네비게이션 후 클라이언트 shadow state가 이전 값 그대로 (LearnCard 별표)](#소프트-네비게이션-후-클라이언트-shadow-state가-이전-값-그대로-learncard-별표)
+  - [Modal 안의 커스텀 Select가 옵션 선택 즉시 모달을 닫음](#modal-안의-커스텀-select가-옵션-선택-즉시-모달을-닫음)
+  - [AddTimeBlockRow Enter로 저장 시 시간블록이 두 개 생성](#addtimeblockrow-enter로-저장-시-시간블록이-두-개-생성)
+  - [커스텀 Select 팝오버가 트리거에서 멀리 뜸 (prod-only)](#커스텀-select-팝오버가-트리거에서-멀리-뜸-prod-only)
+  - [커스텀 Select 열린 상태에서 화살표 키가 1칸만 내려가고 다시 올라감](#커스텀-select-열린-상태에서-화살표-키가-1칸만-내려가고-다시-올라감)
+  - [로그아웃/재로그인 시 브라우저 알림 이력이 계정 간 섞임](#로그아웃재로그인-시-브라우저-알림-이력이-계정-간-섞임)
+  - [마감 알림이 하루 중 나중에 추가한 회사를 놓침](#마감-알림이-하루-중-나중에-추가한-회사를-놓침)
+  - [Manifest: Line: 1, column: 1, Syntax error. + 첫 렌더 느림](#manifest-line-1-column-1-syntax-error--첫-렌더-느림)
+  - [모든 페이지 전환이 1초 근처로 체감 느림 (렉은 아닌데 답답)](#모든-페이지-전환이-1초-근처로-체감-느림-렉은-아닌데-답답)
+  - [/signup에서 /api/proxy/profiles/check-nickname 401](#signup에서-apiproxyprofilescheck-nickname-401)
+  - [빌드 로그에 Dynamic server usage: Route /today couldn't be rendered statically 다수](#빌드-로그에-dynamic-server-usage-route-today-couldnt-be-rendered-statically-다수)
+- [Windows 개발환경](#windows-개발환경)
+  - [curl -d '{"name":"한글"}'가 DB에 mojibake로 저장됨](#curl--d-name한글가-db에-mojibake로-저장됨)
+  - [turbo run dev가 spawn UNKNOWN (errno -4094)로 죽음](#turbo-run-dev가-spawn-unknown-errno--4094로-죽음)
+  - [applicationDeadline이 표에 안 뜸 (Firefox/Safari, 저장은 됨)](#applicationdeadline이-표에-안-뜸-firefoxsafari-저장은-됨)
+  - [dev 서버 재시작해도 EADDRINUSE :::3001이 반복됨](#dev-서버-재시작해도-eaddrinuse-3001이-반복됨)
+- [프론트 UX/CSS](#프론트-uxcss)
+  - [모바일에서 한글 안내 문구가 글자 단위로 쪼개짐](#모바일에서-한글-안내-문구가-글자-단위로-쪼개짐)
+  - [모바일에서 관리자 페이지 진입 경로 부재](#모바일에서-관리자-페이지-진입-경로-부재)
+  - [편집·리스트 행이 좁은 화면에서 뭉개짐](#편집리스트-행이-좁은-화면에서-뭉개짐)
+  - [VS Code 문제 패널에 디자인 시안 HTML의 CSS 에러 90개](#vs-code-문제-패널에-디자인-시안-html의-css-에러-90개)
+- [설계 판단 (Advisor 경고 무시 등)](#설계-판단-advisor-경고-무시-등)
+  - ["오늘 메모"를 day_notes에 두면 월요일에 주간 회고를 덮어씀](#오늘-메모를-day_notes에-두면-월요일에-주간-회고를-덮어씀)
+  - [Supabase Security Advisor: announcement_targets "RLS Enabled No Policy"](#supabase-security-advisor-announcement_targets-rls-enabled-no-policy)
 
-**최상위 분류**: [개발](#개발) (로컬 dev · 코드) / [배포](#배포) (prod · 인프라 · 외부 서비스).
+**배포**
+- [Render (API)](#render-api)
+  - [ERR_UNKNOWN_BUILTIN_MODULE: No such built-in module: node:sqlite](#err_unknown_builtin_module-no-such-built-in-module-nodesqlite)
+  - [Cannot find module '/opt/render/project/src/apps/api/dist/main'](#cannot-find-module-optrenderprojectsrcappsapidistmain)
+  - [빌드 실패 ERR_PNPM_NO_MATCHING_VERSION_INSIDE_WORKSPACE](#빌드-실패-err_pnpm_no_matching_version_inside_workspace)
+  - [db:migrate가 이미 적용된 이전 마이그부터 재시도 (column already exists)](#dbmigrate가-이미-적용된-이전-마이그부터-재시도-column-already-exists)
+  - [Prod에 SUPABASE_URL env 누락으로 API 부팅 실패](#prod에-supabase_url-env-누락으로-api-부팅-실패)
+  - [브라우저 CORS 에러 (배포 후)](#브라우저-cors-에러-배포-후)
+- [Vercel (Web)](#vercel-web)
+  - [빌드에서 @repo/shared를 못 찾음](#빌드에서-reposhared를-못-찾음)
+- [Supabase (prod)](#supabase-prod)
+  - [Prod 마이그레이션 실패 후 스키마-Drizzle 트래킹 불일치](#prod-마이그레이션-실패-후-스키마-drizzle-트래킹-불일치)
+  - [Supabase 비번 재설정 메일이 안 옴 (built-in SMTP 실질 사용 불가)](#supabase-비번-재설정-메일이-안-옴-built-in-smtp-실질-사용-불가)
+- [시드 / 데이터 관리](#시드--데이터-관리)
+  - [db:seed 재실행 위험 — 특정 테이블 전부 delete/reinsert](#dbseed-재실행-위험--특정-테이블-전부-deletereinsert)
+  - [DEFAULT_* 확장이 기존 유저에게 반영 안 됨 (질문 30→100 등)](#default_-확장이-기존-유저에게-반영-안-됨-질문-30100-등)
+- [스케줄러 (cronjob.org · 내부 cron)](#스케줄러-cronjoborg--내부-cron)
+  - [cronjob.org "Failed (output too large)"](#cronjoborg-failed-output-too-large)
+  - [cronjob.org 훅이 알림 없이 disabled됨](#cronjoborg-훅이-알림-없이-disabled됨)
+- [RSS 수집 (외부 사이트)](#rss-수집-외부-사이트)
+  - [네이버 D2만 status code 406](#네이버-d2만-status-code-406)
+  - [우아한형제들만 prod에서 Status code 403 — 손절](#우아한형제들만-prod에서-status-code-403--손절)
+<!-- /TOC -->
 
 ---
 
@@ -38,6 +119,11 @@
 - 상황: pooler 호스트는 잘 잡혔는데 인증 실패
 - 원인: Session Pooler는 유저명이 `postgres.<project-ref>` 형식이어야 함 (pooler가 여러 프로젝트를 라우팅하므로 tenant 지정 필요)
 - 해결: `.env`의 `DATABASE_URL` 유저 부분을 `postgres.<project-ref>`로. Supabase Connect 팝업의 pooler 문자열을 통째로 복사 후 `[YOUR-PASSWORD]`만 치환하는 게 안전
+
+### Session Pooler에서 `(ENOTFOUND) tenant/user postgres.<ref> not found`
+- 상황: `db:migrate`가 `CREATE SCHEMA "drizzle"`에서 FATAL. 연결 문자열은 그대로인데 REST(`<ref>.supabase.co/rest/v1/`)는 401로 정상 응답
+- 원인: 프로젝트 자체는 살아 있지만 pooler(Supavisor) 쪽에 tenant가 아직 안 잡힌 상태. Dashboard에서 프로젝트 상태 확인·복구 직후 발생
+- 해결: Dashboard에서 프로젝트 Healthy 확인 후 잠시 기다렸다 재시도 → 해결. 재시도 후 0029 DDL은 반영됐는데 트래킹 row만 빠진 상태였음 → `information_schema`/`pg_constraint`로 DDL 확인 후 트래킹 수동 INSERT(아래 "Prod 마이그레이션 실패 후..." 절차와 동일)
 
 ## NestJS
 
@@ -159,11 +245,13 @@
 - 상황: `/learn/review`에서 `[별표]` toggle 진입 시 카드의 ★가 첫 렌더에서 빈 ☆로 뜨고, F5 새로고침해야 채워짐. 카테고리 chip 변경도 같은 패턴
 - 원인: `<Link>`/`router.push`는 soft navigation이라 서버 컴포넌트만 재렌더, 하위 클라이언트 컴포넌트 인스턴스는 재사용됨. `useState(() => ...)` 초기값은 첫 마운트에만 계산되므로 새 props가 와도 shadow는 이전 값 그대로
 - 해결: 부모에서 `key={mode}:${categories}` 같은 네비 파라미터 조합을 걸어 재마운트 강제
+- 재발(2026-10-29): `/calendar`를 보던 중 일정 알림 클릭(`router.push('/calendar?date=…')`)해도 `CalendarView`의 `useState(initialSelectedIso)`가 이전 날짜 유지 → `key={initialSelectedIso}`. 셀 클릭은 `history.replaceState`라 라우터가 안 바뀌어 리마운트 안 됨(의도대로)
 
 ### Modal 안의 커스텀 Select가 옵션 선택 즉시 모달을 닫음
 - 상황: 회사 추가 / 운동 추가 모달에서 dropdown 옵션을 누르면 값 저장 없이 모달이 닫힘
 - 원인: 모달이 `useOutsideClick`으로 바깥 감지 → 프로젝트의 `Select` 컴포넌트는 popover를 `createPortal(document.body)`로 렌더링. cardRef의 DOM 자식이 아니라 outside로 판정
 - 해결: dialog wrapper의 `onMouseDown`에서 `e.target === e.currentTarget`(=진짜 backdrop) 조건일 때만 닫음
+- 재발(2026-10-24): `/jobs` 셀 팝오버(`useOutsideClick([anchorRef, popoverRef])`) 안에 Select를 넣어도 같은 이유로 닫힘 → `SubmittedDocsPopover`는 Select 대신 문서 목록을 버튼 리스트로 노출해 회피
 
 ### `AddTimeBlockRow` Enter로 저장 시 시간블록이 두 개 생성
 - 상황: `/routines`에서 "+ 블록 추가" → 이름 입력 → Enter → API 두 번 호출로 동일 label 2개 등록
@@ -174,6 +262,7 @@
 - 상황: `/jobs` 표 행의 Select를 열면 popover가 트리거에서 벗어난 위치(주로 뷰포트 상단)에 렌더링. 로컬 dev에선 재현 안 됨
 - 원인 추정: `usePopoverPosition`이 `POPOVER_MAX_HEIGHT=288` 추정값으로 `pos.top` 계산. 실제 popover가 훨씬 짧을 때 "above" 배치 시 앵커 위로 큰 공백. `useLayoutEffect`가 `leftPx`만 실측 보정하고 `top`은 방치
 - 해결: `Select.tsx`에서 popover mount 후 `getBoundingClientRect()`로 실측한 높이·너비 기준으로 top·left 둘 다 재계산. 첫 렌더는 `visibility: hidden`으로 flash 방지
+- 재발(2026-10-24): `/jobs` 셀 팝오버(제출본·메모·공고 링크)도 추정 높이로 위에 떠서 버튼과 벌어짐 → 같은 실측 로직을 `usePopoverPosition.ts`의 `useMeasuredTop`으로 공용화(+`ResizeObserver`로 열린 뒤 높이 변화도 추적). 새 팝오버 Body는 이 훅으로 top 계산
 
 ### 커스텀 Select 열린 상태에서 화살표 키가 1칸만 내려가고 다시 올라감
 - 상황: Select 열어놓고 ArrowDown 연타하면 첫 press는 이동하는데 두 번째부터 원래 위치로 되돌아옴
@@ -204,6 +293,11 @@
 - 상황: /signup 닉네임 필드가 401로 중복검사 실패. 백엔드에 `@Public()`이 있어도
 - 원인: 요청 경로는 브라우저 → Next `proxy.ts` middleware → `/api/proxy/[...path]` → NestJS. Middleware가 세션 없는 `/api/*` 요청을 401로 차단해서 NestJS의 `@Public()`은 도달 못 함
 - 해결: `proxy.ts`의 `PUBLIC_PATHS`에 `/api/proxy/profiles/check-nickname` 추가. **인증이 두 겹(Next middleware + NestJS Guard)이라 공용 엔드포인트는 양쪽 다 열어야 함**
+
+### 빌드 로그에 `Dynamic server usage: Route /today couldn't be rendered statically` 다수
+- 상황: `/today` 카드별 fetch를 `try/catch`(`settle()`)로 감싸 실패를 카드 안에 가뒀더니 `pnpm build`가 이 에러를 섹션마다 출력(빌드 자체는 성공)
+- 원인: Next는 `cookies()`·`no-store` fetch 같은 요청 시점 API를 만나면 내부 에러를 던져 동적 렌더로 전환하는데, 앱의 catch가 그걸 삼킴. 다른 곳의 비보호 `cookies()` 덕에 우연히 `ƒ`로 잡혔을 뿐, 아니면 에러 상태가 정적 HTML로 굳을 수 있음
+- 해결: catch 첫 줄에서 `unstable_rethrow(e)`(`next/navigation`) 후 처리(`lib/today-data.ts`의 `settle`). `.catch(() => null)` 패턴도 같은 문제라 함께 교체
 
 ## Windows 개발환경
 
@@ -244,7 +338,17 @@
 - 원인: (1) `truncate` 걸린 자식의 조상 flex에 `min-w-0` 없어 shrink 안 됨, (2) 편집 상태의 고정폭(`w-64`), (3) wrap 미허용
 - 해결: 조상 flex에 `min-w-0` 추가, 고정폭 제거, 필요시 `flex-wrap`
 
+### VS Code 문제 패널에 디자인 시안 HTML의 CSS 에러 90개
+- 상황: `docs/design/` 시안을 커밋한 뒤 "at-rule 또는 선택기가 필요함", "{ 필요" 에러가 대량 표시. 빌드·실행엔 영향 없음
+- 원인: 디자인 툴 포맷이라 `style="background: {{accent}}"`처럼 inline style에 템플릿 바인딩. VS Code 내장 CSS 검사기가 `{{ }}`를 CSS로 파싱
+- 해결: 확장자를 `.dc.html`로 바꾸고 `.vscode/settings.json`에 `"files.associations": { "*.dc.html": "handlebars" }`. `.vscode/`는 gitignore라 PC마다 로컬 설정 필요
+
 ## 설계 판단 (Advisor 경고 무시 등)
+
+### "오늘 메모"를 `day_notes`에 두면 월요일에 주간 회고를 덮어씀
+- 상황: `/today` 메모를 이름만 보고 `getDayNotes`/`upsertDayNote`로 구현하려 함
+- 원인: `day_notes`는 루틴 탭 "이번주 회고"(`RoutineRetro`) 전용 — 그 주 **월요일 날짜**를 키로 저장. 날짜별 메모로 쓰면 월요일 메모 = 회고 칸
+- 해결: 날짜별 메모는 캘린더와 같은 `scheduler_memos`(`upsertSchedulerMemo`, `getSchedulerEvents`의 `kind:'memo'`) 사용. `day_notes`는 회고 전용으로 유지
 
 ### Supabase Security Advisor: `announcement_targets` "RLS Enabled No Policy"
 - 상황: Advisors → Security 탭에 Info 1건. `public.announcement_targets`에 RLS 켜져있는데 정책 0개
@@ -308,7 +412,7 @@
   5. NULL owner_id 소량이면 backfill 대신 DELETE (prod가 사실상 비어있을 때만)
   6. `db:migrate` 재실행 → 미적용 마이그 순차 적용
   7. 검증: 트래킹 개수 · `is_nullable='NO'` · `rowsecurity=true` 예상치 대조
-- 재발 방지: prod 마이그 실행 전 `db:generate`로 "No schema changes" 확인, 대규모 마이그는 **파일을 하나씩** 개별 실행. deployment.md §6 참고
+- 재발 방지: prod 마이그 실행 전 `db:generate`로 "No schema changes" 확인, 대규모 마이그는 **파일을 하나씩** 개별 실행. [release.md](./release.md#마이그가-여러-개-쌓였을-때) 참고
 
 ### Supabase 비번 재설정 메일이 안 옴 (built-in SMTP 실질 사용 불가)
 - 상황: `/forgot-password` 요청 → Auth Logs `POST /auth/v1/recover` 200 정상 → 받은편지함/스팸 어디에도 메일 없음
@@ -333,7 +437,7 @@
 ### cronjob.org "Failed (output too large)"
 - 상황: `POST /blog-posts/refresh` 훅이 "Failed" — Test run에 "output too large"
 - 원인: cronjob.org 무료 티어가 응답 body 크기 임계값 초과 시 실행 실패로 표시. RSS refresh 응답이 몇 KB를 쉽게 넘김
-- 해결: RSS refresh는 **서버 프로세스 안 `@nestjs/schedule` `@Cron`**으로 이관 (`@Cron('0 11,23 * * *')`). cronjob.org에는 콜드 스타트 방지용 `/health` 훅만. 결과는 Render Logs에서. deployment.md §5 참고
+- 해결: RSS refresh는 **서버 프로세스 안 `@nestjs/schedule` `@Cron`**으로 이관 (`@Cron('0 11,23 * * *')`). cronjob.org에는 콜드 스타트 방지용 `/health` 훅만. 결과는 Render Logs에서. [deployment.md](./deployment.md#4-스케줄러) 참고
 
 ### cronjob.org 훅이 알림 없이 disabled됨
 - 상황: `/health` ping 되고 있다고 생각했는데 어느 순간 disabled → Render 슬립 반복
@@ -359,9 +463,13 @@
   - **prod의 기존 row는 UI(`/settings/blog-sources`)에서 수동 삭제/비활성**
 - 재활성 후보: Cloudflare Workers Free로 국내 프록시. 다른 소스 여러 개가 같은 이유로 막히면 검토
 
-## 인증 · 배포 (구식)
 
-### 클라이언트에서 API 호출 시 401 (Phase 12 이전 · 참고용)
-- 상황: Vercel 웹에서 데이터 로딩 실패, `/api/proxy/*` → 401
-- 원인: Web `API_ACCESS_TOKEN` env와 Render `API_ACCESS_TOKEN` 값 불일치
-- 해결: 두 대시보드에서 정확히 같은 값인지 확인. Phase 12.2 이후 이 env는 사용 X (Supabase Auth로 대체). 남아있으면 삭제
+### 기록 표 FK를 `ON DELETE SET NULL`로 두니 지운 질문의 같은 날 기록이 따로 세짐
+- 상황: 학습 통계용 `question_log_events`(표시할 때마다 1줄)를 만들고 날짜별 `count(distinct question_id)`로 셈. 같은 날 두 번 바꾼 질문을 지우니 그날 1 → 2
+- 원인: questions FK를 SET NULL로 둬서 삭제 시 question_id가 NULL → distinct로 못 묶여 줄마다 따로 셈
+- 해결: 기록 표는 questions FK를 두지 않고 question_id NOT NULL(0033). 사용자 FK·RLS는 유지. 날짜 집계용 기록 표엔 "지워져도 id는 남게"가 맞음
+
+### 계정을 삭제해도 이력서·포트폴리오 파일이 Storage에 남음
+- 상황: 설정 › 계정 삭제는 `auth.admin.deleteUser`만 불러서 DB 행은 `auth.users` CASCADE로 지워지는데, Supabase Storage `documents` 버킷의 `{userId}/{kind}/*.pdf`는 그대로 남음
+- 원인: Storage 객체는 Postgres FK CASCADE 대상이 아님
+- 해결: `deleteMe`에서 **먼저** `removeAllUserFiles`(`documents/storage-cleanup.ts` — 폴더를 직접 list해서 DB에 없는 파일까지)로 지우고, 실패하면 계정 삭제를 멈춤. 이미 지운 계정의 남은 파일은 prod에서 따로 확인 필요

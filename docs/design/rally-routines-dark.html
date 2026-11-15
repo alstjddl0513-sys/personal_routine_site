@@ -1,0 +1,924 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rally 루틴 트래커</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#121514}
+</style>
+</head>
+<body>
+
+<div style="min-height: 100vh; box-sizing: border-box; display: flex; flex-wrap: wrap; background: #121514; color: #E9ECE9; font-family: 'IBM Plex Sans KR', system-ui, sans-serif; font-size: 15px; line-height: 1.55; word-break: keep-all; font-variant-numeric: tabular-nums">
+
+  <!-- 사이드바 (공통) — 루틴 > 트래커 활성 -->
+  <aside style="flex: 1 1 216px; max-width: 100%; box-sizing: border-box; padding: 28px 12px 16px; display: flex; flex-direction: column; gap: 28px; background: #16271F; border-right: 1px solid #22372D">
+    <a href="#" style="display: flex; align-items: center; gap: 9px; padding: 0 12px; text-decoration: none; color: #F4F2EC">
+      <svg width="20" height="22" viewBox="0 0 20 22" fill="none" aria-hidden="true"><path d="M3.5 21V1.8" stroke="#F4F2EC" stroke-width="2" stroke-linecap="round"></path><path d="M4.5 2.2L18 7.4L4.5 12.4Z" fill="#E9B949"></path></svg>
+      <span style="font-size: 20px; font-weight: 700; letter-spacing: -0.01em">Rally</span>
+    </a>
+    <nav aria-label="주 메뉴" style="flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: none; display: flex; flex-direction: column; gap: 2px">
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border-radius: 6px; color: #BAC6BE; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.5L12 5l8 6.5V20h-5v-5.5H9V20H4z"></path></svg>
+        오늘
+      </a>
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border-radius: 6px; color: #BAC6BE; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="1.5"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg>
+        캘린더
+      </a>
+      <button type="button" aria-expanded="false" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: #BAC6BE; font: inherit; text-align: left; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="1.5"></rect><path d="M9 7V4.5h6V7"></path></svg>
+        <span style="flex: 1 1 auto">채용</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </button>
+      <div style="display: flex; flex-direction: column">
+        <button type="button" aria-expanded="true" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: #FFFFFF; font: inherit; font-weight: 600; text-align: left; cursor: pointer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h3M4 12h3M4 18h3M10 6h10M10 12h10M10 18h6"></path></svg>
+          <span style="flex: 1 1 auto">루틴</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+        </button>
+        <a href="#" aria-current="page" style="display: flex; align-items: center; min-height: 32px; padding: 0 12px 0 42px; border-radius: 6px; background: #25443A; color: #FFFFFF; text-decoration: none; font-size: 14px; font-weight: 600">트래커</a>
+        <a href="#" style="display: flex; align-items: center; min-height: 32px; padding: 0 12px 0 42px; border-radius: 6px; color: #9FB0A5; text-decoration: none; font-size: 14px">통계</a>
+      </div>
+      <button type="button" aria-expanded="false" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: #BAC6BE; font: inherit; text-align: left; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5v11M17.5 6.5v11M3 9.5v5M21 9.5v5M6.5 12h11"></path></svg>
+        <span style="flex: 1 1 auto">운동</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </button>
+      <button type="button" aria-expanded="false" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: #BAC6BE; font: inherit; text-align: left; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h6a2 2 0 0 1 2 2v13a1.5 1.5 0 0 0-1.5-1.5H4zM20 5h-6a2 2 0 0 0-2 2v13a1.5 1.5 0 0 1 1.5-1.5H20z"></path></svg>
+        <span style="flex: 1 1 auto">학습</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </button>
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border-radius: 6px; color: #BAC6BE; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5h14M5 10h14M5 15h9M5 20h6"></path></svg>
+        블로그
+      </a>
+    </nav>
+    <div style="display: flex; align-items: center; gap: 2px; padding-top: 12px; border-top: 1px solid #2A4237">
+      <a href="#" style="flex: 1 1 auto; display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border-radius: 6px; color: #BAC6BE; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"></path></svg>
+        설정
+      </a>
+      <button type="button" aria-label="라이트 모드 전환" style="width: 40px; height: 40px; flex: none; border: 0; border-radius: 6px; background: transparent; display: inline-flex; align-items: center; justify-content: center; color: #BAC6BE; cursor: pointer">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8a4 4 0 1 0 0 8a4 4 0 0 0 0-8zM12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"></path></svg>
+      </button>
+      <button type="button" aria-label="알림" style="width: 40px; height: 40px; flex: none; border: 0; border-radius: 6px; background: transparent; display: inline-flex; align-items: center; justify-content: center; color: #BAC6BE; cursor: pointer">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 8 2.5 8h-17S6 15 6 9M10.3 20.5a1.9 1.9 0 0 0 3.4 0"></path></svg>
+      </button>
+    </div>
+  </aside>
+
+  <main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 36px 40px 64px">
+    <div style="max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px">
+      <!-- 블록 간격: skill 기본 20px. 섹션(챌린지·트래커·회고) 사이만 28px로 둠 — 섹션 제목이 바로 위 목록 선에 붙어 보이지 않게. 20px로 줄여도 무방 -->
+
+      <!-- 헤더 -->
+      <header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px">
+        <h1 style="margin: 0; font-size: 26px; line-height: 1.3; font-weight: 700; letter-spacing: -0.01em">루틴 트래커</h1>
+        <div style="display: flex; align-items: center; gap: 6px">
+          <span style="margin-right: 10px; font-size: 15px; font-weight: 600; color: #E9ECE9">11월 2일 – 11월 8일</span>
+          <button type="button" aria-label="지난주" style="width: 40px; height: 40px; border: 1px solid #3D4541; border-radius: 6px; background: #1A1E1C; color: #C3CAC5; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+          </button>
+          <button type="button" disabled aria-disabled="true" title="이번 주를 보고 있어요" style="min-height: 40px; padding: 0 14px; border: 1px solid #262C29; border-radius: 6px; background: transparent; color: #8C948F; font: inherit; font-size: 14px; cursor: default">이번 주</button>
+          <button type="button" aria-label="다음 주" style="width: 40px; height: 40px; border: 1px solid #3D4541; border-radius: 6px; background: #1A1E1C; color: #C3CAC5; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- 챌린지 -->
+      <section aria-labelledby="ch-title" style="display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+          <h2 id="ch-title" style="margin: 0; font-size: 17px; font-weight: 700; color: #A9CBB7">챌린지 <span style="font-weight: 500; color: #A9B1AC">· 진행 중 2/3</span></h2>
+          <button type="button" title="진행 중 최대 3개까지 가능" style="min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border: 1px solid #3D4541; border-radius: 6px; background: #1A1E1C; color: #A9CBB7; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+            추가
+          </button>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px">
+          
+            <article style="box-sizing: border-box; padding: 18px 20px 12px; background: #1A1E1C; border: 1px solid #2C3330; border-radius: 8px; display: flex; flex-direction: column; gap: 10px">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px">
+                <h3 style="margin: 0; font-size: 16px; font-weight: 700">100일 아침 운동</h3>
+                <span style="flex: none; font-size: 13px; font-weight: 600; color: #C3CAC5">D-58</span>
+              </div>
+              <div style="display: flex; align-items: baseline; gap: 6px">
+                <span style="font-size: 22px; font-weight: 600; line-height: 1.2">42</span>
+                <span style="font-size: 14px; color: #A9B1AC">/ 100일 · 42%</span>
+              </div>
+              <div style="height: 6px; border-radius: 3px; background: #2C3330"><div style="height: 100%; width: 42%; border-radius: 3px; background: #E9B949"></div></div>
+              <div style="display: flex; flex-wrap: wrap; gap: 4px">
+                
+                  <span style="padding: 1px 8px; border-radius: 4px; background: #232926; font-size: 12px; color: #C3CAC5">기상</span>
+                
+                  <span style="padding: 1px 8px; border-radius: 4px; background: #232926; font-size: 12px; color: #C3CAC5">아침 운동</span>
+                
+              </div>
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 2px; padding-top: 6px; border-top: 1px solid #262C29">
+                <span style="font-size: 12px; color: #A9B1AC">시작 2026-09-20</span>
+                <span style="display: flex; align-items: center">
+                  <button type="button" style="min-height: 40px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: #A9B1AC; font: inherit; font-size: 13px; cursor: pointer">포기</button>
+                  <button type="button" aria-label="100일 아침 운동 삭제" style="width: 40px; height: 40px; border: 0; border-radius: 6px; background: transparent; color: #A9B1AC; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"></path></svg>
+                  </button>
+                </span>
+              </div>
+            </article>
+          
+            <article style="box-sizing: border-box; padding: 18px 20px 12px; background: #1A1E1C; border: 1px solid #2C3330; border-radius: 8px; display: flex; flex-direction: column; gap: 10px">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px">
+                <h3 style="margin: 0; font-size: 16px; font-weight: 700">30일 코테</h3>
+                <span style="flex: none; font-size: 13px; font-weight: 600; color: #C3CAC5">D-12</span>
+              </div>
+              <div style="display: flex; align-items: baseline; gap: 6px">
+                <span style="font-size: 22px; font-weight: 600; line-height: 1.2">18</span>
+                <span style="font-size: 14px; color: #A9B1AC">/ 30일 · 60%</span>
+              </div>
+              <div style="height: 6px; border-radius: 3px; background: #2C3330"><div style="height: 100%; width: 60%; border-radius: 3px; background: #E9B949"></div></div>
+              <div style="display: flex; flex-wrap: wrap; gap: 4px">
+                
+                  <span style="padding: 1px 8px; border-radius: 4px; background: #232926; font-size: 12px; color: #C3CAC5">코테 공부</span>
+                
+              </div>
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 2px; padding-top: 6px; border-top: 1px solid #262C29">
+                <span style="font-size: 12px; color: #A9B1AC">시작 2026-10-14</span>
+                <span style="display: flex; align-items: center">
+                  <button type="button" style="min-height: 40px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: #A9B1AC; font: inherit; font-size: 13px; cursor: pointer">포기</button>
+                  <button type="button" aria-label="30일 코테 삭제" style="width: 40px; height: 40px; border: 0; border-radius: 6px; background: transparent; color: #A9B1AC; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"></path></svg>
+                  </button>
+                </span>
+              </div>
+            </article>
+          
+          <!-- 제안: 빈 자리를 점선 버튼으로 채움(제목 줄 [추가]와 같은 동작).
+               다른 후보 A: 빈 칸으로 두기(카드 2개만, 오른쪽 여백) / B: 카드를 2열로 넓혀 쓰고 3개일 때만 3열 -->
+          <div style="position: relative; display: flex">
+            <button type="button" style="flex: 1 1 auto; box-sizing: border-box; min-height: 100%; padding: 18px; border: 1px dashed #3D4541; border-radius: 8px; background: transparent; color: #A9B1AC; font: inherit; font-size: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: pointer">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+              챌린지 추가하기
+            </button>
+            <span style="position: absolute; top: 10px; right: 10px; padding: 0 6px; border: 1px dashed #3D4541; border-radius: 4px; font-size: 11px; color: #A9B1AC">제안</span>
+          </div>
+        </div>
+
+        <!-- 지난 챌린지 -->
+        <div style="display: flex; flex-direction: column">
+          <button type="button" aria-expanded="true" style="align-self: flex-start; min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 4px; border: 0; background: transparent; color: #C3CAC5; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+            지난 챌린지 <span style="color: #A9B1AC">(완료 1 · 포기 2)</span>
+          </button>
+          <ul style="margin: 0; padding: 0; list-style: none; border-top: 1px solid #262C29">
+            
+              <li style="display: flex; align-items: center; gap: 14px; min-height: 48px; padding: 0 4px; border-bottom: 1px solid #262C29">
+                <span style="width: 52px; flex: none; display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: #A9CBB7">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>완료
+                </span>
+                <span style="flex: 1 1 auto; min-width: 0; font-size: 14px; color: #E9ECE9">21일 블로그 쓰기</span>
+                <span style="font-size: 13px; color: #A9B1AC">21 / 21일 · 10.10 달성</span>
+                <button type="button" aria-label="21일 블로그 쓰기 삭제" style="width: 40px; height: 40px; border: 0; border-radius: 6px; background: transparent; color: #A9B1AC; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"></path></svg>
+                </button>
+              </li>
+            
+              <li style="display: flex; align-items: center; gap: 14px; min-height: 48px; padding: 0 4px; border-bottom: 1px solid #262C29">
+                <span style="width: 52px; flex: none; display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: #A9B1AC">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"></path></svg>포기
+                </span>
+                <span style="flex: 1 1 auto; min-width: 0; font-size: 14px; color: #A9B1AC">50일 자소서 매일</span>
+                <span style="font-size: 13px; color: #A9B1AC">12 / 50일에서 멈춤 · 09.30</span>
+                <button type="button" aria-label="50일 자소서 매일 삭제" style="width: 40px; height: 40px; border: 0; border-radius: 6px; background: transparent; color: #A9B1AC; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"></path></svg>
+                </button>
+              </li>
+            
+              <li style="display: flex; align-items: center; gap: 14px; min-height: 48px; padding: 0 4px; border-bottom: 1px solid #262C29">
+                <span style="width: 52px; flex: none; display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: #A9B1AC">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"></path></svg>포기
+                </span>
+                <span style="flex: 1 1 auto; min-width: 0; font-size: 14px; color: #A9B1AC">14일 6시 기상</span>
+                <span style="font-size: 13px; color: #A9B1AC">5 / 14일에서 멈춤 · 09.12</span>
+                <button type="button" aria-label="14일 6시 기상 삭제" style="width: 40px; height: 40px; border: 0; border-radius: 6px; background: transparent; color: #A9B1AC; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"></path></svg>
+                </button>
+              </li>
+            
+          </ul>
+        </div>
+      </section>
+
+      <!-- 주간 트래커
+           새 색 1) 오늘 열 바탕 #F2F5F1 / 다크 #1D2320: 오늘 열 전체를 은은하게 묶기 위함. row-hover(#F2F4F1)와 겹치면 hover 행에서 오늘 열이 사라져 보여서 녹색 기를 아주 조금 더함.
+           새 색 2) 블록 태그 바탕 #F0F2EF / 다크 #232926: 챌린지 카드 안 블록 이름 태그. chip-on(선택 상태)과 헷갈리지 않게 무채색에 가까운 면을 따로 둠. -->
+      <!-- 미래 날짜 요일 머리의 "—"는 placeholder 성격이라 ink-faint 사용. 체크한 날이 있으면 숫자로 표시 -->
+      <section aria-labelledby="tr-title" style="display: flex; flex-direction: column; gap: 12px">
+        <h2 id="tr-title" style="margin: 0; font-size: 17px; font-weight: 700; color: #A9CBB7">이번 주 루틴</h2>
+        <div style="border: 1px solid #2C3330; border-radius: 8px; background: #1A1E1C">
+          <table style="width: 100%; border-collapse: collapse; font-size: 14px">
+            <thead>
+              <tr style="background: #171B19; border-bottom: 1px solid #2C3330">
+                <th scope="col" style="width: 28px; padding: 0"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">순서</span></th>
+                <th scope="col" style="width: 150px; padding: 10px 8px; text-align: left; font-size: 13px; font-weight: 600; color: #A9B1AC">시간</th>
+                <th scope="col" style="padding: 10px 8px; text-align: left; font-size: 13px; font-weight: 600; color: #A9B1AC">내용</th>
+                
+                  <th scope="col" aria-label="11월 2일 월요일, 7개 중 7개" style="width: 62px; padding: 8px 2px 9px; text-align: center; background: #171B19">
+                    <span style="display: flex; flex-direction: column; align-items: center; gap: 2px">
+                      <span style="font-size: 12px; font-weight: 600; color: #C3CAC5">월</span>
+                      <span style="display: inline-flex; align-items: center; justify-content: center; height: 26px; font-size: 15px; font-weight: 600; color: #E9ECE9">2</span>
+                      <span title="그날 체크한 블록 수 · 전부 체크한 날만 ✓" style="font-size: 12px; font-weight: 700; color: #A9CBB7">✓ 7/7</span>
+                    </span>
+                  </th>
+                
+                  <th scope="col" aria-label="11월 3일 화요일, 7개 중 6개" style="width: 62px; padding: 8px 2px 9px; text-align: center; background: #171B19">
+                    <span style="display: flex; flex-direction: column; align-items: center; gap: 2px">
+                      <span style="font-size: 12px; font-weight: 600; color: #C3CAC5">화</span>
+                      <span style="display: inline-flex; align-items: center; justify-content: center; height: 26px; font-size: 15px; font-weight: 600; color: #E9ECE9">3</span>
+                      <span title="그날 체크한 블록 수 · 전부 체크한 날만 ✓" style="font-size: 12px; font-weight: 500; color: #A9B1AC">6/7</span>
+                    </span>
+                  </th>
+                
+                  <th scope="col" aria-label="11월 4일 수요일, 오늘, 7개 중 3개" style="width: 62px; padding: 8px 2px 9px; text-align: center; background: #1D2320">
+                    <span style="display: flex; flex-direction: column; align-items: center; gap: 2px">
+                      <span style="font-size: 12px; font-weight: 600; color: #C3CAC5">수</span>
+                      <span style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: #2F5A47; color: #FFFFFF; font-size: 13px; font-weight: 700">4</span>
+                      <span title="그날 체크한 블록 수 · 전부 체크한 날만 ✓" style="font-size: 12px; font-weight: 500; color: #A9B1AC">3/7</span>
+                    </span>
+                  </th>
+                
+                  <th scope="col" aria-label="11월 5일 목요일, 7개 중 0개" style="width: 62px; padding: 8px 2px 9px; text-align: center; background: #171B19">
+                    <span style="display: flex; flex-direction: column; align-items: center; gap: 2px">
+                      <span style="font-size: 12px; font-weight: 600; color: #C3CAC5">목</span>
+                      <span style="display: inline-flex; align-items: center; justify-content: center; height: 26px; font-size: 15px; font-weight: 600; color: #A9B1AC">5</span>
+                      <span title="그날 체크한 블록 수 · 전부 체크한 날만 ✓" style="font-size: 12px; font-weight: 500; color: #8C948F">—</span>
+                    </span>
+                  </th>
+                
+                  <th scope="col" aria-label="11월 6일 금요일, 7개 중 0개" style="width: 62px; padding: 8px 2px 9px; text-align: center; background: #171B19">
+                    <span style="display: flex; flex-direction: column; align-items: center; gap: 2px">
+                      <span style="font-size: 12px; font-weight: 600; color: #C3CAC5">금</span>
+                      <span style="display: inline-flex; align-items: center; justify-content: center; height: 26px; font-size: 15px; font-weight: 600; color: #A9B1AC">6</span>
+                      <span title="그날 체크한 블록 수 · 전부 체크한 날만 ✓" style="font-size: 12px; font-weight: 500; color: #8C948F">—</span>
+                    </span>
+                  </th>
+                
+                  <th scope="col" aria-label="11월 7일 토요일, 7개 중 0개" style="width: 62px; padding: 8px 2px 9px; text-align: center; background: #171B19">
+                    <span style="display: flex; flex-direction: column; align-items: center; gap: 2px">
+                      <span style="font-size: 12px; font-weight: 600; color: #A9B1AC">토</span>
+                      <span style="display: inline-flex; align-items: center; justify-content: center; height: 26px; font-size: 15px; font-weight: 600; color: #A9B1AC">7</span>
+                      <span title="그날 체크한 블록 수 · 전부 체크한 날만 ✓" style="font-size: 12px; font-weight: 500; color: #8C948F">—</span>
+                    </span>
+                  </th>
+                
+                  <th scope="col" aria-label="11월 8일 일요일, 7개 중 0개" style="width: 62px; padding: 8px 2px 9px; text-align: center; background: #171B19">
+                    <span style="display: flex; flex-direction: column; align-items: center; gap: 2px">
+                      <span style="font-size: 12px; font-weight: 600; color: #A9B1AC">일</span>
+                      <span style="display: inline-flex; align-items: center; justify-content: center; height: 26px; font-size: 15px; font-weight: 600; color: #A9B1AC">8</span>
+                      <span title="그날 체크한 블록 수 · 전부 체크한 날만 ✓" style="font-size: 12px; font-weight: 500; color: #8C948F">—</span>
+                    </span>
+                  </th>
+                
+                <th scope="col" style="width: 44px; padding: 0"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">삭제</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              
+                <tr style="background: transparent; border-bottom: 1px solid #262C29; ">
+                  <td style="padding: 0; text-align: center; ">
+                    <span aria-label="순서 바꾸기" title="끌어서 순서 바꾸기" role="button" tabindex="0" style="display: inline-flex; width: 28px; height: 40px; align-items: center; justify-content: center; color: #262C29; cursor: grab">
+                      <svg width="12" height="16" viewBox="0 0 12 16" fill="currentColor" aria-hidden="true"><circle cx="3.5" cy="3" r="1.4"></circle><circle cx="8.5" cy="3" r="1.4"></circle><circle cx="3.5" cy="8" r="1.4"></circle><circle cx="8.5" cy="8" r="1.4"></circle><circle cx="3.5" cy="13" r="1.4"></circle><circle cx="8.5" cy="13" r="1.4"></circle></svg>
+                    </span>
+                  </td>
+                  <td style="padding: 0 4px; ">
+                    
+                    
+                      <button type="button" title="눌러서 시간 고치기" style="min-height: 40px; padding: 0 6px; border: 0; background: transparent; color: #C3CAC5; font: inherit; font-size: 14px; cursor: pointer">6:30</button>
+                    
+                  </td>
+                  <td style="padding: 0 4px; ">
+                    
+                    
+                      <button type="button" title="눌러서 이름 고치기" style="min-height: 40px; padding: 0 6px; border: 0; background: transparent; color: #E9ECE9; font: inherit; font-weight: 500; text-align: left; cursor: pointer">기상</button>
+                    
+                  </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="true" aria-label="기상, 월요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: #8FB5A0; border: 0">
+                          
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#12201A" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="true" aria-label="기상, 화요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: #8FB5A0; border: 0">
+                          
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#12201A" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: #1D2320; ">
+                      <button type="button" role="checkbox" aria-checked="true" aria-label="기상, 수요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: #8FB5A0; border: 0">
+                          
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#12201A" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="기상, 목요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="기상, 금요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="기상, 토요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="기상, 일요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                  <td style="padding: 0; text-align: center; ">
+                    
+                  </td>
+                </tr>
+              
+                <tr style="background: transparent; border-bottom: 1px solid #262C29; ">
+                  <td style="padding: 0; text-align: center; ">
+                    <span aria-label="순서 바꾸기" title="끌어서 순서 바꾸기" role="button" tabindex="0" style="display: inline-flex; width: 28px; height: 40px; align-items: center; justify-content: center; color: #262C29; cursor: grab">
+                      <svg width="12" height="16" viewBox="0 0 12 16" fill="currentColor" aria-hidden="true"><circle cx="3.5" cy="3" r="1.4"></circle><circle cx="8.5" cy="3" r="1.4"></circle><circle cx="3.5" cy="8" r="1.4"></circle><circle cx="8.5" cy="8" r="1.4"></circle><circle cx="3.5" cy="13" r="1.4"></circle><circle cx="8.5" cy="13" r="1.4"></circle></svg>
+                    </span>
+                  </td>
+                  <td style="padding: 0 4px; ">
+                    
+                      <span style="display: inline-flex; align-items: center; gap: 2px">
+                        <button type="button" aria-label="30분 앞당기기" style="width: 28px; height: 36px; border: 1px solid #3D4541; border-radius: 6px 0 0 6px; background: #1A1E1C; color: #C3CAC5; font: inherit; cursor: pointer">−</button>
+                        <input type="text" aria-label="시간" value="7:00~8:00" style="width: 84px; height: 36px; box-sizing: border-box; padding: 0 6px; border: 1px solid #8FB5A0; background: #1A1E1C; color: #E9ECE9; font: inherit; font-size: 13px; text-align: center">
+                        <button type="button" aria-label="30분 미루기" style="width: 28px; height: 36px; border: 1px solid #3D4541; border-radius: 0 6px 6px 0; background: #1A1E1C; color: #C3CAC5; font: inherit; cursor: pointer">+</button>
+                      </span>
+                    
+                    
+                  </td>
+                  <td style="padding: 0 4px; ">
+                    
+                    
+                      <button type="button" title="눌러서 이름 고치기" style="min-height: 40px; padding: 0 6px; border: 0; background: transparent; color: #E9ECE9; font: inherit; font-weight: 500; text-align: left; cursor: pointer">아침 운동</button>
+                    
+                  </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="true" aria-label="아침 운동, 월요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: #8FB5A0; border: 0">
+                          
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#12201A" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="true" aria-label="아침 운동, 화요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: #8FB5A0; border: 0">
+                          
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#12201A" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: #1D2320; ">
+                      <button type="button" role="checkbox" aria-checked="true" aria-label="아침 운동, 수요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: #8FB5A0; border: 0">
+                          
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#12201A" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="아침 운동, 목요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="아침 운동, 금요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="아침 운동, 토요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="아침 운동, 일요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                  <td style="padding: 0; text-align: center; ">
+                    
+                  </td>
+                </tr>
+              
+                <tr style="background: #1F2422; border-bottom: 1px solid #262C29; ">
+                  <td style="padding: 0; text-align: center; ">
+                    <span aria-label="순서 바꾸기" title="끌어서 순서 바꾸기" role="button" tabindex="0" style="display: inline-flex; width: 28px; height: 40px; align-items: center; justify-content: center; color: #C3CAC5; cursor: grab">
+                      <svg width="12" height="16" viewBox="0 0 12 16" fill="currentColor" aria-hidden="true"><circle cx="3.5" cy="3" r="1.4"></circle><circle cx="8.5" cy="3" r="1.4"></circle><circle cx="3.5" cy="8" r="1.4"></circle><circle cx="8.5" cy="8" r="1.4"></circle><circle cx="3.5" cy="13" r="1.4"></circle><circle cx="8.5" cy="13" r="1.4"></circle></svg>
+                    </span>
+                  </td>
+                  <td style="padding: 0 4px; ">
+                    
+                    
+                      <button type="button" title="눌러서 시간 고치기" style="min-height: 40px; padding: 0 6px; border: 0; background: transparent; color: #C3CAC5; font: inherit; font-size: 14px; cursor: pointer">9:00~12:00</button>
+                    
+                  </td>
+                  <td style="padding: 0 4px; ">
+                    
+                    
+                      <button type="button" title="눌러서 이름 고치기" style="min-height: 40px; padding: 0 6px; border: 0; background: transparent; color: #E9ECE9; font: inherit; font-weight: 500; text-align: left; cursor: pointer">코테 공부</button>
+                    
+                  </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="true" aria-label="코테 공부, 월요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: #8FB5A0; border: 0">
+                          
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#12201A" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="true" aria-label="코테 공부, 화요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: #8FB5A0; border: 0">
+                          
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#12201A" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="코테 공부, 수요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="코테 공부, 목요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="코테 공부, 금요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="코테 공부, 토요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="코테 공부, 일요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                  <td style="padding: 0; text-align: center; ">
+                    
+                      <button type="button" aria-label="코테 공부 삭제" style="width: 40px; height: 40px; border: 0; border-radius: 6px; background: transparent; color: #A9B1AC; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"></path></svg>
+                      </button>
+                    
+                  </td>
+                </tr>
+              
+                <tr style="background: transparent; border-bottom: 1px solid #262C29; ">
+                  <td style="padding: 0; text-align: center; ">
+                    <span aria-label="순서 바꾸기" title="끌어서 순서 바꾸기" role="button" tabindex="0" style="display: inline-flex; width: 28px; height: 40px; align-items: center; justify-content: center; color: #262C29; cursor: grab">
+                      <svg width="12" height="16" viewBox="0 0 12 16" fill="currentColor" aria-hidden="true"><circle cx="3.5" cy="3" r="1.4"></circle><circle cx="8.5" cy="3" r="1.4"></circle><circle cx="3.5" cy="8" r="1.4"></circle><circle cx="8.5" cy="8" r="1.4"></circle><circle cx="3.5" cy="13" r="1.4"></circle><circle cx="8.5" cy="13" r="1.4"></circle></svg>
+                    </span>
+                  </td>
+                  <td style="padding: 0 4px; ">
+                    
+                    
+                      <button type="button" title="눌러서 시간 고치기" style="min-height: 40px; padding: 0 6px; border: 0; background: transparent; color: #C3CAC5; font: inherit; font-size: 14px; cursor: pointer">13:00~15:00</button>
+                    
+                  </td>
+                  <td style="padding: 0 4px; ">
+                    
+                      <input type="text" aria-label="블록 이름" value="자소서" style="width: 100%; max-width: 220px; height: 36px; box-sizing: border-box; padding: 0 10px; border: 1px solid #8FB5A0; border-radius: 6px; background: #1A1E1C; color: #E9ECE9; font: inherit; font-size: 14px">
+                    
+                    
+                  </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="true" aria-label="자소서, 월요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: #8FB5A0; border: 0">
+                          
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#12201A" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="true" aria-label="자소서, 화요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: #8FB5A0; border: 0">
+                          
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#12201A" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: #1D2320; ">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="자소서, 수요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="자소서, 목요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="자소서, 금요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="자소서, 토요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="자소서, 일요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                  <td style="padding: 0; text-align: center; ">
+                    
+                  </td>
+                </tr>
+              
+                <tr style="background: transparent; border-bottom: 1px solid #262C29; ">
+                  <td style="padding: 0; text-align: center; box-shadow: inset 0 2px 0 #8FB5A0">
+                    <span aria-label="순서 바꾸기" title="끌어서 순서 바꾸기" role="button" tabindex="0" style="display: inline-flex; width: 28px; height: 40px; align-items: center; justify-content: center; color: #262C29; cursor: grab">
+                      <svg width="12" height="16" viewBox="0 0 12 16" fill="currentColor" aria-hidden="true"><circle cx="3.5" cy="3" r="1.4"></circle><circle cx="8.5" cy="3" r="1.4"></circle><circle cx="3.5" cy="8" r="1.4"></circle><circle cx="8.5" cy="8" r="1.4"></circle><circle cx="3.5" cy="13" r="1.4"></circle><circle cx="8.5" cy="13" r="1.4"></circle></svg>
+                    </span>
+                  </td>
+                  <td style="padding: 0 4px; box-shadow: inset 0 2px 0 #8FB5A0">
+                    
+                    
+                      <button type="button" title="눌러서 시간 고치기" style="min-height: 40px; padding: 0 6px; border: 0; background: transparent; color: #C3CAC5; font: inherit; font-size: 14px; cursor: pointer">15:30~17:00</button>
+                    
+                  </td>
+                  <td style="padding: 0 4px; box-shadow: inset 0 2px 0 #8FB5A0">
+                    
+                    
+                      <button type="button" title="눌러서 이름 고치기" style="min-height: 40px; padding: 0 6px; border: 0; background: transparent; color: #E9ECE9; font: inherit; font-weight: 500; text-align: left; cursor: pointer">CS 복습</button>
+                    
+                  </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; box-shadow: inset 0 2px 0 #8FB5A0">
+                      <button type="button" role="checkbox" aria-checked="true" aria-label="CS 복습, 월요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: #8FB5A0; border: 0">
+                          
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#12201A" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; box-shadow: inset 0 2px 0 #8FB5A0">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="CS 복습, 화요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: #1D2320; box-shadow: inset 0 2px 0 #8FB5A0">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="CS 복습, 수요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; box-shadow: inset 0 2px 0 #8FB5A0">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="CS 복습, 목요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; box-shadow: inset 0 2px 0 #8FB5A0">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="CS 복습, 금요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; box-shadow: inset 0 2px 0 #8FB5A0">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="CS 복습, 토요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; box-shadow: inset 0 2px 0 #8FB5A0">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="CS 복습, 일요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                  <td style="padding: 0; text-align: center; box-shadow: inset 0 2px 0 #8FB5A0">
+                    
+                  </td>
+                </tr>
+              
+                <tr style="background: #1A1E1C; border-bottom: 1px solid #262C29; box-shadow: 0 10px 24px rgba(0,0,0,0.5), inset 0 0 0 1.5px #8FB5A0; position: relative; opacity: 0.96">
+                  <td style="padding: 0; text-align: center; ">
+                    <span aria-label="순서 바꾸기" title="끌어서 순서 바꾸기" role="button" tabindex="0" style="display: inline-flex; width: 28px; height: 40px; align-items: center; justify-content: center; color: #C3CAC5; cursor: grab">
+                      <svg width="12" height="16" viewBox="0 0 12 16" fill="currentColor" aria-hidden="true"><circle cx="3.5" cy="3" r="1.4"></circle><circle cx="8.5" cy="3" r="1.4"></circle><circle cx="3.5" cy="8" r="1.4"></circle><circle cx="8.5" cy="8" r="1.4"></circle><circle cx="3.5" cy="13" r="1.4"></circle><circle cx="8.5" cy="13" r="1.4"></circle></svg>
+                    </span>
+                  </td>
+                  <td style="padding: 0 4px; ">
+                    
+                    
+                      <button type="button" title="눌러서 시간 고치기" style="min-height: 40px; padding: 0 6px; border: 0; background: transparent; color: #C3CAC5; font: inherit; font-size: 14px; cursor: pointer">21:00</button>
+                    
+                  </td>
+                  <td style="padding: 0 4px; ">
+                    
+                    
+                      <button type="button" title="눌러서 이름 고치기" style="min-height: 40px; padding: 0 6px; border: 0; background: transparent; color: #E9ECE9; font: inherit; font-weight: 500; text-align: left; cursor: pointer">블로그</button>
+                    
+                  </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="true" aria-label="블로그, 월요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: #8FB5A0; border: 0">
+                          
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#12201A" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="true" aria-label="블로그, 화요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: #8FB5A0; border: 0">
+                          
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#12201A" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="블로그, 수요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="블로그, 목요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="블로그, 금요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="블로그, 토요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="블로그, 일요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                  <td style="padding: 0; text-align: center; ">
+                    
+                  </td>
+                </tr>
+              
+                <tr style="background: transparent; border-bottom: 1px solid #262C29; ">
+                  <td style="padding: 0; text-align: center; ">
+                    <span aria-label="순서 바꾸기" title="끌어서 순서 바꾸기" role="button" tabindex="0" style="display: inline-flex; width: 28px; height: 40px; align-items: center; justify-content: center; color: #262C29; cursor: grab">
+                      <svg width="12" height="16" viewBox="0 0 12 16" fill="currentColor" aria-hidden="true"><circle cx="3.5" cy="3" r="1.4"></circle><circle cx="8.5" cy="3" r="1.4"></circle><circle cx="3.5" cy="8" r="1.4"></circle><circle cx="8.5" cy="8" r="1.4"></circle><circle cx="3.5" cy="13" r="1.4"></circle><circle cx="8.5" cy="13" r="1.4"></circle></svg>
+                    </span>
+                  </td>
+                  <td style="padding: 0 4px; ">
+                    
+                    
+                      <button type="button" title="눌러서 시간 고치기" style="min-height: 40px; padding: 0 6px; border: 0; background: transparent; color: #8C948F; font: inherit; font-size: 13px; cursor: pointer">+ 시간</button>
+                    
+                  </td>
+                  <td style="padding: 0 4px; ">
+                    
+                    
+                      <button type="button" title="눌러서 이름 고치기" style="min-height: 40px; padding: 0 6px; border: 0; background: transparent; color: #E9ECE9; font: inherit; font-weight: 500; text-align: left; cursor: pointer">물 2L</button>
+                    
+                  </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="true" aria-label="물 2L, 월요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: #8FB5A0; border: 0">
+                          
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#12201A" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="true" aria-label="물 2L, 화요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: #8FB5A0; border: 0">
+                          
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#12201A" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: #1D2320; ">
+                      <button type="button" role="checkbox" aria-checked="true" aria-label="물 2L, 수요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: #8FB5A0; border: 0">
+                          
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#12201A" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="물 2L, 목요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="물 2L, 금요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="물 2L, 토요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                    <td style="padding: 0; text-align: center; background: transparent; ">
+                      <button type="button" role="checkbox" aria-checked="false" aria-label="물 2L, 일요일" style="width: 40px; height: 40px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1.5px solid #4A534E">
+                          
+                        </span>
+                      </button>
+                    </td>
+                  
+                  <td style="padding: 0; text-align: center; ">
+                    
+                  </td>
+                </tr>
+              
+              <tr>
+                <td style="padding: 0"></td>
+                <td colspan="10" style="padding: 8px 4px 10px">
+                  <label style="display: flex; align-items: center; gap: 8px; max-width: 360px; min-height: 40px; padding: 0 10px; border: 1px dashed #3D4541; border-radius: 6px; color: #A9B1AC">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+                    <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">새 블록 추가</span>
+                    <input type="text" placeholder="블록 이름 (예: 아침 운동)" style="flex: 1 1 auto; min-width: 0; height: 38px; border: 0; background: transparent; color: #E9ECE9; font: inherit; font-size: 14px">
+                  </label>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 이번 주 회고 -->
+      <section aria-labelledby="retro-title" style="box-sizing: border-box; padding: 20px 24px 18px; background: #1A1E1C; border: 1px solid #2C3330; border-radius: 8px; display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px">
+          <h2 id="retro-title" style="margin: 0; font-size: 17px; font-weight: 700; color: #A9CBB7"><label for="retro">이번 주 회고</label></h2>
+          <span role="status" style="font-size: 13px; color: #8C948F">저장됨</span>
+        </div>
+        <textarea id="retro" rows="4" placeholder="이 주의 회고를 남겨보세요..." style="box-sizing: border-box; width: 100%; padding: 10px 12px; border: 1px solid #3D4541; border-radius: 6px; background: #1A1E1C; color: #E9ECE9; font: inherit; font-size: 14px; line-height: 1.65; resize: vertical">월·화는 거의 다 지켰는데 수요일 오후부터 흐트러짐.
+자소서 블록을 오전으로 옮겨보기.</textarea>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+          <button type="button" style="min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: #A9B1AC; font: inherit; font-size: 14px; cursor: pointer">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"></path></svg>
+            삭제
+          </button>
+          <button type="button" style="min-height: 40px; padding: 0 18px; border: 1px solid #2F5A47; border-radius: 6px; background: #2F5A47; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">저장</button>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+</body>
+</html>

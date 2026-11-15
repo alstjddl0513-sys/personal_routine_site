@@ -121,10 +121,6 @@ function isSameLocalDay(a: Date, b: Date): boolean {
   );
 }
 
-export function countTodayDeadlines(rows: Company[], now: Date = new Date()): number {
-  return pickTodayDeadlineNames(rows, now).length;
-}
-
 // 오늘 마감인 ACTIVE 상태 회사 이름 목록. formatMorningMessage가 1건일 때
 // 회사명을 문구에 넣기 위해 사용. 2건 이상은 카운트만 노출(문구 폭발 방지).
 export function pickTodayDeadlineNames(
@@ -214,9 +210,9 @@ export function formatMorningMessage(
   const deadlinePart = formatDeadlinePart(summary.todayDeadlineNames);
   if (deadlinePart) parts.push(deadlinePart);
   if (summary.uncheckedRoutines > 0)
-    parts.push(`미체크 루틴 ${summary.uncheckedRoutines}개`);
+    parts.push(`아직 안 한 루틴 ${summary.uncheckedRoutines}개`);
   return {
-    title: '오늘의 하루',
+    title: '오늘 할 일',
     body: parts.length > 0 ? `${parts.join(' · ')} 남았어요.` : '',
   };
 }

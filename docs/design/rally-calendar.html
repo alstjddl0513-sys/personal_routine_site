@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rally 캘린더</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=Noto+Serif+KR:wght@600&amp;display=swap">
+<style>
+body{margin:0;background:#F6F7F5}
+</style>
+</head>
+<body>
+
+<div style="min-height: 100vh; box-sizing: border-box; display: flex; flex-wrap: wrap; background: #F6F7F5; color: #1C1F1D; font-family: 'IBM Plex Sans KR', system-ui, sans-serif; font-size: 15px; line-height: 1.55; word-break: keep-all; font-variant-numeric: tabular-nums">
+
+  <!-- 사이드바 (공통) — 캘린더 활성 -->
+  <aside style="flex: 1 1 216px; max-width: 100%; box-sizing: border-box; padding: 28px 12px 16px; display: flex; flex-direction: column; gap: 28px; background: #1F3D30; border-right: 1px solid #1F3D30">
+    <a href="#" style="display: flex; align-items: center; gap: 9px; padding: 0 12px; text-decoration: none; color: #F4F2EC">
+      <svg width="20" height="22" viewBox="0 0 20 22" fill="none" aria-hidden="true"><path d="M3.5 21V1.8" stroke="#F4F2EC" stroke-width="2" stroke-linecap="round"></path><path d="M4.5 2.2L18 7.4L4.5 12.4Z" fill="#E9B949"></path></svg>
+      <span style="font-size: 20px; font-weight: 700; letter-spacing: -0.01em">Rally</span>
+    </a>
+    <nav aria-label="주 메뉴" style="flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: none; display: flex; flex-direction: column; gap: 2px">
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border-radius: 6px; color: #C3CEC6; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.5L12 5l8 6.5V20h-5v-5.5H9V20H4z"></path></svg>
+        오늘
+      </a>
+      <a href="#" aria-current="page" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border-radius: 6px; background: #2C4F40; color: #FFFFFF; text-decoration: none; font-weight: 600">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="1.5"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg>
+        캘린더
+      </a>
+      <button type="button" aria-expanded="false" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: #C3CEC6; font: inherit; text-align: left; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="1.5"></rect><path d="M9 7V4.5h6V7"></path></svg>
+        <span style="flex: 1 1 auto">채용</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </button>
+      <button type="button" aria-expanded="false" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: #C3CEC6; font: inherit; text-align: left; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h3M4 12h3M4 18h3M10 6h10M10 12h10M10 18h6"></path></svg>
+        <span style="flex: 1 1 auto">루틴</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </button>
+      <button type="button" aria-expanded="false" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: #C3CEC6; font: inherit; text-align: left; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5v11M17.5 6.5v11M3 9.5v5M21 9.5v5M6.5 12h11"></path></svg>
+        <span style="flex: 1 1 auto">운동</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </button>
+      <button type="button" aria-expanded="false" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: #C3CEC6; font: inherit; text-align: left; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h6a2 2 0 0 1 2 2v13a1.5 1.5 0 0 0-1.5-1.5H4zM20 5h-6a2 2 0 0 0-2 2v13a1.5 1.5 0 0 1 1.5-1.5H20z"></path></svg>
+        <span style="flex: 1 1 auto">학습</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </button>
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border-radius: 6px; color: #C3CEC6; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5h14M5 10h14M5 15h9M5 20h6"></path></svg>
+        블로그
+      </a>
+    </nav>
+    <div style="display: flex; align-items: center; gap: 2px; padding-top: 12px; border-top: 1px solid #36594A">
+      <a href="#" style="flex: 1 1 auto; display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border-radius: 6px; color: #C3CEC6; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"></path></svg>
+        설정
+      </a>
+      <button type="button" aria-label="다크 모드 전환" style="width: 40px; height: 40px; flex: none; border: 0; border-radius: 6px; background: transparent; display: inline-flex; align-items: center; justify-content: center; color: #C3CEC6; cursor: pointer">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 13A8.5 8.5 0 1 1 11 3.5a6.5 6.5 0 0 0 9.5 9.5z"></path></svg>
+      </button>
+      <button type="button" aria-label="알림" style="width: 40px; height: 40px; flex: none; border: 0; border-radius: 6px; background: transparent; display: inline-flex; align-items: center; justify-content: center; color: #C3CEC6; cursor: pointer">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 8 2.5 8h-17S6 15 6 9M10.3 20.5a1.9 1.9 0 0 0 3.4 0"></path></svg>
+      </button>
+    </div>
+  </aside>
+
+  <main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 32px 32px 48px 36px; display: flex; flex-direction: column; gap: 20px">
+
+    <!-- 상단 -->
+    <header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px">
+      <h1 style="margin: 0; font-size: 26px; line-height: 1.3; font-weight: 700; letter-spacing: -0.01em">캘린더</h1>
+      <div style="display: flex; align-items: center; gap: 6px">
+        <button type="button" aria-label="이전 달" style="width: 40px; height: 40px; border: 1px solid #BFC4BE; border-radius: 6px; background: #FFFFFF; color: #3F4441; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+        </button>
+        <h2 aria-live="polite" style="margin: 0; min-width: 132px; text-align: center; font-size: 18px; font-weight: 600">2026년 11월</h2>
+        <button type="button" aria-label="다음 달" style="width: 40px; height: 40px; border: 1px solid #BFC4BE; border-radius: 6px; background: #FFFFFF; color: #3F4441; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+        </button>
+        <button type="button" style="margin-left: 6px; min-height: 40px; padding: 0 14px; border: 1px solid #BFC4BE; border-radius: 6px; background: #FFFFFF; color: #1F3D30; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer">오늘</button>
+      </div>
+    </header>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+
+      <!-- 달력 -->
+      <section aria-label="2026년 11월 달력" style="flex: 1 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 10px">
+        <div style="border: 1px solid #D9DCD8; border-radius: 8px; overflow: hidden; background: #E7E9E6">
+          <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1px; background: #E7E9E6">
+            
+              <div style="padding: 9px 10px; background: #FAFBF9; font-size: 13px; font-weight: 600; color: #3F4441">월</div>
+            
+              <div style="padding: 9px 10px; background: #FAFBF9; font-size: 13px; font-weight: 600; color: #3F4441">화</div>
+            
+              <div style="padding: 9px 10px; background: #FAFBF9; font-size: 13px; font-weight: 600; color: #3F4441">수</div>
+            
+              <div style="padding: 9px 10px; background: #FAFBF9; font-size: 13px; font-weight: 600; color: #3F4441">목</div>
+            
+              <div style="padding: 9px 10px; background: #FAFBF9; font-size: 13px; font-weight: 600; color: #3F4441">금</div>
+            
+              <div style="padding: 9px 10px; background: #FAFBF9; font-size: 13px; font-weight: 600; color: #4F5450">토</div>
+            
+              <div style="padding: 9px 10px; background: #FAFBF9; font-size: 13px; font-weight: 600; color: #4F5450">일</div>
+            
+            
+              <button type="button" aria-label="10월 26일" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #F9FAF8">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #8E928D">26</span>
+                  
+                </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="10월 27일" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #F9FAF8">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #8E928D">27</span>
+                  
+                </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="10월 28일, 일정 1건" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #F9FAF8">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #8E928D">28</span>
+                  
+                </span>
+                
+                  <span style="display: flex; align-items: center; gap: 5px; min-width: 0; font-size: 12px; line-height: 1.35; opacity: 0.55">
+                    <span style="width: 6px; height: 6px; flex: none; border-radius: 50%; background: #6B4A7A"></span>
+                    <span title="면접 · [회사 C]" style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #3F4441">[회사 C]</span>
+                  </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="10월 29일" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #F9FAF8">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #8E928D">29</span>
+                  
+                </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="10월 30일, 일정 1건" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #F9FAF8">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #8E928D">30</span>
+                  
+                </span>
+                
+                  <span style="display: flex; align-items: center; gap: 5px; min-width: 0; font-size: 12px; line-height: 1.35; opacity: 0.55">
+                    <span style="width: 6px; height: 6px; flex: none; border-radius: 50%; background: #2F6B5E"></span>
+                    <span title="발표 · [회사 D]" style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #3F4441">[회사 D]</span>
+                  </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="10월 31일" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #F9FAF8">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #8E928D">31</span>
+                  
+                </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="11월 1일" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #FFFFFF">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #4F5450">1</span>
+                  
+                </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="11월 2일, 일정 1건" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #FFFFFF">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #1C1F1D">2</span>
+                  
+                </span>
+                
+                  <span style="display: flex; align-items: center; gap: 5px; min-width: 0; font-size: 12px; line-height: 1.35; ">
+                    <span style="width: 6px; height: 6px; flex: none; border-radius: 50%; background: #A33B20"></span>
+                    <span title="마감 · [회사 F]" style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #3F4441">[회사 F]</span>
+                  </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="11월 3일, 오늘, 일정 1건, 메모 있음" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #FFFFFF">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: #1F3D30; color: #FFFFFF; font-size: 13px; font-weight: 700">3</span>
+                  
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4F5450" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5h14v11l-4 4H5z"></path><path d="M9 9.5h6"></path></svg>
+                  
+                </span>
+                
+                  <span style="display: flex; align-items: center; gap: 5px; min-width: 0; font-size: 12px; line-height: 1.35; ">
+                    <span style="width: 6px; height: 6px; flex: none; border-radius: 50%; background: #3D5A80"></span>
+                    <span title="시험 · [회사 B]" style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #3F4441">[회사 B]</span>
+                  </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="11월 4일" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #FFFFFF">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #1C1F1D">4</span>
+                  
+                </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="11월 5일, 일정 2건, 메모 있음" aria-pressed="true" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #E6EEE8; box-shadow: inset 0 0 0 2px #1F3D30">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 700; color: #1C1F1D">5</span>
+                  
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4F5450" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5h14v11l-4 4H5z"></path><path d="M9 9.5h6"></path></svg>
+                  
+                </span>
+                
+                  <span style="display: flex; align-items: center; gap: 5px; min-width: 0; font-size: 12px; line-height: 1.35; ">
+                    <span style="width: 6px; height: 6px; flex: none; border-radius: 50%; background: #6B4A7A"></span>
+                    <span title="면접 · [회사 C]" style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #3F4441">[회사 C]</span>
+                  </span>
+                
+                  <span style="display: flex; align-items: center; gap: 5px; min-width: 0; font-size: 12px; line-height: 1.35; ">
+                    <span style="width: 6px; height: 6px; flex: none; border-radius: 50%; background: #A33B20"></span>
+                    <span title="마감 · [회사 G]" style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #3F4441">[회사 G]</span>
+                  </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="11월 6일" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #FFFFFF">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #1C1F1D">6</span>
+                  
+                </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="11월 7일" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #FFFFFF">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #4F5450">7</span>
+                  
+                </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="11월 8일" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #FFFFFF">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #4F5450">8</span>
+                  
+                </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="11월 9일, 메모 있음" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #FFFFFF">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #1C1F1D">9</span>
+                  
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4F5450" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5h14v11l-4 4H5z"></path><path d="M9 9.5h6"></path></svg>
+                  
+                </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="11월 10일, 일정 4건" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #FFFFFF">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #1C1F1D">10</span>
+                  
+                </span>
+                
+                  <span style="display: flex; align-items: center; gap: 5px; min-width: 0; font-size: 12px; line-height: 1.35; ">
+                    <span style="width: 6px; height: 6px; flex: none; border-radius: 50%; background: #A33B20"></span>
+                    <span title="마감 · [회사 H]" style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #3F4441">[회사 H]</span>
+                  </span>
+                
+                  <span style="display: flex; align-items: center; gap: 5px; min-width: 0; font-size: 12px; line-height: 1.35; ">
+                    <span style="width: 6px; height: 6px; flex: none; border-radius: 50%; background: #A33B20"></span>
+                    <span title="마감 · [회사 I]" style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #3F4441">[회사 I]</span>
+                  </span>
+                
+                
+                  <span style="font-size: 12px; font-weight: 600; color: #3F4441">+2건</span>
+                
+              </button>
+            
+              <button type="button" aria-label="11월 11일" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #FFFFFF">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #1C1F1D">11</span>
+                  
+                </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="11월 12일, 일정 1건" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #FFFFFF; box-shadow: inset 0 0 0 2px #9A6700">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #1C1F1D">12</span>
+                  
+                </span>
+                
+                  <span style="display: flex; align-items: center; gap: 5px; min-width: 0; font-size: 12px; line-height: 1.35; ">
+                    <span style="width: 6px; height: 6px; flex: none; border-radius: 50%; background: #2F6B5E"></span>
+                    <span title="발표 · [회사 B]" style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #3F4441">[회사 B]</span>
+                  </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="11월 13일, 일정 1건" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #FFFFFF">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #1C1F1D">13</span>
+                  
+                </span>
+                
+                  <span style="display: flex; align-items: center; gap: 5px; min-width: 0; font-size: 12px; line-height: 1.35; ">
+                    <span style="width: 6px; height: 6px; flex: none; border-radius: 50%; background: #6B4A7A"></span>
+                    <span title="면접 · [회사 E]" style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #3F4441">[회사 E]</span>
+                  </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="11월 14일" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #FFFFFF">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #4F5450">14</span>
+                  
+                </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="11월 15일" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #FFFFFF">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #4F5450">15</span>
+                  
+                </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="11월 16일" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #FFFFFF">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #1C1F1D">16</span>
+                  
+                </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="11월 17일, 일정 1건, 메모 있음" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #FFFFFF">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #1C1F1D">17</span>
+                  
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4F5450" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5h14v11l-4 4H5z"></path><path d="M9 9.5h6"></path></svg>
+                  
+                </span>
+                
+                  <span style="display: flex; align-items: center; gap: 5px; min-width: 0; font-size: 12px; line-height: 1.35; ">
+                    <span style="width: 6px; height: 6px; flex: none; border-radius: 50%; background: #A33B20"></span>
+                    <span title="마감 · [회사 L]" style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #3F4441">[회사 L]</span>
+                  </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="11월 18일" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #FFFFFF">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #1C1F1D">18</span>
+                  
+                </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="11월 19일, 일정 1건" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #FFFFFF">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #1C1F1D">19</span>
+                  
+                </span>
+                
+                  <span style="display: flex; align-items: center; gap: 5px; min-width: 0; font-size: 12px; line-height: 1.35; ">
+                    <span style="width: 6px; height: 6px; flex: none; border-radius: 50%; background: #6B6F6A"></span>
+                    <span title="기타 · [회사 M]" style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #3F4441">[회사 M]</span>
+                  </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="11월 20일, 일정 2건" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #FFFFFF">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #1C1F1D">20</span>
+                  
+                </span>
+                
+                  <span style="display: flex; align-items: center; gap: 5px; min-width: 0; font-size: 12px; line-height: 1.35; ">
+                    <span style="width: 6px; height: 6px; flex: none; border-radius: 50%; background: #3D5A80"></span>
+                    <span title="시험 · [회사 N]" style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #3F4441">[회사 N]</span>
+                  </span>
+                
+                  <span style="display: flex; align-items: center; gap: 5px; min-width: 0; font-size: 12px; line-height: 1.35; ">
+                    <span style="width: 6px; height: 6px; flex: none; border-radius: 50%; background: #6B4A7A"></span>
+                    <span title="면접 · [회사 D]" style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #3F4441">[회사 D]</span>
+                  </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="11월 21일" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #FFFFFF">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #4F5450">21</span>
+                  
+                </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="11월 22일" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #FFFFFF">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #4F5450">22</span>
+                  
+                </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="11월 23일" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #FFFFFF">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #1C1F1D">23</span>
+                  
+                </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="11월 24일, 일정 1건" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #FFFFFF">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #1C1F1D">24</span>
+                  
+                </span>
+                
+                  <span style="display: flex; align-items: center; gap: 5px; min-width: 0; font-size: 12px; line-height: 1.35; ">
+                    <span style="width: 6px; height: 6px; flex: none; border-radius: 50%; background: #2F6B5E"></span>
+                    <span title="발표 · [회사 C]" style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #3F4441">[회사 C]</span>
+                  </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="11월 25일, 메모 있음" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #FFFFFF">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #1C1F1D">25</span>
+                  
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4F5450" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5h14v11l-4 4H5z"></path><path d="M9 9.5h6"></path></svg>
+                  
+                </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="11월 26일" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #FFFFFF">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #1C1F1D">26</span>
+                  
+                </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="11월 27일, 일정 1건" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #FFFFFF">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #1C1F1D">27</span>
+                  
+                </span>
+                
+                  <span style="display: flex; align-items: center; gap: 5px; min-width: 0; font-size: 12px; line-height: 1.35; ">
+                    <span style="width: 6px; height: 6px; flex: none; border-radius: 50%; background: #A33B20"></span>
+                    <span title="마감 · [회사 O]" style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #3F4441">[회사 O]</span>
+                  </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="11월 28일" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #FFFFFF">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #4F5450">28</span>
+                  
+                </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="11월 29일" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #FFFFFF">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #4F5450">29</span>
+                  
+                </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="11월 30일" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #FFFFFF">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #1C1F1D">30</span>
+                  
+                </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="12월 1일" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #F9FAF8">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #8E928D">1</span>
+                  
+                </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="12월 2일, 일정 1건" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #F9FAF8">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #8E928D">2</span>
+                  
+                </span>
+                
+                  <span style="display: flex; align-items: center; gap: 5px; min-width: 0; font-size: 12px; line-height: 1.35; opacity: 0.55">
+                    <span style="width: 6px; height: 6px; flex: none; border-radius: 50%; background: #A33B20"></span>
+                    <span title="마감 · [회사 P]" style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #3F4441">[회사 P]</span>
+                  </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="12월 3일" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #F9FAF8">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #8E928D">3</span>
+                  
+                </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="12월 4일" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #F9FAF8">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #8E928D">4</span>
+                  
+                </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="12월 5일" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #F9FAF8">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #8E928D">5</span>
+                  
+                </span>
+                
+                
+              </button>
+            
+              <button type="button" aria-label="12월 6일" aria-pressed="false" style="position: relative; min-height: 108px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 8px 8px; border: 0; text-align: left; font: inherit; cursor: pointer; background: #F9FAF8">
+                <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                  <span style="display: inline-flex; align-items: center; height: 26px; font-size: 14px; font-weight: 500; color: #8E928D">6</span>
+                  
+                </span>
+                
+                
+              </button>
+            
+          </div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; font-size: 13px; color: #4F5450">
+          
+            <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 7px; height: 7px; border-radius: 50%; background: #A33B20"></span>마감</span>
+          
+            <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 7px; height: 7px; border-radius: 50%; background: #3D5A80"></span>시험</span>
+          
+            <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 7px; height: 7px; border-radius: 50%; background: #6B4A7A"></span>면접</span>
+          
+            <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 7px; height: 7px; border-radius: 50%; background: #2F6B5E"></span>발표</span>
+          
+            <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 7px; height: 7px; border-radius: 50%; background: #6B6F6A"></span>기타</span>
+          
+          <span style="display: inline-flex; align-items: center; gap: 6px; margin-left: auto">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4F5450" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5h14v11l-4 4H5z"></path><path d="M9 9.5h6"></path></svg>메모
+          </span>
+        </div>
+      </section>
+
+      <!-- 날짜 패널 -->
+      <aside aria-labelledby="panel-title" style="flex: 0 0 320px; max-width: 100%; box-sizing: border-box; background: #FFFFFF; border: 1px solid #D9DCD8; border-radius: 8px; display: flex; flex-direction: column">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 14px 10px 12px 20px; border-bottom: 1px solid #E7E9E6">
+          <div style="display: flex; flex-direction: column; line-height: 1.3">
+            <h2 id="panel-title" style="margin: 0; font-size: 18px; font-weight: 700">11월 5일 (목)</h2>
+            <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #4F5450">이틀 뒤 <span style="padding: 0 6px; border: 1px dashed #BFC4BE; border-radius: 4px; font-size: 11px">제안</span></span>
+          </div>
+          <button type="button" aria-label="날짜 패널 닫기" style="width: 40px; height: 40px; border: 0; border-radius: 6px; background: transparent; color: #3F4441; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+          </button>
+        </div>
+
+        <section aria-labelledby="ev-title" style="padding: 16px 20px 18px; border-bottom: 1px solid #E7E9E6; display: flex; flex-direction: column; gap: 6px">
+          <h3 id="ev-title" style="margin: 0; font-size: 15px; font-weight: 700; color: #1F3D30">채용 일정 <span style="font-weight: 500; color: #4F5450">2건</span></h3>
+          <ul style="margin: 0; padding: 0; list-style: none">
+            
+              <li style="display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #E7E9E6">
+                <span style="width: 46px; flex: none; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #6B4A7A"><span style="width: 7px; height: 7px; border-radius: 50%; background: #6B4A7A"></span>면접</span>
+                <span style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; line-height: 1.35">
+                  <span style="font-weight: 600">[회사 C]</span>
+                  <span style="font-size: 13px; color: #4F5450">1차 면접 14:00</span>
+                </span>
+                <a href="#" aria-label="[회사 C] 채용 리스트에서 보기" style="min-height: 40px; box-sizing: border-box; display: inline-flex; align-items: center; gap: 4px; padding: 0 10px; border: 1px solid #BFC4BE; border-radius: 6px; color: #1F3D30; font-size: 13px; font-weight: 500; text-decoration: none">회사 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></a>
+              </li>
+            
+              <li style="display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #E7E9E6">
+                <span style="width: 46px; flex: none; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #A33B20"><span style="width: 7px; height: 7px; border-radius: 50%; background: #A33B20"></span>마감</span>
+                <span style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; line-height: 1.35">
+                  <span style="font-weight: 600">[회사 G]</span>
+                  <span style="font-size: 13px; color: #4F5450">서류 마감 23:59</span>
+                </span>
+                <a href="#" aria-label="[회사 G] 채용 리스트에서 보기" style="min-height: 40px; box-sizing: border-box; display: inline-flex; align-items: center; gap: 4px; padding: 0 10px; border: 1px solid #BFC4BE; border-radius: 6px; color: #1F3D30; font-size: 13px; font-weight: 500; text-decoration: none">회사 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></a>
+              </li>
+            
+          </ul>
+          <p style="margin: 4px 0 0; font-size: 13px; color: #4F5450">일정을 더하거나 고치려면 <a href="#" style="color: #1F3D30">채용 리스트</a>에서 해주세요.</p>
+        </section>
+
+        <section aria-labelledby="memo-title" style="padding: 16px 20px 18px; display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px">
+            <h3 id="memo-title" style="margin: 0; font-size: 15px; font-weight: 700; color: #1F3D30"><label for="day-memo">메모</label></h3>
+            <span role="status" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #9A6700"><span style="width: 6px; height: 6px; border-radius: 50%; background: #9A6700"></span>변경사항 있음</span>
+          </div>
+          <textarea id="day-memo" rows="5" placeholder="이 날 짧게 메모해보세요..." style="box-sizing: border-box; width: 100%; padding: 10px 12px; border: 1px solid #1F3D30; border-radius: 6px; background: #FFFFFF; color: #1C1F1D; font: inherit; font-size: 14px; line-height: 1.65; resize: vertical">[회사 C] 면접 전에 지난 과제 다시 보기
+포트폴리오 3번 프로젝트 설명 연습</textarea>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 2px">
+            <button type="button" style="min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: #4F5450; font: inherit; font-size: 14px; cursor: pointer">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"></path></svg>
+              삭제
+            </button>
+            <button type="button" aria-keyshortcuts="Meta+Enter Control+Enter" style="min-height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border: 1px solid #1F3D30; border-radius: 6px; background: #1F3D30; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">저장</button>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </main>
+</div>
+</body>
+</html>

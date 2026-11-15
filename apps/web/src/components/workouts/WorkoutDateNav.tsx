@@ -6,6 +6,11 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { addDays, dowLabel, toISODate } from '../../lib/routines-week';
 import type { MuscleGroupFilter } from '../../lib/muscle-groups';
 
+// 모바일은 기존 44px 터치 크기, 데스크톱 40px.
+const NAV_BTN =
+  'inline-flex h-11 cursor-pointer items-center justify-center rounded-md border border-btn-border bg-btn-bg text-ink-soft hover:border-heading disabled:cursor-default disabled:border-divider disabled:text-icon-faint md:h-10';
+
+// [오늘](다른 날짜일 때만) [‹] 11월 4일 (수) [›] — 오늘이면 [›] 비활성(미래 기록 X).
 export function WorkoutDateNav({
   date,
   group,
@@ -37,44 +42,43 @@ export function WorkoutDateNav({
 
   const todayIso = toISODate(new Date());
   const isToday = toISODate(date) === todayIso;
-
-  const label = `${date.getFullYear()}. ${String(date.getMonth() + 1).padStart(2, '0')}. ${String(date.getDate()).padStart(2, '0')} (${dowLabel(date)})`;
+  const label = `${date.getMonth() + 1}월 ${date.getDate()}일 (${dowLabel(date)})`;
 
   return (
-    <div className="flex items-center gap-2">
+    <nav aria-label="날짜 이동" className="flex items-center gap-2">
+      {!isToday ? (
+        <button
+          type="button"
+          onClick={() => goto(null)}
+          onMouseEnter={() => prefetch(null)}
+          onFocus={() => prefetch(null)}
+          className={`${NAV_BTN} px-3.5 text-sm font-medium text-btn-fg`}
+        >
+          오늘
+        </button>
+      ) : null}
       <button
         type="button"
         onClick={() => goto(addDays(date, -1))}
         onMouseEnter={() => prefetch(addDays(date, -1))}
         onFocus={() => prefetch(addDays(date, -1))}
-        className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-50 md:h-8 md:w-8 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
-        aria-label="이전 날짜"
+        className={`${NAV_BTN} w-11 md:w-10`}
+        aria-label="이전날"
       >
         <ChevronLeft className="h-4 w-4" aria-hidden />
       </button>
-      <button
-        type="button"
-        onClick={() => goto(null)}
-        onMouseEnter={() => prefetch(null)}
-        onFocus={() => prefetch(null)}
-        disabled={isToday}
-        className="inline-flex min-h-11 items-center rounded-md border border-zinc-300 bg-white px-3 text-xs text-zinc-700 hover:bg-zinc-50 disabled:cursor-default disabled:opacity-50 md:min-h-0 md:py-1.5 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
-      >
-        오늘
-      </button>
+      <span className="min-w-28 text-center text-[15px] font-semibold">{label}</span>
       <button
         type="button"
         onClick={() => goto(addDays(date, 1))}
         onMouseEnter={() => prefetch(addDays(date, 1))}
         onFocus={() => prefetch(addDays(date, 1))}
-        className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-50 md:h-8 md:w-8 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
-        aria-label="다음 날짜"
+        disabled={isToday}
+        className={`${NAV_BTN} w-11 md:w-10`}
+        aria-label="다음날"
       >
         <ChevronRight className="h-4 w-4" aria-hidden />
       </button>
-      <span className="ml-2 text-sm tabular-nums text-zinc-600 dark:text-zinc-400">
-        {label}
-      </span>
-    </div>
+    </nav>
   );
 }

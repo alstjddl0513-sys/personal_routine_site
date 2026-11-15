@@ -35,7 +35,7 @@ const DAYS_LEFT_TARGETS = [3, 1] as const;
 function fireForDay(
   daysLeft: number,
   rows: Company[],
-  onClick: () => void,
+  navigate: (href: string) => void,
 ): void {
   const all = pickByDaysLeft(rows, daysLeft);
   if (all.length === 0) return;
@@ -46,13 +46,19 @@ function fireForDay(
   if (newItems.length === 0) return;
 
   const { title, body } = formatDeadlineMessage(newItems, daysLeft);
+  // 회사 1곳이면 /jobs 표에서 그 행을 하이라이트해 바로 액션. 여러 곳이면
+  // 마감 임박 리스트가 상단에 모인 /jobs/statistics가 동선 최소.
+  const href =
+    newItems.length === 1
+      ? `/jobs?highlight=${newItems[0].id}`
+      : '/jobs/statistics';
   try {
     const notif = new Notification(title, {
       body,
       tag: `rally-deadline-d${daysLeft}`,
       icon: '/flag-192.png',
     });
-    notif.onclick = onClick;
+    notif.onclick = () => navigate(href);
     // 발송 성공한 회사만 마커에 union. 나중에 회사 삭제/deadline 변경 시에도
     // 이 마커는 그대로라 오늘 다시 알림 안 옴 — 스팸 방지 목적으로 감수.
     addFiredIdsToday(
@@ -63,7 +69,7 @@ function fireForDay(
       type: daysLeft === 1 ? 'deadline-d1' : 'deadline-d3',
       title,
       body,
-      href: '/jobs/statistics',
+      href,
     });
   } catch {
     // 일부 브라우저(iOS Safari 등)는 지원 제한. 안전하게 무시.
@@ -91,17 +97,15 @@ export function DeadlineNotifier(): null {
       }
       if (cancelled) return;
 
-      // 알림 클릭 → 기업 통계의 마감 임박 카드로 바로. /jobs는 전체 표라
-      // 사용자가 스크롤/필터해서 마감 임박을 찾아야 하지만, /jobs/statistics는
-      // 마감 임박 리스트가 상단에 노출돼 액션 동선 최소화.
-      const handleClick = () => {
+      // 알림 클릭 → fireForDay가 회사 수에 따라 고른 href로 이동.
+      const navigate = (href: string) => {
         try {
           window.focus();
         } catch {}
-        router.push('/jobs/statistics');
+        router.push(href);
       };
       for (const daysLeft of DAYS_LEFT_TARGETS) {
-        fireForDay(daysLeft, rows, handleClick);
+        fireForDay(daysLeft, rows, navigate);
       }
     }
 

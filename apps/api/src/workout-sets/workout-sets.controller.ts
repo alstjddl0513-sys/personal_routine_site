@@ -3,6 +3,8 @@ import { requireUserId, type AuthedRequest } from '../supabase-auth.guard';
 import { WorkoutSetsService } from './workout-sets.service';
 import { BatchWorkoutSetsDto } from './dto/batch-workout-sets.dto';
 import { QueryHeatmapDto } from './dto/query-heatmap.dto';
+import { QueryDailySummaryDto } from './dto/query-daily-summary.dto';
+import { QueryExerciseStatsBatchDto } from './dto/query-exercise-stats-batch.dto';
 import { QueryMuscleSetsDto } from './dto/query-muscle-sets.dto';
 import { QueryWeeklyVolumeDto } from './dto/query-weekly-volume.dto';
 import { QueryWorkoutSetsDto } from './dto/query-workout-sets.dto';
@@ -45,6 +47,22 @@ export class WorkoutSetsController {
   @Get('heatmap')
   findHeatmap(@Req() req: AuthedRequest, @Query() query: QueryHeatmapDto) {
     return this.service.findHeatmap(requireUserId(req), query);
+  }
+
+  @Get('daily-summary')
+  findDailySummary(
+    @Req() req: AuthedRequest,
+    @Query() query: QueryDailySummaryDto,
+  ) {
+    return this.service.findDailySummary(requireUserId(req), query);
+  }
+
+  @Get('exercise-stats-batch')
+  findExerciseStatsBatch(
+    @Req() req: AuthedRequest,
+    @Query() query: QueryExerciseStatsBatchDto,
+  ) {
+    return this.service.findExerciseStatsBatch(requireUserId(req), query);
   }
 
   @Get('weekly-volume')

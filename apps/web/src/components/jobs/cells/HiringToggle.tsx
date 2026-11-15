@@ -3,13 +3,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { patchCompany } from '../../../lib/api';
+import { TABLE_TRIGGER } from './table-style';
 
 export function HiringToggle({
   id,
   value,
+  variant,
 }: {
   id: string;
   value: boolean;
+  variant?: 'table';
 }) {
   const router = useRouter();
   const [current, setCurrent] = useState(value);
@@ -38,6 +41,21 @@ export function HiringToggle({
       .finally(() => {
         inFlightRef.current--;
       });
+  }
+
+  if (variant === 'table') {
+    return (
+      <button
+        type="button"
+        role="switch"
+        onClick={toggle}
+        aria-checked={current}
+        aria-label="채용중"
+        className={`${TABLE_TRIGGER} text-sm ${current ? 'text-ink-soft' : 'text-icon-faint'}`}
+      >
+        {current ? '채용중' : '—'}
+      </button>
+    );
   }
 
   return (

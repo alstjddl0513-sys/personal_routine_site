@@ -8,11 +8,148 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Rally 브랜드 토큰 (docs/design/rally-dashboard.html). 사이드바 + /today만
+     사용하고 나머지 페이지 본문은 zinc 유지 — 페이지별 개편 때 확산. */
+  --rally-paper: #f6f7f5; /* 페이지 배경 */
+  --rally-surface: #ffffff; /* 카드 */
+  --rally-line: #d9dcd8; /* 카드 테두리 */
+  --rally-divider: #e7e9e6; /* 카드 안 행 구분 */
+  --rally-rule: #cdd1cc; /* 섹션 구분선 */
+  --rally-track: #e3e6e2; /* 진행바 바탕 */
+  --rally-ink: #1c1f1d;
+  --rally-ink-strong: #1c1f1d; /* 인사말·강조 숫자 */
+  --rally-ink-soft: #3f4441; /* 요약 문장 */
+  --rally-ink-muted: #4f5450; /* 보조 글자 */
+  --rally-ink-faint: #7a7e78; /* 완료된 루틴·placeholder */
+  --rally-heading: #1f3d30; /* 섹션 제목 */
+  --rally-primary: #1f3d30; /* 진행바·체크박스 */
+  --rally-primary-soft: #7f988a; /* 운동 목표 미달 바 */
+  --rally-button: #1f3d30; /* 채운 버튼 */
+  --rally-btn-fg: #1f3d30; /* 테두리 버튼 */
+  --rally-btn-bg: #ffffff;
+  --rally-btn-border: #bfc4be;
+  --rally-alert: #a33b20; /* 마감 */
+  --rally-warn: #9a6700; /* 마감 D-2~3 (alert보다 한 단계 약한 경고) */
+  --rally-marigold: #e9b949; /* 포인트: 로고 깃발·챌린지 바·운동 목표 달성 바 (시안 황토 #C8963E에서 변경) */
+
+  /* 일정 유형 점+글자 (마감은 alert) */
+  --rally-ev-test: #3d5a80;
+  --rally-ev-interview: #6b4a7a;
+  --rally-ev-announce: #2f6b5e;
+  --rally-ev-other: #6b6f6a;
+
+  /* 사이드바 (전 페이지 공통) */
+  --rally-side-bg: #1f3d30;
+  --rally-side-border: transparent;
+  --rally-side-fg: #c3cec6;
+  --rally-side-strong: #f4f2ec; /* 로고 글자 */
+  --rally-side-muted: #a9b8ae; /* 하위탭 접기 화살표 */
+  --rally-side-active: #2c4f40;
+  --rally-side-line: #36594a;
+
+  /* 관리자 (사이드바 '관리자 페이지' 줄 + 관리자 페이지 내부 대표색) — 숲색·메리골드·
+     마감 빨강과 겹치지 않는 청록 계열 */
+  --rally-admin: #2e6e6b; /* 관리자 페이지 내부 대표색 */
+  --rally-admin-button: #2e6e6b; /* 관리자 화면 채운 버튼 (흰 글자) */
+  --rally-admin-side-bg: #24484a;
+  --rally-admin-side-fg: #d2ecea;
+  --rally-admin-side-border: #3b6e6b;
+  --rally-admin-side-active-bg: #9fd0cc;
+  --rally-admin-side-active-fg: #12302f;
+
+  /* 채용 리스트 (docs/design/rally-jobs.html) */
+  --rally-heart: #d23a2f; /* 즐겨찾기 채움 */
+  --rally-row-flash: #fbf2d9; /* ?highlight= 행 강조 피크 */
+  --rally-row-hover: #f2f4f1;
+  --rally-thead: #fafbf9;
+  --rally-icon-faint: #8e928d; /* 비어 있는 보조 열 아이콘 */
+  --rally-chip-on-bg: #e6eee8; /* 선택된 필터 칩 */
+  --rally-chip-on-fg: #1f3d30;
+  --rally-chip-on-border: #1f3d30;
+  --rally-cell-outside: #f9faf8; /* 캘린더 이번 달 아닌 날 */
+  /* 루틴 트래커 (docs/design/rally-routines.html) */
+  --rally-today-col: #f2f5f1; /* 오늘 열 — row-hover보다 녹색 기 살짝 더해 hover 행에서도 보이게 */
+  --rally-tag-bg: #f0f2ef; /* 챌린지 블록 태그 — 선택 상태(chip-on)와 안 헷갈리게 무채색 */
+  --rally-check-off: #bfc4be; /* 꺼진 체크박스 테두리 (다크는 btn-border보다 한 단계 밝게) */
+  /* 지원상태 점 — 마감색(alert)은 '급함'과 섞이지 않게 안 씀 */
+  --rally-st-not-applied: #8a8e89; /* 속 빈 점 */
+  --rally-st-applied: #3d5a80;
+  --rally-st-doc-passed: #5e8f7c;
+  --rally-st-int1-passed: #2f6b5e;
+  --rally-st-int2-passed: #24503f;
+  --rally-st-final-passed: #1f3d30; /* + 바깥 링 */
+  --rally-st-failed: #b4b7b2; /* 탈락 4종 */
+  --rally-st-withdrawn: #b4b7b2; /* 속 빈 점 */
 }
 
 .dark {
   --background: #0a0a0a;
   --foreground: #ededed;
+
+  /* docs/design/rally-dashboard-dark.html */
+  --rally-paper: #121514;
+  --rally-surface: #1a1e1c;
+  --rally-line: #2c3330;
+  --rally-divider: #262c29;
+  --rally-rule: #2e3531;
+  --rally-track: #2c3330;
+  --rally-ink: #e9ece9;
+  --rally-ink-strong: #f3f5f3;
+  --rally-ink-soft: #c3cac5;
+  --rally-ink-muted: #a9b1ac;
+  --rally-ink-faint: #8c948f;
+  --rally-heading: #a9cbb7;
+  --rally-primary: #8fb5a0;
+  --rally-primary-soft: #5f8873;
+  --rally-button: #2f5a47;
+  --rally-btn-fg: #e9ece9;
+  --rally-btn-bg: #1a1e1c;
+  --rally-btn-border: #3d4541;
+  --rally-alert: #e8957a;
+  --rally-warn: #e3b35c;
+
+  --rally-ev-test: #9db5d8;
+  --rally-ev-interview: #c3abd1;
+  --rally-ev-announce: #86c4b3;
+  --rally-ev-other: #a9b1ac;
+
+  --rally-side-bg: #16271f;
+  --rally-side-border: #22372d;
+  --rally-side-fg: #bac6be;
+  --rally-side-active: #25443a;
+  --rally-side-line: #2a4237;
+
+  --rally-admin: #8cc8c2;
+  /* 다크 채운 버튼은 흰 글자가 읽히게 라이트 청록 그대로(#8CC8C2 바탕엔 흰 글자 대비 부족) */
+  --rally-admin-button: #2e6e6b;
+  /* 사이드바 관리자 줄 다크 — rally-admin-dark.html에서 정함(2026-11-15) */
+  --rally-admin-side-bg: #1e3c3e;
+  --rally-admin-side-fg: #bce0dc;
+  --rally-admin-side-border: #335e5c;
+  --rally-admin-side-active-bg: #8cc8c2;
+  --rally-admin-side-active-fg: #0f2a29;
+
+  --rally-heart: #f0675b;
+  --rally-row-flash: #3a3322;
+  --rally-row-hover: #1f2422;
+  --rally-thead: #171b19;
+  --rally-icon-faint: #6e7672;
+  --rally-chip-on-bg: #1f3328;
+  --rally-chip-on-fg: #cfe3d6;
+  --rally-chip-on-border: #8fb5a0;
+  --rally-cell-outside: #161a18;
+  --rally-today-col: #1d2320;
+  --rally-tag-bg: #232926;
+  --rally-check-off: #4a534e;
+  --rally-st-not-applied: #8c948f;
+  --rally-st-applied: #9db5d8;
+  --rally-st-doc-passed: #9cc7b5;
+  --rally-st-int1-passed: #86c4b3;
+  --rally-st-int2-passed: #a9cbb7;
+  --rally-st-final-passed: #cfe3d6;
+  --rally-st-failed: #59605c;
+  --rally-st-withdrawn: #59605c;
 }
 
 @theme inline {
@@ -20,6 +157,68 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  /* 한글 본문 / 인사말 세리프. layout.tsx에서 next/font로 변수 등록. */
+  --font-plex: var(--font-plex-kr), system-ui, sans-serif;
+  --font-serif-kr: var(--font-noto-serif-kr), serif;
+
+  --color-paper: var(--rally-paper);
+  --color-surface: var(--rally-surface);
+  --color-line: var(--rally-line);
+  --color-divider: var(--rally-divider);
+  --color-rule: var(--rally-rule);
+  --color-track: var(--rally-track);
+  --color-ink: var(--rally-ink);
+  --color-ink-strong: var(--rally-ink-strong);
+  --color-ink-soft: var(--rally-ink-soft);
+  --color-ink-muted: var(--rally-ink-muted);
+  --color-ink-faint: var(--rally-ink-faint);
+  --color-heading: var(--rally-heading);
+  --color-primary: var(--rally-primary);
+  --color-primary-soft: var(--rally-primary-soft);
+  --color-button: var(--rally-button);
+  --color-btn-fg: var(--rally-btn-fg);
+  --color-btn-bg: var(--rally-btn-bg);
+  --color-btn-border: var(--rally-btn-border);
+  --color-alert: var(--rally-alert);
+  --color-warn: var(--rally-warn);
+  --color-marigold: var(--rally-marigold);
+  --color-ev-test: var(--rally-ev-test);
+  --color-ev-interview: var(--rally-ev-interview);
+  --color-ev-announce: var(--rally-ev-announce);
+  --color-ev-other: var(--rally-ev-other);
+  --color-side-bg: var(--rally-side-bg);
+  --color-side-border: var(--rally-side-border);
+  --color-side-fg: var(--rally-side-fg);
+  --color-side-strong: var(--rally-side-strong);
+  --color-side-muted: var(--rally-side-muted);
+  --color-side-active: var(--rally-side-active);
+  --color-side-line: var(--rally-side-line);
+  --color-admin: var(--rally-admin);
+  --color-admin-side-bg: var(--rally-admin-side-bg);
+  --color-admin-side-fg: var(--rally-admin-side-fg);
+  --color-admin-side-border: var(--rally-admin-side-border);
+  --color-admin-side-active-bg: var(--rally-admin-side-active-bg);
+  --color-admin-side-active-fg: var(--rally-admin-side-active-fg);
+  --color-heart: var(--rally-heart);
+  --color-row-flash: var(--rally-row-flash);
+  --color-row-hover: var(--rally-row-hover);
+  --color-thead: var(--rally-thead);
+  --color-icon-faint: var(--rally-icon-faint);
+  --color-chip-on-bg: var(--rally-chip-on-bg);
+  --color-chip-on-fg: var(--rally-chip-on-fg);
+  --color-chip-on-border: var(--rally-chip-on-border);
+  --color-cell-outside: var(--rally-cell-outside);
+  --color-today-col: var(--rally-today-col);
+  --color-tag-bg: var(--rally-tag-bg);
+  --color-check-off: var(--rally-check-off);
+  --color-st-not-applied: var(--rally-st-not-applied);
+  --color-st-applied: var(--rally-st-applied);
+  --color-st-doc-passed: var(--rally-st-doc-passed);
+  --color-st-int1-passed: var(--rally-st-int1-passed);
+  --color-st-int2-passed: var(--rally-st-int2-passed);
+  --color-st-final-passed: var(--rally-st-final-passed);
+  --color-st-failed: var(--rally-st-failed);
+  --color-st-withdrawn: var(--rally-st-withdrawn);
 }
 
 body {
@@ -30,6 +229,16 @@ body {
      예외적으로 긴 URL/토큰이 컨테이너를 넘길 때만 break-word로 강제 개행. */
   word-break: keep-all;
   overflow-wrap: break-word;
+}
+
+/* 관리자 구역 — 안에서는 '지금 누를 색'(채운 버튼 · 체크 · 라디오 · 입력 포커스 · 포커스 링)을 숲색 대신 청록으로.
+   @theme inline이라 유틸리티가 var(--rally-*)를 바로 읽어서 여기서 덮으면 그 안에만 적용됨.
+   본문 래퍼(admin/layout) + body로 빠지는 창 · 드롭다운(Portal의 PortalScope)에 같은 클래스. 경고(alert)는 그대로 */
+.admin-scope {
+  --rally-button: var(--rally-admin-button);
+  --rally-primary: var(--rally-admin);
+  --rally-heading: var(--rally-admin);
+  --rally-chip-on-border: var(--rally-admin);
 }
 
 /* Slim scrollbar for scrollable popovers (Select dropdown, etc.).
@@ -61,35 +270,40 @@ body {
   background-color: rgb(82 82 91); /* zinc-600 */
 }
 
-/* /learn 카드 넘기기 애니메이션. subtle rotateY + translate로 물리 카드 넘기는
-   느낌. React key 갱신 시 자동 재생. 방향(next/prev)별로 두 벌. */
-@keyframes card-flip-in-right {
+/* /learn·/learn/review 질문 넘기기 — 카드 안 내용만 150ms(가로 8px + 투명도).
+   React key 갱신 시 자동 재생, 방향별 두 벌. prefers-reduced-motion은 motion-reduce:animate-none. */
+@keyframes learn-swap-right {
   from {
-    transform: translateX(28px) rotateY(-12deg);
+    transform: translateX(8px);
     opacity: 0;
   }
   to {
-    transform: translateX(0) rotateY(0);
+    transform: none;
     opacity: 1;
   }
 }
-@keyframes card-flip-in-left {
+@keyframes learn-swap-left {
   from {
-    transform: translateX(-28px) rotateY(12deg);
+    transform: translateX(-8px);
     opacity: 0;
   }
   to {
-    transform: translateX(0) rotateY(0);
+    transform: none;
     opacity: 1;
   }
 }
-.animate-card-flip-in-right {
-  animation: card-flip-in-right 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
-  transform-origin: left center;
+.animate-learn-swap-right {
+  animation: learn-swap-right 150ms ease-out;
 }
-.animate-card-flip-in-left {
-  animation: card-flip-in-left 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
-  transform-origin: right center;
+.animate-learn-swap-left {
+  animation: learn-swap-left 150ms ease-out;
+}
+/* 레이어 밖 CSS라 Tailwind motion-reduce: 유틸보다 우선 → 여기서 직접 끔 */
+@media (prefers-reduced-motion: reduce) {
+  .animate-learn-swap-right,
+  .animate-learn-swap-left {
+    animation: none;
+  }
 }
 
 /* 통계 → /jobs?highlight=id 이동 시 해당 row/카드에 잠깐 노란 강조.
@@ -102,6 +316,51 @@ body {
 .dark {
   --highlight-flash-peak: rgba(133, 77, 14, 0.4); /* yellow-800 40% */
 }
+/* 알림 내역 창 열기 · 닫기(150ms) — 패널은 오른쪽에서 밀려 들어오고, 뒤 막은 서서히 */
+@keyframes drawer-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes drawer-out {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+/* 채용 표 전용 행 강조 (모바일 카드는 위 highlight-flash 그대로) */
+@keyframes row-flash {
+  0% {
+    background-color: transparent;
+  }
+  15% {
+    background-color: var(--rally-row-flash);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
 @keyframes highlight-flash {
   0% {
     background-color: transparent;
@@ -112,6 +371,30 @@ body {
   100% {
     background-color: transparent;
   }
+}
+
+/* 알림 → /calendar?date= 이동 시 그 날짜 칸에 호박색 안쪽 테두리가 두 번
+   깜빡이고 사라짐. 선택 표시(inset box-shadow)와 안 겹치게 ::after 오버레이.
+   칸에 position: relative 필요. */
+@keyframes date-flash {
+  0%,
+  28%,
+  100% {
+    opacity: 0;
+  }
+  12%,
+  45% {
+    opacity: 1;
+  }
+}
+.date-flash::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 2px var(--rally-warn);
+  opacity: 0;
+  animation: date-flash 2.4s ease-out 1;
 }
 
 /* 인쇄 전용 스타일 — /jobs/report에서 window.print() 호출 시 활성.
@@ -135,17 +418,47 @@ body {
     padding: 0 !important;
     margin: 0 !important;
   }
+  /* 채용 리포트 인쇄본 (docs/design/rally-jobs-report-parts.html 04) — 흰 바탕 · 검은 글자 · 검은 칸 선 */
+  [data-report-root] {
+    background: #fff !important;
+  }
+  [data-report-header] {
+    border-bottom: 1.5px solid #000 !important;
+    padding-bottom: 8px;
+    margin-bottom: 4px;
+  }
+  [data-report-header] * {
+    color: #000 !important;
+  }
   [data-report-table] {
     border: 1px solid #000;
     border-collapse: collapse;
     font-size: 10pt;
+    line-height: 1.45;
     width: 100%;
   }
   [data-report-table] th,
   [data-report-table] td {
     border: 1px solid #000;
-    padding: 4px 6px;
+    padding: 5px 6px !important;
     background: transparent !important;
+    color: #000 !important;
+  }
+  /* 머리 줄 회색 바탕 — 칸 선만으로는 머리 줄이 안 구분됨 */
+  [data-report-table] thead th {
+    background: #eee !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  /* 긴 메모는 줄바꿈을 한 칸으로 합침 — 종이에서 줄 높이가 들쭉날쭉하지 않게 */
+  [data-report-memo] {
+    white-space: normal !important;
+  }
+  [data-report-table] button {
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: inherit !important;
     color: #000 !important;
   }
   tr {
@@ -168,4 +481,10 @@ body {
 @page {
   size: A4 landscape;
   margin: 12mm;
+  /* 오른쪽 아래 쪽 번호 "1 / 2" */
+  @bottom-right {
+    content: counter(page) ' / ' counter(pages);
+    font-size: 9pt;
+    color: #000;
+  }
 }

@@ -17,12 +17,6 @@ function fmt(min: number): string {
   return `${h}:${String(m).padStart(2, '0')}`;
 }
 
-// Legacy formatter for a single start time (used by streak/other places).
-export function formatStartTime(min: number | null): string {
-  if (min === null || min === undefined) return '—';
-  return fmt(min);
-}
-
 // Format a start/end pair. Only start → "7:00", both → "8:30~11:30".
 export function formatTimeRange(
   start: number | null,
