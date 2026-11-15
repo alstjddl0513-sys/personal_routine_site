@@ -19,7 +19,8 @@
 ```
 1. 버전 올리기      chore/release-X.Y.Z 브랜치 → root package.json version → PR → develop
 2. 릴리스 PR 병합   GitHub에서 develop → main PR 병합 → Vercel·Render 자동 재배포
-3. Prod 마이그      새 SQL 파일이 있으면 로컬에서 prod DB에 직접 적용 (자동 아님!)
+3. Prod 마이그      새 SQL 파일이 있으면 prod DB에 직접 적용 (자동 아님!) — 추가형이면 2번 병합 **전에**
+                    기본은 Supabase SQL Editor로 파일 하나씩 (아래 3-A)
 4. 확인             /health · 스모크 테스트 · 새 기능 하나 직접 조작
 5. 태그             vX.Y.Z
 ```
@@ -27,7 +28,7 @@
 **체크리스트** (복사해서 PR 본문에 붙여도 됨)
 - [ ] 버전 bump PR 병합 (develop)
 - [ ] develop → main PR 병합
-- [ ] 이번 릴리스에 새 마이그 SQL이 있나? → 있으면 [3](#3-prod-db-마이그레이션) 진행 (적용 순서 표 확인)
+- [ ] 이번 릴리스에 새 마이그 SQL이 있나? → 있으면 [3](#3-prod-db-마이그레이션) 진행. 추가형(열 · 표 · 인덱스 추가)이면 **main 병합 전에** — 새 코드가 새 표를 찾다가 오류 나지 않게
 - [ ] Vercel 배포 성공 (Deployments 탭 · production alias 갱신)
 - [ ] Render 배포 성공 (Events 탭 · "Deploy live")
 - [ ] `/health` 응답 `{ "status": "ok", "db": "up" }`
@@ -60,7 +61,41 @@
 
 ## 3. Prod DB 마이그레이션
 
-Render는 마이그를 돌리지 않는다. **로컬에서 prod DB에 직접** 적용한다.
+Render는 마이그를 돌리지 않는다. prod DB에 직접 적용한다.
+
+### 3-A. SQL Editor로 파일 하나씩 (기본 — v1.5.0부터)
+
+접속 문자열 · 비밀번호를 터미널이나 대화에 꺼낼 일이 없고, 파일마다 적용 · 확인을 끊어 갈 수 있다. `db:migrate`처럼 밀린 파일을 한 번에 돌리지 않으니 [마이그가 여러 개 쌓였을 때](#마이그가-여러-개-쌓였을-때)도 그대로 이 방법.
+
+1. Supabase 대시보드 → **prod 프로젝트**(주소 `dashboard/project/<REF>/`로 dev와 구분) → SQL Editor
+2. 지금 상태 — 맨 위 `created_at`이 `apps/api/drizzle/meta/_journal.json`의 어느 파일 `when`인지 확인
+   ```sql
+   SELECT id, hash, created_at FROM drizzle.__drizzle_migrations ORDER BY id DESC LIMIT 5;
+   ```
+   DB의 `id`는 파일 번호와 달라도 됨(예전 수동 기록 때문). `created_at` 순서만 맞으면 OK
+3. 다음 파일 하나를 **트랜잭션으로 감싸서** 실행 — 변경과 기록이 같이 성공하거나 같이 취소됨
+   ```sql
+   BEGIN;
+   -- drizzle/00NN_xxx.sql 내용 그대로 (--> statement-breakpoint 줄은 지워도 되고 둬도 됨)
+   INSERT INTO drizzle.__drizzle_migrations (hash, created_at) VALUES ('00NN_manual_apply', <_journal.json의 when>);
+   COMMIT;
+   ```
+   "Success. No rows returned"면 성공(변경만 하는 SQL이라 결과 줄이 없음)
+4. 확인 쿼리를 **따로** 실행 — 스키마(열 · 제약 · 인덱스 · RLS 정책)와 기록 둘 다. 여러 SELECT는 UNION ALL로 한 결과에 묶어야 다 보임
+   ```sql
+   SELECT 'col' AS kind, column_name AS name, data_type || ' / ' || is_nullable AS info
+   FROM information_schema.columns WHERE table_name = '<표>' AND column_name = '<열>'
+   UNION ALL
+   SELECT 'policy', policyname, tablename FROM pg_policies WHERE tablename = '<표>'
+   UNION ALL
+   SELECT 'mig', hash, created_at::text FROM (SELECT hash, created_at FROM drizzle.__drizzle_migrations ORDER BY id DESC LIMIT 1) t;
+   ```
+   데이터를 옮기는 파일이면 옮긴 행 수 / 기대 행 수도 같이 셈
+5. 다음 파일로. 다음 `db:migrate`는 이 기록의 `created_at`을 보고 적용된 파일을 건너뜀
+
+### 3-B. 터미널로 `db:migrate` (미적용 파일이 하나뿐일 때만)
+
+
 
 **시작 전**
 - [ ] `apps/api/drizzle/`에 이번 릴리스로 새로 들어온 SQL이 있다 (없으면 이 단계 skip)
@@ -132,7 +167,8 @@ Drizzle 마이그레이터는 미적용 파일을 한 트랜잭션으로 묶어 
 
 - 원칙: **prod에 미적용 마이그를 쌓지 않는다.** 릴리스마다 적용
 - 이미 쌓였다면 **파일 하나씩** 적용하고 매번 [④ 확인](#3-prod-db-마이그레이션)
-- Drizzle에는 단일 파일 실행 기능이 없어 `apps/api/src/db/apply-sql-file.ts`로 우회
+- **기본은 [3-A SQL Editor](#3-a-sql-editor로-파일-하나씩-기본--v150부터)** — v1.5.0에서 0029~0033 다섯 개를 이렇게 적용
+- 터미널로 하려면 Drizzle에 단일 파일 실행 기능이 없어 `apps/api/src/db/apply-sql-file.ts`로 우회
 
 ```powershell
 # apps/api에서. Drizzle 기록을 거치지 않으므로 아래 INSERT를 직접 해야 다음 db:migrate가 이 파일을 건너뜀
