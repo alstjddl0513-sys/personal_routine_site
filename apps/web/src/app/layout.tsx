@@ -140,7 +140,8 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
       <body className="min-h-full">
         <div className="flex min-h-screen">
           <Sidebar />
-          <main className="flex-1 overflow-x-auto pb-20 md:pb-0">
+          {/* 모바일: 하단 탭(56px) + 홈 표시줄만큼 아래 여백 — 마지막 내용이 탭에 안 가려지게 */}
+          <main className="flex-1 overflow-x-auto pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
             <SectionSubNav />
             {children}
           </main>

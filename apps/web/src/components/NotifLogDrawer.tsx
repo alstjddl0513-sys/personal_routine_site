@@ -274,7 +274,10 @@ export function NotifLogDrawer({ open, onClose, onOpenSettings }: Props) {
         aria-modal="true"
         aria-label="알림 내역"
         className={`fixed inset-y-0 right-0 z-50 flex h-dvh w-full flex-col bg-surface font-plex text-ink shadow-lg motion-reduce:animate-none md:w-100 md:border-l md:border-line ${
-          closing ? 'animate-[drawer-out_150ms_ease-in_forwards]' : 'animate-[drawer-in_150ms_ease-out]'
+          // 모바일은 아래에서 올라오는 전체 폭 시트(rally-mobile-shell), 데스크톱은 오른쪽 400px 창
+          closing
+            ? 'animate-[sheet-out_150ms_ease-in_forwards] md:animate-[drawer-out_150ms_ease-in_forwards]'
+            : 'animate-[sheet-in_150ms_ease-out] md:animate-[drawer-in_150ms_ease-out]'
         }`}
       >
         <header className="flex flex-none items-center justify-between py-3.5 pr-3 pl-5">

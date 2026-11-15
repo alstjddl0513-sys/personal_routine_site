@@ -30,6 +30,7 @@
 | `rally-jobs-report(-dark).html` · `rally-jobs-report-parts.html` | 채용 리포트(인쇄용 취업활동 표) + 지원일 팝오버 · 빈 상태 · 인쇄본 | `/jobs/report` `components/jobs/report/*` `cells/AppliedAtPopover.tsx` · globals.css `@media print` |
 | `rally-auth(-dark).html` · `rally-auth-parts.html` | 로그인 · 가입 · 비밀번호 재설정 · 새 비밀번호 · 로그인 필요 + 메일 안내 · 링크 만료 · 완료 · 닉네임 상태 | `/login` `/signup` `/forgot-password` `/auth/reset-password` `/unauthorized` `components/auth/*` |
 | `rally-admin(-dark).html` · `rally-admin-parts.html` | 관리자 페이지 4탭(개요 · 사용자 · 공지 · 피드백) + 차단 · 강제 탈퇴 · 받는 사람 · 삭제 창 · 공지 폼 · 배지 색 · 빈 상태 · 오류 | `/admin/*` `components/admin/*` · `admin-ui.tsx` · `lib/announcement-kind.ts` |
+| `rally-mobile-shell(-dark).html` · `rally-mobile-shell-parts.html` | 모바일 공통 틀 — 상단 줄(로고형 · 하위 탭형) · 하단 탭 6칸 · 더보기 시트 · 🔔 | `SectionSubNav.tsx` `BottomNav.tsx` `MoreMenu.tsx` · `NotifLogDrawer`(모바일 시트) |
 
 **현재 상태**: 숲색 `#1F3D30` · 메리골드 `#E9B949`(로고·챌린지 포인트, 시안의 황토 `#C8963E`에서 변경) · 바탕 `#F6F7F5`, IBM Plex Sans KR + Noto Serif KR(인사말). 사이드바(전 페이지)와 `/today`에 적용. 다른 페이지 본문은 zinc — 페이지별로 개편할 때 같은 토큰으로 확산. 모바일(BottomNav)은 별도 시안 예정.
 
@@ -244,6 +245,13 @@
 - 정렬 · 종류 고르기는 앱 `Select`(시안은 브라우저 기본 select 모양), 본문 최대 1060px 왼쪽 정렬(시안대로)
 - 날짜는 서울 기준으로 고정(서버 UTC 렌더와 브라우저 글자가 어긋나지 않게), 영구 차단 줄은 "…까지 차단" 대신 "영구 차단"
 - 공지 폼 받는 사람은 시안의 [받는 사람 고르기] 버튼 + 상태 글자 대신 다른 칸처럼 라벨 "받는 사람" + 고르는 칸(전체 / N명 지정 ›) — 라벨이 없어 "받는 사람 고르기 전체에게 보내요"가 한 문장으로 읽혀서(2026-11-15)
+
+**모바일 공통 틀** (<768px, 2026-11-15) — 동작은 #215 그대로(하위 탭 없는 화면 로고 · 더보기 테마)
+- 기준 폭은 시안 스펙(1024px)과 다르게 **768px(md)** — 모든 화면 본문이 md 기준이라 틀만 1024로 바꾸면 768~1023에서 틀 모바일 · 본문 데스크톱이 됨
+- 하단 탭 흰 바탕 + 위 1px 선(다른 후보: 숲색 바 — 390px에서 아래가 어두운 덩어리, 다크에서 탁함). 활성 = primary + 아이콘 선 2.1 + 700, 알약 · 위 막대 없음, 라벨 10.5px
+- 상단 줄 52px paper, 스크롤과 같이 올라감(고정 X). 로고형은 아래 선 없음, 하위 탭형만 divider + primary 2px 밑줄. 하위 탭은 페이지 이동이라 tablist 대신 nav + aria-current
+- 더보기 시트 테마는 시안의 [☀ 라이트 | ☾ 다크](글자 + 아이콘) 대신 **아이콘만** — 설정 › 앱과 같은 ThemeSegment(사용자 요청). '시스템' 옵션은 새 기능이라 X
+- 더보기 시트: focus trap · Esc · scrim · ✕ · 손잡이/제목 줄 아래로 끌기(60px)로 닫힘, 닫으면 더보기 탭으로 포커스. 🔔 창은 모바일에서 아래에서 올라오는 전체 폭(데스크톱 오른쪽 400px 그대로)
 
 **채운 버튼(숲색) 규칙** (2026-11-12) — 한 화면에서 **가장 먼저 누를 버튼 하나만** `BUTTON_PRIMARY`(bg-button). 빈 상태의 유일한 행동도 채움. 반복되는 버튼([세트 추가] 등) · 이동 · 보조 · 창 안 [취소]는 테두리
 - 테두리 → 채움으로 바꾼 곳: 운동 기록 첫 사용 안내 [분할 만들기], 블로그 [새 글 가져오기] · 빈 상태 [전체 보기], 학습 · 복습 빈 상태 [전체 보기]
