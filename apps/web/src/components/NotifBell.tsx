@@ -25,10 +25,13 @@ export function NotifBell({
   className = DEFAULT_CLASS,
   unreadClassName,
   dotClassName = DEFAULT_DOT,
+  iconClassName = 'h-3.5 w-3.5',
 }: {
   className?: string;
   unreadClassName?: string;
   dotClassName?: string;
+  /** 종 아이콘 크기(모바일 상단 줄은 20px) */
+  iconClassName?: string;
 }) {
   const [open, setOpen] = useState(false);
   // 드로어 빈 상태 [알림 설정하기] — 드로어를 닫고 설정의 알림 창을 그대로 엶
@@ -56,7 +59,7 @@ export function NotifBell({
         aria-label={ariaLabel}
         className={unread > 0 && unreadClassName ? unreadClassName : className}
       >
-        <Bell className="h-3.5 w-3.5" aria-hidden />
+        <Bell className={iconClassName} aria-hidden />
         {unread > 0 ? (
           <span
             aria-hidden

@@ -333,6 +333,30 @@ body {
     transform: translateX(100%);
   }
 }
+/* 모바일 바텀시트(더보기 · 알림 창) — 아래에서 올라오고 내려감 */
+@keyframes sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes sheet-out {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+/* 가로로 넘치는 탭 줄 — 스크롤은 되고 막대만 숨김 */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
 @keyframes fade-in {
   from {
     opacity: 0;
