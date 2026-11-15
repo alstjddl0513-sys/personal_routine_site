@@ -163,7 +163,10 @@ export function WorkoutBoard(props: Props) {
       {props.groupTabs}
       {props.totalExercises === 0 ? (
         <div className="flex flex-col items-center gap-3 rounded-lg border border-line bg-surface px-6 py-10 text-center">
-          <p className="text-ink-soft">아직 등록한 운동이 없어요.</p>
+          <div className="flex flex-col gap-1">
+            <p className="text-[17px] font-bold text-ink-strong">자주 하는 운동부터 추가해보세요</p>
+            <p className="text-sm text-ink-muted">종목이 생기면 상체·하체처럼 분할로 나눌 수도 있어요.</p>
+          </div>
           <AddExerciseButton variant="primary" />
         </div>
       ) : selectedSplit && props.exercises.length === 0 ? (
