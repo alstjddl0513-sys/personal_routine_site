@@ -1,4 +1,4 @@
-import { Suspense } from 'react';
+import { cache, Suspense, type ReactNode } from 'react';
 import type { WorkoutSessionContext, WorkoutSet } from '@repo/shared';
 import {
   getExercises,
@@ -25,6 +25,16 @@ function first(raw: string | string[] | undefined): string | undefined {
   return Array.isArray(raw) ? raw[0] : raw;
 }
 
+// 같은 요청 안에서 종목 목록은 한 번만 가져옴 — 본문 · 휴식 타이머 표시 여부가 같이 씀
+const getPageExercises = cache(() => getExercises());
+
+// 종목이 하나도 없으면 휴식 타이머(헤더 버튼 · 바닥 띠)를 숨김 — 쉴 세트가 없어서.
+// 종목을 추가하면 router.refresh로 다시 나타남
+async function IfHasExercises({ children }: { children: ReactNode }) {
+  const exercises = await getPageExercises();
+  return exercises.length > 0 ? children : null;
+}
+
 export default async function WorkoutsPage({
   searchParams,
 }: PageProps<'/workouts'>) {
@@ -47,7 +57,11 @@ export default async function WorkoutsPage({
             <WorkoutSettingsMenu />
             <span aria-hidden className="h-6 w-px bg-rule" />
             <div className="flex items-center gap-2">
-              <RestTimerOpenButton />
+              <Suspense fallback={null}>
+                <IfHasExercises>
+                  <RestTimerOpenButton />
+                </IfHasExercises>
+              </Suspense>
               <WorkoutDateNav date={displayDate} group={groupFilter} />
             </div>
           </div>
@@ -66,7 +80,11 @@ export default async function WorkoutsPage({
       </div>
 
       {/* 데스크톱: 본문 열 바닥에 붙는 띠 / 모바일: 기존 플로팅 버튼·패널 */}
-      <RestTimer />
+      <Suspense fallback={null}>
+        <IfHasExercises>
+          <RestTimer />
+        </IfHasExercises>
+      </Suspense>
     </div>
   );
 }
@@ -87,7 +105,7 @@ async function WorkoutsContent({
   openAdd: boolean;
 }) {
   const [allExercises, sessions, splitsRes] = await Promise.all([
-    getExercises(),
+    getPageExercises(),
     getWorkoutSessionsByDate(dateIso),
     // 다음 차례는 보고 있는 날짜 이전 마지막 기록 기준
     getWorkoutSplits(dateIso),
@@ -160,6 +178,8 @@ async function WorkoutsContent({
     <>
       <WorkoutBoard
         groupTabs={
+          // 종목이 하나도 없으면 줄째 숨김 — 0인 부위 탭과 [+ 종목 추가]가 빈 상태 카드 버튼과 겹쳐서
+          allExercises.length === 0 ? null :
           // 카드 위 줄 — 카드를 거르는 것(분할 요약 또는 부위 탭) … [+ 종목 추가]
           // 높이 52px·세로 가운데 — 밑줄 탭도 52px라 밑줄이 아래 구분선에 붙고 버튼과 줄이 맞음
           <div className="flex min-h-13 flex-wrap items-center justify-between gap-x-4 border-b border-divider">
