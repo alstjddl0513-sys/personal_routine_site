@@ -21,7 +21,8 @@ interface Props {
 const OUTLINE_BTN =
   'inline-flex min-h-10 shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-btn-border bg-btn-bg px-4 text-sm text-btn-fg hover:border-heading disabled:cursor-default disabled:border-divider disabled:text-ink-muted disabled:hover:border-divider';
 // 채운 버튼(숲색) — 이 화면에서 먼저 누를 버튼: [새 글 가져오기] · 빈 상태 행동
-const FILLED_BTN = `${BUTTON_PRIMARY} shrink-0 gap-1.5`;
+// whitespace-nowrap — 좁은 폭에서 칩 옆에 끼어 "새 글 / 가져오기" 두 줄로 꺾이지 않게
+const FILLED_BTN = `${BUTTON_PRIMARY} shrink-0 gap-1.5 whitespace-nowrap`;
 const SPIN = 'animate-spin motion-reduce:animate-none';
 // 성공·새 글 없음 결과 줄이 머무는 시간
 const RESULT_MS = 5000;
@@ -294,14 +295,16 @@ function PostRow({
       rel="noopener noreferrer"
       onClick={onOpen}
       onAuxClick={onOpen}
-      className="group -mx-4 grid grid-cols-[116px_minmax(0,1fr)_128px] items-start gap-5 rounded-md px-4 py-3.5 outline-none hover:bg-row-hover focus-visible:shadow-[inset_0_0_0_2px_var(--rally-chip-on-border)]"
+      // 모바일(<768): 1줄 [블로그 이름 … 날짜] / 2줄 제목 · 요약(전체 폭) — 3열을 그대로 두면 제목 칸이
+      // 몇 px만 남아 한두 글자씩 꺾였음. 데스크톱은 3열 그대로
+      className="group -mx-4 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1 rounded-md px-4 py-3.5 outline-none hover:bg-row-hover focus-visible:shadow-[inset_0_0_0_2px_var(--rally-chip-on-border)] md:grid-cols-[116px_minmax(0,1fr)_128px] md:gap-5"
     >
       {sourceName ? (
         <span className="truncate text-sm font-semibold text-ink-soft">{sourceName}</span>
       ) : (
         <span className="text-sm text-ink-muted">지운 블로그</span>
       )}
-      <span className="flex min-w-0 flex-col">
+      <span className="col-span-2 row-start-2 flex min-w-0 flex-col md:col-span-1 md:row-start-auto">
         <span className={`max-w-180 text-base leading-normal font-semibold ${read ? 'text-ink-faint' : 'text-ink-strong'}`}>
           {isNew ? (
             <span className="mr-2 inline-flex items-center gap-1 align-[1px] text-xs font-bold text-heading">
@@ -318,7 +321,7 @@ function PostRow({
           </span>
         ) : null}
       </span>
-      <span className="relative flex flex-col items-end gap-1 pr-5 text-right">
+      <span className="relative col-start-2 row-start-1 flex flex-row items-center gap-2 pr-5 text-right md:col-start-auto md:row-start-auto md:flex-col md:items-end md:gap-1">
         <span className="text-[13px] text-ink-muted tabular-nums">{formatDate(post.publishedAt ?? post.createdAt)}</span>
         {read ? (
           <span className="inline-flex items-center gap-1 text-xs text-ink-faint">
