@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { NotifBell } from './NotifBell';
+import { RallyLogo } from './RallyLogo';
 
 interface SubTab {
   href: string;
@@ -63,6 +64,13 @@ export function SectionSubNav() {
         aria-label="하위 탭"
         className="flex min-w-0 flex-1 gap-1 overflow-x-auto px-3"
       >
+        {/* 하위 탭이 없는 화면(오늘 · 캘린더 · 블로그 · 설정)은 🔔만 있는 빈 줄 대신 로고 */}
+        {!section ? (
+          <Link href="/today" aria-label="Rally 오늘 화면" className="inline-flex min-h-10 items-center gap-2 px-1">
+            <RallyLogo size={18} stemClassName="stroke-ink-strong" />
+            <span className="text-[17px] font-bold tracking-[-0.01em] text-ink-strong">Rally</span>
+          </Link>
+        ) : null}
         {section?.tabs.map((tab) => {
           const active = pathname === tab.href;
           return (
