@@ -83,7 +83,8 @@ export function RoutineChecklist({
                   className="h-4.5 w-4.5 flex-none accent-primary"
                 />
                 <span className="w-24 flex-none text-sm text-ink-muted">{item.time}</span>
-                <span className={on ? 'text-ink-faint line-through' : 'text-ink'}>
+                {/* 띄어쓰기 없는 긴 이름도 카드 안에서 줄바꿈 */}
+                <span className={`min-w-0 wrap-break-word ${on ? 'text-ink-faint line-through' : 'text-ink'}`}>
                   {item.label}
                 </span>
               </label>

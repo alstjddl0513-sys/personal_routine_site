@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Calendar, Rss, Settings, X, type LucideIcon } from 'lucide-react';
 import { Portal } from './ui/Portal';
+import { ThemeSegment } from './settings/ThemeSegment';
 
 interface Props {
   open: boolean;
@@ -108,6 +109,11 @@ export function MoreMenu({ open, onClose }: Props) {
             );
           })}
         </ul>
+        {/* 데스크톱 사이드바 하단 테마 버튼 자리 — 모바일은 설정 › 앱까지 안 가고 여기서 */}
+        <div className="flex items-center justify-between border-t border-zinc-200 px-4 py-3 dark:border-zinc-800">
+          <span className="text-sm text-zinc-700 dark:text-zinc-300">테마</span>
+          <ThemeSegment />
+        </div>
       </div>
     </Portal>
   );
