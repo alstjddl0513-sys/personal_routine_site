@@ -237,7 +237,7 @@
 - Google 버튼은 브랜드 색(흰 바탕 · #DADCE0 테두리) 고정, 다크에서도 흰색
 
 **관리자 페이지** (`/admin/*`, 2026-11-15) — 동작 · 문구는 #208 그대로, 공용 작은 부품 `components/admin/admin-ui.tsx`(DotBadge · AdminError · Checkbox · Radio · 서울 기준 날짜)
-- 청록(`--rally-admin`)은 탭 활성 · "관리자" 배지 · 사이드바 줄 세 곳만. 채운 버튼은 숲색 그대로(다른 후보: 채운 버튼까지 청록)
+- 청록(`--rally-admin`) = 관리자 구역 색: 탭 활성 · "관리자" 배지 · 사이드바 줄 + **채운 버튼 · 체크 · 라디오 · 입력 포커스 · 포커스 링까지** — 시안은 세 곳만(채운 버튼 숲색)이었지만 "관리자 페이지는 색감 다르게" 하기로(2026-11-15). 관리자 화면은 본인만 써서 앱 전체 버튼 색 통일보다 구역 구분이 나음. 구현은 `.admin-scope`(globals.css)가 그 안에서만 button · primary · heading · chip-on-border 토큰을 덮음 + `PortalScope`로 창 · 드롭다운까지. 다크 채운 버튼은 흰 글자 대비 때문에 `--rally-admin-button` #2E6E6B. 경고(alert)는 그대로
 - 다크 사이드바 관리자 줄 토큰 새 값(#1E3C3E · 테두리 #335E5C · 글자 #BCE0DC, 활성 #8CC8C2 / #0F2A29) — 다크에 `--rally-admin-side-fg` 새로 추가
 - 개요 카드 6개를 '가입' · '로그인' 두 묶음으로(다른 후보: 3×2 한 묶음), 라벨 "신규 가입 · 7일", 숫자 뒤 "명"
 - 공지 종류 · 피드백 분류 색은 새 색 없이 캘린더 일정 유형 색 재사용(공지 ev-other · 업데이트 ev-test · 점검 warn · 이벤트 ev-interview / 버그 alert · 제안 ev-test · 기타 ink-muted)
