@@ -80,13 +80,11 @@ export function EventsPopover({
   companyId,
   companyName,
   events,
-  variant,
 }: {
   companyId: string;
   /** 팝오버 제목 "[회사] 일정 N건"용. 없으면 "일정 N건". */
   companyName?: string;
   events: CompanyEvent[];
-  variant?: 'table';
 }) {
   const { isPending, onCreate, onDelete } = useCompanyEventActions(companyId);
   const [open, setOpen] = useState(false);
@@ -125,41 +123,18 @@ export function EventsPopover({
 
   return (
     <>
-      {variant === 'table' ? (
-        <button
-          ref={anchorRef}
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          disabled={isPending}
-          aria-label={ariaLabel}
-          aria-expanded={open}
-          className={`${TABLE_ICON_BUTTON} hover:bg-row-hover ${count > 0 ? 'text-ink-soft' : 'text-icon-faint'}`}
-        >
-          <CalendarDays className="h-3.75 w-3.75" strokeWidth={1.8} aria-hidden />
-          {count > 0 ? <span>{count}</span> : null}
-        </button>
-      ) : (
-        <button
-          ref={anchorRef}
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          disabled={isPending}
-          aria-label={count > 0 ? `일정 ${count}개 편집` : '일정 추가'}
-          aria-expanded={open}
-          className="inline-flex items-center justify-center gap-1 rounded px-1.5 py-0.5 text-xs text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
-        >
-          {count > 0 ? (
-            <span className="inline-flex items-center gap-1 rounded bg-emerald-100 px-1.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
-              <CalendarDays className="h-3 w-3" aria-hidden />
-              {count}
-            </span>
-          ) : (
-            <span className="whitespace-nowrap text-zinc-400 dark:text-zinc-600">
-              —
-            </span>
-          )}
-        </button>
-      )}
+      <button
+        ref={anchorRef}
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        disabled={isPending}
+        aria-label={ariaLabel}
+        aria-expanded={open}
+        className={`${TABLE_ICON_BUTTON} hover:bg-row-hover ${count > 0 ? 'text-ink-soft' : 'text-icon-faint'}`}
+      >
+        <CalendarDays className="h-3.75 w-3.75" strokeWidth={1.8} aria-hidden />
+        {count > 0 ? <span>{count}</span> : null}
+      </button>
       {open && pos ? (
         <Portal>
           <EventsPopoverBody

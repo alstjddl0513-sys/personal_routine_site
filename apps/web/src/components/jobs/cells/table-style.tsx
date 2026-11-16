@@ -1,8 +1,7 @@
 import { ChevronDown } from 'lucide-react';
 
 // 채용 표(데스크톱) 셀 공용 스타일 (docs/design/rally-jobs.html). 평소엔 글자처럼
-// 보이고 행 hover 때만 ▾. 셀 컴포넌트의 variant="table"에서만 씀 — 모바일 카드는
-// 기존 스타일 그대로.
+// 보이고 행 hover 때만 ▾. 셀 컴포넌트는 이제 표 전용 — 모바일 카드는 mobile/MobileJobCard(바텀시트).
 
 // 글자형 트리거. 행(<tr>)에 `group` 클래스가 있어야 hover ▾가 동작.
 export const TABLE_TRIGGER =

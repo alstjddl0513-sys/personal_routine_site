@@ -28,11 +28,9 @@ const POPOVER_HEIGHT = 240;
 export function NotePopover({
   id,
   value,
-  variant,
 }: {
   id: string;
   value: string | null;
-  variant?: 'table';
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -77,11 +75,9 @@ export function NotePopover({
   }
 
   const preview = current ?? '';
-  const truncated = preview.length > 18 ? preview.slice(0, 18) + '…' : preview;
 
-  // 데스크톱 표에선 아이콘만(있으면 진하게) + hover 툴팁, 전체 내용은 클릭
-  // 팝오버에서. 미리보기 텍스트 폭이 표를 밀어내서 열 추가 여지가 없었음.
-  // 모바일 카드는 줄 단위라 공간이 있어 미리보기 유지.
+  // 표에선 아이콘만(있으면 진하게) + hover 툴팁, 전체 내용은 클릭 팝오버에서.
+  // 미리보기 텍스트 폭이 표를 밀어내서 열 추가 여지가 없었음. 모바일 카드는 mobile/MobileJobCard.
   return (
     <>
       <button
@@ -90,26 +86,11 @@ export function NotePopover({
         onClick={() => setOpen((v) => !v)}
         disabled={isPending}
         title={preview || undefined}
-        className={
-          variant === 'table'
-            ? `${TABLE_ICON_BUTTON} hover:bg-row-hover ${preview ? 'text-ink-soft' : 'text-icon-faint'}`
-            : `inline-flex items-center justify-center gap-1 rounded px-1.5 py-0.5 text-xs hover:bg-zinc-100 disabled:opacity-50 dark:hover:bg-zinc-800 ${
-                preview
-                  ? 'text-blue-600 dark:text-blue-400'
-                  : 'text-zinc-400 dark:text-zinc-600'
-              }`
-        }
+        className={`${TABLE_ICON_BUTTON} hover:bg-row-hover ${preview ? 'text-ink-soft' : 'text-icon-faint'}`}
         aria-label={preview ? '메모 편집' : '메모 추가'}
         aria-expanded={open}
       >
-        <StickyNote
-          className={variant === 'table' ? 'h-3.75 w-3.75 shrink-0' : 'h-3.5 w-3.5 shrink-0'}
-          strokeWidth={variant === 'table' ? 1.8 : undefined}
-          aria-hidden
-        />
-        {truncated && variant !== 'table' ? (
-          <span className="truncate md:hidden">{truncated}</span>
-        ) : null}
+        <StickyNote className="h-3.75 w-3.75 shrink-0" strokeWidth={1.8} aria-hidden />
       </button>
       {open && pos ? (
         <Portal>

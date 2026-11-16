@@ -2,7 +2,7 @@
 
 import { useEffect, useOptimistic, useRef, useState, useTransition, type RefObject } from 'react';
 import { useRouter } from 'next/navigation';
-import { Calendar, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import type { ApplicationStatus } from '@repo/shared';
 import { patchCompany } from '../../../lib/api';
 import { useOutsideClick } from '../../../lib/useOutsideClick';
@@ -55,18 +55,6 @@ function localInputToIso(v: string): string | null {
   return d.toISOString();
 }
 
-function formatDisplay(iso: string | null): string {
-  const d = parseTimestamp(iso);
-  if (!d) return '—';
-  const pad = (n: number) => String(n).padStart(2, '0');
-  const y = d.getFullYear();
-  const m = pad(d.getMonth() + 1);
-  const day = pad(d.getDate());
-  const w = WEEKDAY_KO[d.getDay()];
-  const hh = pad(d.getHours());
-  const mm = pad(d.getMinutes());
-  return `${y}-${m}-${day} (${w}) ${hh}:${mm}`;
-}
 
 // 오늘 0시 기준 달력 일수 차이 (지난 마감은 음수).
 function daysUntil(d: Date): number {
@@ -100,13 +88,11 @@ export function DeadlinePopover({
   id,
   value,
   isRolling,
-  variant,
   status,
 }: {
   id: string;
   value: string | null;
   isRolling: boolean;
-  variant?: 'table';
   /** 표에서 마감 강조 여부 판단용 (끝난 회사는 강조 안 함). */
   status?: ApplicationStatus;
 }) {
@@ -163,46 +149,21 @@ export function DeadlinePopover({
 
   return (
     <>
-      {variant === 'table' ? (
-        <button
-          ref={anchorRef}
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          disabled={isPending}
-          aria-label={ariaLabel}
-          aria-expanded={open}
-          className={`${TABLE_TRIGGER} gap-2 whitespace-nowrap`}
-        >
-          <TableDeadline
-            iso={currentIso}
-            rolling={currentRolling}
-            closed={status !== undefined && CLOSED_STATUSES.includes(status)}
-          />
-        </button>
-      ) : (
-        <button
-          ref={anchorRef}
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          disabled={isPending}
-          className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
-          aria-label={ariaLabel}
-          aria-expanded={open}
-        >
-          {currentRolling ? (
-            <span className="inline-flex items-center whitespace-nowrap rounded bg-blue-100 px-1.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
-              상시채용
-            </span>
-          ) : currentIso ? (
-            <>
-              <Calendar className="h-3.5 w-3.5 shrink-0" aria-hidden />
-              <span className="whitespace-nowrap">{formatDisplay(currentIso)}</span>
-            </>
-          ) : (
-            <span className="whitespace-nowrap">—</span>
-          )}
-        </button>
-      )}
+      <button
+        ref={anchorRef}
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        disabled={isPending}
+        aria-label={ariaLabel}
+        aria-expanded={open}
+        className={`${TABLE_TRIGGER} gap-2 whitespace-nowrap`}
+      >
+        <TableDeadline
+          iso={currentIso}
+          rolling={currentRolling}
+          closed={status !== undefined && CLOSED_STATUSES.includes(status)}
+        />
+      </button>
       {open && pos ? (
         <Portal>
           <DeadlinePopoverBody
