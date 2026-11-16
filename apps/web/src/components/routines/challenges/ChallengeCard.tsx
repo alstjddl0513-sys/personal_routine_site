@@ -121,7 +121,7 @@ export function ChallengeCard({
         </li>
       ) : (
         // 모바일은 챌린지 카드 안의 한 줄(테두리 · 둥근 모서리 없이 줄 사이 divider)
-        <article className="flex flex-col gap-2.5 rounded-lg border border-line bg-surface px-5 pt-4.5 pb-3 max-md:rounded-none max-md:border-0 max-md:bg-transparent max-md:px-0 max-md:pt-4 max-md:pb-2">
+        <article className="flex flex-col gap-2.5 rounded-lg border border-line bg-surface px-5 pt-4.5 pb-3 max-md:rounded-none max-md:border-0 max-md:bg-transparent max-md:px-4 max-md:pt-4 max-md:pb-1.5">
           <div className="flex items-baseline justify-between gap-2">
             <h3 className="min-w-0 truncate text-base font-bold">{challenge.title}</h3>
             {/* 모바일은 D-3 이하면 alert(rally-mobile-routines) — 데스크톱은 그대로 */}
@@ -160,7 +160,7 @@ export function ChallengeCard({
               ))}
             </div>
           ) : null}
-          <div className="mt-0.5 flex items-center justify-between gap-2 border-t border-divider pt-1.5">
+          <div className="mt-0.5 flex items-center justify-between gap-2 border-t border-divider pt-1.5 max-md:mt-0 max-md:border-t-0 max-md:pt-0">
             <span className="text-xs text-ink-muted">시작 {challenge.startDate}</span>
             <span className="flex items-center">
               {isActive ? (

@@ -96,7 +96,7 @@ export function ChallengesList({ challenges, blocks }: Props) {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 max-md:gap-0 max-md:px-4 max-md:[&>article+article]:border-t max-md:[&>article+article]:border-divider md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 max-md:gap-0 max-md:[&>article+article]:border-t max-md:[&>article+article]:border-line md:grid-cols-3">
           {activeList.map((c) => (
             <ChallengeCard
               key={c.id}
