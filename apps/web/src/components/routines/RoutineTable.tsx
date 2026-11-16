@@ -197,7 +197,7 @@ export function RoutineTable({ blocks, checks, days, todayIso }: Props) {
       {rows.length === 0 ? (
         <div className="flex flex-col items-center gap-3.5 rounded-lg border border-dashed border-btn-border bg-surface px-8 py-9 text-center">
           <p className="text-ink-soft">아직 만든 루틴이 없어요. 아래에서 하나 추가해보세요.</p>
-          <AddTimeBlockRow nextSortOrder={nextSortOrder} variant="table" />
+          <AddTimeBlockRow nextSortOrder={nextSortOrder} />
         </div>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-line bg-surface">
@@ -252,7 +252,7 @@ export function RoutineTable({ blocks, checks, days, todayIso }: Props) {
                 <tr>
                   <td className="p-0" />
                   <td colSpan={days.length + 3} className="px-1 pt-2 pb-2.5">
-                    <AddTimeBlockRow nextSortOrder={nextSortOrder} variant="table" />
+                    <AddTimeBlockRow nextSortOrder={nextSortOrder} />
                   </td>
                 </tr>
               </tbody>

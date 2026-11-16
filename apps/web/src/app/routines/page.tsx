@@ -36,7 +36,8 @@ export default async function RoutinesPage({
     <div className="min-h-screen bg-paper font-plex text-[15px] leading-normal text-ink tabular-nums">
       <div className="mx-auto flex max-w-310 flex-col gap-7 px-4 pt-6 pb-16 md:px-10 md:pt-9">
         <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
-          <h1 className="text-[26px] leading-tight font-bold tracking-[-0.01em]">루틴 트래커</h1>
+          {/* 모바일은 상단 하위 탭이 이미 "트래커"라 제목 숨김(rally-mobile-routines) */}
+          <h1 className="text-[26px] leading-tight font-bold tracking-[-0.01em] max-md:hidden">루틴 트래커</h1>
           <RoutineWeekNav week={week} />
         </header>
 

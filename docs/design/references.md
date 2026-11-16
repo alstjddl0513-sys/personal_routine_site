@@ -32,6 +32,7 @@
 | `rally-admin(-dark).html` · `rally-admin-parts.html` | 관리자 페이지 4탭(개요 · 사용자 · 공지 · 피드백) + 차단 · 강제 탈퇴 · 받는 사람 · 삭제 창 · 공지 폼 · 배지 색 · 빈 상태 · 오류 | `/admin/*` `components/admin/*` · `admin-ui.tsx` · `lib/announcement-kind.ts` |
 | `rally-mobile-shell(-dark).html` · `rally-mobile-shell-parts.html` | 모바일 공통 틀 — 상단 줄(로고형 · 하위 탭형) · 하단 탭 6칸 · 더보기 시트 · 🔔 | `SectionSubNav.tsx` `BottomNav.tsx` `MoreMenu.tsx` · `NotifLogDrawer`(모바일 시트) |
 | `rally-mobile-jobs(-dark).html` · `rally-mobile-jobs-parts.html` | 모바일 채용 리스트 — 접힌 · 펼친 카드, 칸 편집 시트, 필터 시트, 빈 상태, 삭제 확인, 강조 | `components/jobs/mobile/*` · `ui/BottomSheet.tsx` · `JobsFilters`(모바일 머리) · `DeadlineEditor` |
+| `rally-mobile-routines(-dark).html` · `rally-mobile-routines-parts.html` | 모바일 루틴 트래커 — 주 이동 · 요일 7칸(오늘 · 고른 날 · 상태 점) · 평소/편집 모드 · 고치는 줄 · 추가 줄 · 챌린지 카드 · 회고 | `RoutineDayView.tsx` `RoutineWeekNav.tsx` `challenges/*`(모바일 responsive) |
 
 **현재 상태**: 숲색 `#1F3D30` · 메리골드 `#E9B949`(로고·챌린지 포인트, 시안의 황토 `#C8963E`에서 변경) · 바탕 `#F6F7F5`, IBM Plex Sans KR + Noto Serif KR(인사말). 사이드바(전 페이지)와 `/today`에 적용. 다른 페이지 본문은 zinc — 페이지별로 개편할 때 같은 토큰으로 확산. 모바일(BottomNav)은 별도 시안 예정.
 
@@ -262,6 +263,15 @@
 - 필터 시트: 칩은 초안 — [n개 보기]를 눌러야 적용(n = 받은 목록에 초안 조건). 채용여부만 서버가 거르는 조건이라 켜 둔 걸 끄면 수를 몰라 "결과 보기", 바뀌면 칩 조건까지 URL에 담아 다시 불러옴
 - 삭제 확인 문장에 같이 사라지는 것("일정 N건과 메모도 함께 사라져요. 되돌릴 수 없어요.")
 - 시트 공용 `ui/BottomSheet`(더보기 시트도 이걸로 바꿈)
+
+**모바일 루틴 트래커** (`/routines` <768px, 2026-11-16) — 동작은 #220 그대로, 데이터 · API · 데스크톱 그대로
+- 시안 제안대로 **평소 = 줄 아무 데나 누르면 체크(role=checkbox) / [편집] = 손잡이 · 이름 · 시간 고치기 · 🗑** (다른 후보: 🔔 왼쪽 버튼, 길게 누르기). [편집]은 날짜 제목 줄 오른쪽, 같은 버튼이 [완료]로 바뀌어 포커스 유지. 순서 바꾸기는 편집 모드에서만(키보드도)
+- 이름 고치기는 줄 안에서(다른 후보: 바텀시트 — 요일 반복 · 알림 같은 설정이 붙으면 그때). 고치는 줄만 thead 바탕 두 줄, 틀린 칸만 alert 테두리
+- 요일 칸: 오늘 = 숫자 button색 원 / 고른 날 = chip-on 바탕 + inset 2px / 상태 = 아래 점 — 전부 체크 = **메리골드 채운 점**(목표 다 채운 규칙, 다른 후보: primary 점), 일부 = primary 테두리 점
+- 제목 "루틴 트래커" 모바일 숨김(하위 탭 "트래커"), [이번 주]는 다른 주를 볼 때만
+- 추가 줄은 목록 마지막 줄 — 이름 + 시간까지 한 번에(시간은 비워도 됨, API가 이미 받던 값)
+- 챌린지: 모바일은 카드 하나 안에 머리 · 챌린지 줄 · 지난 챌린지 줄, 큰 숫자 대신 진행바 옆 "14/30일", **D-3 이하 D-day alert는 모바일만**. 시안엔 없는 시작일 · [포기] · 🗑 줄은 기능이라 남김. 회고의 [삭제] · [되돌리기]도 남김
+- 기준 폭 768px(스펙 1024 — 앞 화면들과 같은 이유)
 
 **채운 버튼(숲색) 규칙** (2026-11-12) — 한 화면에서 **가장 먼저 누를 버튼 하나만** `BUTTON_PRIMARY`(bg-button). 빈 상태의 유일한 행동도 채움. 반복되는 버튼([세트 추가] 등) · 이동 · 보조 · 창 안 [취소]는 테두리
 - 테두리 → 채움으로 바꾼 곳: 운동 기록 첫 사용 안내 [분할 만들기], 블로그 [새 글 가져오기] · 빈 상태 [전체 보기], 학습 · 복습 빈 상태 [전체 보기]

@@ -1,46 +1,34 @@
 'use client';
 
-import { useEffect, useRef, useState, useTransition } from 'react';
+import { useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { createTimeBlock } from '../../lib/api';
 
-// variant 'table': 데스크톱 표 맨 아래 — 늘 보이는 점선 입력칸.
-// 기본(모바일 DayView): [+ 블록 추가] 버튼 → 누르면 입력칸.
+// 데스크톱 루틴 표 맨 아래 — 늘 보이는 점선 입력칸(Enter · blur 저장, Esc 비우기).
+// 모바일 하루 보기는 목록 마지막 줄 추가(RoutineDayView 안 AddRow).
 export function AddTimeBlockRow({
   nextSortOrder,
-  variant,
 }: {
   nextSortOrder: number;
-  variant?: 'table';
 }) {
   const router = useRouter();
-  const [editing, setEditing] = useState(false);
   const [value, setValue] = useState('');
   const [saving, startSave] = useTransition();
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (editing) queueMicrotask(() => inputRef.current?.focus());
-  }, [editing]);
-
-  // Guard against Enter → setEditing(false) → onBlur → submit() double-call.
+  // Guard against Enter → blur → submit() double-call.
   // useTransition's `saving` state can still read false during blur due to batching.
   const submittedRef = useRef(false);
 
   function submit() {
     if (submittedRef.current) return;
     const trimmed = value.trim();
-    if (!trimmed) {
-      setEditing(false);
-      return;
-    }
+    if (!trimmed) return;
     submittedRef.current = true;
     startSave(async () => {
       try {
         await createTimeBlock({ label: trimmed, sortOrder: nextSortOrder });
         setValue('');
-        setEditing(false);
         router.refresh();
       } catch (err) {
         console.error(err);
@@ -50,50 +38,11 @@ export function AddTimeBlockRow({
     });
   }
 
-  if (variant === 'table') {
-    return (
-      <label className="flex w-full max-w-90 items-center gap-2 rounded-md border border-dashed border-btn-border px-2.5 text-ink-muted focus-within:border-primary">
-        <Plus className="h-3.5 w-3.5 shrink-0" strokeWidth={2.2} aria-hidden />
-        <span className="sr-only">새 루틴 추가</span>
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              submit();
-            } else if (e.key === 'Escape') {
-              setValue('');
-              e.currentTarget.blur();
-            }
-          }}
-          onBlur={submit}
-          maxLength={100}
-          placeholder="루틴 이름 (예: 아침 운동)"
-          disabled={saving}
-          className="h-9.5 min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-ink-faint"
-        />
-      </label>
-    );
-  }
-
-  if (!editing) {
-    return (
-      <button
-        type="button"
-        onClick={() => setEditing(true)}
-        className="inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded px-2 text-sm text-ink-muted hover:bg-row-hover hover:text-ink"
-      >
-        <Plus className="h-3.5 w-3.5" aria-hidden />
-        루틴 추가
-      </button>
-    );
-  }
   return (
-    <div className="flex min-w-0 flex-1 items-center gap-2">
+    <label className="flex w-full max-w-90 items-center gap-2 rounded-md border border-dashed border-btn-border px-2.5 text-ink-muted focus-within:border-primary">
+      <Plus className="h-3.5 w-3.5 shrink-0" strokeWidth={2.2} aria-hidden />
+      <span className="sr-only">새 루틴 추가</span>
       <input
-        ref={inputRef}
         type="text"
         value={value}
         onChange={(e) => setValue(e.target.value)}
@@ -103,16 +52,15 @@ export function AddTimeBlockRow({
             submit();
           } else if (e.key === 'Escape') {
             setValue('');
-            setEditing(false);
+            e.currentTarget.blur();
           }
         }}
         onBlur={submit}
         maxLength={100}
         placeholder="루틴 이름 (예: 아침 운동)"
         disabled={saving}
-        className="min-h-8 min-w-0 flex-1 rounded border border-btn-border bg-surface px-2 text-sm text-ink outline-none placeholder:text-ink-faint focus:border-primary md:max-w-64"
+        className="h-9.5 min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-ink-faint"
       />
-      <span className="hidden text-xs text-ink-muted md:inline">Enter 저장 · Esc 취소</span>
-    </div>
+    </label>
   );
 }
