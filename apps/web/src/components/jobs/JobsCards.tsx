@@ -6,7 +6,7 @@ import {
   type CompanyType,
   type Document,
 } from '@repo/shared';
-import { JobCard } from './JobCard';
+import { MobileJobCard } from './mobile/MobileJobCard';
 
 export function JobsCards({
   rows,
@@ -24,7 +24,7 @@ export function JobsCards({
   return (
     <div className="flex flex-col gap-2 md:hidden">
       {rows.map((c) => (
-        <JobCard
+        <MobileJobCard
           key={c.id}
           company={c}
           companyTypes={companyTypes}

@@ -27,9 +27,14 @@ const SELECT_TRIGGER = `${POPOVER_INPUT} min-h-11 cursor-pointer justify-between
 export function AddCompanyButton({
   companyTypes,
   label = '추가하기',
+  iconOnly,
+  className = '',
 }: {
   companyTypes: CompanyType[];
   label?: string;
+  /** 모바일 머리 줄 — 44×44 [+]만(rally-mobile-jobs) */
+  iconOnly?: boolean;
+  className?: string;
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -37,10 +42,15 @@ export function AddCompanyButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`${BUTTON_PRIMARY} min-h-11 gap-1.5 font-plex md:min-h-10`}
+        aria-label={iconOnly ? '회사 추가하기' : undefined}
+        className={
+          iconOnly
+            ? `${BUTTON_PRIMARY} h-11 w-11 flex-none px-0! ${className}`
+            : `${BUTTON_PRIMARY} min-h-11 gap-1.5 font-plex md:min-h-10 ${className}`
+        }
       >
-        <Plus className="h-4 w-4" strokeWidth={2.2} aria-hidden />
-        {label}
+        <Plus className={iconOnly ? 'h-5 w-5' : 'h-4 w-4'} strokeWidth={2.2} aria-hidden />
+        {iconOnly ? null : label}
       </button>
       {open ? (
         <AddCompanyModal

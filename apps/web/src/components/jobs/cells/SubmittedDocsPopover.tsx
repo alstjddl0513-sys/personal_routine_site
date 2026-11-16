@@ -36,13 +36,11 @@ export function SubmittedDocsPopover({
   resumeDocumentId,
   portfolioDocumentId,
   documents,
-  variant,
 }: {
   id: string;
   resumeDocumentId: string | null;
   portfolioDocumentId: string | null;
   documents: Document[];
-  variant?: 'table';
 }) {
   const { linked, count, commit } = useSubmittedDocs(id, resumeDocumentId, portfolioDocumentId);
   const [open, setOpen] = useState(false);
@@ -73,23 +71,11 @@ export function SubmittedDocsPopover({
         ref={anchorRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className={
-          variant === 'table'
-            ? `${TABLE_ICON_BUTTON} hover:bg-row-hover ${count > 0 ? 'text-ink-soft' : 'text-icon-faint'}`
-            : `inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800 ${
-                count > 0
-                  ? 'text-emerald-700 dark:text-emerald-400'
-                  : 'text-zinc-400 dark:text-zinc-600'
-              }`
-        }
+        className={`${TABLE_ICON_BUTTON} hover:bg-row-hover ${count > 0 ? 'text-ink-soft' : 'text-icon-faint'}`}
         aria-label={count > 0 ? `제출본 ${count}개` : '제출본 연결'}
         aria-expanded={open}
       >
-        <FileText
-          className={variant === 'table' ? 'h-3.75 w-3.75' : 'h-3.5 w-3.5'}
-          strokeWidth={variant === 'table' ? 1.8 : undefined}
-          aria-hidden
-        />
+        <FileText className="h-3.75 w-3.75" strokeWidth={1.8} aria-hidden />
         {count > 0 ? <span>{count}</span> : null}
       </button>
       {open && pos ? (

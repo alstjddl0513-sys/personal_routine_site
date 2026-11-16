@@ -2,7 +2,7 @@
 
 import { useEffect, useOptimistic, useRef, useState, useTransition, type RefObject } from 'react';
 import { useRouter } from 'next/navigation';
-import { Calendar, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import type { ApplicationStatus } from '@repo/shared';
 import { patchCompany } from '../../../lib/api';
 import { useOutsideClick } from '../../../lib/useOutsideClick';
@@ -55,18 +55,6 @@ function localInputToIso(v: string): string | null {
   return d.toISOString();
 }
 
-function formatDisplay(iso: string | null): string {
-  const d = parseTimestamp(iso);
-  if (!d) return '—';
-  const pad = (n: number) => String(n).padStart(2, '0');
-  const y = d.getFullYear();
-  const m = pad(d.getMonth() + 1);
-  const day = pad(d.getDate());
-  const w = WEEKDAY_KO[d.getDay()];
-  const hh = pad(d.getHours());
-  const mm = pad(d.getMinutes());
-  return `${y}-${m}-${day} (${w}) ${hh}:${mm}`;
-}
 
 // 오늘 0시 기준 달력 일수 차이 (지난 마감은 음수).
 function daysUntil(d: Date): number {
@@ -100,13 +88,11 @@ export function DeadlinePopover({
   id,
   value,
   isRolling,
-  variant,
   status,
 }: {
   id: string;
   value: string | null;
   isRolling: boolean;
-  variant?: 'table';
   /** 표에서 마감 강조 여부 판단용 (끝난 회사는 강조 안 함). */
   status?: ApplicationStatus;
 }) {
@@ -163,46 +149,21 @@ export function DeadlinePopover({
 
   return (
     <>
-      {variant === 'table' ? (
-        <button
-          ref={anchorRef}
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          disabled={isPending}
-          aria-label={ariaLabel}
-          aria-expanded={open}
-          className={`${TABLE_TRIGGER} gap-2 whitespace-nowrap`}
-        >
-          <TableDeadline
-            iso={currentIso}
-            rolling={currentRolling}
-            closed={status !== undefined && CLOSED_STATUSES.includes(status)}
-          />
-        </button>
-      ) : (
-        <button
-          ref={anchorRef}
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          disabled={isPending}
-          className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
-          aria-label={ariaLabel}
-          aria-expanded={open}
-        >
-          {currentRolling ? (
-            <span className="inline-flex items-center whitespace-nowrap rounded bg-blue-100 px-1.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
-              상시채용
-            </span>
-          ) : currentIso ? (
-            <>
-              <Calendar className="h-3.5 w-3.5 shrink-0" aria-hidden />
-              <span className="whitespace-nowrap">{formatDisplay(currentIso)}</span>
-            </>
-          ) : (
-            <span className="whitespace-nowrap">—</span>
-          )}
-        </button>
-      )}
+      <button
+        ref={anchorRef}
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        disabled={isPending}
+        aria-label={ariaLabel}
+        aria-expanded={open}
+        className={`${TABLE_TRIGGER} gap-2 whitespace-nowrap`}
+      >
+        <TableDeadline
+          iso={currentIso}
+          rolling={currentRolling}
+          closed={status !== undefined && CLOSED_STATUSES.includes(status)}
+        />
+      </button>
       {open && pos ? (
         <Portal>
           <DeadlinePopoverBody
@@ -230,10 +191,13 @@ export function TableDeadline({
   iso,
   rolling,
   closed,
+  pastCompact,
 }: {
   iso: string | null;
   rolling: boolean;
   closed: boolean;
+  /** 모바일 접힌 카드 — 지난 마감은 날짜 없이 "마감됨"만 흐리게(rally-mobile-jobs) */
+  pastCompact?: boolean;
 }) {
   if (rolling) return <span className="text-sm text-ink-muted">상시채용</span>;
   const d = parseTimestamp(iso);
@@ -248,6 +212,7 @@ export function TableDeadline({
     );
   }
   const days = daysUntil(d);
+  if (pastCompact && days < 0) return <span className="text-sm text-ink-faint">마감됨</span>;
   const tone =
     days < 0
       ? 'text-ink-muted'
@@ -294,33 +259,6 @@ function DeadlinePopoverBody({
 }: BodyProps) {
   // 미리보기 줄 유무로 높이가 달라서 실제 높이로 버튼에 다시 붙임.
   const measuredTop = useMeasuredTop(anchorRef, popoverRef, top);
-  const initial = isoToLocalInput(initialIso);
-  const [draftDate, setDraftDate] = useState(initial.slice(0, 10));
-  const [draftTime, setDraftTime] = useState(initial.slice(11, 16));
-  const [draftRolling, setDraftRolling] = useState(initialRolling);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    queueMicrotask(() => inputRef.current?.focus());
-  }, []);
-
-  const draftIso = draftDate
-    ? localInputToIso(`${draftDate}T${draftTime || DEFAULT_TIME}`)
-    : null;
-
-  function save() {
-    onCommit(draftIso, draftRolling);
-  }
-
-  function onEnter(e: React.KeyboardEvent) {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      save();
-    }
-  }
-
-  const preview = draftIso && !draftRolling ? new Date(draftIso) : null;
-
   return (
     <div
       ref={popoverRef}
@@ -339,6 +277,63 @@ function DeadlinePopoverBody({
           <X className="h-4 w-4" aria-hidden />
         </button>
       </div>
+      <DeadlineEditor
+        initialIso={initialIso}
+        initialRolling={initialRolling}
+        hasCurrent={hasCurrent}
+        onCommit={onCommit}
+      />
+    </div>
+  );
+}
+
+// 마감일 입력부 — 표 팝오버와 모바일 시트(rally-mobile-jobs)가 같이 씀. 위치 · 제목 줄은 감싸는 쪽이.
+// 날짜 · 시간 · 미리보기 · 상시채용 · [지우기] … [저장]. Enter = 저장.
+export function DeadlineEditor({
+  initialIso,
+  initialRolling,
+  hasCurrent,
+  onCommit,
+  large,
+}: {
+  initialIso: string | null;
+  initialRolling: boolean;
+  hasCurrent: boolean;
+  onCommit: (nextIso: string | null, nextRolling: boolean) => void;
+  /** 모바일 시트 — 칸 44px · 15px */
+  large?: boolean;
+}) {
+  const initial = isoToLocalInput(initialIso);
+  const [draftDate, setDraftDate] = useState(initial.slice(0, 10));
+  const [draftTime, setDraftTime] = useState(initial.slice(11, 16));
+  const [draftRolling, setDraftRolling] = useState(initialRolling);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // 표 팝오버만 날짜 칸으로 바로 포커스 — 모바일 시트는 열자마자 키보드 · 달력이 뜨지 않게
+  useEffect(() => {
+    if (!large) queueMicrotask(() => inputRef.current?.focus());
+  }, [large]);
+
+  const draftIso = draftDate
+    ? localInputToIso(`${draftDate}T${draftTime || DEFAULT_TIME}`)
+    : null;
+
+  function save() {
+    onCommit(draftIso, draftRolling);
+  }
+
+  function onEnter(e: React.KeyboardEvent) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      save();
+    }
+  }
+
+  const preview = draftIso && !draftRolling ? new Date(draftIso) : null;
+
+  const field = large ? 'min-h-11 text-[15px]' : '';
+  return (
+    <div className="flex flex-col gap-3">
       <div className="flex gap-2">
         <input
           ref={inputRef}
@@ -350,7 +345,7 @@ function DeadlinePopoverBody({
           max="2099-12-31"
           onChange={(e) => setDraftDate(e.target.value)}
           onKeyDown={onEnter}
-          className={`${POPOVER_INPUT_BASE} flex-1`}
+          className={`${POPOVER_INPUT_BASE} min-w-0 flex-1 ${field}`}
         />
         <input
           type="time"
@@ -359,7 +354,7 @@ function DeadlinePopoverBody({
           disabled={draftRolling}
           onChange={(e) => setDraftTime(e.target.value)}
           onKeyDown={onEnter}
-          className={`${POPOVER_INPUT_BASE} w-36 flex-none`}
+          className={`${POPOVER_INPUT_BASE} ${large ? 'w-32' : 'w-36'} flex-none ${field}`}
         />
       </div>
       {preview ? (

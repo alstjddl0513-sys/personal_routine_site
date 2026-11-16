@@ -5,15 +5,8 @@ import { useRouter } from 'next/navigation';
 import { patchCompany } from '../../../lib/api';
 import { TABLE_TRIGGER } from './table-style';
 
-export function HiringToggle({
-  id,
-  value,
-  variant,
-}: {
-  id: string;
-  value: boolean;
-  variant?: 'table';
-}) {
+// 채용 표(데스크톱) 채용여부 칸 — "채용중" / "—" 글자 스위치. 모바일 카드는 바텀시트 토글(mobile/MobileJobCard).
+export function HiringToggle({ id, value }: { id: string; value: boolean }) {
   const router = useRouter();
   const [current, setCurrent] = useState(value);
   // See FavoriteToggle for rationale — protects optimistic state from being
@@ -43,34 +36,16 @@ export function HiringToggle({
       });
   }
 
-  if (variant === 'table') {
-    return (
-      <button
-        type="button"
-        role="switch"
-        onClick={toggle}
-        aria-checked={current}
-        aria-label="채용중"
-        className={`${TABLE_TRIGGER} text-sm ${current ? 'text-ink-soft' : 'text-icon-faint'}`}
-      >
-        {current ? '채용중' : '—'}
-      </button>
-    );
-  }
-
   return (
     <button
       type="button"
+      role="switch"
       onClick={toggle}
-      aria-pressed={current}
-      aria-label={current ? '채용중' : '채용중 아님'}
-      className="inline-flex h-5 w-5 items-center justify-center rounded hover:bg-zinc-100 dark:hover:bg-zinc-800"
+      aria-checked={current}
+      aria-label="채용중"
+      className={`${TABLE_TRIGGER} text-sm ${current ? 'text-ink-soft' : 'text-icon-faint'}`}
     >
-      {current ? (
-        <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
-      ) : (
-        <span className="inline-block h-2 w-2 rounded-full bg-zinc-300 dark:bg-zinc-700" />
-      )}
+      {current ? '채용중' : '—'}
     </button>
   );
 }

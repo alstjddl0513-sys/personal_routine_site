@@ -2,7 +2,7 @@
 
 import { useEffect, useOptimistic, useRef, useState, useTransition, type RefObject } from 'react';
 import { useRouter } from 'next/navigation';
-import { ExternalLink, Link as LinkIcon, X } from 'lucide-react';
+import { Link as LinkIcon, X } from 'lucide-react';
 import { patchCompany } from '../../../lib/api';
 import { useOutsideClick } from '../../../lib/useOutsideClick';
 import {
@@ -29,11 +29,9 @@ const URL_ERROR = '주소가 https:// 로 시작하는지 확인해 주세요.';
 export function UrlPopover({
   id,
   value,
-  variant,
 }: {
   id: string;
   value: string | null;
-  variant?: 'table';
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -99,49 +97,20 @@ export function UrlPopover({
     ) : null;
 
   // 표: 아이콘 하나 — 열기·복사·편집은 팝오버에서.
-  if (variant === 'table') {
-    return (
-      <>
-        <button
-          ref={anchorRef}
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          aria-label={current ? '공고 링크' : '공고 링크 추가'}
-          aria-expanded={open}
-          className={`${TABLE_ICON_BUTTON} hover:bg-row-hover ${current ? 'text-ink-soft' : 'text-icon-faint'}`}
-        >
-          <LinkIcon className="h-3.75 w-3.75" strokeWidth={1.8} aria-hidden />
-        </button>
-        {body}
-      </>
-    );
-  }
-
   return (
-    <div className="inline-flex items-center gap-1">
-      {current ? (
-        <a
-          href={current}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-blue-600 hover:bg-blue-50 hover:underline dark:text-blue-400 dark:hover:bg-blue-950/40"
-        >
-          <ExternalLink className="h-3.5 w-3.5" aria-hidden />
-          링크
-        </a>
-      ) : null}
+    <>
       <button
         ref={anchorRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-        aria-label={current ? '공고 링크 편집' : '공고 링크 추가'}
+        aria-label={current ? '공고 링크' : '공고 링크 추가'}
         aria-expanded={open}
+        className={`${TABLE_ICON_BUTTON} hover:bg-row-hover ${current ? 'text-ink-soft' : 'text-icon-faint'}`}
       >
-        <LinkIcon className="h-3.5 w-3.5" aria-hidden />
+        <LinkIcon className="h-3.75 w-3.75" strokeWidth={1.8} aria-hidden />
       </button>
       {body}
-    </div>
+    </>
   );
 }
 

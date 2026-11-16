@@ -31,6 +31,7 @@
 | `rally-auth(-dark).html` · `rally-auth-parts.html` | 로그인 · 가입 · 비밀번호 재설정 · 새 비밀번호 · 로그인 필요 + 메일 안내 · 링크 만료 · 완료 · 닉네임 상태 | `/login` `/signup` `/forgot-password` `/auth/reset-password` `/unauthorized` `components/auth/*` |
 | `rally-admin(-dark).html` · `rally-admin-parts.html` | 관리자 페이지 4탭(개요 · 사용자 · 공지 · 피드백) + 차단 · 강제 탈퇴 · 받는 사람 · 삭제 창 · 공지 폼 · 배지 색 · 빈 상태 · 오류 | `/admin/*` `components/admin/*` · `admin-ui.tsx` · `lib/announcement-kind.ts` |
 | `rally-mobile-shell(-dark).html` · `rally-mobile-shell-parts.html` | 모바일 공통 틀 — 상단 줄(로고형 · 하위 탭형) · 하단 탭 6칸 · 더보기 시트 · 🔔 | `SectionSubNav.tsx` `BottomNav.tsx` `MoreMenu.tsx` · `NotifLogDrawer`(모바일 시트) |
+| `rally-mobile-jobs(-dark).html` · `rally-mobile-jobs-parts.html` | 모바일 채용 리스트 — 접힌 · 펼친 카드, 칸 편집 시트, 필터 시트, 빈 상태, 삭제 확인, 강조 | `components/jobs/mobile/*` · `ui/BottomSheet.tsx` · `JobsFilters`(모바일 머리) · `DeadlineEditor` |
 
 **현재 상태**: 숲색 `#1F3D30` · 메리골드 `#E9B949`(로고·챌린지 포인트, 시안의 황토 `#C8963E`에서 변경) · 바탕 `#F6F7F5`, IBM Plex Sans KR + Noto Serif KR(인사말). 사이드바(전 페이지)와 `/today`에 적용. 다른 페이지 본문은 zinc — 페이지별로 개편할 때 같은 토큰으로 확산. 모바일(BottomNav)은 별도 시안 예정.
 
@@ -252,6 +253,15 @@
 - 상단 줄 52px paper, 스크롤과 같이 올라감(고정 X). 로고형은 아래 선 없음, 하위 탭형만 divider + primary 2px 밑줄. 하위 탭은 페이지 이동이라 tablist 대신 nav + aria-current
 - 더보기 시트 테마는 시안의 [☀ 라이트 | ☾ 다크](글자 + 아이콘) 대신 **아이콘만** — 설정 › 앱과 같은 ThemeSegment(사용자 요청). '시스템' 옵션은 새 기능이라 X
 - 더보기 시트: focus trap · Esc · scrim · ✕ · 손잡이/제목 줄 아래로 끌기(60px)로 닫힘, 닫으면 더보기 탭으로 포커스. 🔔 창은 모바일에서 아래에서 올라오는 전체 폭(데스크톱 오른쪽 400px 그대로)
+
+**모바일 채용 리스트** (`/jobs` <768px, 2026-11-16) — 동작은 #218 그대로, 데이터 · API · 데스크톱 그대로
+- 시안 제안대로: 페이지 제목 숨김(하위 탭 "리스트"와 같은 말), 카드는 그 자리에서 펼침(여러 장 동시에 — 다른 후보: 회사 상세 시트), 칸 편집은 바텀시트(다른 후보: 칸 아래 인라인), 지원상태는 이름 줄 오른쪽
+- 고르기 시트(유형 · 규모 · 우선순위 · 지원상태)는 누르는 순간 저장 · 닫힘. 마감일 · 공고 · 메모 · 일정 · 제출본 시트는 표 팝오버 · 사이드 패널과 같은 Editor(`DeadlineEditor`는 이번에 떼어냄) — 그래서 시트 안에 Editor의 작은 제목 줄("일정 2건" · "공고 링크" · "이 회사에 낸 문서 N개")이 시트 제목 아래 한 번 더 보임
+- 제출본은 고르는 순간 저장(시안의 [저장] 없음 — 지금 동작 그대로)
+- 마감 표기는 표와 같은 값(D-n · "오늘" · "내일", 색은 D-n 글자만). 접힌 카드에서만 지난 마감을 날짜 없이 "마감됨"(시안대로)
+- 필터 시트: 칩은 초안 — [n개 보기]를 눌러야 적용(n = 받은 목록에 초안 조건). 채용여부만 서버가 거르는 조건이라 켜 둔 걸 끄면 수를 몰라 "결과 보기", 바뀌면 칩 조건까지 URL에 담아 다시 불러옴
+- 삭제 확인 문장에 같이 사라지는 것("일정 N건과 메모도 함께 사라져요. 되돌릴 수 없어요.")
+- 시트 공용 `ui/BottomSheet`(더보기 시트도 이걸로 바꿈)
 
 **채운 버튼(숲색) 규칙** (2026-11-12) — 한 화면에서 **가장 먼저 누를 버튼 하나만** `BUTTON_PRIMARY`(bg-button). 빈 상태의 유일한 행동도 채움. 반복되는 버튼([세트 추가] 등) · 이동 · 보조 · 창 안 [취소]는 테두리
 - 테두리 → 채움으로 바꾼 곳: 운동 기록 첫 사용 안내 [분할 만들기], 블로그 [새 글 가져오기] · 빈 상태 [전체 보기], 학습 · 복습 빈 상태 [전체 보기]
