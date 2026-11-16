@@ -23,6 +23,7 @@ import { FOCUS_RING } from '../../settings/lists/ListCard';
 import { StatusDot, statusTextClass } from '../StatusDot';
 import { useCompanyPatch } from '../useCompanyPatch';
 import { FavoriteToggle } from '../cells/FavoriteToggle';
+import { PRIORITY_TONE } from '../cells/PrioritySelect';
 import { DeleteRowButton } from '../cells/DeleteRowButton';
 import { CLOSED_STATUSES, DeadlineEditor, TableDeadline } from '../cells/DeadlinePopover';
 import { EventsEditor, formatDateShort, TYPE_DOT, useCompanyEventActions } from '../cells/EventsPopover';
@@ -34,11 +35,6 @@ import { SubmittedDocsEditor, useSubmittedDocs } from '../cells/SubmittedDocsPop
 // (여러 장 동시에). 줄을 누르면 그 칸의 바텀시트 — 고르기는 누르면 바로 반영 · 닫힘, 입력은 표 팝오버와 같은 Editor.
 // 값은 표 셀과 같은 방식으로 저장(patchCompany → router.refresh, 고르기는 useOptimistic으로 바로 보임).
 
-const PRIORITY_TONE: Record<Priority, string> = {
-  urgent: 'font-semibold text-alert',
-  important: 'text-ink-soft',
-  normal: 'text-ink-muted',
-};
 
 type SheetKey = 'type2' | 'type1' | 'priority' | 'hiring' | 'status' | 'deadline' | 'events' | 'url' | 'docs' | 'note';
 

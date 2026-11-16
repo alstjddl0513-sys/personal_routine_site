@@ -23,11 +23,13 @@ const OPTIONS = PRIORITY_VALUES.map((v) => ({
 }));
 
 // 표(데스크톱): 긴급만 마감색으로 튀게, 상은 본문, 하는 보조색.
-const TABLE_TONE: Record<Priority, string> = {
+// 상 · 하가 비슷한 회색이라 구분이 안 됐음 → 상은 진하게(본문 색 · 600), 하는 흐리게(ink-faint). 모바일 카드도 같이 씀
+export const PRIORITY_TONE: Record<Priority, string> = {
   urgent: 'font-semibold text-alert',
-  important: 'text-ink-soft',
-  normal: 'text-ink-muted',
+  important: 'font-semibold text-ink',
+  normal: 'text-ink-faint',
 };
+const TABLE_TONE = PRIORITY_TONE;
 const TABLE_OPTIONS = PRIORITY_VALUES.map((v) => ({
   value: v,
   label: PRIORITY_LABELS[v],
