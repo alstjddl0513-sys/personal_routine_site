@@ -67,6 +67,8 @@ export function MobileJobCard({
 
   const typeLabel = companyTypes.find((t) => t.key === type2)?.label ?? type2;
   const sortedEvents = [...events].sort((a, b) => a.date.localeCompare(b.date));
+  const todayIso = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+  const nextEvent = sortedEvents.find((e) => e.date >= todayIso) ?? sortedEvents.at(-1) ?? null;
   const docTitle = (docId: string | null) => documents.find((d) => d.id === docId)?.title ?? null;
   const docsSummary =
     [docTitle(docs.linked.resumeDocumentId), docTitle(docs.linked.portfolioDocumentId)].filter(Boolean).join(' · ') ||
@@ -155,19 +157,20 @@ export function MobileJobCard({
                 />
               </span>
             </FieldRow>
-            <BlockRow label={sortedEvents.length ? `일정 ${sortedEvents.length}건` : '일정'} onOpen={() => setSheet('events')}>
-              {sortedEvents.length ? (
-                <ul className="flex flex-col gap-1">
-                  {sortedEvents.map((e) => (
-                    <li key={e.id} className="flex min-w-0 items-center gap-2 text-[13.5px]">
-                      <span aria-hidden className={`h-1.75 w-1.75 flex-none rounded-full ${TYPE_DOT[e.type]}`} />
-                      <span className="flex-none text-ink-muted tabular-nums">{formatDateShort(e.date)}</span>
-                      <span className="min-w-0 truncate text-ink-soft">{e.note ?? ''}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-            </BlockRow>
+            <FieldRow label="일정" onOpen={() => setSheet('events')}>
+              {nextEvent ? (
+                <span className="inline-flex max-w-full items-center justify-end gap-1.5">
+                  <span aria-hidden className={`h-1.75 w-1.75 flex-none rounded-full ${TYPE_DOT[nextEvent.type]}`} />
+                  <span className="flex-none text-ink-muted tabular-nums">{formatDateShort(nextEvent.date)}</span>
+                  <span className="min-w-0 truncate">{nextEvent.note ?? ''}</span>
+                  {sortedEvents.length > 1 ? (
+                    <span className="flex-none text-ink-muted">외 {sortedEvents.length - 1}건</span>
+                  ) : null}
+                </span>
+              ) : (
+                <span className="text-icon-faint">—</span>
+              )}
+            </FieldRow>
             <FieldRow label="공고" onOpen={() => setSheet('url')}>
               {c.postingUrl ? (
                 <span className="font-mono text-[12.5px] text-ink-soft">{c.postingUrl.replace(/^https?:\/\//, '')}</span>
@@ -178,9 +181,13 @@ export function MobileJobCard({
             <FieldRow label="제출본" onOpen={() => setSheet('docs')}>
               {docsSummary ?? <span className="text-icon-faint">—</span>}
             </FieldRow>
-            <BlockRow label="메모" onOpen={() => setSheet('note')}>
-              {c.note ? <p className="line-clamp-2 text-[13.5px] whitespace-pre-line text-ink-soft">{c.note}</p> : null}
-            </BlockRow>
+            <FieldRow label="메모" onOpen={() => setSheet('note')}>
+              {c.note ? (
+                <span className="text-ink-soft">{c.note.split('\n').find((l) => l.trim()) ?? c.note}</span>
+              ) : (
+                <span className="text-icon-faint">—</span>
+              )}
+            </FieldRow>
           </ul>
           <div className="-mx-4 flex justify-end border-t border-divider px-2 py-1">
             <DeleteRowButton id={c.id} name={c.name} eventCount={events.length} hasNote={!!c.note} />
@@ -330,24 +337,6 @@ function FieldRow({ label, onOpen, children }: { label: string; onOpen: () => vo
   );
 }
 
-// 일정 · 메모 — 윗줄 라벨 + ›, 아래에 내용 미리보기
-function BlockRow({ label, onOpen, children }: { label: string; onOpen: () => void; children: ReactNode }) {
-  return (
-    <li>
-      <button
-        type="button"
-        onClick={onOpen}
-        className={`flex w-full cursor-pointer flex-col gap-1.5 rounded-md py-3 text-left ${FOCUS_RING}`}
-      >
-        <span className="flex w-full items-center justify-between">
-          <span className="text-[13.5px] text-ink-muted">{label}</span>
-          <ChevronRight className="h-4 w-4 flex-none text-ink-faint" aria-hidden />
-        </span>
-        {children ?? <span className="text-sm text-icon-faint">—</span>}
-      </button>
-    </li>
-  );
-}
 
 // 고르기 시트 — 누르면 바로 반영하고 닫힘([저장] 없음). 고른 것 = chip-on 배경 + 700 + ✓, 줄 52px
 function OptionSheet({

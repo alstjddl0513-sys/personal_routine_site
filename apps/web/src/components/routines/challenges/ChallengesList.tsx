@@ -59,12 +59,19 @@ export function ChallengesList({ challenges, blocks }: Props) {
   const openCreate = () => setOpen(true);
 
   return (
-    <section aria-labelledby="challenge-title" className="flex flex-col gap-3.5">
-      <div className="flex items-center justify-between gap-3">
+    <section
+      aria-labelledby="challenge-title"
+      className="flex flex-col gap-3.5 max-md:gap-0 max-md:overflow-hidden max-md:rounded-lg max-md:border max-md:border-line max-md:bg-surface"
+    >
+      <div className="flex items-center justify-between gap-3 max-md:min-h-13 max-md:border-b max-md:border-divider max-md:pr-1.5 max-md:pl-4">
         <h2 id="challenge-title" className="text-[17px] font-bold text-heading">
           챌린지{' '}
-          <span className="font-medium text-ink-muted">
+          <span className="font-medium text-ink-muted max-md:hidden">
             · 진행 중 {activeList.length}/{MAX_ACTIVE_CHALLENGES}
+          </span>
+          {/* 모바일(rally-mobile-routines): 작은 글자 "진행 중 2 / 3" */}
+          <span className="ml-1 text-[13px] font-normal text-ink-muted md:hidden">
+            진행 중 {activeList.length} / {MAX_ACTIVE_CHALLENGES}
           </span>
         </h2>
         <button
@@ -72,22 +79,24 @@ export function ChallengesList({ challenges, blocks }: Props) {
           onClick={openCreate}
           disabled={atLimit}
           title={atLimit ? `진행 중 최대 ${MAX_ACTIVE_CHALLENGES}개까지 가능` : undefined}
-          className="inline-flex min-h-10 cursor-pointer items-center gap-1.5 rounded-md border border-btn-border bg-btn-bg px-3.5 text-sm font-medium text-btn-fg hover:border-heading disabled:cursor-not-allowed disabled:border-divider disabled:bg-transparent disabled:text-icon-faint"
+          aria-label="챌린지 추가"
+          // 모바일은 40px [+]만
+          className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-btn-border bg-btn-bg px-3.5 text-sm font-medium text-btn-fg hover:border-heading disabled:cursor-not-allowed disabled:border-divider disabled:bg-transparent disabled:text-icon-faint max-md:w-10 max-md:border-0 max-md:bg-transparent max-md:px-0"
         >
-          <Plus className="h-3.5 w-3.5" strokeWidth={2.2} aria-hidden />
-          추가
+          <Plus className="h-3.5 w-3.5 max-md:h-4.5 max-md:w-4.5" strokeWidth={2.2} aria-hidden />
+          <span className="max-md:hidden">추가</span>
         </button>
       </div>
 
       {activeList.length === 0 ? (
-        <div className="flex flex-col items-center gap-3.5 rounded-lg border border-dashed border-btn-border bg-surface px-8 py-9 text-center">
+        <div className="flex flex-col items-center gap-3.5 rounded-lg border border-dashed border-btn-border bg-surface px-8 py-9 text-center max-md:rounded-none max-md:border-0 max-md:px-5 max-md:py-7">
           <p className="text-ink-soft">{'"100일 아침 운동" 같은 목표를 세워보세요.'}</p>
           <button type="button" onClick={openCreate} className={BUTTON_PRIMARY}>
             + 챌린지 추가
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 max-md:gap-0 max-md:[&>article+article]:border-t max-md:[&>article+article]:border-line md:grid-cols-3">
           {activeList.map((c) => (
             <ChallengeCard
               key={c.id}
@@ -101,15 +110,15 @@ export function ChallengesList({ challenges, blocks }: Props) {
       )}
 
       {pastList.length > 0 ? (
-        <div className="flex max-w-180 flex-col">
+        <div className="flex max-w-180 flex-col max-md:max-w-none max-md:border-t max-md:border-divider">
           <button
             type="button"
             onClick={() => setShowPast((v) => !v)}
             aria-expanded={showPast}
-            className="inline-flex min-h-10 cursor-pointer items-center gap-1.5 self-start px-1 text-sm font-medium text-ink-soft hover:text-ink"
+            className="inline-flex min-h-10 cursor-pointer items-center gap-1.5 self-start px-1 text-sm font-medium text-ink-soft hover:text-ink max-md:min-h-12 max-md:w-full max-md:self-stretch max-md:px-4 max-md:font-normal"
           >
             <ChevronDown
-              className={`h-3.5 w-3.5 shrink-0 transition-transform ${
+              className={`h-3.5 w-3.5 shrink-0 transition-transform max-md:hidden ${
                 showPast ? '' : '-rotate-90'
               }`}
               strokeWidth={2}
@@ -121,6 +130,12 @@ export function ChallengesList({ challenges, blocks }: Props) {
               {completedCount > 0 && abandonedCount > 0 ? ' · ' : ''}
               {abandonedCount > 0 ? `포기 ${abandonedCount}` : ''})
             </span>
+            {/* 모바일은 끝에 › (펴면 아래로) */}
+            <ChevronDown
+              className={`ml-auto h-4 w-4 shrink-0 text-ink-muted transition-transform md:hidden ${showPast ? '' : '-rotate-90'}`}
+              strokeWidth={2}
+              aria-hidden
+            />
           </button>
           {showPast ? (
             <ul className="border-t border-divider">
