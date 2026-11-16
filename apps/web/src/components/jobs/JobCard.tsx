@@ -4,12 +4,13 @@ import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import {
   APPLICATION_STATUS_LABELS,
+  COMPANY_TYPE_1_LABELS,
   type Company,
   type CompanyEvent,
   type CompanyType,
   type Document,
 } from '@repo/shared';
-import { DeadlinePopover } from './cells/DeadlinePopover';
+import { CLOSED_STATUSES, DeadlinePopover, TableDeadline } from './cells/DeadlinePopover';
 import { DeleteRowButton } from './cells/DeleteRowButton';
 import { EventsPopover } from './cells/EventsPopover';
 import { FavoriteToggle } from './cells/FavoriteToggle';
@@ -50,18 +51,33 @@ export function JobCard({
           type="button"
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
-          className="flex flex-1 items-center gap-2 py-1 text-left"
+          className="flex min-w-0 flex-1 flex-col gap-0.5 py-1 text-left"
         >
-          <span className="flex-1 truncate text-sm font-medium">{c.name}</span>
-          <span
-            className={`shrink-0 rounded border px-2 py-0.5 text-[11px] ${STATUS_STYLE[c.applicationStatus]}`}
-          >
-            {APPLICATION_STATUS_LABELS[c.applicationStatus]}
+          <span className="flex w-full items-center gap-2">
+            <span className="flex-1 truncate text-sm font-medium">{c.name}</span>
+            <span
+              className={`shrink-0 rounded border px-2 py-0.5 text-[11px] ${STATUS_STYLE[c.applicationStatus]}`}
+            >
+              {APPLICATION_STATUS_LABELS[c.applicationStatus]}
+            </span>
+            <ChevronDown
+              className={`h-4 w-4 shrink-0 text-zinc-400 transition-transform ${open ? 'rotate-180' : ''}`}
+              aria-hidden
+            />
           </span>
-          <ChevronDown
-            className={`h-4 w-4 shrink-0 text-zinc-400 transition-transform ${open ? 'rotate-180' : ''}`}
-            aria-hidden
-          />
+          {/* 둘째 줄 — 펼치지 않고도 유형 · 규모와 마감(표와 같은 D-n 표기)을 훑게 */}
+          <span className="flex w-full items-center justify-between gap-2 pr-6">
+            <span className="truncate text-[13px] text-ink-muted">
+              {companyTypes.find((t) => t.key === c.type2)?.label ?? c.type2} · {COMPANY_TYPE_1_LABELS[c.type1]}
+            </span>
+            <span className="flex shrink-0 items-center gap-2 whitespace-nowrap">
+              <TableDeadline
+                iso={c.applicationDeadline}
+                rolling={c.isRolling}
+                closed={CLOSED_STATUSES.includes(c.applicationStatus)}
+              />
+            </span>
+          </span>
         </button>
       </div>
 
@@ -77,7 +93,7 @@ export function JobCard({
             <Row label="우선순위">
               <PrioritySelect id={c.id} value={c.priority} />
             </Row>
-            <Row label="채용중">
+            <Row label="채용여부">
               <HiringToggle id={c.id} value={c.isHiring} />
             </Row>
             <Row label="지원상태">
@@ -89,7 +105,7 @@ export function JobCard({
             <Row label="일정">
               <EventsPopover companyId={c.id} events={events} />
             </Row>
-            <Row label="공고링크">
+            <Row label="공고">
               <UrlPopover id={c.id} value={c.postingUrl} />
             </Row>
             <Row label="제출본">

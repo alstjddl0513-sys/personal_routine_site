@@ -70,7 +70,8 @@ export function FavoriteToggle({
       onClick={toggle}
       aria-pressed={current}
       aria-label={current ? '즐겨찾기 해제' : '즐겨찾기'}
-      className="inline-flex h-6 w-6 items-center justify-center rounded hover:bg-zinc-100 dark:hover:bg-zinc-800"
+      // 모바일 카드 — 하트는 16px 그대로, 누르는 영역만 44px(바깥 여백을 음수로 당겨 카드 줄 높이는 그대로)
+      className="-m-2.5 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded hover:bg-zinc-100 dark:hover:bg-zinc-800"
     >
       <Heart
         className={`h-4 w-4 ${

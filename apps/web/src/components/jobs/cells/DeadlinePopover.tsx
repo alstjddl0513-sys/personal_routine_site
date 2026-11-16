@@ -87,7 +87,7 @@ function ddayLabel(days: number): string {
 const pad2 = (n: number) => String(n).padStart(2, '0');
 
 // 전형이 끝난 회사 — 마감이 다가와도 할 일이 없어서 강조 안 함.
-const CLOSED_STATUSES: readonly ApplicationStatus[] = [
+export const CLOSED_STATUSES: readonly ApplicationStatus[] = [
   'document_failed',
   'interview_1_failed',
   'interview_2_failed',
@@ -225,7 +225,8 @@ export function DeadlinePopover({
 // 표 셀 표시: "D-2  10.26 월 23:59". 진행 중인 회사만 오늘·내일 마감색, D-2~3
 // 호박색으로 강조(날짜는 회색 유지). 지난 건 "마감됨".
 // 빈 칸은 평소 흐린 "—", 행 hover·포커스 때만 "+ 추가" (100행 넘게 반복되면 시끄러워서).
-function TableDeadline({
+// 표 칸 · 모바일 카드 둘째 줄이 같이 씀 — D-n(색) + "10.26 월 23:59" / 상시채용 / 마감됨
+export function TableDeadline({
   iso,
   rolling,
   closed,
