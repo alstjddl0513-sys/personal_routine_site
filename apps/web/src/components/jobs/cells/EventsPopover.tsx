@@ -45,7 +45,7 @@ const POPOVER_HEIGHT = 260;
 const WEEKDAY_KO = ['일', '월', '화', '수', '목', '금', '토'];
 
 // 유형 점 색 — '오늘' 다가오는 일정과 같은 토큰.
-const TYPE_DOT: Record<CompanyEventType, string> = {
+export const TYPE_DOT: Record<CompanyEventType, string> = {
   deadline: 'bg-alert',
   test: 'bg-ev-test',
   interview: 'bg-ev-interview',
@@ -59,7 +59,7 @@ const TYPE_OPTIONS = COMPANY_EVENT_TYPES.map((t) => ({
   icon: <span aria-hidden className={`h-1.75 w-1.75 flex-none rounded-full ${TYPE_DOT[t]}`} />,
 }));
 
-function formatDateShort(iso: string): string {
+export function formatDateShort(iso: string): string {
   // "2026-10-15" → "10.15 수"
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
   if (!m) return iso;

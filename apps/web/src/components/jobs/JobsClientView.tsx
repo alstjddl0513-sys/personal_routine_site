@@ -122,6 +122,21 @@ export function JobsClientView({
     });
   }
 
+  // 모바일 필터 시트 [n개 보기] — 칩 조건 4개를 한 번에(따로 부르면 URL을 서로 덮어씀)
+  function handleClientApplyAll(next: JobsClientFilters) {
+    setType1Set(next.type1);
+    setType2Set(next.type2);
+    setPrioritySet(next.priority);
+    setStatusSet(next.status);
+    replaceParams((params) => {
+      for (const key of ['type1', 'type2', 'priority', 'status'] as const) {
+        const set = next[key] as ReadonlySet<string>;
+        if (set.size) params.set(key, Array.from(set).join(','));
+        else params.delete(key);
+      }
+    });
+  }
+
   function handleClientClearAll() {
     setType1Set(new Set());
     setType2Set(new Set());
@@ -169,15 +184,19 @@ export function JobsClientView({
         onClientFilterChange={handleClientFilterChange}
         onClientClearAll={handleClientClearAll}
         resultCount={filteredRows.length}
+        rows={allRows}
+        onClientApplyAll={handleClientApplyAll}
         countAside={<ColumnsToggle value={columns} onChange={setColumns} />}
       />
       {filteredRows.length === 0 ? (
         // docs/design/rally-jobs-parts.html 빈 상태 2종
         <div className="flex flex-col items-center gap-4 rounded-lg border border-dashed border-btn-border bg-surface px-6 py-12 text-center">
+          {/* 모바일은 두 줄(rally-mobile-jobs-parts) */}
           <p className="text-[15px] text-ink-soft">
-            {hasAnyFilter
-              ? '조건에 맞는 회사가 없어요. 필터를 조금 풀어보세요.'
-              : '아직 담아둔 회사가 없어요. 첫 회사를 담아보세요.'}
+            {hasAnyFilter ? '조건에 맞는 회사가 없어요.' : '아직 담아둔 회사가 없어요.'}{' '}
+            <span className="max-md:block">
+              {hasAnyFilter ? '필터를 조금 풀어보세요.' : '첫 회사를 담아보세요.'}
+            </span>
           </p>
           {hasAnyFilter ? (
             <button
@@ -191,7 +210,10 @@ export function JobsClientView({
               필터 초기화
             </button>
           ) : (
-            <AddCompanyButton companyTypes={companyTypes} />
+            <>
+              <AddCompanyButton companyTypes={companyTypes} className="max-md:hidden" />
+              <AddCompanyButton companyTypes={companyTypes} label="회사 추가하기" className="md:hidden" />
+            </>
           )}
         </div>
       ) : (
