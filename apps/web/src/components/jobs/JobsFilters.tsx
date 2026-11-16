@@ -210,7 +210,8 @@ export function JobsFilters({
           </button>
           <Link
             href={`/jobs/report${searchParams.size ? `?${searchParams.toString()}` : ''}`}
-            className={TOOL_BUTTON}
+            // 휴대폰에서 취업활동 표를 인쇄할 일은 거의 없고 버튼 줄이 꽉 차서 모바일은 숨김(주소로는 열림)
+            className={`${TOOL_BUTTON} max-md:hidden`}
             title="현재 필터 그대로 취업활동 표로 이동"
           >
             <Printer className="h-4 w-4" strokeWidth={1.8} aria-hidden />
