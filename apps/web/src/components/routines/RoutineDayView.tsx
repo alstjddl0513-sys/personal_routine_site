@@ -37,10 +37,10 @@ import {
 } from '../../lib/api';
 import { formatTimeRange, parseTimeRangeInput } from '../../lib/routines-time';
 import { dowLabel, toISODate } from '../../lib/routines-week';
-import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { ListConfirmDialog } from '../settings/lists/ListConfirmDialog';
 import { AddTimeBlockRow } from './AddTimeBlockRow';
 import { checkKey } from './RoutineTable';
-import { objectParticle } from '../../lib/korean';
+import { deleteConfirmTitle } from '../../lib/korean';
 
 interface Props {
   blocks: TimeBlock[];
@@ -215,7 +215,7 @@ export function RoutineDayView({ blocks, checks, days }: Props) {
     if (!editDraft) return;
     const label = editDraft.label.trim();
     if (!label) {
-      setEditError('이름을 입력하세요.');
+      setEditError('이름을 적어주세요.');
       return;
     }
     let startTime: number | null = null;
@@ -268,7 +268,7 @@ export function RoutineDayView({ blocks, checks, days }: Props) {
   const todayIso = toISODate(new Date());
   const selectedDateObj = days.find((d) => toISODate(d) === selectedDate);
   const selectedLabel = selectedDateObj
-    ? `${selectedDateObj.getMonth() + 1}/${selectedDateObj.getDate()} (${dowLabel(selectedDateObj)})`
+    ? `${selectedDateObj.getMonth() + 1}월 ${selectedDateObj.getDate()}일 (${dowLabel(selectedDateObj)})`
     : selectedDate;
   const doneCount = rows.reduce(
     (n, b) => n + (isChecked(checkKey(b.id, selectedDate)) ? 1 : 0),
@@ -302,6 +302,10 @@ export function RoutineDayView({ blocks, checks, days }: Props) {
               <span className="text-sm leading-none tabular-nums">
                 {d.getDate()}
               </span>
+              <DayDot
+                done={rows.reduce((n, b) => n + (isChecked(checkKey(b.id, iso)) ? 1 : 0), 0)}
+                total={rows.length}
+              />
             </button>
           );
         })}
@@ -327,7 +331,7 @@ export function RoutineDayView({ blocks, checks, days }: Props) {
 
       {rows.length === 0 ? (
         <div className="rounded-md border border-dashed border-zinc-300 p-6 text-center text-xs text-zinc-500 dark:border-zinc-700">
-          아직 만든 루틴이 없어요.
+          아직 만든 루틴이 없어요. 아래에서 하나 추가해보세요.
         </div>
       ) : (
         <DndContext
@@ -341,11 +345,6 @@ export function RoutineDayView({ blocks, checks, days }: Props) {
             strategy={verticalListSortingStrategy}
           >
             <div className="overflow-hidden rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-              <div className="flex items-center gap-3 border-b border-zinc-100 bg-zinc-50 pr-3 py-1.5 text-[11px] font-normal text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-400">
-                <span className="w-8 shrink-0" aria-hidden />
-                <span className="min-w-0 flex-1 text-center">내용</span>
-                <span className="w-10 shrink-0 text-center">완료</span>
-              </div>
               <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
                 {rows.map((block) => (
                 <SortableBlockItem
@@ -376,17 +375,10 @@ export function RoutineDayView({ blocks, checks, days }: Props) {
         <AddTimeBlockRow nextSortOrder={nextSortOrder} />
       </div>
 
-      <ConfirmDialog
+      <ListConfirmDialog
         open={!!deleteTarget}
-        title="루틴 삭제"
-        description={
-          <p>
-            <span className="font-medium text-zinc-900 dark:text-zinc-100">
-              {deleteTarget?.label}
-            </span>
-            {objectParticle(deleteTarget?.label ?? '') ?? ''} 삭제할까요? 이 루틴의 체크 기록도 같이 사라져요.
-          </p>
-        }
+        title={deleteConfirmTitle(deleteTarget?.label ?? '')}
+        body="이 루틴의 체크 기록도 같이 사라져요."
         confirmLabel={isPending ? '삭제 중…' : '삭제'}
         pending={isPending}
         onConfirm={confirmDelete}
@@ -566,5 +558,20 @@ function IconButton({
     >
       {children}
     </button>
+  );
+}
+
+// 요일 칸 아래 6px 점 — 한 번에 하루만 보여도 이번 주 흐름이 보이게.
+// 전부 체크 = 채운 점(통계 '완료 일수'와 같은 기준), 일부 = 테두리 점, 하나도 없음 = 자리만.
+// 색은 글자색을 따라가서 고른 요일(진한 바탕)에서도 보임.
+function DayDot({ done, total }: { done: number; total: number }) {
+  const state = total > 0 && done === total ? 'all' : done > 0 ? 'some' : 'none';
+  return (
+    <span
+      aria-hidden
+      className={`mt-0.5 h-1.5 w-1.5 rounded-full ${
+        state === 'all' ? 'bg-current' : state === 'some' ? 'border border-current' : ''
+      }`}
+    />
   );
 }
