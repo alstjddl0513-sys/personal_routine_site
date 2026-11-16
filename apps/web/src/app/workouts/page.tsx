@@ -52,7 +52,8 @@ export default async function WorkoutsPage({
     <div className="flex min-h-screen flex-col bg-paper font-plex text-[15px] leading-normal text-ink tabular-nums">
       <div className="mx-auto flex w-full max-w-310 flex-1 flex-col gap-5 px-4 pt-6 pb-40 md:px-10 md:pt-9 md:pb-10">
         <header className="flex flex-wrap items-center justify-between gap-4">
-          <h1 className="text-[26px] leading-tight font-bold tracking-[-0.01em]">운동 기록</h1>
+          {/* 모바일은 상단 하위 탭이 이미 "기록"이라 제목 숨김(채용 · 루틴과 같게) */}
+          <h1 className="text-[26px] leading-tight font-bold tracking-[-0.01em] max-md:hidden">운동 기록</h1>
           <div className="flex items-center gap-4">
             <WorkoutSettingsMenu />
             <span aria-hidden className="h-6 w-px bg-rule" />

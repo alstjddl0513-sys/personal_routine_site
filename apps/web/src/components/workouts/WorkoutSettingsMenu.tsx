@@ -34,7 +34,8 @@ export function WorkoutSettingsMenu() {
       {open ? (
         <div
           role="menu"
-          className="absolute top-full right-0 z-30 mt-1 w-max min-w-40 rounded-md border border-line bg-surface p-1 shadow-lg"
+          // 모바일은 버튼이 화면 왼쪽 끝이라 오른쪽 끝 맞춤(right-0)이면 화면 밖으로 열렸음 → 왼쪽 맞춤
+          className="absolute top-full right-0 z-30 mt-1 w-max min-w-40 rounded-md border border-line bg-surface p-1 shadow-lg max-md:right-auto max-md:left-0"
         >
           {ITEMS.map((it) => (
             <Link
