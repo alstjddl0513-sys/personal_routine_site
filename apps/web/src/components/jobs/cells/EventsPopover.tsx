@@ -304,7 +304,6 @@ export function EventsEditor({
             onChange={(v) => setType(v as CompanyEventType)}
             options={TYPE_OPTIONS}
             ariaLabel="일정 유형"
-            tone="rally"
             triggerClassName="min-h-10 w-24 flex-none cursor-pointer justify-start gap-2 rounded-md border border-btn-border bg-surface px-2.5 text-sm text-ink outline-none focus:border-heading"
             triggerSuffix={<ChevronDown className="ml-auto h-3.5 w-3.5 text-ink-muted" aria-hidden />}
           />

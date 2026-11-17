@@ -169,7 +169,6 @@ export function UsersTable({ initial }: Props) {
           options={SORT_OPTIONS}
           disabled={isPending}
           ariaLabel="정렬"
-          tone="rally"
           triggerSuffix={<ChevronDown className="ml-auto h-4 w-4 text-ink-muted" aria-hidden />}
           triggerClassName={`${POPOVER_INPUT_BASE} cursor-pointer gap-2 px-3 text-sm`}
         />

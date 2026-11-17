@@ -7,7 +7,6 @@ import {
   gte,
   inArray,
   lte,
-  ne,
   sql,
   type SQL,
 } from 'drizzle-orm';
@@ -20,7 +19,6 @@ import type { LogQuestionDto } from './dto/log-question.dto';
 import type { QueryDailyDto } from './dto/query-daily.dto';
 import type { QueryFavoritesDto } from './dto/query-favorites.dto';
 import type { QueryQuestionsDto } from './dto/query-questions.dto';
-import type { QueryRandomDto } from './dto/query-random.dto';
 import type { QueryReviewDto } from './dto/query-review.dto';
 import type { QueryStatsRangeDto } from './dto/query-stats-range.dto';
 import type { UpdateQuestionDto } from './dto/update-question.dto';
@@ -74,8 +72,8 @@ export class QuestionsService {
 
   // '복습필요'로 마킹된 질문들. 정렬은 updated_at ASC — 오래 표시된 질문일수록
   // 잊혀질 위험이 크다는 spaced-repetition 직관. 재답변으로 updated_at이 갱신되면
-  // 자연스럽게 리스트 뒤로 밀림. Response shape는 findDaily와 동일하게 유지해
-  // LearnCard가 그대로 재사용됨.
+  // 자연스럽게 리스트 뒤로 밀림. Response shape는 findDaily와 같아서(+ markedAt)
+  // 웹의 QuestionCard를 그대로 씀.
   async findReview(ownerId: string, query: QueryReviewDto) {
     const conditions: SQL[] = [
       eq(questions.ownerId, ownerId),
@@ -134,34 +132,6 @@ export class QuestionsService {
       )
       .where(and(...conditions))
       .orderBy(desc(questions.updatedAt));
-  }
-
-  // Random question WITHOUT the answer — kept for potential admin/debug use.
-  // The /learn UI uses findDaily instead as of Phase 13.1 daily-quota rework.
-  async findRandom(ownerId: string, query: QueryRandomDto) {
-    const conditions: SQL[] = [eq(questions.ownerId, ownerId)];
-    if (query.exclude) conditions.push(ne(questions.id, query.exclude));
-    const [row] = await db
-      .select({
-        id: questions.id,
-        content: questions.content,
-        categoryKey: questions.categoryKey,
-        status: questionLogs.status,
-        isFavorite: questions.isFavorite,
-      })
-      .from(questions)
-      .leftJoin(
-        questionLogs,
-        and(
-          eq(questionLogs.questionId, questions.id),
-          eq(questionLogs.ownerId, ownerId),
-        ),
-      )
-      .where(and(...conditions))
-      .orderBy(sql`RANDOM()`)
-      .limit(1);
-    if (!row) throw new NotFoundException('No questions available');
-    return row;
   }
 
   // Full detail (answer + tip + user's log). Ownership check via the same WHERE.

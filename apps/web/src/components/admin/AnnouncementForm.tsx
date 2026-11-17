@@ -74,7 +74,6 @@ export function AnnouncementForm({ initial, pending, onSubmit, onCancel }: Props
             options={KIND_OPTIONS}
             disabled={pending}
             ariaLabel="종류"
-            tone="rally"
             triggerSuffix={<ChevronDown className="ml-auto h-4 w-4 text-ink-muted" aria-hidden />}
             triggerClassName={`${POPOVER_INPUT} cursor-pointer justify-between px-3 text-[15px]`}
           />

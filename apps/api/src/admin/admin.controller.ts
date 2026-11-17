@@ -20,8 +20,8 @@ import { QueryUsersDto } from './dto/query-users.dto';
 import { UpdateAnnouncementDto } from './dto/update-announcement.dto';
 
 // 어드민 전용 라우트. 전역 SupabaseAuthGuard가 인증 통과시킨 후 AdminGuard가
-// env `ADMIN_USER_IDS` 매치를 최종 확인. ping은 프론트 사이드바 링크 조건부
-// 렌더에 사용(auth ok + admin ok = 200).
+// env `ADMIN_USER_IDS` 매치를 최종 확인. 프론트의 관리자 링크 표시는
+// GET /profiles/me의 isAdmin으로(같은 env 기준).
 //
 // 전역 60/min throttle은 스킵 — AdminGuard로 이미 접근 통제, 어드민이 짧은
 // 시간에 사용자 목록 · 공지 관리 · UserPicker 등 여러 endpoint를 오가는 UX
@@ -32,11 +32,6 @@ import { UpdateAnnouncementDto } from './dto/update-announcement.dto';
 @Controller('admin')
 export class AdminController {
   constructor(private readonly service: AdminService) {}
-
-  @Get('ping')
-  ping() {
-    return { ok: true };
-  }
 
   @Get('stats/overview')
   getStatsOverview() {

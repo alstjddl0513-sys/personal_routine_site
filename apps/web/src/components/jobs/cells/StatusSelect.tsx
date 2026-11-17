@@ -45,7 +45,6 @@ export function StatusSelect({ id, value }: { id: string; value: ApplicationStat
       options={OPTIONS}
       disabled={isPending}
       ariaLabel="지원상태"
-      tone="rally"
       triggerClassName={`${TABLE_TRIGGER} gap-2 text-sm`}
       triggerSuffix={<HoverChevron />}
     />

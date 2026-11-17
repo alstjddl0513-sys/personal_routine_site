@@ -191,7 +191,6 @@ function AddCompanyModal({
                 onChange={setType2}
                 options={companyTypes.map((t) => ({ value: t.key, label: t.label }))}
                 ariaLabel="유형"
-                tone="rally"
                 triggerClassName={SELECT_TRIGGER}
               />
             )}
@@ -206,7 +205,6 @@ function AddCompanyModal({
               onChange={(v) => setType1(v as CompanyType1)}
               options={COMPANY_TYPE_1_VALUES.map((v) => ({ value: v, label: COMPANY_TYPE_1_LABELS[v] }))}
               ariaLabel="규모"
-              tone="rally"
               triggerClassName={SELECT_TRIGGER}
             />
           </div>

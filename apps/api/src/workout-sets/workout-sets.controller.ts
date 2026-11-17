@@ -8,8 +8,6 @@ import { QueryExerciseStatsBatchDto } from './dto/query-exercise-stats-batch.dto
 import { QueryMuscleSetsDto } from './dto/query-muscle-sets.dto';
 import { QueryWeeklyVolumeDto } from './dto/query-weekly-volume.dto';
 import { QueryWorkoutSetsDto } from './dto/query-workout-sets.dto';
-import { QueryPreviousDto } from './dto/query-previous.dto';
-import { QueryExerciseStatsDto } from './dto/query-exercise-stats.dto';
 import { QuerySessionContextDto } from './dto/query-session-context.dto';
 
 @Controller('workout-sets')
@@ -21,21 +19,7 @@ export class WorkoutSetsController {
     return this.service.findAll(requireUserId(req), query);
   }
 
-  @Get('previous')
-  findPrevious(@Req() req: AuthedRequest, @Query() query: QueryPreviousDto) {
-    return this.service.findPrevious(requireUserId(req), query);
-  }
-
-  @Get('exercise-stats')
-  findExerciseStats(
-    @Req() req: AuthedRequest,
-    @Query() query: QueryExerciseStatsDto,
-  ) {
-    return this.service.findExerciseStats(requireUserId(req), query);
-  }
-
-  // /workouts 페이지가 종목별로 부르던 previous + exercise-stats를 한 왕복으로.
-  // (자세한 배경은 service.getSessionContext 주석)
+  // /workouts — 종목별 '지난 기록' + 최고 기록을 한 왕복으로(service.getSessionContext)
   @Get('session-context')
   getSessionContext(
     @Req() req: AuthedRequest,

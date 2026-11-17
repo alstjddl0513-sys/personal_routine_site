@@ -3,7 +3,6 @@
 import {
   useEffect,
   useLayoutEffect,
-  useMemo,
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
@@ -23,17 +22,10 @@ export interface SelectOption {
   icon?: ReactNode;
 }
 
-export interface SelectGroup {
-  label: string;
-  options: SelectOption[];
-}
-
-export type SelectOptions = SelectOption[] | SelectGroup[];
-
 interface Props {
   value: string;
   onChange: (next: string) => void;
-  options: SelectOptions;
+  options: SelectOption[];
   disabled?: boolean;
   ariaLabel?: string;
   id?: string;
@@ -41,19 +33,8 @@ interface Props {
   triggerClassName?: string;
   /** Shown when `value` doesn't match any option (defaults to empty string). */
   placeholder?: string;
-  /**
-   * How highlighted (hovered/keyboard-focused) options are indicated.
-   * - 'bg' (default): fills with `bg-zinc-100` — hides per-option colors
-   * - 'ring': inset ring — keeps colored chips visible under highlight
-   */
-  highlightStyle?: 'bg' | 'ring';
   /** Rendered after the label inside the trigger (e.g. a hover-only ▾). */
   triggerSuffix?: ReactNode;
-  /**
-   * Popover look. 'zinc' (default) matches the rest of the app; 'rally' uses
-   * the --rally-* tokens for pages already on the new design (채용 표).
-   */
-  tone?: 'zinc' | 'rally';
 }
 
 const POPOVER_MAX_HEIGHT = 288; // max-h-72
@@ -61,16 +42,7 @@ const POPOVER_MAX_HEIGHT = 288; // max-h-72
 // popover width follows content (see style below) with `minWidth` = trigger.
 const POSITION_HINT_WIDTH = 200;
 
-function isGrouped(options: SelectOptions): options is SelectGroup[] {
-  return options.length > 0 && 'options' in options[0];
-}
-
-function flattenOptions(options: SelectOptions): SelectOption[] {
-  return isGrouped(options)
-    ? options.flatMap((g) => g.options)
-    : options;
-}
-
+// 커스텀 드롭다운(트리거 모양은 쓰는 쪽이 triggerClassName으로). 목록 창은 --rally-* 토큰 한 가지.
 export function Select({
   value,
   onChange,
@@ -80,9 +52,7 @@ export function Select({
   id,
   triggerClassName,
   placeholder,
-  highlightStyle = 'bg',
   triggerSuffix,
-  tone = 'zinc',
 }: Props) {
   const [open, setOpen] = useState(false);
   const [triggerWidth, setTriggerWidth] = useState(0);
@@ -96,9 +66,7 @@ export function Select({
   const popoverRef = useRef<HTMLDivElement>(null);
   const optionRefs = useRef<Array<HTMLLIElement | null>>([]);
 
-  const flatOptions = useMemo(() => flattenOptions(options), [options]);
-  const selectedOption = flatOptions.find((o) => o.value === value);
-  const grouped = isGrouped(options);
+  const selectedOption = options.find((o) => o.value === value);
 
   const pos = usePopoverPosition(
     anchorRef,
@@ -160,9 +128,9 @@ export function Select({
   }, [open, highlightIdx]);
 
   function computeInitialHighlight(): number {
-    const idx = flatOptions.findIndex((o) => o.value === value);
+    const idx = options.findIndex((o) => o.value === value);
     if (idx >= 0) return idx;
-    return flatOptions.findIndex((o) => !o.disabled);
+    return options.findIndex((o) => !o.disabled);
   }
 
   function openPopover() {
@@ -201,31 +169,31 @@ export function Select({
         anchorRef.current?.focus();
       } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault();
-        if (flatOptions.length === 0) return;
+        if (options.length === 0) return;
         const delta = e.key === 'ArrowDown' ? 1 : -1;
         let i = highlightIdx;
-        for (let step = 0; step < flatOptions.length; step++) {
-          i = (i + delta + flatOptions.length) % flatOptions.length;
-          if (!flatOptions[i].disabled) {
+        for (let step = 0; step < options.length; step++) {
+          i = (i + delta + options.length) % options.length;
+          if (!options[i].disabled) {
             setHighlightIdx(i);
             return;
           }
         }
       } else if (e.key === 'Home') {
         e.preventDefault();
-        const first = flatOptions.findIndex((o) => !o.disabled);
+        const first = options.findIndex((o) => !o.disabled);
         if (first >= 0) setHighlightIdx(first);
       } else if (e.key === 'End') {
         e.preventDefault();
-        for (let i = flatOptions.length - 1; i >= 0; i--) {
-          if (!flatOptions[i].disabled) {
+        for (let i = options.length - 1; i >= 0; i--) {
+          if (!options[i].disabled) {
             setHighlightIdx(i);
             return;
           }
         }
       } else if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        const opt = flatOptions[highlightIdx];
+        const opt = options[highlightIdx];
         if (opt && !opt.disabled) {
           if (opt.value !== value) onChange(opt.value);
           setOpen(false);
@@ -237,7 +205,7 @@ export function Select({
     }
     document.addEventListener('keydown', listener);
     return () => document.removeEventListener('keydown', listener);
-  }, [open, highlightIdx, flatOptions, value, onChange]);
+  }, [open, highlightIdx, options, value, onChange]);
 
   const triggerClass = [
     'inline-flex items-center justify-center gap-1',
@@ -246,8 +214,6 @@ export function Select({
   ]
     .filter(Boolean)
     .join(' ');
-
-  let flatIdx = -1; // index into flatOptions for keyboard highlight matching
 
   return (
     <>
@@ -285,38 +251,17 @@ export function Select({
               // one-frame flash at the (usually wrong) estimated position.
               visibility: pxPos ? 'visible' : 'hidden',
             }}
-            className={
-              tone === 'rally'
-                ? 'thin-scrollbar max-h-72 w-max overflow-y-auto rounded-lg border border-line bg-surface p-1.5 font-plex text-ink shadow-[0_12px_28px_rgba(28,31,29,0.12)]'
-                : 'thin-scrollbar max-h-72 w-max overflow-y-auto rounded-md border border-zinc-200 bg-white py-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-900'
-            }
+            className="thin-scrollbar max-h-72 w-max overflow-y-auto rounded-lg border border-line bg-surface p-1.5 font-plex text-ink shadow-[0_12px_28px_rgba(28,31,29,0.12)]"
             role="listbox"
             aria-label={ariaLabel}
             aria-activedescendant={
-              flatOptions[highlightIdx]
-                ? `${id ?? 'select'}-opt-${flatOptions[highlightIdx].value}`
+              options[highlightIdx]
+                ? `${id ?? 'select'}-opt-${options[highlightIdx].value}`
                 : undefined
             }
             tabIndex={-1}
           >
-            {grouped
-              ? (options as SelectGroup[]).map((group) => (
-                  <div key={group.label} role="group" aria-label={group.label}>
-                    <div className="px-3 pt-2 pb-1 text-[10px] font-medium tracking-wide text-zinc-400 uppercase">
-                      {group.label}
-                    </div>
-                    <ul className="mb-1">
-                      {group.options.map((opt) => {
-                        flatIdx++;
-                        return renderOption(opt, flatIdx);
-                      })}
-                    </ul>
-                  </div>
-                ))
-              : (options as SelectOption[]).map((opt) => {
-                  flatIdx++;
-                  return renderOption(opt, flatIdx);
-                })}
+            {options.map((opt, idx) => renderOption(opt, idx))}
           </div>
         </Portal>
       ) : null}
@@ -338,18 +283,10 @@ export function Select({
         aria-disabled={opt.disabled || undefined}
         onMouseEnter={() => !opt.disabled && setHighlightIdx(idx)}
         onClick={() => !opt.disabled && commitAndClose(opt.value)}
-        className={`flex cursor-pointer items-center rounded ${
-          tone === 'rally' ? 'min-h-8.5 gap-2.5 px-2.5 text-sm' : 'mx-1 px-2 py-1.5 text-sm'
-        } ${
+        className={`flex min-h-8.5 cursor-pointer items-center gap-2.5 rounded px-2.5 text-sm ${
           opt.disabled ? 'cursor-not-allowed opacity-40' : ''
         } ${selected ? 'font-medium' : ''} ${opt.className ?? ''} ${
-          highlighted && !opt.disabled
-            ? highlightStyle === 'ring'
-              ? 'ring-2 ring-inset ring-zinc-400 dark:ring-zinc-500'
-              : tone === 'rally'
-              ? 'bg-row-hover'
-              : 'bg-zinc-100 dark:bg-zinc-800'
-            : ''
+          highlighted && !opt.disabled ? 'bg-row-hover' : ''
         }`}
       >
         {opt.icon}
