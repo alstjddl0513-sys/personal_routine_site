@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import {
   CircleQuestionMark,
   Dumbbell,
@@ -7,10 +6,8 @@ import {
   Palette,
   Repeat,
   Rss,
-  Shield,
   Tag,
   Target,
-  User,
   type LucideIcon,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -23,7 +20,6 @@ import { NotifSettingsRow } from '../../components/settings/NotifSettingsRow';
 import { PasswordChangeRow } from '../../components/settings/PasswordChangeRow';
 import { ROW_DIVIDER, SettingsLinkRow, SettingsRow } from '../../components/settings/SettingsRow';
 import { ThemeSegment } from '../../components/settings/ThemeSegment';
-import { getMyProfile } from '../../lib/api';
 import { APP_VERSION } from '../../lib/version';
 
 // 관리 카드의 소묶음 — 사이드바 순서(채용 · 운동 · 학습 · 블로그). 루틴은 /routines에서 바로 고쳐서 따로 없음.
@@ -87,37 +83,12 @@ const MANAGEMENT_GROUPS: {
 ];
 
 // 가운데 한 열(본문 최대 720px — 좌우 여백 포함 800). 옆에 다른 내용이 없어서 왼쪽 정렬이면 넓은 화면에서 오른쪽이 크게 빔 — 읽고 고르는 화면이라 넓히지 않음.
-// 모바일엔 사이드바 닉네임 · 관리자 진입점이 없어서 위에 프로필 카드(md 이상에선 숨김, 모바일 개편 때 다룸).
-export default async function SettingsPage() {
-  const profile = await getMyProfile().catch(() => null);
-
+// 모바일 관리자 입구는 더보기 시트의 '관리자 페이지' 줄(닉네임은 아래 계정 › 닉네임).
+export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-paper font-plex text-[15px] leading-normal text-ink">
       <div className="mx-auto flex max-w-200 flex-col gap-7 px-4 pt-6 pb-16 md:px-10 md:pt-9">
         <h1 className="text-[26px] leading-tight font-bold tracking-[-0.01em]">설정</h1>
-
-        {profile ? (
-          <section className="flex items-center gap-3 rounded-md border border-zinc-200 bg-white px-4 py-3 md:hidden dark:border-zinc-800 dark:bg-zinc-950">
-            <div className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-              <User className="h-4 w-4" aria-hidden />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">{profile.nickname}</div>
-              {profile.isAdmin ? (
-                <div className="mt-0.5 text-[10px] tracking-wide text-sky-600 uppercase dark:text-sky-400">관리자</div>
-              ) : null}
-            </div>
-            {profile.isAdmin ? (
-              <Link
-                href="/admin"
-                className="inline-flex shrink-0 items-center gap-1 rounded-md border border-zinc-200 px-2.5 py-1.5 text-xs text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
-              >
-                <Shield className="h-3.5 w-3.5" aria-hidden />
-                관리자
-              </Link>
-            ) : null}
-          </section>
-        ) : null}
 
         <Section title="관리">
           {MANAGEMENT_GROUPS.map((group, gi) => (

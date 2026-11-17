@@ -63,7 +63,8 @@ export default async function LearnPage({
   return (
     <div className="min-h-screen bg-paper font-plex text-[15px] leading-normal text-ink tabular-nums">
       <div className="mx-auto flex max-w-220 flex-col gap-5 px-4 pt-6 pb-16 md:px-10 md:pt-9">
-        <header className="flex flex-col gap-1">
+        {/* 모바일은 하위 탭 '오늘의 학습'과 겹쳐서 숨김(운동 · 루틴과 같음) */}
+        <header className="flex flex-col gap-1 max-md:hidden">
           <h1 className="text-[26px] leading-tight font-bold tracking-[-0.01em]">오늘의 학습</h1>
           <p className="text-[15px] text-ink-soft">답을 확인하고 이해완료 · 복습필요로 표시해요.</p>
         </header>

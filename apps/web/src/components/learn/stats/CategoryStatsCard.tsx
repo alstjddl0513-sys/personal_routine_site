@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import type { QuestionCategory, QuestionCategoryStat } from '@repo/shared';
 
-// 좁은 화면(모바일)은 구성 막대 열을 숨겨 폭을 맞춤 — 가로 스크롤 X
+// 좁은 화면(모바일)은 구성 막대 · 질문 · 표시 열을 숨겨 폭을 맞춤 — 가로 스크롤 X, 카테고리 이름이 잘리지 않게
 const COLS =
-  'grid grid-cols-[minmax(0,1fr)_36px_36px_52px_52px_44px] items-center gap-2 md:grid-cols-[148px_minmax(0,1fr)_56px_56px_68px_68px_64px] md:gap-4 px-3';
+  'grid grid-cols-[minmax(0,1fr)_52px_52px_44px] items-center gap-2 md:grid-cols-[148px_minmax(0,1fr)_56px_56px_68px_68px_64px] md:gap-4 px-3';
 
 // 카테고리별 현황 — 표 한 장: 카테고리 · 구성 막대 · 질문 · 표시 · 이해완료 · 복습필요 · 복습 ›.
 // 구성 막대는 카테고리마다 전체 폭 = 그 카테고리 질문 수(이해완료 primary · 복습필요 warn · 나머지 track = 아직 안 봄).
@@ -61,10 +61,10 @@ export function CategoryStatsCard({
             >
               <span role="columnheader">카테고리</span>
               <span role="columnheader" aria-label="구성" className="hidden md:block" />
-              <span role="columnheader" className="text-center">
+              <span role="columnheader" className="hidden text-center md:block">
                 질문
               </span>
-              <span role="columnheader" className="text-center">
+              <span role="columnheader" className="hidden text-center md:block">
                 표시
               </span>
               <span role="columnheader" className="text-center">
@@ -87,10 +87,10 @@ export function CategoryStatsCard({
                     <span className="bg-primary" style={{ width: pct(s.understood) }} />
                     <span className="bg-warn" style={{ width: pct(s.reviewNeeded) }} />
                   </span>
-                  <span role="cell" className="text-center text-ink-soft">
+                  <span role="cell" className="hidden text-center text-ink-soft md:block">
                     {s.total}
                   </span>
-                  <Num value={marked} className="text-ink-strong" />
+                  <Num value={marked} className="text-ink-strong" hideOnMobile />
                   <Num value={s.understood} className="text-primary" />
                   <Num value={s.reviewNeeded} className="text-warn" />
                   <span role="cell" className="flex justify-end">
@@ -124,9 +124,9 @@ function Legend({ className, children }: { className: string; children: string }
 }
 
 // 숫자 0은 흐리게(icon-faint 400)
-function Num({ value, className }: { value: number; className: string }) {
+function Num({ value, className, hideOnMobile }: { value: number; className: string; hideOnMobile?: boolean }) {
   return (
-    <span role="cell" className={`text-center ${value === 0 ? 'text-icon-faint' : `font-semibold ${className}`}`}>
+    <span role="cell" className={`${hideOnMobile ? 'hidden md:block ' : ''}text-center ${value === 0 ? 'text-icon-faint' : `font-semibold ${className}`}`}>
       {value}
     </span>
   );

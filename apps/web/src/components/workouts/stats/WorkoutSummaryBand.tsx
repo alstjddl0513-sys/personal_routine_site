@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { InfoTip } from '../../ui/InfoTip';
+import { HIT_AREA_Y } from '../../ui/hitArea';
 
 const kg = (n: number) => Math.round(n).toLocaleString('en-US');
 
@@ -77,7 +78,7 @@ export function WorkoutSummaryBand({
           </span>
           <Link
             href="/settings/muscle-goals"
-            className="inline-flex w-fit items-center text-[13px] text-heading hover:underline"
+            className={`inline-flex w-fit items-center text-[13px] text-heading hover:underline ${HIT_AREA_Y}`}
           >
             목표 바꾸기 ›
           </Link>

@@ -39,6 +39,8 @@ export function BackupButton() {
       icon={Download}
       title="데이터 백업"
       desc="지금까지의 기록을 파일 하나로 내려받아 보관해두세요. 이력서·포트폴리오 파일은 들어가지 않아요."
+      // 설명이 길어서 좁은 화면에선 버튼을 설명 아래 줄로
+      stackOnMobile
       end={
         <button type="button" onClick={onClick} disabled={busy} aria-busy={busy} className={`${BUTTON_SECONDARY} gap-1.5`}>
           {busy ? (

@@ -1,4 +1,5 @@
 import { Info } from 'lucide-react';
+import { HIT_AREA } from './hitArea';
 
 // ⓘ 말풍선 — 기본 title 툴팁은 늦게 뜨고 클릭·포커스로는 안 떠서, hover·포커스에 바로 뜨는 말풍선.
 // 루틴 통계 스트릭 말풍선과 같은 모양(bg-ink · text-paper → 라이트 진한 바탕/흰 글자, 다크는 반대).
@@ -27,7 +28,8 @@ export function InfoTip({
         type="button"
         aria-label={label}
         aria-describedby={id}
-        className="inline-flex h-6 w-6 cursor-help items-center justify-center rounded-full text-ink-muted hover:text-ink focus-visible:text-ink"
+        // 24px 아이콘, 누르는 자리는 40px(HIT_AREA)
+        className={`inline-flex h-6 w-6 cursor-help items-center justify-center rounded-full text-ink-muted hover:text-ink focus-visible:text-ink ${HIT_AREA}`}
       >
         <Info className="h-4 w-4" aria-hidden />
       </button>

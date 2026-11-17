@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { HIT_AREA_Y } from '../../ui/hitArea';
 
 export interface KpiPeriod {
   // 총 체크 수.
@@ -68,7 +69,8 @@ export function KpiCard({
           </ToggleButton>
         </div>
       </div>
-      <div className="grid grid-cols-3">
+      {/* 모바일은 2칸 — 체크 | 완료한 날, 평균 달성률은 아래 줄 전체(링크도 한 줄로) */}
+      <div className="grid grid-cols-2 md:grid-cols-3">
         <Metric label="체크" value={data.checkCount} unit="회" />
         <Metric
           label="완료한 날"
@@ -85,9 +87,10 @@ export function KpiCard({
           tip={`${possible}칸 중 ${data.checkCount}칸 체크`}
           pct={rate}
           goal={rate >= 100}
+          wideOnMobile
         >
           {data.checkCount === 0 ? (
-            <Link href="/routines" className="text-[13px] text-heading hover:underline">
+            <Link href="/routines" className={`w-fit text-[13px] text-heading hover:underline ${HIT_AREA_Y}`}>
               트래커에서 오늘 체크하기 ›
             </Link>
           ) : null}
@@ -133,6 +136,7 @@ function Metric({
   tip,
   pct,
   goal,
+  wideOnMobile,
   children,
 }: {
   label: string;
@@ -143,14 +147,17 @@ function Metric({
   pct?: number;
   /** 목표를 다 채움 → 메리골드 */
   goal?: boolean;
+  /** 모바일 2칸에서 아래 줄 전체(위 선, 왼쪽 선 없음) */
+  wideOnMobile?: boolean;
   children?: React.ReactNode;
 }) {
   const zero = value === 0;
+  // variant끼리 겹치지 않게(not-first:border-l vs max-md:border-l-0) 클래스를 통째로 고름
+  const place = wideOnMobile
+    ? 'max-md:col-span-2 max-md:mt-4 max-md:border-t max-md:pt-4 md:border-l md:px-7'
+    : 'px-4 first:pl-0 not-first:border-l md:px-7';
   return (
-    <div
-      title={tip}
-      className="flex flex-col gap-1.5 border-rule px-7 first:pl-0 not-first:border-l"
-    >
+    <div title={tip} className={`flex flex-col gap-1.5 border-rule ${place}`}>
       <span className="text-sm font-semibold text-ink-soft">{label}</span>
       <span className="flex items-baseline gap-1">
         <span
