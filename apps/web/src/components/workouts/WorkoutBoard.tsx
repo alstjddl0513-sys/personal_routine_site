@@ -1,7 +1,25 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  TouchSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type Announcements,
+  type DragEndEvent,
+  type UniqueIdentifier,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import type {
   Exercise,
   ExerciseStatsPR,
@@ -43,6 +61,8 @@ interface Props {
   /** 모바일 · 분할이 없을 때 맨 위 부위 칩 줄(데스크톱은 카드 위 밑줄 탭) */
   mobileGroupChips?: React.ReactNode;
 }
+
+const REORDER_DEBOUNCE_MS = 300;
 
 export function WorkoutBoard(props: Props) {
   const router = useRouter();
@@ -101,17 +121,88 @@ export function WorkoutBoard(props: Props) {
     return p;
   }
 
+  // 카드 순서 — 모바일은 접힌 카드 손잡이로 끌어서(바로 화면에 반영, 놓고 0.3초 뒤 저장),
+  // 데스크톱은 hover ▲▼. 서버 목록이 바뀌면 render 중에 다시 맞춤.
+  const [prevExercises, setPrevExercises] = useState(props.exercises);
+  const [ordered, setOrdered] = useState(props.exercises);
+  if (prevExercises !== props.exercises) {
+    setPrevExercises(props.exercises);
+    setOrdered(props.exercises);
+  }
+  const orderedRef = useRef(ordered);
+  useEffect(() => {
+    orderedRef.current = ordered;
+  }, [ordered]);
+  const flushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 보이는 종목(분할 · 부위로 거른 것)끼리만 자리를 바꿈 — 이 종목들이 갖고 있던 sortOrder 값들을
+  // 새 순서대로 다시 나눠 줘서, 안 보이는 종목의 위치는 그대로. 바뀐 종목만 저장.
+  const flushReorder = useCallback(async () => {
+    const target = orderedRef.current;
+    const values = target.map((e) => e.sortOrder).sort((a, b) => a - b);
+    const patches = target
+      .map((e, i) => ({ e, sortOrder: values[i] }))
+      .filter(({ e, sortOrder }) => e.sortOrder !== sortOrder)
+      .map(({ e, sortOrder }) => patchExercise(e.id, { sortOrder }));
+    if (patches.length === 0) return;
+    try {
+      await Promise.all(patches);
+    } catch (err) {
+      console.error(err);
+    }
+    // 성공이면 새 순서, 실패면 서버 순서로 되돌림
+    router.refresh();
+  }, [router]);
+
+  useEffect(() => {
+    return () => {
+      if (flushTimerRef.current) {
+        clearTimeout(flushTimerRef.current);
+        void flushReorder();
+      }
+    };
+  }, [flushReorder]);
+
+  function moveTo(oldIdx: number, newIdx: number) {
+    setOrdered((prev) => arrayMove(prev, oldIdx, newIdx));
+    if (flushTimerRef.current) clearTimeout(flushTimerRef.current);
+    flushTimerRef.current = setTimeout(() => {
+      flushTimerRef.current = null;
+      void flushReorder();
+    }, REORDER_DEBOUNCE_MS);
+  }
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIdx = ordered.findIndex((e) => e.id === active.id);
+    const newIdx = ordered.findIndex((e) => e.id === over.id);
+    if (oldIdx === -1 || newIdx === -1) return;
+    moveTo(oldIdx, newIdx);
+  }
+
   async function reorder(idx: number, dir: 'up' | 'down') {
     const adjIdx = dir === 'up' ? idx - 1 : idx + 1;
-    const cur = props.exercises[idx];
-    const adj = props.exercises[adjIdx];
-    if (!cur || !adj) return;
-    await Promise.all([
-      patchExercise(cur.id, { sortOrder: adj.sortOrder }),
-      patchExercise(adj.id, { sortOrder: cur.sortOrder }),
-    ]);
-    router.refresh();
+    if (!ordered[idx] || !ordered[adjIdx]) return;
+    moveTo(idx, adjIdx);
   }
+
+  const dndContextId = useId();
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+  const nameOf = (id: UniqueIdentifier) => ordered.find((e) => e.id === id)?.name ?? '종목';
+  const posOf = (id: UniqueIdentifier) => ordered.findIndex((e) => e.id === id) + 1;
+  const announcements: Announcements = {
+    onDragStart: ({ active }) => `${nameOf(active.id)}을(를) 잡았어요. 위 · 아래 키로 옮기고 Space로 놓아요.`,
+    onDragOver: ({ active, over }) =>
+      over ? `${nameOf(active.id)}: ${posOf(over.id)}번째 자리` : undefined,
+    onDragEnd: ({ active, over }) =>
+      over ? `${nameOf(active.id)}을(를) ${posOf(over.id)}번째로 옮겼어요.` : `${nameOf(active.id)}을(를) 놓았어요.`,
+    onDragCancel: ({ active }) => `${nameOf(active.id)} 옮기기를 취소했어요.`,
+  };
 
   const groupLabel = GROUP_TABS.find((t) => t.key === props.group)?.label ?? '';
   // 모바일 카드 정보 줄 앞 부위 — 전체를 볼 때만(분할 · 부위 칩이 이미 같은 말이라)
@@ -225,8 +316,21 @@ export function WorkoutBoard(props: Props) {
           <AddExerciseButton variant="link" mobileVariant="outline" />
         </div>
       ) : (
+        <DndContext
+          id={dndContextId}
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+          accessibility={{
+            announcements,
+            screenReaderInstructions: {
+              draggable: 'Space나 Enter로 잡고, 위 · 아래 키로 옮긴 뒤 Space로 놓아요. Esc로 취소해요.',
+            },
+          }}
+        >
+        <SortableContext items={ordered.map((e) => e.id)} strategy={verticalListSortingStrategy}>
         <div className="grid grid-cols-1 gap-4 max-md:gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {props.exercises.map((e, idx) => (
+          {ordered.map((e, idx) => (
             <ExerciseCard
               key={`${props.activeSession?.id ?? 'empty'}:${e.id}`}
               exercise={e}
@@ -236,12 +340,14 @@ export function WorkoutBoard(props: Props) {
               pr={props.prByExercise[e.id] ?? null}
               ensureSession={ensureSession}
               canMoveUp={idx > 0}
-              canMoveDown={idx < props.exercises.length - 1}
+              canMoveDown={idx < ordered.length - 1}
               onMove={(dir) => reorder(idx, dir)}
               showMuscle={showMuscle}
             />
           ))}
         </div>
+        </SortableContext>
+        </DndContext>
       )}
     </div>
   );

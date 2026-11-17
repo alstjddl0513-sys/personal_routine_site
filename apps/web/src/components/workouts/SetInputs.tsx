@@ -118,7 +118,7 @@ function beatsPr(w: number | null, r: number | null, pr: ExerciseStatsPR | null)
 
 // RIR 열 머리 + 설명 풍선. 데스크톱은 hover · 포커스에 뜨고, 모바일은 누르면 열림(바깥을 누르거나
 // Esc로 닫힘 — iOS는 버튼을 눌러도 포커스가 안 가서 상태로 엶). 풍선은 오른쪽 맞춤 · 최대 240px라
-// 화면 밖으로 안 나감. 모바일은 밝은 바탕(surface · line · 그림자), 데스크톱은 어두운 풍선 그대로.
+// 화면 밖으로 안 나감. 모바일 · 데스크톱 같은 어두운 풍선(ink 바탕).
 function RirHeader({ id }: { id: string }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLSpanElement>(null);
@@ -152,7 +152,7 @@ function RirHeader({ id }: { id: string }) {
       <span
         id={id}
         role="tooltip"
-        className={`pointer-events-none absolute top-full right-0 z-20 mt-1.5 w-max max-w-60 rounded-md px-3 py-2 text-left font-normal tracking-normal break-keep shadow-lg transition-opacity max-md:border max-md:border-line max-md:bg-surface max-md:text-[12.5px] max-md:leading-normal max-md:text-ink-soft md:bg-ink md:text-[13px] md:leading-normal md:text-paper md:group-focus-within/rir:visible md:group-focus-within/rir:opacity-100 md:group-hover/rir:visible md:group-hover/rir:opacity-100 ${
+        className={`pointer-events-none absolute top-full right-0 z-20 mt-1.5 w-max max-w-60 rounded-md px-3 py-2 text-left font-normal tracking-normal break-keep text-paper leading-normal bg-ink shadow-lg transition-opacity max-md:text-[12.5px] md:text-[13px] md:group-focus-within/rir:visible md:group-focus-within/rir:opacity-100 md:group-hover/rir:visible md:group-hover/rir:opacity-100 ${
           open ? 'visible opacity-100' : 'invisible opacity-0'
         }`}
       >

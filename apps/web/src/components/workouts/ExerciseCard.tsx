@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronRight, ChevronUp, GripVertical } from 'lucide-react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import type {
   Exercise,
   ExerciseStatsPR,
@@ -85,16 +87,40 @@ export function ExerciseCard(props: Props) {
   );
   const collapsedSummary = top ? `${todaySaved.length}세트 · ${top.weightKg}kg × ${top.reps}` : goal;
 
+  // 끌어서 순서 바꾸기(모바일 접힌 카드 손잡이만 끌 수 있음 — 데스크톱은 손잡이가 없어 그대로)
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
+    useSortable({ id: props.exercise.id });
+  const sortStyle: React.CSSProperties = {
+    transform: CSS.Translate.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : undefined,
+    position: 'relative',
+    opacity: isDragging ? 0.85 : undefined,
+  };
+
   return (
     <article
+      ref={setNodeRef}
+      style={sortStyle}
       aria-label={props.exercise.name}
       className={`group flex min-w-0 flex-col gap-3.5 rounded-lg border border-line bg-surface px-4 pt-4 pb-3.5 focus-within:border-btn-border hover:border-btn-border max-md:gap-2.5 max-md:pl-3.5 ${
         collapsed ? 'max-md:py-1.5 max-md:pr-1.5' : 'max-md:pt-3.5 max-md:pr-3.5 max-md:pb-3'
       }`}
     >
-      {/* 모바일 접힌 카드 — [이름 · 요약(누르면 펼침)] [▲][▼][›]. 순서 바꾸기는 여기에만 */}
+      {/* 모바일 접힌 카드 — [⠿ 손잡이][이름 · 요약(누르면 펼침)][›]. 순서 바꾸기는 여기 손잡이로만
+          (펼친 카드는 세트 칸 때문에 길어 끌기 불편 — 접어두고 정리) */}
       {collapsed ? (
         <div className="flex items-center gap-1 md:hidden">
+          <button
+            type="button"
+            ref={setActivatorNodeRef}
+            {...attributes}
+            {...listeners}
+            aria-label={`${props.exercise.name} 순서 바꾸기 — 끌거나, 누른 뒤 위 · 아래 키`}
+            className="-ml-2 inline-flex h-11 w-9 flex-none cursor-grab touch-none items-center justify-center rounded-md text-icon-faint active:cursor-grabbing"
+          >
+            <GripVertical className="h-4.5 w-4.5" aria-hidden />
+          </button>
           <button
             type="button"
             onClick={() => setCollapsed(false)}
@@ -103,24 +129,6 @@ export function ExerciseCard(props: Props) {
           >
             <span className="w-full truncate text-[15.5px] font-bold text-heading">{props.exercise.name}</span>
             <span className="w-full truncate text-[13px] text-ink-muted">{collapsedSummary}</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => startReorder(() => props.onMove('up'))}
-            disabled={!props.canMoveUp || reordering}
-            aria-label={`${props.exercise.name} 위로`}
-            className={`${MOVE_BTN} w-9`}
-          >
-            <ArrowUp className="h-4 w-4" aria-hidden />
-          </button>
-          <button
-            type="button"
-            onClick={() => startReorder(() => props.onMove('down'))}
-            disabled={!props.canMoveDown || reordering}
-            aria-label={`${props.exercise.name} 아래로`}
-            className={`${MOVE_BTN} w-9`}
-          >
-            <ArrowDown className="h-4 w-4" aria-hidden />
           </button>
           <button
             type="button"
