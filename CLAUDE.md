@@ -6,9 +6,9 @@
 ## 프로젝트 개요
 - **사용자**: MVP는 본인 1인 전용이었으나 Phase 12(v0.4.0)부터 Supabase Auth로 다인화 인프라 도입
 - **탭 구성**:
-  - 데스크톱 사이드바(8): 오늘(`/today`, 기본 착지) · 스케쥴러(`/calendar`) · 채용 · 루틴[트래커·통계] · 운동 · 블로그 · 학습 · 설정
-  - 모바일 BottomNav(5+): 오늘 / 채용 / 루틴 / 운동 / 학습 + ⋯ 더보기(캘린더 · 블로그 · 설정)
-- **디자인**: 시안 `docs/design/rally-dashboard(-dark).html` — `globals.css --rally-*` 토큰(숲색·메리골드)·Plex KR/Noto Serif KR은 **사이드바(전역) + `/today`** 적용. 다른 페이지 본문은 zinc 유지, 페이지별 개편 때만 확산. 모바일(BottomNav)은 별도 디자인 예정
+  - 데스크톱 사이드바: 오늘(`/today`, 기본 착지) · 캘린더 · 채용[리스트·통계] · 루틴[트래커·통계] · 운동[기록·통계] · 학습[오늘의 학습·복습·통계] · 블로그 + 하단 설정(관리자면 관리자 페이지)
+  - 모바일 BottomNav(5+): 오늘 / 채용 / 루틴 / 운동 / 학습 + ⋯ 더보기(캘린더 · 블로그 · 관리자 페이지(관리자만) · 설정)
+- **디자인**: `globals.css --rally-*` 토큰(숲색·메리골드) + Plex KR/Noto Serif KR이 데스크톱 · 모바일 전 화면에 적용됨(zinc 금지). 시안 목록과 시안 대비 변경점은 `docs/design/references.md`, 개편 순서 · 모바일 규칙은 `rally-page-redesign` skill. 모바일 기준 폭은 md(768px)
 - **스택**: Next.js 16 App Router(프론트) + NestJS 11 + Drizzle ORM(백엔드) + Supabase(PostgreSQL, Auth, Storage) + `@repo/shared` 공용 타입
 - **배포**: Vercel(web) + Render(api) + Supabase(db) — 전부 무료 티어. 릴리스·prod 마이그는 `docs/release.md`, 최초 세팅·env는 `docs/deployment.md`. 문서 목록은 README "문서 지도"
 

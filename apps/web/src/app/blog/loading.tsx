@@ -10,7 +10,7 @@ export default function Loading() {
             구독한 블로그의 새 글이에요. 매일 오전 8시·오후 8시에 자동으로 가져와요.
           </p>
         </header>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex gap-2 overflow-hidden md:flex-wrap">
           <Skeleton className="h-9 w-14 rounded-[18px]" />
           <Skeleton className="h-9 w-20 rounded-[18px]" />
           <Skeleton className="h-9 w-16 rounded-[18px]" />

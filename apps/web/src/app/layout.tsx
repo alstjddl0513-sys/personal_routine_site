@@ -58,9 +58,10 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   userScalable: true,
+  // 주소창 · 상태바 색 = 페이지 바탕(--rally-paper 라이트 / 다크)
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#fafafa' },
-    { media: '(prefers-color-scheme: dark)', color: '#09090b' },
+    { media: '(prefers-color-scheme: light)', color: '#f6f7f5' },
+    { media: '(prefers-color-scheme: dark)', color: '#121514' },
   ],
 };
 

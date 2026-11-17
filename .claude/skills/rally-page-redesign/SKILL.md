@@ -1,6 +1,6 @@
 ---
 name: rally-page-redesign
-description: Rally 페이지를 숲색·메리골드 시안(docs/design/rally-*.html)대로 개편하거나, 디자인 세션에 줄 시안 요청 프롬프트를 쓸 때. 오늘·채용·통계·캘린더 4번 반복해서 굳은 순서·토큰 대응·재사용 코드·문구 규칙.
+description: Rally 페이지를 숲색·메리골드 시안(docs/design/rally-*.html)대로 개편하거나 새 화면을 만들 때, 또는 디자인 세션에 줄 시안 요청 프롬프트를 쓸 때. 데스크톱 전 화면(v1.5.0) · 모바일 전 화면(v1.6.0)을 거치며 굳은 순서·토큰 대응·재사용 코드·모바일 규칙·문구 규칙.
 ---
 
 # Rally 페이지 디자인 개편
@@ -9,7 +9,8 @@ description: Rally 페이지를 숲색·메리골드 시안(docs/design/rally-*.
 
 - 사용자가 `docs/design/`에 새 시안 HTML을 넣고 "이대로 적용해줘"
 - 사용자가 "OO 페이지 디자인 클로드에게 줄 프롬프트 줘"
-- 아직 zinc인 페이지 본문을 `--rally-*` 토큰으로 바꿀 때 (요청받은 페이지만 — 알아서 퍼뜨리지 않음)
+- 새 화면 · 새 부품을 만들 때 (zinc 등 Tailwind 기본 색 X — 아래 토큰만)
+- 모바일(<768px) 모양을 고칠 때 — 아래 "모바일 규칙"
 
 ## 먼저 읽을 것
 
@@ -21,7 +22,7 @@ description: Rally 페이지를 숲색·메리골드 시안(docs/design/rally-*.
 
 1. 브랜치 `feat/<page>-redesign` (develop에서)
 2. **plan mode로 바꿀 파일 목록 + 파일별 변경 요약을 보여주고 승인** (CLAUDE.md 1번). 계획에 "그대로인 것"(API·URL 파라미터·모바일) 명시
-3. 구현 — 데스크톱(md+)만. 데이터·URL 로직은 건드리지 않음. 모바일 바텀시트·카드는 동작 유지, 색만 토큰으로 따라오는 건 허용(사용자에게 알림)
+3. 구현 — 시안이 데스크톱이면 md+만, 모바일 시안이면 `max-md:`/`md:hidden`으로 모바일만. 데이터·URL 로직은 건드리지 않음. 다른 쪽 폭은 그대로인지 1280 · 390 둘 다 확인
 4. `pnpm --filter web typecheck` · `lint` · `build`
 5. 개발 서버에서 사용자에게 라이트·다크 + 엣지(빈 상태·넘침·깜빡임) 확인 요청. 사용자가 고친 문구·배치는 바로 반영
 6. `references.md`: 시안 표에 파일 추가 + "시안 대비 구현 변경점"에 페이지 섹션. `docs/todo.md` 디자인 항목 갱신
@@ -77,6 +78,18 @@ description: Rally 페이지를 숲색·메리골드 시안(docs/design/rally-*.
 - 범례·캡션은 색만으로 구분이 안 되는 것만 (메모 아이콘처럼 모양으로 알 수 있으면 뺌)
 - 접근성: 칸 버튼은 `aria-pressed` + 읽히는 `aria-label`("11월 5일, 오늘, 일정 2건, 메모 있음")
 
+## 모바일 규칙 (<768px, 모바일 개편 ①~⑤에서 굳음)
+
+- 기준 폭은 **md 768px**(시안이 1024라고 해도). 같은 컴포넌트에 `max-md:` · `md:hidden` · `max-md:hidden`으로 — 별도 모바일 라우트 X
+- 팝오버 · 가운데 창 → `ui/BottomSheet`(open · onClose · title · footer · tall). 닫으면 children이 언마운트돼 폼이 초기화됨. 시트와 창 중 하나만 그릴 땐 `lib/useIsMobile`(서버 false) — CSS로 둘 다 그리면 데스크톱에서도 시트가 스크롤을 잠금
+- 하위 탭(SectionSubNav)과 같은 말인 h1 · 설명은 `max-md:hidden`
+- 칩 줄은 꺾지 않고 가로로 넘김: `no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4`, 칩 `shrink-0`, 고른 칩 chip-on + inset 2px + bold
+- 누르는 자리 40px. 보이는 크기를 못 키우면 `ui/hitArea.ts`(`HIT_AREA` ⓘ 같은 작은 아이콘 · `HIT_AREA_Y` 글자 링크) — 투명 ::before
+- 하단 탭(3.5rem + safe-area) 위에 고정 띠를 둘 땐 본문에 같은 높이 빈 자리(`md:hidden`)를 둬서 마지막 줄을 가리지 않게. 떠 있는 동그란 버튼(FAB) X
+- 순서 바꾸기는 손잡이로 끌기(@dnd-kit, `RoutineDayView` 패턴: Pointer distance 4 · Touch delay 150 · Keyboard, 한국어 announcements, 300ms debounce 저장)
+- 표가 좁으면 덜 중요한 열을 `hidden md:block`으로 숨김(가로 스크롤 X). 3칸 요약은 2칸 + 아래 줄 전체
+- 확인: Playwright 390×844 `isMobile`/`hasTouch` + 1280, 가로 넘침 0, 라이트 · 다크
+
 ## 문구 규칙
 
 **기준: 처음 보는 사람이 한 번 읽고 뜻을 알고, 뭘 하면 되는지 아는 문구.** 쓰고 나서 화면에서 소리 내 읽어보고 어색하면 고친다. 애매하면 후보 2~3개를 사용자에게 보여주고 고르게 한다(채용·통계 개편 때 문구 대부분이 이렇게 정해짐).
@@ -110,7 +123,7 @@ description: Rally 페이지를 숲색·메리골드 시안(docs/design/rally-*.
 
 디자인 세션 Claude는 저장소를 못 봄 → `docs/design/skill/rally-design/SKILL.md`를 그쪽 skill로 쓰고, 프롬프트에는 페이지 고유 내용만:
 
-1. 결과물: `rally-<page>.html` + `-dark.html`, 데스크톱만
+1. 결과물: `rally-<page>.html` + `-dark.html` (+ `-parts.html`), 데스크톱 또는 모바일(`rally-mobile-<page>`, 390px) 중 하나씩
 2. 기준: 첨부(`rally-dashboard.html`, 비슷한 기존 시안, `references.md`), 사이드바 활성 메뉴
 3. 페이지에 있는 것 — 지금 코드의 섹션·기능·빈 상태 문구·제약(최대 개수 등)을 **실제 코드에서 읽어** 나열. "기능은 유지, 모양만 새로"
 4. 정해줬으면 하는 것 — 배치·상태 표현 등 열린 질문 (편집·hover·빈 상태도 한 장에)
