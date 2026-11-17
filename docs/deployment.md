@@ -85,7 +85,7 @@
 
 1. Render → Environment → `CORS_ALLOWED_ORIGIN`
 2. `*`를 실제 Vercel 주소로. 프리뷰 배포도 허용하려면 쉼표로 이어서:
-   `https://rally-web.vercel.app,https://rally-web-git-develop-<team>.vercel.app`
+   `https://rallyweb-lac.vercel.app,https://<프로젝트>-git-develop-<team>.vercel.app`
 3. Render 자동 재배포 후 `/jobs`에 회사 하나 추가해서 저장되는지 확인
 
 ---

@@ -335,7 +335,8 @@ function UserRow({
       >
         {row.isAdmin ? (
           // 관리자 계정은 차단/삭제 불가 (self-lockout · 상호 무력화 방지). 서버도 같은 판정으로 거절.
-          <span className="text-[13px] text-icon-faint" title="관리자 계정은 이 페이지에서 관리할 수 없어요">
+          // 모바일 카드에선 '—'가 떠 보여 숨김 — [관리자] 배지로 충분
+          <span className="text-[13px] text-icon-faint max-md:hidden" title="관리자 계정은 이 페이지에서 관리할 수 없어요">
             —
           </span>
         ) : (
