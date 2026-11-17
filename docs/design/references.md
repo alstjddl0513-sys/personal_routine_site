@@ -33,6 +33,7 @@
 | `rally-mobile-shell(-dark).html` · `rally-mobile-shell-parts.html` | 모바일 공통 틀 — 상단 줄(로고형 · 하위 탭형) · 하단 탭 6칸 · 더보기 시트 · 🔔 | `SectionSubNav.tsx` `BottomNav.tsx` `MoreMenu.tsx` · `NotifLogDrawer`(모바일 시트) |
 | `rally-mobile-jobs(-dark).html` · `rally-mobile-jobs-parts.html` | 모바일 채용 리스트 — 접힌 · 펼친 카드, 칸 편집 시트, 필터 시트, 빈 상태, 삭제 확인, 강조 | `components/jobs/mobile/*` · `ui/BottomSheet.tsx` · `JobsFilters`(모바일 머리) · `DeadlineEditor` |
 | `rally-mobile-routines(-dark).html` · `rally-mobile-routines-parts.html` | 모바일 루틴 트래커 — 주 이동 · 요일 7칸(오늘 · 고른 날 · 상태 점) · 평소/편집 모드 · 고치는 줄 · 추가 줄 · 챌린지 카드 · 회고 | `RoutineDayView.tsx` `RoutineWeekNav.tsx` `challenges/*`(모바일 responsive) |
+| `rally-mobile-workouts(-dark).html` · `rally-mobile-workouts-parts.html` | 모바일 운동 기록 — 머리 줄(⚙ · 날짜 · ⏱ 휴식) · 하단 탭 위 휴식 띠 4상태 · 분할/부위 칩 · 카드 정보 한 줄 · 세트 표 · 접힌 카드 · RIR 풍선 · 종목 추가 · 관리 시트 · 빈 상태 | `RestTimer.tsx`(MobileBand) `ExerciseCard` `SetInputs` `AddExerciseButton` `WorkoutSettingsMenu` `SplitTabs` `WorkoutGroupTabs` · `lib/useIsMobile.ts` |
 
 **현재 상태**: 숲색 `#1F3D30` · 메리골드 `#E9B949`(로고·챌린지 포인트, 시안의 황토 `#C8963E`에서 변경) · 바탕 `#F6F7F5`, IBM Plex Sans KR + Noto Serif KR(인사말). 사이드바(전 페이지)와 `/today`에 적용. 다른 페이지 본문은 zinc — 페이지별로 개편할 때 같은 토큰으로 확산. 모바일(BottomNav)은 별도 시안 예정.
 
@@ -272,6 +273,13 @@
 - 추가 줄은 목록 마지막 줄 — 이름 + 시간까지 한 번에(시간은 비워도 됨, API가 이미 받던 값)
 - 챌린지: 모바일은 카드 하나 안에 머리 · 챌린지 줄 · 지난 챌린지 줄, 큰 숫자 대신 진행바 옆 "14/30일", **D-3 이하 D-day alert는 모바일만**. 시안엔 없는 시작일 · [포기] · 🗑 줄은 기능이라 남김. 회고의 [삭제] · [되돌리기]도 남김
 - 기준 폭 768px(스펙 1024 — 앞 화면들과 같은 이유)
+
+**모바일 운동 기록** (`/workouts` <768px, 2026-11-17) — 동작은 #222 그대로, 데이터 · API · 데스크톱 그대로
+- 🐞 떠 있는 동그란 타이머 버튼 삭제 → 머리 줄 [⏱ 휴식](열려 있으면 chip-on) + **하단 탭 바로 위 띠**(고르기 · 도는 중 · 멈춤 · 끝남). 본문에 띠 높이만큼 빈 자리를 둬서 마지막 [세트 추가]를 안 가림. 도는 중엔 [⏱ 휴식]으로 안 꺼짐(✕로만). 화면 읽기는 10초마다
+- 종목 추가 · 관리(⚙)는 아래 시트. 시트/가운데 창은 `useIsMobile`로 하나만 그림(CSS로 숨기면 데스크톱에서도 시트가 스크롤을 잠가서)
+- 카드: 정보 한 줄(부위는 전체 탭에서만) · 최근 날짜는 지난번 열 머리("지난번 11.13") · 이름 줄 아래 선. ▲▼는 접힌 카드에만. 지난 기록 없으면 지난번 열 빠짐
+- 시안과 다른 곳: 기준 폭 768px · **지난번 칸 줄어든 값(−1회)도 표시**(사용자 결정 — 무게↑ 횟수↓가 좋아진 것처럼 보이지 않게) · **타겟 부위 칩 6개**(시안 3개 — 부위별 통계용) · 다른 날을 볼 때 [오늘] 버튼 · 입력칸 상태 모양(적음 · 빈 칸 점선 · 실패) 유지
+- 데스크톱에서 바뀐 것: RIR 설명 문구("몇 회 더 할 수 있었는지 적어요. 0이면 끝까지 한 거예요.") · 20세트 문구("세트는 20개까지예요.") · 틀린 값을 지우면 오류도 사라짐
 
 **채운 버튼(숲색) 규칙** (2026-11-12) — 한 화면에서 **가장 먼저 누를 버튼 하나만** `BUTTON_PRIMARY`(bg-button). 빈 상태의 유일한 행동도 채움. 반복되는 버튼([세트 추가] 등) · 이동 · 보조 · 창 안 [취소]는 테두리
 - 테두리 → 채움으로 바꾼 곳: 운동 기록 첫 사용 안내 [분할 만들기], 블로그 [새 글 가져오기] · 빈 상태 [전체 보기], 학습 · 복습 빈 상태 [전체 보기]

@@ -1,6 +1,5 @@
 'use client';
 
-import { useMemo } from 'react';
 import { MUSCLE_OPTIONS } from '../../lib/muscle-groups';
 import { Select, type SelectOption } from '../ui/Select';
 
@@ -12,6 +11,17 @@ interface Props {
   className?: string;
 }
 
+// 가슴 · 등 · 어깨 · 팔 · 하체 · 기타. '기타' = 부위 없음(빈 값) → 부위 탭 '기타'.
+// 모바일 종목 추가 시트의 부위 칩도 같은 목록.
+export const TARGET_MUSCLE_CHOICES: SelectOption[] = (() => {
+  const order = ['chest', 'back', 'shoulder', 'arm', 'leg'];
+  const byKey = new Map(MUSCLE_OPTIONS.map((o) => [o.key, o.label]));
+  return [
+    ...order.filter((k) => byKey.has(k)).map((k) => ({ value: k, label: byKey.get(k)! })),
+    { value: '', label: '기타' },
+  ];
+})();
+
 // 값 규약: 빈 문자열 = 선택 안 함 (API로 넘길 땐 undefined/null로 변환).
 export function TargetMuscleSelect({
   id,
@@ -20,17 +30,7 @@ export function TargetMuscleSelect({
   disabled,
   className,
 }: Props) {
-  // 가슴 · 등 · 어깨 · 팔 · 하체 · 기타. '기타' = 부위 없음(빈 값) → 부위 탭 '기타'.
-  const groups = useMemo<SelectOption[]>(() => {
-    const order = ['chest', 'back', 'shoulder', 'arm', 'leg'];
-    const byKey = new Map(MUSCLE_OPTIONS.map((o) => [o.key, o.label]));
-    return [
-      ...order
-        .filter((k) => byKey.has(k))
-        .map((k) => ({ value: k, label: byKey.get(k)! })),
-      { value: '', label: '기타' },
-    ];
-  }, []);
+  const groups = TARGET_MUSCLE_CHOICES;
 
   return (
     <Select

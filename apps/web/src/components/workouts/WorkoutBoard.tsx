@@ -40,6 +40,8 @@ interface Props {
   lastSplitId: string | null;
   /** 보관 안 한 전체 종목 — 분할 만들기 창용 */
   allExercises: Exercise[];
+  /** 모바일 · 분할이 없을 때 맨 위 부위 칩 줄(데스크톱은 카드 위 밑줄 탭) */
+  mobileGroupChips?: React.ReactNode;
 }
 
 export function WorkoutBoard(props: Props) {
@@ -112,16 +114,22 @@ export function WorkoutBoard(props: Props) {
   }
 
   const groupLabel = GROUP_TABS.find((t) => t.key === props.group)?.label ?? '';
+  // 모바일 카드 정보 줄 앞 부위 — 전체를 볼 때만(분할 · 부위 칩이 이미 같은 말이라)
+  const showMuscle = hasSplits ? props.selectedSplitId === 'all' : props.group === 'all';
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 max-md:gap-3.5">
       {/* 분할이 없을 때 첫 사용 안내는 맨 위 줄과 따로 한 줄 띠 — 같은 줄에 두면 글·버튼·입력칸이 몰림 */}
       {!hasSplits && props.allExercises.length > 0 ? (
         <SplitIntroBand exercises={props.allExercises} />
       ) : null}
       {/* 맨 위 줄: 분할 탭(또는 안내를 닫은 뒤 [+ 분할 만들기]) │ 컨디션. 카드·선 없이 여백만.
-          하루 안 '파트' 나누기는 거의 안 써서 화면에서 뺌(하루 기록 하나) */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+          하루 안 '파트' 나누기는 거의 안 써서 화면에서 뺌(하루 기록 하나).
+          모바일은 세로로: 칩 줄(분할 또는 부위) → 컨디션 */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-3 max-md:flex-col max-md:flex-nowrap max-md:items-stretch">
+        {!hasSplits && props.mobileGroupChips ? (
+          <div className="flex flex-col md:hidden">{props.mobileGroupChips}</div>
+        ) : null}
         {hasSplits ? (
           <>
             <SplitTabs
@@ -144,7 +152,31 @@ export function WorkoutBoard(props: Props) {
       </div>
       {/* 예전에 하루를 나눠 적은 날만 — 새로 나누는 기능은 없음 */}
       {props.sessions.length >= 2 ? (
-        <p className="-mt-2 flex flex-wrap items-center gap-x-2 text-[13px] text-ink-muted">
+        <div className="flex flex-col gap-2 md:hidden">
+          <p className="text-[13px] text-ink-muted">이날 기록이 {props.sessions.length}개 있어요</p>
+          <nav aria-label="이날 기록" className="flex rounded-md border border-btn-border">
+            {props.sessions.map((sess, i) => {
+              const on = sess.id === props.activeSession?.id;
+              return (
+                <Link
+                  key={sess.id}
+                  href={`/workouts?date=${props.date}&session=${sess.id}`}
+                  aria-current={on ? 'page' : undefined}
+                  className={`inline-flex min-h-10 flex-1 items-center justify-center text-sm not-first:border-l not-first:border-btn-border ${
+                    on
+                      ? 'rounded-md bg-chip-on-bg font-bold text-heading shadow-[inset_0_0_0_2px_var(--rally-chip-on-border)]'
+                      : 'text-ink-soft'
+                  }`}
+                >
+                  기록 {i + 1}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+      ) : null}
+      {props.sessions.length >= 2 ? (
+        <p className="-mt-2 flex flex-wrap items-center gap-x-2 text-[13px] text-ink-muted max-md:hidden">
           이날 기록이 {props.sessions.length}개 있어요
           {props.sessions.map((sess, i) => (
             <Link
@@ -172,21 +204,28 @@ export function WorkoutBoard(props: Props) {
       ) : selectedSplit && props.exercises.length === 0 ? (
         <div className="flex flex-col items-center gap-1 rounded-lg border border-line bg-surface px-6 py-10 text-center">
           <p className="text-ink-soft">이 분할에 담긴 종목이 없어요.</p>
-          <AddExerciseButton variant="link" split={selectedSplit} />
+          {/* 모바일은 링크 하나만 — 위 줄 [+ 종목 추가]가 이미 이 분할에 담아줌 */}
+          <AddExerciseButton variant="link" mobileVariant="none" split={selectedSplit} />
           <Link
             href="/settings/splits"
-            className="inline-flex min-h-10 items-center text-sm text-heading hover:underline"
+            className="inline-flex min-h-10 items-center text-sm text-heading hover:underline max-md:hidden"
           >
             설정에서 종목 고르기 ›
           </Link>
+          <Link
+            href="/settings/splits"
+            className="inline-flex min-h-10 items-center text-sm font-medium text-heading md:hidden"
+          >
+            분할에 종목 담기 ›
+          </Link>
         </div>
       ) : props.exercises.length === 0 ? (
-        <div className="flex flex-col items-center gap-1 rounded-lg border border-line bg-surface px-6 py-10 text-center">
+        <div className="flex flex-col items-center gap-1 rounded-lg border border-line bg-surface px-6 py-10 text-center max-md:gap-3">
           <p className="text-ink-soft">{groupLabel} 부위 종목이 없어요.</p>
-          <AddExerciseButton variant="link" />
+          <AddExerciseButton variant="link" mobileVariant="outline" />
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 max-md:gap-3 md:grid-cols-2 xl:grid-cols-3">
           {props.exercises.map((e, idx) => (
             <ExerciseCard
               key={`${props.activeSession?.id ?? 'empty'}:${e.id}`}
@@ -199,6 +238,7 @@ export function WorkoutBoard(props: Props) {
               canMoveUp={idx > 0}
               canMoveDown={idx < props.exercises.length - 1}
               onMove={(dir) => reorder(idx, dir)}
+              showMuscle={showMuscle}
             />
           ))}
         </div>

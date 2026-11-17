@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useRouter } from 'next/navigation';
 import { Info, Plus } from 'lucide-react';
 import type { ExerciseStatsPR, PreviousWorkout, WorkoutSet } from '@repo/shared';
@@ -116,6 +116,52 @@ function beatsPr(w: number | null, r: number | null, pr: ExerciseStatsPR | null)
   return w === pw && pr.reps != null && r > pr.reps;
 }
 
+// RIR 열 머리 + 설명 풍선. 데스크톱은 hover · 포커스에 뜨고, 모바일은 누르면 열림(바깥을 누르거나
+// Esc로 닫힘 — iOS는 버튼을 눌러도 포커스가 안 가서 상태로 엶). 풍선은 오른쪽 맞춤 · 최대 240px라
+// 화면 밖으로 안 나감. 모바일은 밝은 바탕(surface · line · 그림자), 데스크톱은 어두운 풍선 그대로.
+function RirHeader({ id }: { id: string }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    function onDown(e: PointerEvent) {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false);
+    }
+    document.addEventListener('pointerdown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+  return (
+    <span ref={ref} className="group/rir relative flex justify-center">
+      <button
+        type="button"
+        aria-describedby={id}
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex min-h-8 cursor-help items-center gap-0.5 font-medium text-ink-muted hover:text-ink focus-visible:text-ink max-md:font-semibold"
+      >
+        RIR
+        <Info className="h-3 w-3" aria-hidden />
+      </button>
+      <span
+        id={id}
+        role="tooltip"
+        className={`pointer-events-none absolute top-full right-0 z-20 mt-1.5 w-max max-w-60 rounded-md px-3 py-2 text-left font-normal tracking-normal break-keep shadow-lg transition-opacity max-md:border max-md:border-line max-md:bg-surface max-md:text-[12.5px] max-md:leading-normal max-md:text-ink-soft md:bg-ink md:text-[13px] md:leading-normal md:text-paper md:group-focus-within/rir:visible md:group-focus-within/rir:opacity-100 md:group-hover/rir:visible md:group-hover/rir:opacity-100 ${
+          open ? 'visible opacity-100' : 'invisible opacity-0'
+        }`}
+      >
+        몇 회 더 할 수 있었는지 적어요. 0이면 끝까지 한 거예요.
+      </span>
+    </span>
+  );
+}
+
 export function SetInputs(props: Props) {
   const router = useRouter();
   const [rows, setRows] = useState<Row[]>(() => initRows(props.defaultSets, props.existingSets));
@@ -167,7 +213,11 @@ export function SetInputs(props: Props) {
 
   async function commit() {
     const sig = rowsSignature(rows);
-    if (sig === lastSavedSig) return;
+    if (sig === lastSavedSig) {
+      // 틀린 값을 지워 저장본과 같아지면 오류도 지움(예전엔 저장할 게 없어 오류가 남아 있었음)
+      setError(null);
+      return;
+    }
     setError(null);
     setSaving(true);
     const snapshot = rows;
@@ -278,40 +328,46 @@ export function SetInputs(props: Props) {
   const cols = ['22px', '76px', '60px', props.showRir ? '48px' : null, 'minmax(0,1fr)']
     .filter(Boolean)
     .join(' ');
+  // 모바일: [세트 26][무게 1fr][횟수 1fr]([RIR 52])[지난번 76 · RIR을 켜면 68]. 지난 기록이 없으면
+  // 지난번 열을 빼서 입력칸이 넓어짐(docs/design/rally-mobile-workouts).
+  const mobileCols = [
+    '26px',
+    'minmax(0,1fr)',
+    'minmax(0,1fr)',
+    props.showRir ? '52px' : null,
+    hasPrev ? (props.showRir ? '68px' : '76px') : null,
+  ]
+    .filter(Boolean)
+    .join(' ');
+  const gridStyle = { '--cols-m': mobileCols, '--cols-d': cols } as CSSProperties;
+  const GRID = 'grid grid-cols-(--cols-m) gap-2 md:grid-cols-(--cols-d)';
   const atMax = (rows.at(-1)?.setNumber ?? 0) >= MAX_SETS;
+  // "11.13" — 모바일 지난번 열 머리(정보 줄 '최근 기록' 날짜를 여기로 옮김)
+  const prevDate = props.previous
+    ? `${Number(props.previous.date.slice(5, 7))}.${props.previous.date.slice(8, 10)}`
+    : null;
 
   return (
     <div className="flex flex-1 flex-col gap-1.5">
       <div
-        className="grid items-center gap-2 text-xs font-medium text-ink-muted"
-        style={{ gridTemplateColumns: cols }}
+        className={`${GRID} items-center text-xs font-medium text-ink-muted max-md:text-[11.5px] max-md:font-semibold max-md:tracking-[0.02em]`}
+        style={gridStyle}
       >
-        <span />
+        <span className="text-center md:invisible">세트</span>
         <span className="text-center">무게(kg)</span>
         <span className="text-center">횟수</span>
-        {props.showRir ? (
-          // 처음 보는 사람용 설명 — hover·포커스(클릭)에 바로 뜨는 말풍선(기본 title은 늦고 클릭으로 안 뜸)
-          <span className="group/rir relative flex justify-center">
-            <button
-              type="button"
-              aria-describedby={`rir-tip-${props.exerciseId}`}
-              className="inline-flex cursor-help items-center gap-0.5 font-medium text-ink-muted hover:text-ink focus-visible:text-ink"
-            >
-              RIR
-              <Info className="h-3 w-3" aria-hidden />
-            </button>
-            <span
-              id={`rir-tip-${props.exerciseId}`}
-              role="tooltip"
-              className="pointer-events-none invisible absolute top-full right-0 z-20 mt-1.5 flex w-max flex-col rounded-md bg-ink px-3 py-2 text-left text-[13px] leading-normal font-normal break-keep whitespace-nowrap text-paper opacity-0 shadow-lg transition-opacity group-focus-within/rir:visible group-focus-within/rir:opacity-100 group-hover/rir:visible group-hover/rir:opacity-100"
-            >
-              <span>RIR: 세트를 끝냈을 때 더 할 수 있었던 횟수예요.</span>
-              <span>예: 2 = 두 번 더 할 수 있었음 · 0~10</span>
-            </span>
-          </span>
-        ) : null}
-        {/* 정보 줄 '최근 기록'(날짜)과 같은 이름 — 그날 같은 번호 세트 값 */}
-        <span className="pl-2">{hasPrev ? '최근 기록' : ''}</span>
+        {props.showRir ? <RirHeader id={`rir-tip-${props.exerciseId}`} /> : null}
+        {/* 정보 줄 '최근 기록'(날짜)과 같은 이름 — 그날 같은 번호 세트 값. 모바일은 "지난번 11.13" */}
+        <span className={`pl-2 max-md:pl-0 max-md:text-right ${hasPrev ? '' : 'max-md:hidden'}`}>
+          {hasPrev ? (
+            <>
+              <span className="max-md:hidden">최근 기록</span>
+              <span className="md:hidden">
+                지난번 <span className="font-normal text-icon-faint">{prevDate}</span>
+              </span>
+            </>
+          ) : null}
+        </span>
       </div>
       {rows.map((row, idx) => {
         const filled = row.weight.trim() !== '' && row.reps.trim() !== '';
@@ -333,8 +389,8 @@ export function SetInputs(props: Props) {
         return (
           <div key={row.setNumber} className="flex flex-col gap-1">
             <div
-              className="grid items-center gap-2"
-              style={{ gridTemplateColumns: cols }}
+              className={`${GRID} items-center max-md:min-h-12.5`}
+              style={gridStyle}
               onFocus={() => setFocusedRow(idx)}
               onBlur={(e) => {
                 if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
@@ -343,8 +399,8 @@ export function SetInputs(props: Props) {
               }}
             >
               <span
-                className={`text-center text-[13px] ${
-                  focused ? 'font-bold text-heading' : 'text-ink-muted'
+                className={`text-center text-[13px] max-md:text-sm ${
+                  focused ? 'font-bold text-heading max-md:text-chip-on-fg' : 'text-ink-muted max-md:font-medium'
                 }`}
               >
                 {row.setNumber}
@@ -376,19 +432,24 @@ export function SetInputs(props: Props) {
                   aria-label={`${row.setNumber}세트 ${
                     field === 'weight' ? '무게' : field === 'reps' ? '횟수' : 'RIR'
                   }`}
-                  className={`h-11 w-full min-w-0 rounded-md border px-1 text-center text-[15px] text-ink outline-none focus:border-transparent focus:ring-2 focus:ring-chip-on-border md:h-10 ${box}`}
+                  className={`h-11 w-full min-w-0 rounded-md border px-1 text-center text-[15px] text-ink outline-none focus:border-transparent focus:ring-2 focus:ring-chip-on-border max-md:text-base max-md:font-semibold md:h-10 ${box}`}
                 />
               ))}
-              {/* 최근 기록 — 입력칸 바로 옆에 붙여 오늘 값과 눈이 바로 오감(왼쪽 정렬) */}
-              <span className="flex min-w-0 flex-col pl-2 leading-tight">
+              {/* 최근 기록 — 입력칸 바로 옆에 붙여 오늘 값과 눈이 바로 오감(왼쪽 정렬).
+                  모바일은 오른쪽 맞춤 12px, 지난 기록이 없으면 열째 빠짐 */}
+              <span
+                className={`flex min-w-0 flex-col pl-2 leading-tight max-md:items-end max-md:pl-0 max-md:text-right ${
+                  hasPrev ? '' : 'max-md:hidden'
+                }`}
+              >
                 {hasPrev ? (
-                  <span className="text-[12.5px] whitespace-nowrap text-ink-muted">
+                  <span className="text-[12.5px] whitespace-nowrap text-ink-muted max-md:text-xs">
                     {prev ? formatPrevSet(prev.w, prev.r) : '—'}
                   </span>
                 ) : null}
                 {/* 값 아래 한 줄: "최고" → 늘어난 것(primary 600) → 줄어든 것(ink-faint) */}
                 {isPr || diff.length > 0 ? (
-                  <span className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[13px]">
+                  <span className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[13px] max-md:justify-end max-md:text-xs">
                     {isPr ? (
                       <span className="rounded border border-chip-on-border bg-chip-on-bg px-1 text-[10.5px] leading-[1.4] font-bold text-chip-on-fg">
                         최고
@@ -440,7 +501,7 @@ export function SetInputs(props: Props) {
             <Plus className="h-3.5 w-3.5" strokeWidth={2.2} aria-hidden />
             세트 추가
           </button>
-          {atMax ? <span className="text-[13px] text-ink-muted">20세트까지예요</span> : null}
+          {atMax ? <span className="text-[13px] text-ink-muted">세트는 20개까지예요.</span> : null}
           {saving ? <span className="text-[13px] text-ink-faint">저장 중…</span> : null}
         </span>
         <button

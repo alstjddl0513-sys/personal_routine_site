@@ -68,8 +68,9 @@ export function SessionNoteCard(props: Props) {
   // 입력칸은 본문 오른쪽 끝까지(flex-1), 저장 상태는 칸 안 오른쪽 — 칸 밖에 두면 폭이 들쭉날쭉.
   // 오른쪽 여백은 가장 긴 상태("● 변경사항 있음")가 글자와 안 겹치는 폭.
   return (
-    <div className="flex min-w-0 flex-[1_1_320px] items-center gap-2.5">
-      <label htmlFor="session-note" className="shrink-0 text-sm font-semibold text-ink-soft">
+    <div className="flex min-w-0 flex-[1_1_320px] items-center gap-2.5 max-md:basis-full">
+      {/* 모바일은 라벨을 숨김(입력칸 안내 글자로 충분, 이름은 화면 읽기용으로 남음) */}
+      <label htmlFor="session-note" className="shrink-0 text-sm font-semibold text-ink-soft max-md:sr-only">
         컨디션
       </label>
       <span className="relative flex min-w-0 flex-1">
