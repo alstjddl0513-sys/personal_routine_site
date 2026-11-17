@@ -10,11 +10,16 @@ import {
 import { parseISODate, toISODate } from '../../lib/routines-week';
 import {
   classifyMuscleGroup,
+  GROUP_TABS,
   parseGroupFilter,
   type MuscleGroupFilter,
 } from '../../lib/muscle-groups';
 import { AddExerciseButton } from '../../components/workouts/AddExerciseButton';
-import { RestTimer, RestTimerOpenButton } from '../../components/workouts/RestTimer';
+import {
+  RestTimer,
+  RestTimerMobileButton,
+  RestTimerOpenButton,
+} from '../../components/workouts/RestTimer';
 import { WorkoutBoard } from '../../components/workouts/WorkoutBoard';
 import { WorkoutDateNav } from '../../components/workouts/WorkoutDateNav';
 import { WorkoutGroupTabs } from '../../components/workouts/WorkoutGroupTabs';
@@ -50,8 +55,19 @@ export default async function WorkoutsPage({
 
   return (
     <div className="flex min-h-screen flex-col bg-paper font-plex text-[15px] leading-normal text-ink tabular-nums">
-      <div className="mx-auto flex w-full max-w-310 flex-1 flex-col gap-5 px-4 pt-6 pb-40 md:px-10 md:pt-9 md:pb-10">
-        <header className="flex flex-wrap items-center justify-between gap-4">
+      <div className="mx-auto flex w-full max-w-310 flex-1 flex-col gap-5 px-4 pt-3 pb-6 max-md:gap-3.5 md:px-10 md:pt-9 md:pb-10">
+        {/* 모바일 머리 줄: [⚙] [‹] 날짜 [›] [⏱ 휴식] — 휴식 타이머는 떠 있는 버튼 대신 여기서 열어
+            하단 탭 위 띠로(마지막 세트 칸을 가리지 않게) */}
+        <header className="flex items-center gap-2 md:hidden">
+          <WorkoutSettingsMenu />
+          <WorkoutDateNav date={displayDate} group={groupFilter} compact />
+          <Suspense fallback={null}>
+            <IfHasExercises>
+              <RestTimerMobileButton />
+            </IfHasExercises>
+          </Suspense>
+        </header>
+        <header className="flex flex-wrap items-center justify-between gap-4 max-md:hidden">
           {/* 모바일은 상단 하위 탭이 이미 "기록"이라 제목 숨김(채용 · 루틴과 같게) */}
           <h1 className="text-[26px] leading-tight font-bold tracking-[-0.01em] max-md:hidden">운동 기록</h1>
           <div className="flex items-center gap-4">
@@ -80,7 +96,7 @@ export default async function WorkoutsPage({
         </Suspense>
       </div>
 
-      {/* 데스크톱: 본문 열 바닥에 붙는 띠 / 모바일: 기존 플로팅 버튼·패널 */}
+      {/* 데스크톱: 본문 열 바닥에 붙는 띠 / 모바일: [⏱ 휴식]으로 여는 하단 탭 위 띠 */}
       <Suspense fallback={null}>
         <IfHasExercises>
           <RestTimer />
@@ -183,24 +199,45 @@ async function WorkoutsContent({
           allExercises.length === 0 ? null :
           // 카드 위 줄 — 카드를 거르는 것(분할 요약 또는 부위 탭) … [+ 종목 추가]
           // 높이 52px·세로 가운데 — 밑줄 탭도 52px라 밑줄이 아래 구분선에 붙고 버튼과 줄이 맞음
-          <div className="flex min-h-13 flex-wrap items-center justify-between gap-x-4 border-b border-divider">
+          // 모바일은 밑줄 없이 "하체 종목 3개" … [+ 종목 추가](글자 버튼) — 부위 칩은 맨 위 줄로 올라감
+          <div className="flex min-h-13 flex-wrap items-center justify-between gap-x-4 border-b border-divider max-md:min-h-10 max-md:flex-nowrap max-md:border-0">
             {hasSplits ? (
               // 부위 탭이 빠지며 비어 보이지 않게, 지금 보고 있는 것을 한 줄로
-              <p className="text-[15px] text-ink-muted">
-                <strong className="font-bold text-heading">{selectedSplit?.name ?? '전체'}</strong> 종목{' '}
-                {exercises.length}개
+              <p className="text-[15px] text-ink-muted max-md:text-sm">
+                <strong className="font-bold text-heading max-md:font-semibold max-md:text-ink-soft">
+                  {selectedSplit?.name ?? '전체'}
+                </strong>{' '}
+                종목 {exercises.length}개
               </p>
             ) : (
-              <WorkoutGroupTabs
-                active={groupFilter}
-                counts={counts}
-                preserveParams={{ date: dateParam }}
-              />
+              <>
+                <p className="text-sm text-ink-muted md:hidden">
+                  <span className="font-semibold text-ink-soft">
+                    {GROUP_TABS.find((t) => t.key === groupFilter)?.label ?? '전체'}
+                  </span>{' '}
+                  종목 {exercises.length}개
+                </p>
+                <div className="flex self-stretch max-md:hidden">
+                  <WorkoutGroupTabs
+                    active={groupFilter}
+                    counts={counts}
+                    preserveParams={{ date: dateParam }}
+                  />
+                </div>
+              </>
             )}
             {/* 관리 링크는 헤더 ⚙로 — 여기엔 운동하다 바로 쓰는 [+ 종목 추가]만 */}
             {/* 분할 탭을 보고 있으면 새 종목을 그 분할에도 담음(창에서 끌 수 있음) */}
-            <AddExerciseButton split={selectedSplit} defaultOpen={openAdd} />
+            <AddExerciseButton split={selectedSplit} defaultOpen={openAdd} mobileVariant="text" />
           </div>
+        }
+        mobileGroupChips={
+          <WorkoutGroupTabs
+            active={groupFilter}
+            counts={counts}
+            preserveParams={{ date: dateParam }}
+            variant="chips"
+          />
         }
         splits={splits}
         selectedSplitId={selectedSplitId}

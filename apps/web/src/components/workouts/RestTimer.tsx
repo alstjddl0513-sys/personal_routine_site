@@ -64,6 +64,53 @@ function useBandOpen(): boolean {
   return useSyncExternalStore(subscribeBandOpen, readBandOpen, () => true);
 }
 
+// 모바일 띠 — 머리 줄 [⏱ 휴식]으로 열고 띠의 ✕로 닫음. 새로고침하면 닫힌 채로(저장 X).
+// active = 도는 중 · 멈춤 · 끝남 — 이때 [⏱ 휴식]을 눌러도 안 꺼지게(실수로 타이머가 사라지지 않게).
+type MobileTimerState = { open: boolean; active: boolean };
+const MOBILE_CLOSED: MobileTimerState = { open: false, active: false };
+let mobileState: MobileTimerState = MOBILE_CLOSED;
+const mobileListeners = new Set<() => void>();
+
+function setMobileTimer(patch: Partial<MobileTimerState>) {
+  const next = { ...mobileState, ...patch };
+  if (next.open === mobileState.open && next.active === mobileState.active) return;
+  mobileState = next;
+  mobileListeners.forEach((l) => l());
+}
+
+function subscribeMobileTimer(cb: () => void): () => void {
+  mobileListeners.add(cb);
+  return () => {
+    mobileListeners.delete(cb);
+  };
+}
+
+function useMobileTimer(): MobileTimerState {
+  return useSyncExternalStore(subscribeMobileTimer, () => mobileState, () => MOBILE_CLOSED);
+}
+
+// 모바일 머리 줄 오른쪽 [⏱ 휴식] — 띠가 열려 있으면 chip-on(눌린 상태).
+export function RestTimerMobileButton() {
+  const { open, active } = useMobileTimer();
+  return (
+    <button
+      type="button"
+      aria-pressed={open}
+      onClick={() => {
+        if (!active) setMobileTimer({ open: !open });
+      }}
+      className={`inline-flex h-9 shrink-0 cursor-pointer items-center gap-1 rounded-lg border px-2.5 text-sm md:hidden ${
+        open
+          ? 'border-transparent bg-chip-on-bg font-bold text-heading shadow-[inset_0_0_0_2px_var(--rally-chip-on-border)]'
+          : 'border-btn-border font-medium text-heading'
+      }`}
+    >
+      <Timer className="h-4.5 w-4.5" strokeWidth={1.8} aria-hidden />
+      휴식
+    </button>
+  );
+}
+
 // 띠를 ✕로 닫았을 때만 헤더(날짜 이동 왼쪽)에 보이는 버튼. 데스크톱 전용.
 export function RestTimerOpenButton() {
   const open = useBandOpen();
@@ -163,12 +210,8 @@ export function RestTimer() {
   const [status, setStatus] = useState<Status>('idle');
   const [totalSec, setTotalSec] = useState<number>(DEFAULT_PRESET);
   const [remainingMs, setRemainingMs] = useState<number>(DEFAULT_PRESET * 1000);
-  // Mobile-only: collapse to a FAB when idle so the full preset bar
-  // doesn't block content. Desktop always shows the full card (md:).
-  // 사용자가 FAB 탭으로 명시적으로 펼친 여부만 저장 — 실제 노출은
-  // status !== 'idle'로도 파생되어 non-idle 상태에서는 항상 보임.
-  const [mobileUserExpanded, setMobileUserExpanded] = useState(false);
   const bandOpen = useBandOpen();
+  const mobile = useMobileTimer();
   // 실제 종료 시각(ms since epoch). setInterval은 백그라운드에서 스로틀되므로,
   // deadline 기준으로 남은 시간을 계산해 스로틀에 무관하게 정확도 유지.
   const deadlineRef = useRef<number | null>(null);
@@ -235,8 +278,6 @@ export function RestTimer() {
     pausedRemainingRef.current = null;
     setRemainingMs(totalSec * 1000);
     setStatus('idle');
-    // idle로 복귀하면 다시 FAB만 노출.
-    setMobileUserExpanded(false);
   }, [totalSec]);
 
   const close = useCallback(() => {
@@ -245,65 +286,31 @@ export function RestTimer() {
     setStatus('idle');
     setRemainingMs(lastPreset * 1000);
     setTotalSec(lastPreset);
-    setMobileUserExpanded(false);
   }, [lastPreset]);
 
-  const progress =
-    totalSec > 0 ? 1 - Math.max(0, Math.min(1, remainingMs / (totalSec * 1000))) : 0;
-  const isDone = status === 'done';
-  // non-idle이거나 사용자가 명시 확장한 경우 카드 노출, 아니면 FAB.
-  const mobileExpanded = status !== 'idle' || mobileUserExpanded;
-  const showMobileFab = !mobileExpanded;
+  // 머리 줄 [⏱ 휴식]이 도는 중엔 안 꺼지게 상태를 알림. 화면을 떠나면 띠도 닫힘.
+  useEffect(() => {
+    setMobileTimer({ active: status !== 'idle' });
+  }, [status]);
+  useEffect(() => () => setMobileTimer(MOBILE_CLOSED), []);
 
   return (
     <>
-      {/* Mobile FAB — visible when idle+collapsed so preset bar doesn't
-          block content. Tap to expand. Desktop always shows the card. */}
-      {showMobileFab ? (
-        <button
-          type="button"
-          onClick={() => setMobileUserExpanded(true)}
-          aria-label="휴식 타이머"
-          className="fixed bottom-24 left-4 z-40 flex h-14 w-14 items-center justify-center rounded-full border border-zinc-200 bg-white/95 text-zinc-600 shadow-lg backdrop-blur md:hidden dark:border-zinc-800 dark:bg-zinc-950/95 dark:text-zinc-400"
-        >
-          <Timer className="h-5 w-5" aria-hidden />
-        </button>
+      {mobile.open ? (
+        <MobileBand
+          status={status}
+          remainingMs={remainingMs}
+          totalSec={totalSec}
+          lastPreset={lastPreset}
+          onStart={start}
+          onPause={pause}
+          onResume={resume}
+          onClose={() => {
+            close();
+            setMobileTimer({ open: false, active: false });
+          }}
+        />
       ) : null}
-
-      <div
-        className={`pointer-events-none fixed inset-x-0 bottom-24 z-40 justify-center px-4 md:hidden ${
-          showMobileFab ? 'hidden' : 'flex'
-        }`}
-      >
-        <div
-          className={`pointer-events-auto flex w-fit max-w-md flex-col gap-2 rounded-lg border p-3 shadow-lg backdrop-blur transition-colors ${
-            isDone
-              ? 'border-emerald-300 bg-emerald-50/95 dark:border-emerald-800 dark:bg-emerald-950/90'
-              : 'border-zinc-200 bg-white/95 dark:border-zinc-800 dark:bg-zinc-950/95'
-          }`}
-        >
-          {status === 'idle' ? (
-            <IdleBar
-              presets={PRESETS}
-              lastPreset={lastPreset}
-              onStart={start}
-              onCollapseMobile={() => setMobileUserExpanded(false)}
-            />
-          ) : (
-            <ActiveBar
-              status={status}
-              remainingMs={remainingMs}
-              totalSec={totalSec}
-              progress={progress}
-              onPause={pause}
-              onResume={resume}
-              onReset={reset}
-              onRestart={() => start(lastPreset)}
-              onClose={close}
-            />
-          )}
-        </div>
-      </div>
 
       {bandOpen ? (
         <DesktopBand
@@ -446,156 +453,140 @@ function DesktopBand({
   );
 }
 
-function IdleBar({
-  presets,
-  lastPreset,
-  onStart,
-  onCollapseMobile,
-}: {
-  presets: readonly number[];
-  lastPreset: number;
-  onStart: (sec: number) => void;
-  onCollapseMobile: () => void;
-}) {
-  return (
-    <div className="flex items-center gap-2">
-      <Timer className="h-4 w-4 shrink-0 text-zinc-500" aria-hidden />
-      <span className="text-xs text-zinc-500 dark:text-zinc-400">휴식</span>
-      <div className="flex flex-1 flex-wrap items-center gap-1">
-        {presets.map((sec) => (
-          <button
-            key={sec}
-            type="button"
-            onClick={() => onStart(sec)}
-            className={`rounded-full border px-2.5 py-1 text-xs tabular-nums transition-colors ${
-              sec === lastPreset
-                ? 'border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900'
-                : 'border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800'
-            }`}
-          >
-            {sec}초
-          </button>
-        ))}
-      </div>
-      <button
-        type="button"
-        onClick={onCollapseMobile}
-        aria-label="타이머 접기"
-        className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 md:hidden dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
-      >
-        <X className="h-4 w-4" aria-hidden />
-      </button>
-    </div>
-  );
-}
+const BAND_ICON_BTN =
+  'inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-md text-ink-soft hover:bg-row-hover hover:text-ink';
 
-function ActiveBar({
+// 모바일: 하단 탭 바로 위에 붙는 띠(docs/design/rally-mobile-workouts). 띠 하나가 고르기 → 도는 중 →
+// 멈춤 → 끝남을 다 맡음. 본문 흐름에 띠 높이만큼 빈 자리를 둬서 마지막 [세트 추가]를 가리지 않음.
+function MobileBand({
   status,
   remainingMs,
   totalSec,
-  progress,
+  lastPreset,
+  onStart,
   onPause,
   onResume,
-  onReset,
-  onRestart,
   onClose,
 }: {
-  status: Exclude<Status, 'idle'>;
+  status: Status;
   remainingMs: number;
   totalSec: number;
-  progress: number;
+  lastPreset: number;
+  onStart: (sec: number) => void;
   onPause: () => void;
   onResume: () => void;
-  onReset: () => void;
-  onRestart: () => void;
   onClose: () => void;
 }) {
-  const isDone = status === 'done';
-  const isPaused = status === 'paused';
-  const display = isDone ? '완료!' : formatMMSS(remainingMs / 1000);
+  const done = status === 'done';
+  const paused = status === 'paused';
+  const active = status === 'running' || paused;
+  const remainRatio = totalSec > 0 ? Math.max(0, Math.min(1, remainingMs / (totalSec * 1000))) : 0;
+
+  // 화면 읽기 프로그램엔 10초마다만 남은 시간을 알림(매초 읽으면 시끄러움)
+  const sec = Math.ceil(remainingMs / 1000);
+  const [live, setLive] = useState('');
+  const nextLive =
+    status === 'running' && sec > 0 && sec % 10 === 0
+      ? `${formatMSS(sec)} 남음`
+      : done
+        ? '휴식 끝났어요'
+        : paused
+          ? '멈춤'
+          : null;
+  if (nextLive && nextLive !== live) setLive(nextLive);
+
+  const closeBtn = (
+    <button type="button" onClick={onClose} aria-label="휴식 닫기" className={BAND_ICON_BTN}>
+      <X className="h-4.5 w-4.5" aria-hidden />
+    </button>
+  );
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-3">
-        <Timer
-          className={`h-4 w-4 shrink-0 ${isDone ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-500'}`}
-          aria-hidden
-        />
-        <span
-          className={`text-lg font-semibold tabular-nums ${
-            isDone
-              ? 'text-emerald-700 dark:text-emerald-300'
-              : 'text-zinc-900 dark:text-zinc-100'
-          }`}
-        >
-          {display}
+    <>
+      <div aria-hidden className="h-14 md:hidden" />
+      <section
+        aria-label="휴식 타이머"
+        className={`fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-30 border-t font-plex md:hidden ${
+          done ? 'border-chip-on-border bg-chip-on-bg' : 'border-line bg-surface'
+        }`}
+      >
+        <span aria-live="polite" className="sr-only">
+          {live}
         </span>
-        <span className="text-xs text-zinc-500 dark:text-zinc-400">
-          / {totalSec}초{isPaused ? ' · 일시정지' : ''}
-        </span>
-
-        <div className="ml-auto flex items-center gap-1">
-          {isDone ? (
+        {active ? (
+          <span aria-hidden className="block h-0.75 bg-track">
+            <span
+              className={`block h-full transition-[width] duration-200 ${paused ? 'bg-btn-border' : 'bg-primary'}`}
+              style={{ width: `${remainRatio * 100}%` }}
+            />
+          </span>
+        ) : null}
+        <div className="flex min-h-13 items-center gap-2 px-3.5 py-1.5">
+          {done ? (
             <>
-              <IconButton onClick={onRestart} label="다시 시작">
-                <RotateCcw className="h-3.5 w-3.5" />
-              </IconButton>
-              <IconButton onClick={onClose} label="닫기">
-                <X className="h-3.5 w-3.5" />
-              </IconButton>
+              <strong className="min-w-0 flex-1 text-[15px] font-bold text-heading">휴식 끝났어요</strong>
+              <button
+                type="button"
+                onClick={() => onStart(lastPreset)}
+                className="inline-flex min-h-10 shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-btn-border bg-surface px-3 text-sm font-medium text-heading"
+              >
+                <RotateCcw className="h-4 w-4" aria-hidden />
+                다시 {lastPreset}초
+              </button>
+              {closeBtn}
+            </>
+          ) : active ? (
+            <>
+              <span
+                role="timer"
+                aria-label={`${formatMSS(totalSec)} 중 ${formatMSS(remainingMs / 1000)} 남음`}
+                className="flex min-w-0 flex-1 items-baseline gap-2"
+              >
+                <span className={`text-xl leading-tight font-bold tracking-[0.01em] ${paused ? 'text-ink-muted' : 'text-ink'}`}>
+                  {formatMMSS(remainingMs / 1000)}
+                </span>
+                <span className="text-[13px] text-ink-muted">
+                  {paused ? `멈춤 · ${totalSec}초` : `${totalSec}초`}
+                </span>
+              </span>
+              {paused ? (
+                <button type="button" onClick={onResume} aria-label="이어서" className={BAND_ICON_BTN}>
+                  <Play className="h-4.5 w-4.5" aria-hidden />
+                </button>
+              ) : (
+                <button type="button" onClick={onPause} aria-label="멈춤" className={BAND_ICON_BTN}>
+                  <Pause className="h-4.5 w-4.5" aria-hidden />
+                </button>
+              )}
+              <button type="button" onClick={() => onStart(totalSec)} aria-label="처음부터 다시" className={BAND_ICON_BTN}>
+                <RotateCcw className="h-4.5 w-4.5" aria-hidden />
+              </button>
+              {closeBtn}
             </>
           ) : (
             <>
-              {isPaused ? (
-                <IconButton onClick={onResume} label="재개">
-                  <Play className="h-3.5 w-3.5" />
-                </IconButton>
-              ) : (
-                <IconButton onClick={onPause} label="일시정지">
-                  <Pause className="h-3.5 w-3.5" />
-                </IconButton>
-              )}
-              <IconButton onClick={onReset} label="리셋">
-                <RotateCcw className="h-3.5 w-3.5" />
-              </IconButton>
-              <IconButton onClick={onClose} label="닫기">
-                <X className="h-3.5 w-3.5" />
-              </IconButton>
+              <span className="shrink-0 text-[13.5px] font-semibold text-ink-soft">휴식</span>
+              <span className="flex min-w-0 flex-1 gap-1.5">
+                {PRESETS.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => onStart(s)}
+                    className={`min-h-10 min-w-0 flex-1 cursor-pointer rounded-full text-sm ${
+                      s === lastPreset
+                        ? 'bg-chip-on-bg font-bold text-heading shadow-[inset_0_0_0_2px_var(--rally-chip-on-border)]'
+                        : 'border border-btn-border bg-surface text-ink-soft'
+                    }`}
+                  >
+                    {s}초
+                  </button>
+                ))}
+              </span>
+              {closeBtn}
             </>
           )}
         </div>
-      </div>
-
-      <div className="h-1 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
-        <div
-          className={`h-full transition-all duration-200 ${
-            isDone ? 'bg-emerald-500' : 'bg-zinc-500 dark:bg-zinc-300'
-          }`}
-          style={{ width: `${Math.round(progress * 100)}%` }}
-        />
-      </div>
-    </div>
-  );
-}
-
-function IconButton({
-  onClick,
-  label,
-  children,
-}: {
-  onClick: () => void;
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      title={label}
-      className="inline-flex h-7 w-7 items-center justify-center rounded text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
-    >
-      {children}
-    </button>
+      </section>
+    </>
   );
 }
