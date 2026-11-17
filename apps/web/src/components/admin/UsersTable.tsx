@@ -331,7 +331,7 @@ function UserRow({
       </span>
       <span
         role="cell"
-        className="-mx-1.5 flex justify-center gap-0.5 max-md:col-start-2 max-md:row-span-2 max-md:row-start-1 max-md:ml-0 max-md:self-start"
+        className="-mx-1.5 flex justify-center gap-0.5 max-md:col-start-2 max-md:row-span-2 max-md:row-start-1 max-md:-mt-2 max-md:-mr-2.5 max-md:ml-0 max-md:self-start"
       >
         {row.isAdmin ? (
           // 관리자 계정은 차단/삭제 불가 (self-lockout · 상호 무력화 방지). 서버도 같은 판정으로 거절.
