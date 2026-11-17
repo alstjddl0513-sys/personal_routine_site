@@ -22,7 +22,7 @@ import { ChevronRight } from 'lucide-react';
 import { COMPACT_ONLY, FULL_ONLY } from './useJobsColumns';
 
 // 데스크톱 표 (docs/design/rally-jobs.html). 셀은 평소엔 글자처럼 보이고 행
-// hover 때 ▾·삭제가 나타남 — 각 셀은 variant="table". 모바일은 JobsCards.
+// hover 때 ▾·삭제가 나타남 — 각 셀은. 모바일은 JobsCards.
 // 열: ♡ | 회사(+유형·규모) | 우선순위 | 채용여부 | 지원상태 | 마감일 | 일정·공고·제출본·메모 | 삭제
 // '간단히'(docs/design/rally-jobs-compact.html)는 보조 4열을 "공고 · 일정 2 · 문서 2 ·
 // 메모" 한 열로 합치고, 누르면 CompanyDetailPanel이 열림.
@@ -95,20 +95,20 @@ export function JobsTable({
                 <div className="flex flex-col gap-px">
                   <span className="text-[15px] font-semibold text-ink">{c.name}</span>
                   <span className="flex items-center gap-1 text-[13px] text-ink-muted">
-                    <TypeSelect id={c.id} value={c.type2} types={companyTypes} variant="table" />
+                    <TypeSelect id={c.id} value={c.type2} types={companyTypes} />
                     <span aria-hidden>·</span>
-                    <SizeSelect id={c.id} value={c.type1} variant="table" />
+                    <SizeSelect id={c.id} value={c.type1} />
                   </span>
                 </div>
               </td>
               <td className="px-1 text-center">
-                <PrioritySelect id={c.id} value={c.priority} variant="table" />
+                <PrioritySelect id={c.id} value={c.priority} />
               </td>
               <td className="px-1 text-center">
-                <HiringToggle id={c.id} value={c.isHiring} variant="table" />
+                <HiringToggle id={c.id} value={c.isHiring} />
               </td>
               <td className="px-1 text-center">
-                <StatusSelect id={c.id} value={c.applicationStatus} variant="table" />
+                <StatusSelect id={c.id} value={c.applicationStatus} />
               </td>
               <td className="px-1 text-center">
                 <DeadlinePopover
@@ -116,7 +116,6 @@ export function JobsTable({
                   value={c.applicationDeadline}
                   isRolling={c.isRolling}
                   status={c.applicationStatus}
-                  variant="table"
                 />
               </td>
               <td className={`${COMPACT_ONLY} border-l border-divider px-1`}>
@@ -131,11 +130,10 @@ export function JobsTable({
                   companyId={c.id}
                   companyName={c.name}
                   events={eventsByCompany.get(c.id) ?? []}
-                  variant="table"
                 />
               </td>
               <td className={`${FULL_ONLY} px-0 text-center`}>
-                <UrlPopover id={c.id} value={c.postingUrl} variant="table" />
+                <UrlPopover id={c.id} value={c.postingUrl} />
               </td>
               <td className={`${FULL_ONLY} px-0 text-center`}>
                 <SubmittedDocsPopover
@@ -143,11 +141,10 @@ export function JobsTable({
                   resumeDocumentId={c.resumeDocumentId}
                   portfolioDocumentId={c.portfolioDocumentId}
                   documents={documents}
-                  variant="table"
                 />
               </td>
               <td className={`${FULL_ONLY} px-0 text-center`}>
-                <NotePopover id={c.id} value={c.note} variant="table" />
+                <NotePopover id={c.id} value={c.note} />
               </td>
               <td className="px-0 text-center">
                 <DeleteRowButton id={c.id} name={c.name} />

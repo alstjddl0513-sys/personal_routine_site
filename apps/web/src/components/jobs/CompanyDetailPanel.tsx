@@ -1,16 +1,15 @@
 'use client';
 
-import { useEffect, useRef, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import type { Company, CompanyEvent, Document } from '@repo/shared';
-import { patchCompany } from '../../lib/api';
 import { useOutsideClick } from '../../lib/useOutsideClick';
 import { EventsEditor, useCompanyEventActions } from './cells/EventsPopover';
 import { NoteEditor } from './cells/NotePopover';
 import { POPOVER_CLOSE } from './cells/popover-style';
 import { SubmittedDocsEditor, useSubmittedDocs } from './cells/SubmittedDocsPopover';
 import { UrlEditor } from './cells/UrlPopover';
+import { useCompanyPatch } from './useCompanyPatch';
 
 // '간단히' 보기에서 합친 열을 누르면 열리는 오른쪽 패널. 그 회사의 공고·일정·
 // 제출본·메모를 한 번에 — 편집 내용은 표 팝오버와 같은 Editor를 위치 없이 씀.
@@ -94,23 +93,6 @@ function Section({ children }: { children: React.ReactNode }) {
       {children}
     </section>
   );
-}
-
-// 저장 후 서버 값으로 다시 그려지면(key 변경) 입력칸도 새 값으로 초기화.
-function useCompanyPatch(id: string) {
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-  function patch(input: Parameters<typeof patchCompany>[1]) {
-    startTransition(async () => {
-      try {
-        await patchCompany(id, input);
-        router.refresh();
-      } catch (err) {
-        console.error(err);
-      }
-    });
-  }
-  return { isPending, patch };
 }
 
 function UrlSection({ company }: { company: Company }) {

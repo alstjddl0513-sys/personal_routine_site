@@ -50,10 +50,40 @@ export function SplitTabs({ splits, selected, nextSplitId, lastSplitId, activeSe
   const tabs = [...splits.map((s) => ({ id: s.id, label: s.name })), { id: 'all', label: '전체' }];
 
   return (
+    <>
+    {/* 모바일: 가로로 넘기는 칩 줄 — 차례는 칩 안 작은 "오늘"(“오늘 차례”는 칩이 길어져 밀림) */}
     <div
       role="tablist"
       aria-label="분할"
-      className="inline-flex h-12 max-w-full overflow-hidden rounded-md border border-btn-border"
+      className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 md:hidden"
+    >
+      {tabs.map((t) => {
+        const active = t.id === selected;
+        const isNext = t.id === nextSplitId;
+        return (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => choose(t.id)}
+            disabled={busy}
+            className={`inline-flex h-10 shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-4 text-[15px] ${
+              active
+                ? 'bg-chip-on-bg font-bold text-heading shadow-[inset_0_0_0_2px_var(--rally-chip-on-border)]'
+                : 'border border-btn-border bg-surface font-medium text-ink-soft'
+            }`}
+          >
+            {t.label}
+            {isNext ? <span className="text-[11.5px] font-semibold text-primary">오늘</span> : null}
+          </button>
+        );
+      })}
+    </div>
+    <div
+      role="tablist"
+      aria-label="분할"
+      className="inline-flex h-12 max-w-full overflow-hidden rounded-md border border-btn-border max-md:hidden"
     >
       {tabs.map((t) => {
         const active = t.id === selected;
@@ -81,5 +111,6 @@ export function SplitTabs({ splits, selected, nextSplitId, lastSplitId, activeSe
         );
       })}
     </div>
+    </>
   );
 }

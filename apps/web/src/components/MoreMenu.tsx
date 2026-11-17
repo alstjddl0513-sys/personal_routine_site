@@ -1,10 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Calendar, Rss, Settings, X, type LucideIcon } from 'lucide-react';
-import { Portal } from './ui/Portal';
+import { Calendar, ChevronRight, Rss, Settings, Shield, type LucideIcon } from 'lucide-react';
+import { BottomSheet } from './ui/BottomSheet';
+import { useIsAdmin } from '../lib/useIsAdmin';
+import { ThemeSegment } from './settings/ThemeSegment';
+import { FOCUS_RING } from './settings/lists/ListCard';
 
 interface Props {
   open: boolean;
@@ -16,11 +18,15 @@ interface MoreItem {
   label: string;
   icon: LucideIcon;
   matchPrefixes: string[];
+  /** 관리자에게만 보이는 줄 — 아이콘만 관리자 청록 */
+  adminOnly?: boolean;
 }
 
 const MORE_ITEMS: MoreItem[] = [
   { href: '/calendar', label: '캘린더', icon: Calendar, matchPrefixes: ['/calendar'] },
   { href: '/blog', label: '블로그', icon: Rss, matchPrefixes: ['/blog'] },
+  // 사이드바처럼 설정 위. 모바일엔 사이드바가 없어서 관리자 화면 입구가 여기뿐
+  { href: '/admin', label: '관리자 페이지', icon: Shield, matchPrefixes: ['/admin'], adminOnly: true },
   {
     href: '/settings',
     label: '설정',
@@ -33,83 +39,48 @@ function isActive(pathname: string, prefixes: string[]): boolean {
   return prefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
-// BottomNav의 '⋯ 더보기' 탭에서 열리는 바텀시트. iOS Mail/인스타의 'More' 탭
-// 패턴. 메인 5탭에 못 넣은 캘린더·블로그·설정 접근 경로. 확장 시 여기에만 추가.
+// BottomNav의 '⋯ 더보기' 탭에서 열리는 바텀시트(docs/design/rally-mobile-shell*.html).
+// 메인 5탭에 못 넣은 캘린더 · 블로그 · 설정 + 테마. 하단 탭은 시트 뒤에 그대로(scrim이 덮음).
+// 시트 동작(닫기 · 끌기 · focus trap · 스크롤 잠금)은 공용 BottomSheet.
 export function MoreMenu({ open, onClose }: Props) {
   const pathname = usePathname();
-
-  useEffect(() => {
-    if (!open) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
-    }
-    document.addEventListener('keydown', onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prev;
-    };
-  }, [open, onClose]);
-
-  if (!open) return null;
-
+  const isAdmin = useIsAdmin();
+  const items = MORE_ITEMS.filter((item) => !item.adminOnly || isAdmin);
   return (
-    <Portal>
-      <div
-        aria-hidden
-        onClick={onClose}
-        className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm md:hidden"
-      />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label="더보기 메뉴"
-        className="fixed inset-x-0 bottom-0 z-50 flex flex-col rounded-t-2xl border border-zinc-200 bg-white pb-[env(safe-area-inset-bottom)] shadow-2xl md:hidden dark:border-zinc-800 dark:bg-zinc-950"
-      >
-        <div
-          aria-hidden
-          className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-zinc-300 dark:bg-zinc-700"
-        />
-        <header className="flex items-center justify-between px-4 pb-1 pt-3">
-          <h2 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-            더보기
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="닫기"
-            className="inline-flex h-8 w-8 items-center justify-center rounded text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-200"
-          >
-            <X className="h-4 w-4" aria-hidden />
-          </button>
-        </header>
-
-        <ul className="flex flex-col pb-2">
-          {MORE_ITEMS.map((item) => {
-            const active = isActive(pathname, item.matchPrefixes);
-            const Icon = item.icon;
-            return (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  onClick={onClose}
-                  aria-current={active ? 'page' : undefined}
-                  className={`flex items-center gap-3 px-4 py-3 text-sm ${
-                    active
-                      ? 'bg-zinc-100 font-medium text-zinc-900 dark:bg-zinc-900 dark:text-zinc-50'
-                      : 'text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-900'
-                  }`}
-                >
-                  <Icon className="h-5 w-5 shrink-0" aria-hidden />
-                  <span>{item.label}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+    <BottomSheet open={open} onClose={onClose} title="더보기" className="md:hidden">
+      {/* 항목 사이 divider — 활성(chip-on 배경) 줄 앞뒤는 배경이 구분해서 선 없음 */}
+      <ul className="flex flex-col gap-px px-3 pt-1 pb-2 [&>li+li]:border-t [&>li+li]:border-divider [&>li:has([aria-current])]:border-transparent [&>li:has([aria-current])+li]:border-transparent">
+        {items.map((item) => {
+          const active = isActive(pathname, item.matchPrefixes);
+          const Icon = item.icon;
+          return (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                onClick={onClose}
+                aria-current={active ? 'page' : undefined}
+                className={`flex min-h-12 items-center gap-3 rounded-md px-3 text-[15px] ${FOCUS_RING} ${
+                  active ? 'bg-chip-on-bg font-bold text-chip-on-fg' : 'text-ink hover:bg-row-hover'
+                }`}
+              >
+                <Icon
+                  className={`h-5 w-5 shrink-0 ${item.adminOnly ? 'text-admin' : ''}`}
+                  strokeWidth={active ? 2.1 : 1.8}
+                  aria-hidden
+                />
+                <span className="flex-1">{item.label}</span>
+                <ChevronRight className="h-4 w-4 shrink-0 text-ink-faint" aria-hidden />
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+      {/* 데스크톱 사이드바 하단 테마 버튼 자리 — 설정 › 앱과 같은 아이콘 세그먼트(☀ | 🌙) */}
+      <div className="mx-5 mb-1 flex items-center justify-between border-t border-rule pt-3.5">
+        <span className="text-[15px] font-semibold text-ink-soft">테마</span>
+        <ThemeSegment />
       </div>
-    </Portal>
+    </BottomSheet>
   );
 }
 

@@ -592,7 +592,8 @@ function CompanyLink({ id, name, muted }: { id: Company['id']; name: string; mut
   return (
     <Link
       href={`/jobs?highlight=${id}`}
-      className={`min-w-0 flex-auto truncate underline-offset-2 hover:underline ${
+      // -my-2.5 py-2.5 — 줄 높이는 그대로, 누르는 자리만 40px(truncate라 ::before는 잘림)
+      className={`-my-2.5 min-w-0 flex-auto truncate py-2.5 underline-offset-2 hover:underline ${
         muted ? 'font-medium text-ink-soft' : 'self-start font-semibold text-ink'
       }`}
     >

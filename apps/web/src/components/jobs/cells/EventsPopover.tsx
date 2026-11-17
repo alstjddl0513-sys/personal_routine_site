@@ -45,7 +45,7 @@ const POPOVER_HEIGHT = 260;
 const WEEKDAY_KO = ['일', '월', '화', '수', '목', '금', '토'];
 
 // 유형 점 색 — '오늘' 다가오는 일정과 같은 토큰.
-const TYPE_DOT: Record<CompanyEventType, string> = {
+export const TYPE_DOT: Record<CompanyEventType, string> = {
   deadline: 'bg-alert',
   test: 'bg-ev-test',
   interview: 'bg-ev-interview',
@@ -59,7 +59,7 @@ const TYPE_OPTIONS = COMPANY_EVENT_TYPES.map((t) => ({
   icon: <span aria-hidden className={`h-1.75 w-1.75 flex-none rounded-full ${TYPE_DOT[t]}`} />,
 }));
 
-function formatDateShort(iso: string): string {
+export function formatDateShort(iso: string): string {
   // "2026-10-15" → "10.15 수"
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
   if (!m) return iso;
@@ -80,13 +80,11 @@ export function EventsPopover({
   companyId,
   companyName,
   events,
-  variant,
 }: {
   companyId: string;
   /** 팝오버 제목 "[회사] 일정 N건"용. 없으면 "일정 N건". */
   companyName?: string;
   events: CompanyEvent[];
-  variant?: 'table';
 }) {
   const { isPending, onCreate, onDelete } = useCompanyEventActions(companyId);
   const [open, setOpen] = useState(false);
@@ -125,41 +123,18 @@ export function EventsPopover({
 
   return (
     <>
-      {variant === 'table' ? (
-        <button
-          ref={anchorRef}
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          disabled={isPending}
-          aria-label={ariaLabel}
-          aria-expanded={open}
-          className={`${TABLE_ICON_BUTTON} hover:bg-row-hover ${count > 0 ? 'text-ink-soft' : 'text-icon-faint'}`}
-        >
-          <CalendarDays className="h-3.75 w-3.75" strokeWidth={1.8} aria-hidden />
-          {count > 0 ? <span>{count}</span> : null}
-        </button>
-      ) : (
-        <button
-          ref={anchorRef}
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          disabled={isPending}
-          aria-label={count > 0 ? `일정 ${count}개 편집` : '일정 추가'}
-          aria-expanded={open}
-          className="inline-flex items-center justify-center gap-1 rounded px-1.5 py-0.5 text-xs text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
-        >
-          {count > 0 ? (
-            <span className="inline-flex items-center gap-1 rounded bg-emerald-100 px-1.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
-              <CalendarDays className="h-3 w-3" aria-hidden />
-              {count}
-            </span>
-          ) : (
-            <span className="whitespace-nowrap text-zinc-400 dark:text-zinc-600">
-              —
-            </span>
-          )}
-        </button>
-      )}
+      <button
+        ref={anchorRef}
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        disabled={isPending}
+        aria-label={ariaLabel}
+        aria-expanded={open}
+        className={`${TABLE_ICON_BUTTON} hover:bg-row-hover ${count > 0 ? 'text-ink-soft' : 'text-icon-faint'}`}
+      >
+        <CalendarDays className="h-3.75 w-3.75" strokeWidth={1.8} aria-hidden />
+        {count > 0 ? <span>{count}</span> : null}
+      </button>
       {open && pos ? (
         <Portal>
           <EventsPopoverBody
@@ -329,7 +304,6 @@ export function EventsEditor({
             onChange={(v) => setType(v as CompanyEventType)}
             options={TYPE_OPTIONS}
             ariaLabel="일정 유형"
-            tone="rally"
             triggerClassName="min-h-10 w-24 flex-none cursor-pointer justify-start gap-2 rounded-md border border-btn-border bg-surface px-2.5 text-sm text-ink outline-none focus:border-heading"
             triggerSuffix={<ChevronDown className="ml-auto h-3.5 w-3.5 text-ink-muted" aria-hidden />}
           />

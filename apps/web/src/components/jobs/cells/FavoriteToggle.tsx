@@ -70,14 +70,12 @@ export function FavoriteToggle({
       onClick={toggle}
       aria-pressed={current}
       aria-label={current ? '즐겨찾기 해제' : '즐겨찾기'}
-      className="inline-flex h-6 w-6 items-center justify-center rounded hover:bg-zinc-100 dark:hover:bg-zinc-800"
+      // 모바일 카드 — 펼치기 버튼 바깥 오른쪽 44×44(rally-mobile-jobs). 켜짐 heart 채움 / 꺼짐 icon-faint 빈 하트
+      className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-md outline-none focus-visible:shadow-[0_0_0_2px_var(--rally-surface),0_0_0_4px_var(--rally-chip-on-border)]"
     >
       <Heart
-        className={`h-4 w-4 ${
-          current
-            ? 'fill-rose-500 text-rose-500'
-            : 'text-zinc-300 dark:text-zinc-600'
-        }`}
+        className={`h-4.5 w-4.5 ${current ? 'fill-heart text-heart' : 'text-icon-faint'}`}
+        strokeWidth={1.8}
         aria-hidden
       />
     </button>

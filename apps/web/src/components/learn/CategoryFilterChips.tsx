@@ -115,8 +115,9 @@ export function CategoryFilterChips({ categories, selected, mode }: Props) {
   const { activeSet, apply, prefetch } = useCategorySelect(mode, selected);
   if (categories.length === 0) return null;
 
+  // 모바일은 꺾지 않고 가로로 넘기는 한 줄(운동 칩 줄과 같음) — 화면 끝까지 닿게 -mx-4 px-4
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="no-scrollbar -mx-4 flex items-center gap-2 self-stretch overflow-x-auto px-4 md:mx-0 md:flex-wrap md:self-auto md:overflow-visible md:px-0">
       <ChipButton
         active={activeSet.size === 0}
         onClick={() => apply(null)}
@@ -180,7 +181,7 @@ export function ChipButton({
       onMouseEnter={onHover}
       onFocus={onHover}
       aria-pressed={active}
-      className={`inline-flex h-9 cursor-pointer items-center gap-1 rounded-[18px] px-3.5 text-sm transition-colors ${
+      className={`inline-flex h-9 shrink-0 cursor-pointer items-center gap-1 rounded-[18px] px-3.5 text-sm transition-colors ${
         active
           ? 'bg-chip-on-bg font-bold text-heading shadow-[inset_0_0_0_2px_var(--rally-chip-on-border)]'
           : 'bg-surface font-medium text-ink-soft shadow-[inset_0_0_0_1px_var(--rally-btn-border)] hover:bg-row-hover'

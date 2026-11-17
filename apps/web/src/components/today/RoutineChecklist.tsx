@@ -75,15 +75,19 @@ export function RoutineChecklist({
           const on = checked.has(item.id);
           return (
             <li key={item.id} className="border-b border-divider">
-              <label className="flex min-h-12 cursor-pointer items-center gap-3.5">
+              {/* 모바일은 루틴 화면과 같은 순서 [□][이름][시간 오른쪽] — 시간 칸이 이름을 좁히지 않게 */}
+              <label className="flex min-h-12 cursor-pointer items-center gap-3.5 max-md:gap-3">
                 <input
                   type="checkbox"
                   checked={on}
                   onChange={(e) => toggle(item.id, e.target.checked)}
-                  className="h-4.5 w-4.5 flex-none accent-primary"
+                  className="h-4.5 w-4.5 flex-none accent-primary max-md:h-5 max-md:w-5"
                 />
-                <span className="w-24 flex-none text-sm text-ink-muted">{item.time}</span>
-                <span className={on ? 'text-ink-faint line-through' : 'text-ink'}>
+                <span className="w-24 flex-none text-sm text-ink-muted max-md:order-last max-md:w-auto max-md:text-[13px] max-md:tabular-nums">
+                  {item.time}
+                </span>
+                {/* 띄어쓰기 없는 긴 이름도 카드 안에서 줄바꿈 */}
+                <span className={`min-w-0 wrap-break-word max-md:flex-1 ${on ? 'text-ink-faint line-through' : 'text-ink'}`}>
                   {item.label}
                 </span>
               </label>

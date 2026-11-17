@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import {
-  ChevronDown,
   Heart,
   Printer,
   Search,
@@ -20,12 +19,14 @@ import {
   PRIORITY_LABELS,
   PRIORITY_VALUES,
   type ApplicationStatus,
+  type Company,
   type CompanyType,
   type CompanyType1,
   type Priority,
 } from '@repo/shared';
 import { AddCompanyButton } from './AddCompanyButton';
 import { StatusDot } from './StatusDot';
+import { MobileFilterSheet, type MobileFilterDraft } from './mobile/MobileFilterSheet';
 
 export interface JobsClientFilters {
   type1: ReadonlySet<CompanyType1>;
@@ -50,6 +51,8 @@ export function JobsFilters({
   onClientClearAll,
   resultCount,
   countAside,
+  rows,
+  onClientApplyAll,
 }: {
   companyTypes: CompanyType[];
   clientFilters: JobsClientFilters;
@@ -62,6 +65,10 @@ export function JobsFilters({
   resultCount: number;
   /** "N개" 줄 오른쪽 끝 (열 보기 전환 등). */
   countAside?: React.ReactNode;
+  /** 모바일 필터 시트 [n개 보기]의 n 세기용 — 서버가 준 목록 그대로 */
+  rows: Company[];
+  /** 모바일 필터 시트 적용 — 칩 조건 4개를 한 번에 */
+  onClientApplyAll: (next: JobsClientFilters) => void;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -163,13 +170,96 @@ export function JobsFilters({
     clientFilters.priority.size +
     clientFilters.status.size;
 
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  // 모바일 필터 시트 적용. 채용여부가 바뀌면 서버가 다시 걸러야 해서 칩 조건까지 URL에 담아 이동,
+  // 아니면 칩 조건만 화면에서 바로.
+  function applyMobile(d: MobileFilterDraft) {
+    if (d.hiring !== currentHiring) {
+      const csv = (set: ReadonlySet<string>) => (set.size ? Array.from(set).join(',') : null);
+      pushPatch({
+        hiring: d.hiring ? '1' : null,
+        type1: csv(d.type1),
+        type2: csv(d.type2),
+        priority: csv(d.priority),
+        status: csv(d.status),
+      });
+      return;
+    }
+    onClientApplyAll({ type1: d.type1, type2: d.type2, priority: d.priority, status: d.status });
+  }
+  const mobileFilterCount = chipFilterCount + (currentHiring ? 1 : 0);
 
   // 상단 도구 줄 + 필터 칩 (docs/design/rally-jobs.html). 모바일은 칩 묶음을
   // '필터' 버튼으로 접어 두는 구조 그대로.
   return (
-    <div className="flex flex-col gap-5">
-      <header className="flex flex-wrap items-center justify-between gap-4">
+    <div className="flex flex-col gap-5 max-md:gap-3">
+      {/* 모바일 머리(docs/design/rally-mobile-jobs*.html) — 제목은 상단 하위 탭 "리스트"와 같은 말이라 숨김.
+          줄1 검색 · ♡ · +, 줄2 [필터] … 개수. 필터 칩은 시트로 */}
+      <div className="flex flex-col gap-3 pt-1 md:hidden">
+        <div className="flex items-center gap-2">
+          <label className="relative flex min-w-0 flex-1 items-center">
+            <span className="sr-only">회사명 검색</span>
+            <Search className="absolute left-3 h-4 w-4 text-ink-muted" strokeWidth={2} aria-hidden />
+            <input
+              type="search"
+              value={searchInput}
+              onChange={(e) => updateSearch(e.target.value)}
+              placeholder="회사 이름"
+              className="min-h-11 w-full rounded-md border border-btn-border bg-surface py-2 pr-3 pl-9 text-base text-ink outline-none placeholder:text-ink-faint focus:border-heading"
+            />
+          </label>
+          <button
+            type="button"
+            onClick={() => pushPatch({ favorite: currentFavorite ? null : '1' })}
+            aria-pressed={currentFavorite}
+            aria-label="즐겨찾기만 보기"
+            className={`inline-flex h-11 w-11 flex-none cursor-pointer items-center justify-center rounded-md border ${
+              currentFavorite ? 'border-chip-on-border bg-chip-on-bg' : 'border-btn-border bg-btn-bg'
+            }`}
+          >
+            <Heart
+              className={`h-4.5 w-4.5 ${currentFavorite ? 'fill-heart text-heart' : 'text-ink-soft'}`}
+              strokeWidth={1.8}
+              aria-hidden
+            />
+          </button>
+          <AddCompanyButton companyTypes={companyTypes} iconOnly />
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={() => setSheetOpen(true)}
+            aria-haspopup="dialog"
+            className={`inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-md border px-3.5 text-sm ${
+              mobileFilterCount > 0
+                ? 'border-chip-on-border bg-chip-on-bg font-semibold text-chip-on-fg'
+                : 'border-btn-border bg-btn-bg text-ink-soft'
+            }`}
+          >
+            <SlidersHorizontal className="h-4 w-4" aria-hidden />
+            필터
+            {mobileFilterCount > 0 ? (
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-button px-1.5 text-[11px] font-semibold text-white dark:text-paper">
+                {mobileFilterCount}
+              </span>
+            ) : null}
+          </button>
+          <span className="text-sm text-ink-muted">
+            {resultCount}개
+          </span>
+        </div>
+        <MobileFilterSheet
+          open={sheetOpen}
+          onClose={() => setSheetOpen(false)}
+          companyTypes={companyTypes}
+          applied={{ ...clientFilters, hiring: currentHiring }}
+          rows={rows}
+          onApply={applyMobile}
+        />
+      </div>
+
+      <header className="flex flex-wrap items-center justify-between gap-4 max-md:hidden">
         <h1 className="text-[26px] leading-tight font-bold tracking-[-0.01em]">채용 리스트</h1>
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
           <label className="relative flex w-full items-center sm:w-60">
@@ -210,7 +300,8 @@ export function JobsFilters({
           </button>
           <Link
             href={`/jobs/report${searchParams.size ? `?${searchParams.toString()}` : ''}`}
-            className={TOOL_BUTTON}
+            // 휴대폰에서 취업활동 표를 인쇄할 일은 거의 없고 버튼 줄이 꽉 차서 모바일은 숨김(주소로는 열림)
+            className={`${TOOL_BUTTON} max-md:hidden`}
             title="현재 필터 그대로 취업활동 표로 이동"
           >
             <Printer className="h-4 w-4" strokeWidth={1.8} aria-hidden />
@@ -220,29 +311,9 @@ export function JobsFilters({
         </div>
       </header>
 
-      <section aria-label="필터" className="flex flex-col gap-2.5 border-y border-rule py-4">
-        <button
-          type="button"
-          onClick={() => setMobileOpen((o) => !o)}
-          aria-expanded={mobileOpen}
-          className="inline-flex min-h-11 cursor-pointer items-center justify-between gap-2 rounded-md border border-btn-border bg-surface px-3 text-sm text-ink-soft md:hidden"
-        >
-          <span className="inline-flex items-center gap-2">
-            <SlidersHorizontal className="h-4 w-4" aria-hidden />
-            필터
-            {chipFilterCount > 0 ? (
-              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-button px-1.5 text-[10px] font-medium text-white">
-                {chipFilterCount}
-              </span>
-            ) : null}
-          </span>
-          <ChevronDown
-            className={`h-4 w-4 text-ink-muted transition-transform ${mobileOpen ? 'rotate-180' : ''}`}
-            aria-hidden
-          />
-        </button>
+      <section aria-label="필터" className="flex flex-col gap-2.5 border-y border-rule py-4 max-md:hidden">
 
-        <div className={`${mobileOpen ? 'flex' : 'hidden'} flex-col gap-2.5 md:flex`}>
+        <div className={`flex flex-col gap-2.5`}>
           <FilterGroup
             label="유형"
             trailing={

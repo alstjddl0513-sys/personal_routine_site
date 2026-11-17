@@ -15,12 +15,11 @@ import {
   Shield,
   Sun,
 } from 'lucide-react';
-import { useEffect, useState, useSyncExternalStore, type ComponentType, type SVGProps } from 'react';
+import { useSyncExternalStore, type ComponentType, type SVGProps } from 'react';
 import { NotifBell } from './NotifBell';
 import { RallyLogo } from './RallyLogo';
 import { ThemeToggle } from './ThemeToggle';
-import { createSupabaseBrowserClient } from '@/lib/supabase/client';
-import { getMyProfile } from '@/lib/api';
+import { useIsAdmin } from '@/lib/useIsAdmin';
 
 interface NavChild {
   href: string;
@@ -100,8 +99,7 @@ const NAV: NavItem[] = [
 
 const STORAGE_KEY = 'rally.sidebar.collapsed';
 
-// 숲색 사이드바(docs/design/rally-dashboard.html) — 전 페이지 공통이라
-// 본문이 zinc인 페이지에서도 이 톤.
+// 숲색 사이드바(docs/design/rally-dashboard.html) — 전 페이지 공통, 라이트 · 다크 모두 이 톤.
 const SIDE_ICON_BTN =
   'relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-side-fg transition-colors hover:bg-side-active hover:text-white';
 const SIDE_LINK_ACTIVE = 'bg-side-active font-semibold text-white';
@@ -158,38 +156,9 @@ function writeCollapsed(next: CollapsedMap) {
   collapsedListeners.forEach((fn) => fn());
 }
 
-// 어드민일 때만 설정 위에 '관리자 페이지' 줄. 로그인/로그아웃 때마다 다시 확인.
-// isAdmin(Phase 12.5)은 /admin 링크 조건부 렌더에만 사용 — 서버 진리치라
-// 클라 조작 시도해도 실제 API는 AdminGuard로 재검증.
+// 어드민일 때만 설정 위에 '관리자 페이지' 줄(확인 로직은 useIsAdmin — 모바일 더보기와 같이 씀).
 function AdminLink({ active }: { active: boolean }) {
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    const supabase = createSupabaseBrowserClient();
-    let cancelled = false;
-
-    async function refresh() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        if (!cancelled) setIsAdmin(false);
-        return;
-      }
-      const profile = await getMyProfile().catch(() => null);
-      if (!cancelled) setIsAdmin(profile?.isAdmin ?? false);
-    }
-
-    refresh();
-    const { data } = supabase.auth.onAuthStateChange(() => {
-      refresh();
-    });
-    return () => {
-      cancelled = true;
-      data.subscription.unsubscribe();
-    };
-  }, []);
-
+  const isAdmin = useIsAdmin();
   if (!isAdmin) return null;
   return (
     <Link

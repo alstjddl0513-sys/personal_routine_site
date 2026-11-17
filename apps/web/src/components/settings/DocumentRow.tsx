@@ -290,7 +290,8 @@ export function DocumentRow({ document, flash, nextActive }: Props) {
                     onClick={() => setPreviewOpen(true)}
                     title="미리보기"
                     aria-label={`${document.title} 미리보기`}
-                    className="max-w-95 cursor-pointer truncate rounded-sm text-left text-[15px] font-semibold text-ink-strong underline-offset-3 outline-none hover:underline focus-visible:underline focus-visible:shadow-[0_0_0_2px_var(--rally-chip-on-border)]"
+                    // -my-2 py-2 — 줄 높이는 그대로, 누르는 자리만 넓게(truncate라 ::before는 잘림)
+                    className="-my-2 max-w-95 cursor-pointer truncate rounded-sm py-2 text-left text-[15px] font-semibold text-ink-strong underline-offset-3 outline-none hover:underline focus-visible:underline focus-visible:shadow-[0_0_0_2px_var(--rally-chip-on-border)]"
                   >
                     {document.title}
                   </button>

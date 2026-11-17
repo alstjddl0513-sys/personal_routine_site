@@ -4,7 +4,7 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 
-describe('AppController (e2e)', () => {
+describe('Health (e2e)', () => {
   let app: INestApplication<App>;
 
   beforeEach(async () => {
@@ -16,11 +16,12 @@ describe('AppController (e2e)', () => {
     await app.init();
   });
 
-  it('/ (GET)', () => {
+  // 인증 없이 열리는 가벼운 응답(외부 크론의 슬립 방지용)
+  it('/health/ping (GET)', () => {
     return request(app.getHttpServer())
-      .get('/')
+      .get('/health/ping')
       .expect(200)
-      .expect('Hello World!');
+      .expect({ ok: true });
   });
 
   afterEach(async () => {

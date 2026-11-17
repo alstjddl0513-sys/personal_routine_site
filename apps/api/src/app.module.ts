@@ -5,8 +5,6 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { resolve } from 'path';
 import { SupabaseAuthGuard } from './supabase-auth.guard';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { HealthController } from './health/health.controller';
 import { CompaniesModule } from './companies/companies.module';
 import { CompanyEventsModule } from './company-events/company-events.module';
@@ -66,9 +64,8 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     FeedbackModule,
     SchedulerModule,
   ],
-  controllers: [AppController, HealthController],
+  controllers: [HealthController],
   providers: [
-    AppService,
     { provide: APP_GUARD, useClass: SupabaseAuthGuard },
     { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],

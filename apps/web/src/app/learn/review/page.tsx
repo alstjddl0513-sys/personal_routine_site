@@ -72,20 +72,22 @@ export default async function LearnReviewPage({
   return (
     <div className="min-h-screen bg-paper font-plex text-[15px] leading-normal text-ink tabular-nums">
       <div className="mx-auto flex max-w-220 flex-col gap-5 px-4 pt-6 pb-16 md:px-10 md:pt-9">
-        <header className="flex flex-col gap-1">
+        {/* 모바일은 하위 탭 '복습'과 겹쳐서 숨김 */}
+        <header className="flex flex-col gap-1 max-md:hidden">
           <h1 className="text-[26px] leading-tight font-bold tracking-[-0.01em]">복습</h1>
           <p className="text-[15px] text-ink-soft">다시 읽고 이해했으면 이해완료로 바꿔요.</p>
         </header>
 
-        {/* 전환과 칩 모두 "어떤 질문을 볼지" 고르는 거라 한 줄에. 넘치면 칩만 다음 줄로 */}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+        {/* 전환과 칩 모두 "어떤 질문을 볼지" 고르는 거라 한 줄에. 넘치면 칩만 다음 줄로.
+            모바일은 세그먼트 아래 칩 한 줄(가로로 넘김) — 구분선은 숨김 */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-3 max-md:flex-col max-md:items-start">
           <ModeSegment
             mode={mode}
             categories={selectedCategories}
             reviewCount={reviewCount}
             favoriteCount={favoriteCount}
           />
-          {categories.length > 0 ? <span aria-hidden className="h-6 w-px bg-rule" /> : null}
+          {categories.length > 0 ? <span aria-hidden className="h-6 w-px bg-rule max-md:hidden" /> : null}
           <CategoryFilterChips categories={categories} selected={selectedCategories} mode={mode} />
         </div>
 

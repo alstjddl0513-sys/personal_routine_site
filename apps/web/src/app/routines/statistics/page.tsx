@@ -16,6 +16,7 @@ import { BlockMonthCard } from '../../../components/routines/stats/BlockMonthCar
 import { KpiCard, type KpiPeriod } from '../../../components/routines/stats/KpiCard';
 import { WeekdayAvgBars } from '../../../components/routines/stats/WeekdayAvgBars';
 import { Skeleton } from '../../../components/Skeleton';
+import { HIT_AREA } from '../../../components/ui/hitArea';
 import type { RoutineCheck } from '@repo/shared';
 
 const STREAK_WINDOW_DAYS = 180;
@@ -149,7 +150,8 @@ async function RoutinesStatisticsContent() {
             type="button"
             aria-label="스트릭 세는 기준"
             aria-describedby="streak-tip"
-            className="inline-flex h-6 w-6 cursor-help items-center justify-center rounded-full text-ink-muted hover:text-ink focus-visible:text-ink"
+            // 24px 아이콘, 누르는 자리는 40px(HIT_AREA)
+            className={`inline-flex h-6 w-6 cursor-help items-center justify-center rounded-full text-ink-muted hover:text-ink focus-visible:text-ink ${HIT_AREA}`}
           >
             <Info className="h-4 w-4" aria-hidden />
           </button>

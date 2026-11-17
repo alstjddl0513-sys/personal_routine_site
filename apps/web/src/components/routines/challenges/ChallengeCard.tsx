@@ -100,7 +100,7 @@ export function ChallengeCard({
     <>
       {variant === 'row' ? (
         // 상태 · 제목 · 기록 · 삭제 고정 열 — 기록이 제목 바로 옆에서 읽히게.
-        <li className="grid min-h-12 grid-cols-[52px_minmax(0,1fr)_auto_40px] items-center gap-x-3.5 border-b border-divider px-1">
+        <li className="grid min-h-12 grid-cols-[52px_minmax(0,1fr)_auto_40px] items-center gap-x-3.5 border-b border-divider px-1 max-md:px-4 max-md:last:border-b-0">
           <span
             className={`inline-flex items-center gap-1.25 text-[13px] font-semibold ${
               isDone ? 'text-heading' : 'text-ink-muted'
@@ -120,35 +120,47 @@ export function ChallengeCard({
           {deleteButton}
         </li>
       ) : (
-        <article className="flex flex-col gap-2.5 rounded-lg border border-line bg-surface px-5 pt-4.5 pb-3">
+        // 모바일은 챌린지 카드 안의 한 줄(테두리 · 둥근 모서리 없이 줄 사이 divider)
+        <article className="flex flex-col gap-2.5 rounded-lg border border-line bg-surface px-5 pt-4.5 pb-3 max-md:rounded-none max-md:border-0 max-md:bg-transparent max-md:px-4 max-md:pt-4 max-md:pb-1.5">
           <div className="flex items-baseline justify-between gap-2">
             <h3 className="min-w-0 truncate text-base font-bold">{challenge.title}</h3>
-            <span className="shrink-0 text-[13px] font-semibold text-ink-soft">
+            {/* 모바일은 D-3 이하면 alert(rally-mobile-routines) — 데스크톱은 그대로 */}
+            <span
+              className={`shrink-0 text-[13px] font-semibold text-ink-soft ${
+                isActive && challenge.remainingDays <= 3 ? 'max-md:text-alert' : ''
+              }`}
+            >
               {challenge.remainingDays <= 0 ? 'D-day' : `D-${challenge.remainingDays}`}
             </span>
           </div>
-          <div className="flex items-baseline gap-1.5">
+          {/* 큰 숫자 줄은 데스크톱만 — 모바일은 진행바 옆 "14/30일" 한 줄 */}
+          <div className="flex items-baseline gap-1.5 max-md:hidden">
             <span className="text-[22px] leading-tight font-semibold">{challenge.successDays}</span>
             <span className="text-sm text-ink-muted">
               / {challenge.targetDays}일 · {pct}%
             </span>
           </div>
-          <div className="h-1.5 overflow-hidden rounded-full bg-track">
-            <div className="h-full rounded-full bg-marigold" style={{ width: `${pct}%` }} />
+          <div className="flex items-center gap-2.5">
+            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-track">
+              <div className="h-full rounded-full bg-marigold" style={{ width: `${pct}%` }} />
+            </div>
+            <span className="flex-none text-[13px] text-ink-muted tabular-nums md:hidden">
+              {challenge.successDays}/{challenge.targetDays}일
+            </span>
           </div>
           {blocks.length > 0 ? (
             <div className="flex flex-wrap gap-1">
               {blocks.map((b) => (
                 <span
                   key={b.id}
-                  className="max-w-full truncate rounded px-2 py-px text-xs text-ink-soft bg-tag-bg"
+                  className="max-w-full truncate rounded px-2 py-px text-xs text-ink-soft bg-tag-bg max-md:inline-flex max-md:h-5.5 max-md:items-center max-md:border max-md:border-divider max-md:bg-thead"
                 >
                   {b.label}
                 </span>
               ))}
             </div>
           ) : null}
-          <div className="mt-0.5 flex items-center justify-between gap-2 border-t border-divider pt-1.5">
+          <div className="mt-0.5 flex items-center justify-between gap-2 border-t border-divider pt-1.5 max-md:mt-0 max-md:border-t-0 max-md:pt-0">
             <span className="text-xs text-ink-muted">시작 {challenge.startDate}</span>
             <span className="flex items-center">
               {isActive ? (

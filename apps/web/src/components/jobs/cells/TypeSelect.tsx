@@ -7,16 +7,15 @@ import { patchCompany } from '../../../lib/api';
 import { Select } from '../../ui/Select';
 import { TABLE_SMALL_TRIGGER } from './table-style';
 
+// 채용 표(데스크톱) 회사명 아래 "유형" 작은 글자 버튼. 모바일 카드는 바텀시트(mobile/MobileJobCard).
 export function TypeSelect({
   id,
   value,
   types,
-  variant,
 }: {
   id: string;
   value: string;
   types: CompanyType[];
-  variant?: 'table';
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -33,7 +32,7 @@ export function TypeSelect({
       {
         value: current,
         label: `${current} (삭제됨)`,
-        className: 'italic text-zinc-500 dark:text-zinc-500',
+        className: 'italic text-ink-muted',
       },
       ...base,
     ];
@@ -59,8 +58,7 @@ export function TypeSelect({
       options={options}
       disabled={isPending}
       ariaLabel="유형 변경"
-      tone={variant === 'table' ? 'rally' : undefined}
-      triggerClassName={variant === 'table' ? TABLE_SMALL_TRIGGER : "cursor-pointer rounded border border-transparent bg-transparent px-2 py-0.5 text-xs text-zinc-600 hover:border-zinc-200 hover:bg-zinc-50 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400 focus:outline-none dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:bg-zinc-800"}
+      triggerClassName={TABLE_SMALL_TRIGGER}
     />
   );
 }

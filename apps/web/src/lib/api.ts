@@ -19,14 +19,12 @@ import type {
   Document,
   DocumentKind,
   Exercise,
-  ExerciseStats,
   ExerciseStatsBatch,
   WorkoutDaySummary,
   Feedback,
   InitDocumentInput,
   InitDocumentResult,
   NicknameAvailability,
-  PreviousWorkout,
   Priority,
   Profile,
   Question,
@@ -523,19 +521,6 @@ export async function getWorkoutSessionsByDate(date: string): Promise<WorkoutSes
   return (await res.json()) as WorkoutSession[];
 }
 
-export async function getWorkoutSessionsRange(range: {
-  from: string;
-  to: string;
-}): Promise<WorkoutSession[]> {
-  const qs = new URLSearchParams({ from: range.from, to: range.to });
-  const res = await fetch(apiUrl(`/workout-sessions?${qs.toString()}`), {
-    cache: 'no-store',
-    headers: await authHeaders(),
-  });
-  if (!res.ok) throw new Error(`GET /workout-sessions failed: HTTP ${res.status}`);
-  return (await res.json()) as WorkoutSession[];
-}
-
 export async function createWorkoutSession(input: {
   date: string;
   note?: string;
@@ -643,16 +628,6 @@ export async function createWorkoutSplitsFromTemplate(
   return (await res.json()) as WorkoutSplit[];
 }
 
-export async function deleteWorkoutSession(id: string): Promise<void> {
-  const res = await fetch(apiUrl(`/workout-sessions/${id}`), {
-    method: 'DELETE',
-    headers: await authHeaders(),
-  });
-  if (!res.ok && res.status !== 204) {
-    throw new Error(`DELETE /workout-sessions/${id} failed: HTTP ${res.status}`);
-  }
-}
-
 export async function getWorkoutSets(sessionId: string): Promise<WorkoutSet[]> {
   const qs = new URLSearchParams({ sessionId });
   const res = await fetch(apiUrl(`/workout-sets?${qs.toString()}`), {
@@ -751,20 +726,6 @@ export async function putMuscleGoal(
   return (await res.json()) as MuscleGoal;
 }
 
-export async function getExerciseStats(params: {
-  exerciseId: string;
-  limit?: number;
-}): Promise<ExerciseStats> {
-  const qs = new URLSearchParams({ exerciseId: params.exerciseId });
-  if (params.limit !== undefined) qs.set('limit', String(params.limit));
-  const res = await fetch(apiUrl(`/workout-sets/exercise-stats?${qs.toString()}`), {
-    cache: 'no-store',
-    headers: await authHeaders(),
-  });
-  if (!res.ok) throw new Error(`GET /workout-sets/exercise-stats failed: HTTP ${res.status}`);
-  return (await res.json()) as ExerciseStats;
-}
-
 // 운동 통계 종목 카드 — 종목 N개를 한 번에.
 export async function getExerciseStatsBatch(params: {
   exerciseIds: readonly string[];
@@ -812,10 +773,8 @@ export async function getExportJson(): Promise<string> {
   return await res.text();
 }
 
-// /workouts 페이지 진입 시 종목별 previous + PR을 한 왕복으로 받음.
-// 종목 N개면 이전엔 getPreviousWorkout N번 + getExerciseStats N번 → 2N 왕복.
-// 이 배치 endpoint로 클라→서버 왕복 1회로 압축 (자세한 배경은 서버 service
-// 주석 참고). 응답은 exerciseId → { previous, pr } record 두 개.
+// /workouts 진입 시 종목별 '지난 기록' + 최고 기록을 한 왕복으로(종목마다 따로 부르면 2N 왕복).
+// 응답은 exerciseId → { previous, pr } record 두 개.
 export async function getWorkoutSessionContext(params: {
   exerciseIds: readonly string[];
   beforeDate: string;
@@ -832,22 +791,6 @@ export async function getWorkoutSessionContext(params: {
     throw new Error(`GET /workout-sets/session-context failed: HTTP ${res.status}`);
   }
   return (await res.json()) as WorkoutSessionContext;
-}
-
-export async function getPreviousWorkout(params: {
-  exerciseId: string;
-  beforeDate: string;
-}): Promise<PreviousWorkout | null> {
-  const qs = new URLSearchParams(params);
-  const res = await fetch(apiUrl(`/workout-sets/previous?${qs.toString()}`), {
-    cache: 'no-store',
-    headers: await authHeaders(),
-  });
-  if (!res.ok) throw new Error(`GET /workout-sets/previous failed: HTTP ${res.status}`);
-  // Nest serializes `null` return as an empty body (Content-Length: 0) rather
-  // than the string "null", so res.json() would throw. Read as text first.
-  const text = await res.text();
-  return text ? (JSON.parse(text) as PreviousWorkout) : null;
 }
 
 // --- blog ---

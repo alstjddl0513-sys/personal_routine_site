@@ -169,7 +169,6 @@ export function UsersTable({ initial }: Props) {
           options={SORT_OPTIONS}
           disabled={isPending}
           ariaLabel="정렬"
-          tone="rally"
           triggerSuffix={<ChevronDown className="ml-auto h-4 w-4 text-ink-muted" aria-hidden />}
           triggerClassName={`${POPOVER_INPUT_BASE} cursor-pointer gap-2 px-3 text-sm`}
         />
@@ -177,10 +176,13 @@ export function UsersTable({ initial }: Props) {
 
       <AdminError message={error} />
 
-      {/* 표는 데스크톱 기준 고정 열 — 좁은 화면은 가로로 밀어 봄 */}
-      <div className="overflow-x-auto rounded-lg border border-line bg-surface">
-        <div role="table" aria-label="사용자" className="min-w-205">
-          <div role="row" className={`${GRID} min-h-10 border-b border-divider bg-thead text-[13px] font-semibold text-ink-soft`}>
+      {/* 데스크톱은 고정 열 표. 모바일은 한 사람을 세 줄(이름 · 이메일 · 날짜) + 오른쪽 관리 버튼으로 — 가로로 밀지 않게 */}
+      <div className="rounded-lg border border-line bg-surface md:overflow-x-auto">
+        <div role="table" aria-label="사용자" className="md:min-w-205">
+          <div
+            role="row"
+            className={`${GRID} min-h-10 border-b border-divider bg-thead text-[13px] font-semibold text-ink-soft max-md:hidden`}
+          >
             <span role="columnheader">닉네임</span>
             <span role="columnheader">이메일</span>
             <span role="columnheader" className="text-center">가입일</span>
@@ -249,9 +251,12 @@ export function UsersTable({ initial }: Props) {
   );
 }
 
-// 닉네임 172 · 이메일 남는 폭 · 가입일 104 · 최근 로그인 144 · 상태 96 · 관리 92
+// 데스크톱: 닉네임 172 · 이메일 남는 폭 · 가입일 104 · 최근 로그인 144 · 상태 96 · 관리 92
+// 모바일: [이름 · 이메일 | 관리 버튼] + 날짜 줄(전체 폭)
 const GRID =
-  'grid grid-cols-[172px_minmax(180px,1.5fr)_104px_144px_96px_92px] items-center gap-x-3.5 px-4';
+  'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 px-4 md:grid-cols-[172px_minmax(180px,1.5fr)_104px_144px_96px_92px] md:gap-x-3.5';
+// 모바일에서만 숨기는 칸(가입일 · 최근 로그인 · 상태 — 셋째 줄 · 배지가 대신함)
+const DESKTOP_CELL = 'max-md:hidden';
 
 // 영구 차단은 서버가 876000시간(100년) 뒤로 잡음 — 50년 넘으면 '영구'로 읽음
 const PERMANENT_AFTER_MS = 50 * 365 * 24 * 60 * 60 * 1000;
@@ -277,10 +282,10 @@ function UserRow({
   return (
     <div
       role="row"
-      className={`${GRID} min-h-14 border-b border-divider py-2 text-[13.5px] text-ink last:border-b-0 hover:bg-row-hover`}
+      className={`${GRID} min-h-14 gap-y-0.5 border-b border-divider py-2 text-[13.5px] text-ink last:border-b-0 hover:bg-row-hover max-md:py-3`}
     >
-      <span role="cell" className="flex min-w-0 items-center gap-1.5">
-        <span className="truncate font-semibold">
+      <span role="cell" className="flex min-w-0 items-center gap-1.5 max-md:col-start-1">
+        <span className="truncate font-semibold max-md:text-[15px]">
           {row.nickname ?? <span className="font-normal text-icon-faint">—</span>}
         </span>
         {row.isAdmin ? (
@@ -288,8 +293,16 @@ function UserRow({
             관리자
           </DotBadge>
         ) : null}
+        {/* 모바일은 상태 칸이 없어서 차단만 배지로 */}
+        {banned ? (
+          <span className="md:hidden">
+            <DotBadge text="text-alert" border="border-alert">
+              차단
+            </DotBadge>
+          </span>
+        ) : null}
       </span>
-      <span role="cell" className="min-w-0">
+      <span role="cell" className="min-w-0 max-md:col-start-1">
         {row.email ? (
           <span className="block truncate text-ink-soft" title={row.email}>
             {row.email}
@@ -298,11 +311,11 @@ function UserRow({
           <span className="text-icon-faint">—</span>
         )}
       </span>
-      <span role="cell" className="text-center">{formatDotDate(row.createdAt)}</span>
-      <span role="cell" className="text-center">
+      <span role="cell" className={`text-center ${DESKTOP_CELL}`}>{formatDotDate(row.createdAt)}</span>
+      <span role="cell" className={`text-center ${DESKTOP_CELL}`}>
         {row.lastSignInAt ? formatDotDateTime(row.lastSignInAt) : <span className="text-icon-faint">—</span>}
       </span>
-      <span role="cell" className="flex justify-center">
+      <span role="cell" className={`flex justify-center ${DESKTOP_CELL}`}>
         {banned ? (
           <DotBadge text="text-alert" border="border-alert">
             차단
@@ -311,7 +324,15 @@ function UserRow({
           <span className="text-ink-muted">정상</span>
         )}
       </span>
-      <span role="cell" className="-mx-1.5 flex justify-center gap-0.5">
+      {/* 모바일 셋째 줄 — 가입일 · 최근 로그인 */}
+      <span role="cell" className="col-span-full text-[12.5px] text-ink-muted tabular-nums md:hidden">
+        가입 {formatDotDate(row.createdAt)} · 최근 로그인{' '}
+        {row.lastSignInAt ? formatDotDateTime(row.lastSignInAt) : '—'}
+      </span>
+      <span
+        role="cell"
+        className="-mx-1.5 flex justify-center gap-0.5 max-md:col-start-2 max-md:row-span-2 max-md:row-start-1 max-md:ml-0 max-md:self-start"
+      >
         {row.isAdmin ? (
           // 관리자 계정은 차단/삭제 불가 (self-lockout · 상호 무력화 방지). 서버도 같은 판정으로 거절.
           <span className="text-[13px] text-icon-faint" title="관리자 계정은 이 페이지에서 관리할 수 없어요">

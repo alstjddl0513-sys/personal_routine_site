@@ -7,42 +7,21 @@ import { patchCompany } from '../../../lib/api';
 import { Select } from '../../ui/Select';
 import { HoverChevron, TABLE_TRIGGER } from './table-style';
 
-const PRIORITY_STYLE: Record<Priority, string> = {
-  urgent:
-    'bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900',
-  important:
-    'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900',
-  normal:
-    'bg-zinc-100 text-zinc-600 border border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700',
+// 긴급만 마감색으로 튀게. 상 · 하가 비슷한 회색이라 구분이 안 됐음 → 상은 진하게(본문 색 · 600),
+// 하는 흐리게(ink-faint). 표와 모바일 카드가 같이 씀.
+export const PRIORITY_TONE: Record<Priority, string> = {
+  urgent: 'font-semibold text-alert',
+  important: 'font-semibold text-ink',
+  normal: 'text-ink-faint',
 };
-
 const OPTIONS = PRIORITY_VALUES.map((v) => ({
   value: v,
   label: PRIORITY_LABELS[v],
-  className: PRIORITY_STYLE[v],
+  className: PRIORITY_TONE[v],
 }));
 
-// 표(데스크톱): 긴급만 마감색으로 튀게, 상은 본문, 하는 보조색.
-const TABLE_TONE: Record<Priority, string> = {
-  urgent: 'font-semibold text-alert',
-  important: 'text-ink-soft',
-  normal: 'text-ink-muted',
-};
-const TABLE_OPTIONS = PRIORITY_VALUES.map((v) => ({
-  value: v,
-  label: PRIORITY_LABELS[v],
-  className: TABLE_TONE[v],
-}));
-
-export function PrioritySelect({
-  id,
-  value,
-  variant,
-}: {
-  id: string;
-  value: Priority;
-  variant?: 'table';
-}) {
+// 채용 표(데스크톱) 우선순위 칸. 모바일 카드는 바텀시트(mobile/MobileJobCard).
+export function PrioritySelect({ id, value }: { id: string; value: Priority }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [current, setCurrent] = useOptimistic(value);
@@ -60,21 +39,6 @@ export function PrioritySelect({
     });
   }
 
-  if (variant === 'table') {
-    return (
-      <Select
-        value={current}
-        onChange={commit}
-        options={TABLE_OPTIONS}
-        disabled={isPending}
-        ariaLabel="우선순위"
-        tone="rally"
-        triggerClassName={`${TABLE_TRIGGER} text-sm`}
-        triggerSuffix={<HoverChevron />}
-      />
-    );
-  }
-
   return (
     <Select
       value={current}
@@ -82,8 +46,8 @@ export function PrioritySelect({
       options={OPTIONS}
       disabled={isPending}
       ariaLabel="우선순위"
-      highlightStyle="ring"
-      triggerClassName="cursor-pointer rounded px-2 py-0.5 text-xs focus:ring-2 focus:ring-zinc-400 focus:outline-none"
+      triggerClassName={`${TABLE_TRIGGER} text-sm`}
+      triggerSuffix={<HoverChevron />}
     />
   );
 }

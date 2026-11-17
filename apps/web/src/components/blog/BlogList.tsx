@@ -8,7 +8,8 @@ import type { BlogPost, BlogRefreshResult, BlogSource } from '@repo/shared';
 import { getBlogPosts, refreshBlogPosts } from '../../lib/api';
 import { BLOG_PAGE_SIZE } from '../../lib/blog';
 import { useBlogLastSeen, useBlogRead } from '../../lib/blog-local';
-import { BUTTON_PRIMARY } from '../jobs/cells/popover-style';
+import { BUTTON_PRIMARY, BUTTON_SECONDARY } from '../jobs/cells/popover-style';
+import { ChipButton } from '../learn/CategoryFilterChips';
 
 interface Props {
   posts: BlogPost[];
@@ -21,7 +22,8 @@ interface Props {
 const OUTLINE_BTN =
   'inline-flex min-h-10 shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-btn-border bg-btn-bg px-4 text-sm text-btn-fg hover:border-heading disabled:cursor-default disabled:border-divider disabled:text-ink-muted disabled:hover:border-divider';
 // 채운 버튼(숲색) — 이 화면에서 먼저 누를 버튼: [새 글 가져오기] · 빈 상태 행동
-const FILLED_BTN = `${BUTTON_PRIMARY} shrink-0 gap-1.5`;
+// whitespace-nowrap — 좁은 폭에서 칩 옆에 끼어 "새 글 / 가져오기" 두 줄로 꺾이지 않게
+const FILLED_BTN = `${BUTTON_PRIMARY} shrink-0 gap-1.5 whitespace-nowrap`;
 const SPIN = 'animate-spin motion-reduce:animate-none';
 // 성공·새 글 없음 결과 줄이 머무는 시간
 const RESULT_MS = 5000;
@@ -149,10 +151,16 @@ export function BlogList({ posts, sources, activeSourceId }: Props) {
 
   return (
     <>
-      {/* 칩이 몇 줄이 되든 [새 글 가져오기]는 첫 줄 오른쪽 */}
-      <div className="flex items-start gap-4">
+      {/* 데스크톱: 칩이 몇 줄이 되든 [새 글 가져오기]는 첫 줄 오른쪽.
+          모바일: [구독 관리] … [새 글 가져오기] 한 줄 위에, 칩은 가로로 넘기는 한 줄(머리말 [구독 관리]는 숨김) */}
+      <div className="flex items-start gap-4 max-md:flex-col-reverse max-md:items-stretch max-md:gap-3">
         <SourceChips sources={activeSources} activeSourceId={activeSourceId} onPick={pushFilter} />
-        <span className="ml-auto">{refreshButton}</span>
+        <span className="ml-auto flex items-center justify-between gap-2 max-md:ml-0">
+          <Link href="/settings/blog-sources" className={`${BUTTON_SECONDARY} md:hidden`}>
+            구독 관리
+          </Link>
+          {refreshButton}
+        </span>
       </div>
 
       {result ? <ResultLine result={result} onClose={() => setResult(null)} /> : null}
@@ -224,7 +232,7 @@ function EmptyCard({ message, children }: { message: string; children: React.Rea
   );
 }
 
-// 칩 — 학습 페이지 카테고리 칩과 같은 모양. 많으면 칩만 줄바꿈(접기·가로 스크롤 X)
+// 칩 — 학습 페이지 카테고리 칩과 같은 모양. 데스크톱은 많으면 줄바꿈, 모바일은 가로로 넘기는 한 줄
 function SourceChips({
   sources,
   activeSourceId,
@@ -235,41 +243,12 @@ function SourceChips({
   onPick: (sourceId: string | null) => void;
 }) {
   return (
-    <div className="flex min-w-0 flex-wrap items-center gap-2">
-      <Chip active={!activeSourceId} onClick={() => onPick(null)}>
-        전체
-      </Chip>
+    <div className="no-scrollbar -mx-4 flex min-w-0 items-center gap-2 overflow-x-auto px-4 md:mx-0 md:flex-wrap md:overflow-visible md:px-0">
+      <ChipButton active={!activeSourceId} onClick={() => onPick(null)} label="전체" />
       {sources.map((s) => (
-        <Chip key={s.id} active={activeSourceId === s.id} onClick={() => onPick(s.id)}>
-          {s.name}
-        </Chip>
+        <ChipButton key={s.id} active={activeSourceId === s.id} onClick={() => onPick(s.id)} label={s.name} />
       ))}
     </div>
-  );
-}
-
-function Chip({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={`inline-flex h-9 cursor-pointer items-center rounded-[18px] px-3.5 text-sm ${
-        active
-          ? 'bg-chip-on-bg font-bold text-heading shadow-[inset_0_0_0_2px_var(--rally-chip-on-border)]'
-          : 'bg-surface font-medium text-ink-soft shadow-[inset_0_0_0_1px_var(--rally-btn-border)] hover:bg-row-hover'
-      }`}
-    >
-      {children}
-    </button>
   );
 }
 
@@ -294,14 +273,16 @@ function PostRow({
       rel="noopener noreferrer"
       onClick={onOpen}
       onAuxClick={onOpen}
-      className="group -mx-4 grid grid-cols-[116px_minmax(0,1fr)_128px] items-start gap-5 rounded-md px-4 py-3.5 outline-none hover:bg-row-hover focus-visible:shadow-[inset_0_0_0_2px_var(--rally-chip-on-border)]"
+      // 모바일(<768): 1줄 [블로그 이름 … 날짜] / 2줄 제목 · 요약(전체 폭) — 3열을 그대로 두면 제목 칸이
+      // 몇 px만 남아 한두 글자씩 꺾였음. 데스크톱은 3열 그대로
+      className="group -mx-4 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1 rounded-md px-4 py-3.5 outline-none hover:bg-row-hover focus-visible:shadow-[inset_0_0_0_2px_var(--rally-chip-on-border)] md:grid-cols-[116px_minmax(0,1fr)_128px] md:gap-5"
     >
       {sourceName ? (
         <span className="truncate text-sm font-semibold text-ink-soft">{sourceName}</span>
       ) : (
         <span className="text-sm text-ink-muted">지운 블로그</span>
       )}
-      <span className="flex min-w-0 flex-col">
+      <span className="col-span-2 row-start-2 flex min-w-0 flex-col md:col-span-1 md:row-start-auto">
         <span className={`max-w-180 text-base leading-normal font-semibold ${read ? 'text-ink-faint' : 'text-ink-strong'}`}>
           {isNew ? (
             <span className="mr-2 inline-flex items-center gap-1 align-[1px] text-xs font-bold text-heading">
@@ -318,7 +299,7 @@ function PostRow({
           </span>
         ) : null}
       </span>
-      <span className="relative flex flex-col items-end gap-1 pr-5 text-right">
+      <span className="relative col-start-2 row-start-1 flex flex-row items-center gap-2 pr-5 text-right md:col-start-auto md:row-start-auto md:flex-col md:items-end md:gap-1">
         <span className="text-[13px] text-ink-muted tabular-nums">{formatDate(post.publishedAt ?? post.createdAt)}</span>
         {read ? (
           <span className="inline-flex items-center gap-1 text-xs text-ink-faint">

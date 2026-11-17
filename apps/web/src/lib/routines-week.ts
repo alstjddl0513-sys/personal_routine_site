@@ -70,16 +70,6 @@ export function dowLabel(d: Date): string {
   return DOW_KO[d.getDay()];
 }
 
-export function formatWeekRange(week: WeekInfo): string {
-  const m = week.monday;
-  const s = week.days[6];
-  const mm = String(m.getMonth() + 1).padStart(2, '0');
-  const md = String(m.getDate()).padStart(2, '0');
-  const sm = String(s.getMonth() + 1).padStart(2, '0');
-  const sd = String(s.getDate()).padStart(2, '0');
-  return `${m.getFullYear()}. ${mm}. ${md} ~ ${sm}. ${sd}`;
-}
-
 // 이 주의 "소속 월"은 이 주의 목요일이 속한 달. 월 경계에 걸치는 주는 과반(Thu~Sun 4일)이
 // 어느 달에 속하는지로 결정 — ISO 8601 week 개념과 비슷하지만 월 단위.
 // Returns 예: "10월 1주차", "12월 1주차".

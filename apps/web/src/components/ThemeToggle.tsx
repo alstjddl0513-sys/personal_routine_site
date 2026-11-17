@@ -37,16 +37,13 @@ export function applyTheme(next: Theme) {
   themeListeners.forEach((fn) => fn());
 }
 
-const DEFAULT_CLASS =
-  'inline-flex h-7 w-7 items-center justify-center rounded-md border border-zinc-200 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100';
-
 // 설정의 테마 세그먼트(ThemeSegment)도 같은 상태를 씀 — 사이드바 토글과 서로 바로 맞춰짐
 export function useTheme(): Theme | null {
   return useSyncExternalStore(subscribeTheme, readThemeClient, readThemeServer);
 }
 
-// className: 사이드바처럼 배경이 다른 곳에서 버튼 색만 바꿀 때.
-export function ThemeToggle({ className = DEFAULT_CLASS }: { className?: string }) {
+// 사이드바 하단 🌙/☀ 버튼 — 모양은 쓰는 쪽(Sidebar)이 정함
+export function ThemeToggle({ className }: { className: string }) {
   const theme = useSyncExternalStore(
     subscribeTheme,
     readThemeClient,

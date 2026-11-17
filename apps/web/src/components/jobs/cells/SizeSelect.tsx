@@ -16,15 +16,8 @@ const OPTIONS = COMPANY_TYPE_1_VALUES.map((v) => ({
   label: COMPANY_TYPE_1_LABELS[v],
 }));
 
-export function SizeSelect({
-  id,
-  value,
-  variant,
-}: {
-  id: string;
-  value: CompanyType1;
-  variant?: 'table';
-}) {
+// 채용 표(데스크톱) 회사명 아래 "규모" 작은 글자 버튼. 모바일 카드는 바텀시트(mobile/MobileJobCard).
+export function SizeSelect({ id, value }: { id: string; value: CompanyType1 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [current, setCurrent] = useOptimistic(value);
@@ -49,8 +42,7 @@ export function SizeSelect({
       options={OPTIONS}
       disabled={isPending}
       ariaLabel="규모 변경"
-      tone={variant === 'table' ? 'rally' : undefined}
-      triggerClassName={variant === 'table' ? TABLE_SMALL_TRIGGER : "cursor-pointer rounded border border-transparent bg-transparent px-2 py-0.5 text-xs text-zinc-600 hover:border-zinc-200 hover:bg-zinc-50 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400 focus:outline-none dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:bg-zinc-800"}
+      triggerClassName={TABLE_SMALL_TRIGGER}
     />
   );
 }

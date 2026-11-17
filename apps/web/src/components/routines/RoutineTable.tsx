@@ -197,7 +197,7 @@ export function RoutineTable({ blocks, checks, days, todayIso }: Props) {
       {rows.length === 0 ? (
         <div className="flex flex-col items-center gap-3.5 rounded-lg border border-dashed border-btn-border bg-surface px-8 py-9 text-center">
           <p className="text-ink-soft">아직 만든 루틴이 없어요. 아래에서 하나 추가해보세요.</p>
-          <AddTimeBlockRow nextSortOrder={nextSortOrder} variant="table" />
+          <AddTimeBlockRow nextSortOrder={nextSortOrder} />
         </div>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-line bg-surface">
@@ -220,13 +220,7 @@ export function RoutineTable({ blocks, checks, days, todayIso }: Props) {
                     내용
                   </th>
                   {days.map((d) => (
-                    <DayHeader
-                      key={toISODate(d)}
-                      date={d}
-                      todayIso={todayIso}
-                      done={rows.filter((b) => isChecked(checkKey(b.id, toISODate(d)))).length}
-                      total={rows.length}
-                    />
+                    <DayHeader key={toISODate(d)} date={d} todayIso={todayIso} />
                   ))}
                   <th scope="col" className="w-11 p-0">
                     <span className="sr-only">삭제</span>
@@ -249,10 +243,27 @@ export function RoutineTable({ blocks, checks, days, todayIso }: Props) {
                     />
                   ))}
                 </SortableContext>
+                {/* 완료 줄 — 위에서 아래로 체크하다 끝에서 그날 합계를 읽게(머리는 요일 · 날짜만) */}
+                <tr className="border-t border-line bg-thead">
+                  <td className="p-0" />
+                  <th scope="row" colSpan={2} className="px-2 py-2 text-left text-[13px] font-semibold text-ink-muted">
+                    완료
+                  </th>
+                  {days.map((d) => (
+                    <DayCount
+                      key={toISODate(d)}
+                      date={d}
+                      todayIso={todayIso}
+                      done={rows.filter((b) => isChecked(checkKey(b.id, toISODate(d)))).length}
+                      total={rows.length}
+                    />
+                  ))}
+                  <td className="p-0" />
+                </tr>
                 <tr>
                   <td className="p-0" />
                   <td colSpan={days.length + 3} className="px-1 pt-2 pb-2.5">
-                    <AddTimeBlockRow nextSortOrder={nextSortOrder} variant="table" />
+                    <AddTimeBlockRow nextSortOrder={nextSortOrder} />
                   </td>
                 </tr>
               </tbody>
@@ -264,28 +275,16 @@ export function RoutineTable({ blocks, checks, days, todayIso }: Props) {
   );
 }
 
-// 요일 머리: 요일 / 날짜(오늘 = 원) / 그날 체크 수. '완료'(✓)는 전부 체크한 날만.
-function DayHeader({
-  date,
-  todayIso,
-  done,
-  total,
-}: {
-  date: Date;
-  todayIso: string;
-  done: number;
-  total: number;
-}) {
+// 요일 머리: 요일 / 날짜(오늘 = 원). 그날 체크 수는 표 맨 아래 '완료' 줄(DayCount).
+function DayHeader({ date, todayIso }: { date: Date; todayIso: string }) {
   const iso = toISODate(date);
   const isToday = iso === todayIso;
   const isFuture = iso > todayIso;
   const weekend = date.getDay() === 0 || date.getDay() === 6;
-  const all = total > 0 && done === total;
 
   const label = [
     `${date.getMonth() + 1}월 ${date.getDate()}일 ${DOW_LONG[date.getDay()]}`,
     isToday ? '오늘' : null,
-    `${total}개 중 ${done}개`,
   ]
     .filter(Boolean)
     .join(', ');
@@ -294,7 +293,7 @@ function DayHeader({
     <th
       scope="col"
       aria-label={label}
-      className={`w-15.5 px-0.5 pt-2 pb-2.25 text-center ${isToday ? 'bg-today-col' : ''}`}
+      className={`w-15.5 px-0.5 pt-2 pb-2 text-center ${isToday ? 'bg-today-col' : ''}`}
     >
       <span className="flex flex-col items-center gap-0.5">
         <span className={`text-xs font-semibold ${weekend ? 'text-ink-muted' : 'text-ink-soft'}`}>
@@ -313,20 +312,41 @@ function DayHeader({
             {date.getDate()}
           </span>
         )}
-        <span
-          title={DAY_COUNT_TIP}
-          className={`text-xs ${
-            all
-              ? 'font-bold text-heading'
-              : done === 0 && isFuture
-                ? 'font-medium text-ink-faint'
-                : 'font-medium text-ink-muted'
-          }`}
-        >
-          {all ? `✓ ${done}/${total}` : done === 0 && isFuture ? '—' : `${done}/${total}`}
-        </span>
       </span>
     </th>
+  );
+}
+
+// 완료 줄 한 칸 — 그날 체크 수. '✓'는 전부 체크한 날만, 아직 안 온 날은 "—"
+function DayCount({
+  date,
+  todayIso,
+  done,
+  total,
+}: {
+  date: Date;
+  todayIso: string;
+  done: number;
+  total: number;
+}) {
+  const iso = toISODate(date);
+  const isToday = iso === todayIso;
+  const isFuture = iso > todayIso;
+  const all = total > 0 && done === total;
+  return (
+    <td
+      title={DAY_COUNT_TIP}
+      aria-label={`${date.getMonth() + 1}월 ${date.getDate()}일 ${total}개 중 ${done}개`}
+      className={`py-2 text-center text-xs tabular-nums ${isToday ? 'bg-today-col' : ''} ${
+        all
+          ? 'font-bold text-heading'
+          : done === 0 && isFuture
+            ? 'font-medium text-ink-faint'
+            : 'font-medium text-ink-muted'
+      }`}
+    >
+      {all ? `✓ ${done}/${total}` : done === 0 && isFuture ? '—' : `${done}/${total}`}
+    </td>
   );
 }
 
