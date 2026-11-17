@@ -14,22 +14,17 @@ import { NotifSettingsModal } from './settings/NotifSettingsModal';
 // SectionSubNav(모바일) 우측에 각각 마운트. md: 스위치로 동시 노출 X.
 // unread = 브라우저 로그(notif-log) + 서버 공지(announcements-sink).
 // 서버 공지 fetch는 RootLayout의 NotifAuthSync가 auth state 이벤트에서 트리거.
-const DEFAULT_CLASS =
-  'relative inline-flex h-7 w-7 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-100';
-
-const DEFAULT_DOT = 'absolute right-1 top-1 inline-flex h-1.5 w-1.5 rounded-full bg-rose-500';
-
-// className: 사이드바처럼 배경이 다른 곳에서 버튼 색만 바꿀 때 (relative 포함해서 넘길 것).
-// unreadClassName · dotClassName: 안 읽음이 있을 때 버튼 · 점 모양(사이드바 — rally-notif-drawer-parts). 없으면 기본(모바일).
+// 모양은 놓이는 곳(사이드바 · 모바일 위 줄)마다 달라서 쓰는 쪽이 정함:
+// className = 버튼(relative 포함), dotClassName = 안 읽음 점, unreadClassName = 안 읽음일 때 버튼(사이드바만).
 export function NotifBell({
-  className = DEFAULT_CLASS,
+  className,
   unreadClassName,
-  dotClassName = DEFAULT_DOT,
+  dotClassName,
   iconClassName = 'h-3.5 w-3.5',
 }: {
-  className?: string;
+  className: string;
   unreadClassName?: string;
-  dotClassName?: string;
+  dotClassName: string;
   /** 종 아이콘 크기(모바일 상단 줄은 20px) */
   iconClassName?: string;
 }) {

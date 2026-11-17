@@ -7,10 +7,7 @@ import {
   Matches,
 } from 'class-validator';
 
-// /workouts 페이지 진입 시 종목별 previous + PR을 한 번의 왕복으로 받기 위한
-// 배치 endpoint의 query DTO. 개별 GET /workout-sets/previous?exerciseId=...
-// + GET /workout-sets/exercise-stats?exerciseId=... 를 종목 수만큼 병렬로
-// 부르던 것을 대체.
+// /workouts 진입 시 종목별 '지난 기록' + 최고 기록을 한 왕복으로 받는 배치 endpoint의 query.
 //
 // exerciseIds는 CSV로 전달 (URL 길이는 종목 30개 기준 ~1.2KB, 안전 범위).
 // max 100은 페이지가 실질적으로 다룰 상한.

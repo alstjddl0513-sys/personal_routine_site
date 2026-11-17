@@ -8,8 +8,7 @@ interface Props {
 }
 
 // 최근 N일간 각 블록의 완료율(=체크 수 / N) 상위 N개.
-// StreakBadge(any-block 연속)와 지표가 완전히 달라서 역할 분리 명확.
-// streak 기반 랭킹은 변동성 커서(하루 놓치면 0) 완료율로 교체 — 2026-10-01 결정.
+// streak 기반 랭킹은 변동성이 커서(하루 놓치면 0) 완료율로 — 2026-10-01 결정.
 export function BlockCompletionRanking({
   blocks,
   checks,

@@ -2,7 +2,12 @@
 
 import { Check, ChevronLeft, ChevronRight, Loader2, RotateCw, Star } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import type { QuestionDetail, QuestionStatus, RandomQuestion } from '@repo/shared';
+import {
+  QUESTION_STATUS_LABELS,
+  type QuestionDetail,
+  type QuestionStatus,
+  type RandomQuestion,
+} from '@repo/shared';
 import { getQuestionDetail, logQuestion, setQuestionFavorite } from '../../lib/api';
 import { BUTTON_PRIMARY, BUTTON_TEXT } from '../jobs/cells/popover-style';
 
@@ -16,11 +21,6 @@ interface Props {
   /** categoryKey → 이름. 위 줄 라벨(없거나 지운 카테고리면 "질문") */
   categoryNames?: Record<string, string>;
 }
-
-const STATUS_LABEL: Record<QuestionStatus, string> = {
-  understood: '이해완료',
-  review_needed: '복습필요',
-};
 
 // 입력 중이면 단축키 무시
 function isTypingTarget(t: EventTarget | null): boolean {
@@ -210,7 +210,7 @@ export function QuestionCard({ questions, initialIndex, mode = 'daily', category
                   {statuses.map((s, i) => (
                     <span
                       key={questions[i].id}
-                      title={`${i + 1}번 · ${s ? STATUS_LABEL[s] : '표시 안 함'}`}
+                      title={`${i + 1}번 · ${s ? QUESTION_STATUS_LABELS[s] : '표시 안 함'}`}
                       className={`h-2 w-2 rounded-full ${
                         s === 'understood' ? 'bg-primary' : s === 'review_needed' ? 'bg-warn' : 'bg-track'
                       } ${

@@ -147,9 +147,7 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  /* 한글 본문 / 인사말 세리프. layout.tsx에서 next/font로 변수 등록. */
+  /* 한글 본문 / 인사말 세리프. layout.tsx에서 next/font로 변수 등록. font-mono는 Tailwind 기본(ui-monospace) */
   --font-plex: var(--font-plex-kr), system-ui, sans-serif;
   --font-serif-kr: var(--font-noto-serif-kr), serif;
 
@@ -235,14 +233,11 @@ body {
   --rally-chip-on-border: var(--rally-admin);
 }
 
-/* Slim scrollbar for scrollable popovers (Select dropdown, etc.).
-   Firefox uses scrollbar-width/color; WebKit uses pseudo-elements. */
+/* 드롭다운 · 창 안 얇은 스크롤바 — 손잡이는 버튼 테두리색, hover면 흐린 아이콘색(라이트 · 다크는 토큰이 바뀜).
+   Firefox는 scrollbar-width/color, WebKit은 의사 요소 */
 .thin-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgb(212 212 216) transparent; /* zinc-300 */
-}
-.dark .thin-scrollbar {
-  scrollbar-color: rgb(63 63 70) transparent; /* zinc-700 */
+  scrollbar-color: var(--rally-btn-border) transparent;
 }
 .thin-scrollbar::-webkit-scrollbar {
   width: 6px;
@@ -251,17 +246,11 @@ body {
   background: transparent;
 }
 .thin-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgb(212 212 216); /* zinc-300 */
+  background-color: var(--rally-btn-border);
   border-radius: 4px;
 }
-.dark .thin-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgb(63 63 70); /* zinc-700 */
-}
 .thin-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: rgb(161 161 170); /* zinc-400 */
-}
-.dark .thin-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: rgb(82 82 91); /* zinc-600 */
+  background-color: var(--rally-icon-faint);
 }
 
 /* /learn·/learn/review 질문 넘기기 — 카드 안 내용만 150ms(가로 8px + 투명도).

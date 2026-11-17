@@ -46,7 +46,6 @@ export function PrioritySelect({ id, value }: { id: string; value: Priority }) {
       options={OPTIONS}
       disabled={isPending}
       ariaLabel="우선순위"
-      tone="rally"
       triggerClassName={`${TABLE_TRIGGER} text-sm`}
       triggerSuffix={<HoverChevron />}
     />

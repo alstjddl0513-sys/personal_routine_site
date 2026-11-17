@@ -8,7 +8,8 @@ interface Props {
   value: string;
   onChange: (next: string) => void;
   disabled?: boolean;
-  className?: string;
+  /** 트리거 모양 — 종목 추가 창 · 설정 종목 편집이 각자 입력칸 모양으로 */
+  className: string;
 }
 
 // 가슴 · 등 · 어깨 · 팔 · 하체 · 기타. '기타' = 부위 없음(빈 값) → 부위 탭 '기타'.
@@ -30,22 +31,16 @@ export function TargetMuscleSelect({
   disabled,
   className,
 }: Props) {
-  const groups = TARGET_MUSCLE_CHOICES;
-
   return (
     <Select
       id={id}
       value={value}
       onChange={onChange}
-      options={groups}
+      options={TARGET_MUSCLE_CHOICES}
       disabled={disabled}
       ariaLabel="타겟 부위"
-      tone="rally"
       placeholder="기타"
-      triggerClassName={
-        className ??
-        'min-h-11 w-full justify-between rounded border border-zinc-300 bg-white px-2 py-1.5 text-base outline-none focus:border-zinc-500 md:min-h-0 md:text-sm dark:border-zinc-700 dark:bg-zinc-950'
-      }
+      triggerClassName={className}
     />
   );
 }

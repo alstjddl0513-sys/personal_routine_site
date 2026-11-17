@@ -99,8 +99,7 @@ const NAV: NavItem[] = [
 
 const STORAGE_KEY = 'rally.sidebar.collapsed';
 
-// 숲색 사이드바(docs/design/rally-dashboard.html) — 전 페이지 공통이라
-// 본문이 zinc인 페이지에서도 이 톤.
+// 숲색 사이드바(docs/design/rally-dashboard.html) — 전 페이지 공통, 라이트 · 다크 모두 이 톤.
 const SIDE_ICON_BTN =
   'relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-side-fg transition-colors hover:bg-side-active hover:text-white';
 const SIDE_LINK_ACTIVE = 'bg-side-active font-semibold text-white';

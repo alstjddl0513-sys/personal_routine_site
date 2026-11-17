@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { and, asc, between, eq } from 'drizzle-orm';
+import { and, asc, eq } from 'drizzle-orm';
 import { db } from '../db/client';
 import { workoutSessions, workoutSplits } from '../db/schema';
 import type { QueryWorkoutSessionsDto } from './dto/query-workout-sessions.dto';
@@ -24,18 +24,6 @@ export class WorkoutSessionsService {
           ),
         )
         .orderBy(asc(workoutSessions.createdAt));
-    }
-    if (query.from && query.to) {
-      return db
-        .select()
-        .from(workoutSessions)
-        .where(
-          and(
-            eq(workoutSessions.ownerId, ownerId),
-            between(workoutSessions.date, query.from, query.to),
-          ),
-        )
-        .orderBy(asc(workoutSessions.date), asc(workoutSessions.createdAt));
     }
     return [];
   }
@@ -89,16 +77,5 @@ export class WorkoutSessionsService {
       .returning();
     if (!row) throw new NotFoundException(`WorkoutSession ${id} not found`);
     return row;
-  }
-
-  async remove(ownerId: string, id: string) {
-    const [row] = await db
-      .delete(workoutSessions)
-      .where(
-        and(eq(workoutSessions.id, id), eq(workoutSessions.ownerId, ownerId)),
-      )
-      .returning({ id: workoutSessions.id });
-    if (!row) throw new NotFoundException(`WorkoutSession ${id} not found`);
-    return { id: row.id };
   }
 }

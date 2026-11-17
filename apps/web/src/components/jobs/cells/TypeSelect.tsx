@@ -58,7 +58,6 @@ export function TypeSelect({
       options={options}
       disabled={isPending}
       ariaLabel="유형 변경"
-      tone="rally"
       triggerClassName={TABLE_SMALL_TRIGGER}
     />
   );

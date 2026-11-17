@@ -19,7 +19,6 @@ import { LogQuestionDto } from './dto/log-question.dto';
 import { QueryDailyDto } from './dto/query-daily.dto';
 import { QueryFavoritesDto } from './dto/query-favorites.dto';
 import { QueryQuestionsDto } from './dto/query-questions.dto';
-import { QueryRandomDto } from './dto/query-random.dto';
 import { QueryReviewDto } from './dto/query-review.dto';
 import { QueryStatsRangeDto } from './dto/query-stats-range.dto';
 import { UpdateQuestionDto } from './dto/update-question.dto';
@@ -30,7 +29,7 @@ export class QuestionsController {
   constructor(private readonly service: QuestionsService) {}
 
   // 관리 페이지용 full list (owner-scoped, createdAt DESC). daily/review와
-  // 헷갈리지 않도록 base path에 배치. daily/review/random/stats/:id 모두
+  // 헷갈리지 않도록 base path에 배치. daily/review/favorites/stats/:id 모두
   // 아래에서 별도 처리.
   @Get()
   findAll(@Req() req: AuthedRequest, @Query() query: QueryQuestionsDto) {
@@ -47,11 +46,6 @@ export class QuestionsController {
   @Get('daily')
   findDaily(@Req() req: AuthedRequest, @Query() query: QueryDailyDto) {
     return this.service.findDaily(requireUserId(req), query);
-  }
-
-  @Get('random')
-  findRandom(@Req() req: AuthedRequest, @Query() query: QueryRandomDto) {
-    return this.service.findRandom(requireUserId(req), query);
   }
 
   // '복습필요'로 마킹한 질문 모음. Static path so it lands above :id.

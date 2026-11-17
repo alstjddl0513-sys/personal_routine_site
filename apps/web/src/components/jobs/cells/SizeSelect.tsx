@@ -42,7 +42,6 @@ export function SizeSelect({ id, value }: { id: string; value: CompanyType1 }) {
       options={OPTIONS}
       disabled={isPending}
       ariaLabel="규모 변경"
-      tone="rally"
       triggerClassName={TABLE_SMALL_TRIGGER}
     />
   );

@@ -1,10 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import {
-  Geist,
-  Geist_Mono,
-  IBM_Plex_Sans_KR,
-  Noto_Serif_KR,
-} from 'next/font/google';
+import { IBM_Plex_Sans_KR, Noto_Serif_KR } from 'next/font/google';
 import { BottomNav } from '../components/BottomNav';
 import { ChallengeCelebrator } from '../components/ChallengeCelebrator';
 import { DeadlineNotifier } from '../components/DeadlineNotifier';
@@ -18,18 +13,7 @@ import { Sidebar } from '../components/Sidebar';
 import { WorkoutSkipReminder } from '../components/WorkoutSkipReminder';
 import './globals.css';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-});
-
-// Rally 브랜드 폰트 (사이드바 + /today). 변수만 <html>에 등록되고 실제 파일은
-// font-plex / font-serif-kr 클래스를 쓰는 곳에서만 내려받음.
+// 앱 본문 글꼴(body 기본 · font-plex). 변수는 <html>에 등록.
 // 한글 서브셋이 커서 preload 끔 — unicode-range로 필요한 조각만 지연 로드.
 const plexKr = IBM_Plex_Sans_KR({
   variable: '--font-plex-kr',
@@ -113,7 +97,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html
       lang="ko"
-      className={`${geistSans.variable} ${geistMono.variable} ${plexKr.variable} ${notoSerifKr.variable} h-full antialiased`}
+      className={`${plexKr.variable} ${notoSerifKr.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>

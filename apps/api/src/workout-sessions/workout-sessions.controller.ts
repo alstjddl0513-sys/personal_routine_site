@@ -1,9 +1,7 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
-  HttpCode,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -43,14 +41,5 @@ export class WorkoutSessionsController {
     @Body() dto: UpdateWorkoutSessionDto,
   ) {
     return this.service.update(requireUserId(req), id, dto);
-  }
-
-  @Delete(':id')
-  @HttpCode(204)
-  async remove(
-    @Req() req: AuthedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    await this.service.remove(requireUserId(req), id);
   }
 }
