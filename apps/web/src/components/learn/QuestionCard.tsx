@@ -183,24 +183,29 @@ export function QuestionCard({ questions, initialIndex, mode = 'daily', category
   // 넘길 때 카드 안 내용만 150ms(가로 8px + 투명도). prefers-reduced-motion이면 없음
   const swap = direction === 'right' ? 'animate-learn-swap-right' : 'animate-learn-swap-left';
 
-  // 최소 높이(420px, 화면이 낮으면 55vh) — 답을 열기 전에도 아래가 휑하지 않게. 질문·[답 보기]는 세로 가운데
+  const markedAt = mode === 'review' && question?.markedAt ? `${monthDay(question.markedAt)}에 표시` : null;
+
+  // 데스크톱: 최소 높이(420px, 화면이 낮으면 55vh) — 답을 열기 전에도 아래가 휑하지 않게. 질문·[답 보기]는 세로 가운데.
+  // 모바일: 높이는 내용만큼, 질문은 위에서 시작. 위 줄은 꺾지 않고 [카테고리 | 1/5] … [☆][‹][›],
+  // 상태 글자 · 표시한 날은 그 아래 한 줄로.
   return (
-    <article className="flex min-h-[min(420px,55vh)] w-full max-w-200 flex-col gap-5 rounded-lg border border-line bg-surface px-7 pt-5.5 pb-6">
+    <article className="flex w-full max-w-200 flex-col gap-5 rounded-lg border border-line bg-surface px-4 pt-4 pb-5 md:min-h-[min(420px,55vh)] md:px-7 md:pt-5.5 md:pb-6">
       {/* 위 줄 */}
-      <div className="flex min-h-10 flex-wrap items-center justify-between gap-x-4 gap-y-2">
+      <div className="flex min-h-10 items-center justify-between gap-x-4 gap-y-2 md:flex-wrap">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="text-[13px] font-semibold text-ink-muted">{label}</span>
+          <span className="truncate text-[13px] font-semibold text-ink-muted">{label}</span>
           {onCompletion ? null : (
             <>
-              <span aria-hidden className="h-3.5 w-px bg-rule" />
-              <span className="text-sm text-ink-muted tabular-nums">
+              <span aria-hidden className="h-3.5 w-px shrink-0 bg-rule" />
+              <span className="shrink-0 text-sm text-ink-muted tabular-nums">
                 <span className="font-semibold text-ink-strong">{currentIndex + 1}</span> / {total}
               </span>
               {mode === 'daily' ? (
+                // 모바일은 1/5와 같은 정보라 숨김(자리가 좁아 오른쪽 버튼이 다음 줄로 밀림)
                 <span
                   role="img"
                   aria-label={`${total}문제 중 ${currentIndex + 1}번째, ${marked}개 표시함`}
-                  className="flex items-center gap-3 pl-1"
+                  className="flex items-center gap-3 pl-1 max-md:hidden"
                 >
                   {statuses.map((s, i) => (
                     <span
@@ -216,14 +221,18 @@ export function QuestionCard({ questions, initialIndex, mode = 'daily', category
                     />
                   ))}
                 </span>
-              ) : mode === 'review' && question?.markedAt ? (
-                <span className="text-[13px] text-ink-muted">{monthDay(question.markedAt)}에 표시</span>
+              ) : markedAt ? (
+                <span className="text-[13px] text-ink-muted max-md:hidden">{markedAt}</span>
               ) : null}
             </>
           )}
         </div>
-        <div className="flex items-center gap-1.5">
-          {currentStatus ? <StatusText status={currentStatus} /> : null}
+        <div className="flex shrink-0 items-center gap-1.5">
+          {currentStatus ? (
+            <span className="max-md:hidden">
+              <StatusText status={currentStatus} />
+            </span>
+          ) : null}
           {onCompletion ? null : (
             <button
               type="button"
@@ -247,9 +256,19 @@ export function QuestionCard({ questions, initialIndex, mode = 'daily', category
         </div>
       </div>
 
+      {/* 모바일 둘째 줄 — 위 줄에서 뺀 상태 글자 · 표시한 날 */}
+      {!onCompletion && (currentStatus || markedAt) ? (
+        <p className="-mt-3 flex items-center gap-1.5 text-[13px] text-ink-muted md:hidden">
+          {currentStatus ? <StatusText status={currentStatus} /> : null}
+          {/* StatusText의 mr-1만큼 당겨서 · 양옆 간격을 맞춤 */}
+          {currentStatus && markedAt ? <span aria-hidden className="-ml-1">·</span> : null}
+          {markedAt}
+        </p>
+      ) : null}
+
       <div
         key={onCompletion ? 'completion' : question!.id}
-        className={`flex flex-1 flex-col gap-5 ${showAnswer && !onCompletion ? '' : 'justify-center pb-5'} ${swap}`}
+        className={`flex flex-1 flex-col gap-5 ${showAnswer && !onCompletion ? '' : 'md:justify-center md:pb-5'} ${swap}`}
       >
         {onCompletion ? (
           <CompletionBody

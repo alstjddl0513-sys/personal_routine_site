@@ -46,7 +46,7 @@ function Group({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-2.5">
       <h2 className="text-[13px] font-bold text-ink-muted">{title}</h2>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">{children}</div>
+      <div className="grid grid-cols-3 gap-2.5 sm:gap-4">{children}</div>
     </section>
   );
 }
@@ -57,9 +57,9 @@ function DashboardSkeleton() {
       {[0, 1].map((g) => (
         <div key={g} className="flex flex-col gap-2.5">
           <Skeleton className="h-4 w-12" />
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
             {[0, 1, 2].map((i) => (
-              <Skeleton key={i} className="h-28 rounded-lg" />
+              <Skeleton key={i} className="h-24 rounded-lg sm:h-28" />
             ))}
           </div>
         </div>

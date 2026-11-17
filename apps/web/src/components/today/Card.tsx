@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { HIT_AREA_Y } from '../ui/hitArea';
 
 // /today 섹션 공용 틀 (docs/design/rally-dashboard.html). 왼쪽 열은 흰 카드
 // (TodayCard), 오른쪽 열은 카드 없이 구분선만 있는 섹션(TodayPanel).
@@ -95,7 +96,7 @@ export function CardMessage({
       {href && linkLabel ? (
         <>
           {' '}
-          <Link href={href} className="font-medium text-heading underline-offset-2 hover:underline">
+          <Link href={href} className={`font-medium text-heading underline-offset-2 hover:underline ${HIT_AREA_Y}`}>
             {linkLabel}
           </Link>
         </>
