@@ -6,11 +6,8 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-
-  /* Rally 브랜드 토큰 (docs/design/rally-dashboard.html). 사이드바 + /today만
-     사용하고 나머지 페이지 본문은 zinc 유지 — 페이지별 개편 때 확산. */
+  /* Rally 토큰 (docs/design/rally-dashboard.html) — 앱 전체(데스크톱 · 모바일)가 이것만 씀.
+     Tailwind 기본 팔레트(zinc 등) X. 아래 @theme inline이 bg-paper 같은 클래스로 연결 */
   --rally-paper: #f6f7f5; /* 페이지 배경 */
   --rally-surface: #ffffff; /* 카드 */
   --rally-line: #d9dcd8; /* 카드 테두리 */
@@ -84,9 +81,6 @@
 }
 
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-
   /* docs/design/rally-dashboard-dark.html */
   --rally-paper: #121514;
   --rally-surface: #1a1e1c;
@@ -153,8 +147,6 @@
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   /* 한글 본문 / 인사말 세리프. layout.tsx에서 next/font로 변수 등록. */
@@ -221,10 +213,12 @@
   --color-st-withdrawn: var(--rally-st-withdrawn);
 }
 
+/* 바탕은 페이지와 같은 paper — 모바일에서 끝을 당겨 튕길 때 · 본문이 짧을 때 다른 색 띠가 안 보이게.
+   글꼴도 Plex KR을 기본으로 — body로 빠지는 창 · 시트가 font-plex를 깜빡해도 같은 글꼴 */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--rally-paper);
+  color: var(--rally-ink);
+  font-family: var(--font-plex-kr), system-ui, sans-serif;
   /* 한글 어절이 좁은 화면에서 글자 단위로 쪼개지지 않게 keep-all.
      예외적으로 긴 URL/토큰이 컨테이너를 넘길 때만 break-word로 강제 개행. */
   word-break: keep-all;

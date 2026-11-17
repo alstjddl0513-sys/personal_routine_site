@@ -39,7 +39,8 @@ function BlogHeader() {
           구독한 블로그의 새 글이에요. 매일 오전 8시·오후 8시에 자동으로 가져와요.
         </p>
       </div>
-      <Link href="/settings/blog-sources" className={BUTTON_SECONDARY}>
+      {/* 모바일은 칩 위 [새 글 가져오기] 옆으로(BlogList) */}
+      <Link href="/settings/blog-sources" className={`${BUTTON_SECONDARY} max-md:hidden`}>
         구독 관리
       </Link>
     </header>
@@ -58,7 +59,7 @@ async function BlogContent({ activeSourceId }: { activeSourceId: string | null }
 function BlogSkeleton() {
   return (
     <>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex gap-2 overflow-hidden md:flex-wrap">
         <Skeleton className="h-9 w-14 rounded-[18px]" />
         <Skeleton className="h-9 w-20 rounded-[18px]" />
         <Skeleton className="h-9 w-16 rounded-[18px]" />

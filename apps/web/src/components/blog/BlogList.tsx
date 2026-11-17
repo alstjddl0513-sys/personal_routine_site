@@ -8,7 +8,8 @@ import type { BlogPost, BlogRefreshResult, BlogSource } from '@repo/shared';
 import { getBlogPosts, refreshBlogPosts } from '../../lib/api';
 import { BLOG_PAGE_SIZE } from '../../lib/blog';
 import { useBlogLastSeen, useBlogRead } from '../../lib/blog-local';
-import { BUTTON_PRIMARY } from '../jobs/cells/popover-style';
+import { BUTTON_PRIMARY, BUTTON_SECONDARY } from '../jobs/cells/popover-style';
+import { ChipButton } from '../learn/CategoryFilterChips';
 
 interface Props {
   posts: BlogPost[];
@@ -150,10 +151,16 @@ export function BlogList({ posts, sources, activeSourceId }: Props) {
 
   return (
     <>
-      {/* 칩이 몇 줄이 되든 [새 글 가져오기]는 첫 줄 오른쪽 */}
-      <div className="flex items-start gap-4">
+      {/* 데스크톱: 칩이 몇 줄이 되든 [새 글 가져오기]는 첫 줄 오른쪽.
+          모바일: [구독 관리] … [새 글 가져오기] 한 줄 위에, 칩은 가로로 넘기는 한 줄(머리말 [구독 관리]는 숨김) */}
+      <div className="flex items-start gap-4 max-md:flex-col-reverse max-md:items-stretch max-md:gap-3">
         <SourceChips sources={activeSources} activeSourceId={activeSourceId} onPick={pushFilter} />
-        <span className="ml-auto">{refreshButton}</span>
+        <span className="ml-auto flex items-center justify-between gap-2 max-md:ml-0">
+          <Link href="/settings/blog-sources" className={`${BUTTON_SECONDARY} md:hidden`}>
+            구독 관리
+          </Link>
+          {refreshButton}
+        </span>
       </div>
 
       {result ? <ResultLine result={result} onClose={() => setResult(null)} /> : null}
@@ -225,7 +232,7 @@ function EmptyCard({ message, children }: { message: string; children: React.Rea
   );
 }
 
-// 칩 — 학습 페이지 카테고리 칩과 같은 모양. 많으면 칩만 줄바꿈(접기·가로 스크롤 X)
+// 칩 — 학습 페이지 카테고리 칩과 같은 모양. 데스크톱은 많으면 줄바꿈, 모바일은 가로로 넘기는 한 줄
 function SourceChips({
   sources,
   activeSourceId,
@@ -236,41 +243,12 @@ function SourceChips({
   onPick: (sourceId: string | null) => void;
 }) {
   return (
-    <div className="flex min-w-0 flex-wrap items-center gap-2">
-      <Chip active={!activeSourceId} onClick={() => onPick(null)}>
-        전체
-      </Chip>
+    <div className="no-scrollbar -mx-4 flex min-w-0 items-center gap-2 overflow-x-auto px-4 md:mx-0 md:flex-wrap md:overflow-visible md:px-0">
+      <ChipButton active={!activeSourceId} onClick={() => onPick(null)} label="전체" />
       {sources.map((s) => (
-        <Chip key={s.id} active={activeSourceId === s.id} onClick={() => onPick(s.id)}>
-          {s.name}
-        </Chip>
+        <ChipButton key={s.id} active={activeSourceId === s.id} onClick={() => onPick(s.id)} label={s.name} />
       ))}
     </div>
-  );
-}
-
-function Chip({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={`inline-flex h-9 cursor-pointer items-center rounded-[18px] px-3.5 text-sm ${
-        active
-          ? 'bg-chip-on-bg font-bold text-heading shadow-[inset_0_0_0_2px_var(--rally-chip-on-border)]'
-          : 'bg-surface font-medium text-ink-soft shadow-[inset_0_0_0_1px_var(--rally-btn-border)] hover:bg-row-hover'
-      }`}
-    >
-      {children}
-    </button>
   );
 }
 

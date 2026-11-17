@@ -8,11 +8,10 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: '/',
     display: 'standalone',
     orientation: 'portrait',
-    // Match viewport `themeColor` light value so the Android splash screen
-    // bg matches the app background. iOS status bar respects the meta tag
-    // set by layout.tsx viewport export (media-query aware).
-    background_color: '#fafafa',
-    theme_color: '#fafafa',
+    // layout.tsx viewport `themeColor` 라이트 값(= --rally-paper)과 같게 — Android 스플래시 바탕.
+    // iOS 상태바는 layout의 meta(라이트 · 다크 따로)를 따름.
+    background_color: '#f6f7f5',
+    theme_color: '#f6f7f5',
     icons: [
       // Scalable SVG satisfies Chrome's install-prompt requirement for
       // both 192 and 512 without needing separate PNG renders.

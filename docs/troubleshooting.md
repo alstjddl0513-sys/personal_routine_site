@@ -57,6 +57,9 @@
 - [프론트 UX/CSS](#프론트-uxcss)
   - [모바일에서 한글 안내 문구가 글자 단위로 쪼개짐](#모바일에서-한글-안내-문구가-글자-단위로-쪼개짐)
   - [모바일에서 관리자 페이지 진입 경로 부재](#모바일에서-관리자-페이지-진입-경로-부재)
+  - [모바일 시트를 CSS로 숨겼더니 데스크톱에서 스크롤이 잠김](#모바일-시트를-css로-숨겼더니-데스크톱에서-스크롤이-잠김)
+  - [훅이 ref를 객체에 담아 돌려주면 lint react-hooks/refs가 다른 값까지 막음](#훅이-ref를-객체에-담아-돌려주면-lint-react-hooksrefs가-다른-값까지-막음)
+  - [Tailwind 폭 클래스를 덧붙였는데 안 먹음 (w-full + w-14)](#tailwind-폭-클래스를-덧붙였는데-안-먹음-w-full--w-14)
   - [편집·리스트 행이 좁은 화면에서 뭉개짐](#편집리스트-행이-좁은-화면에서-뭉개짐)
   - [VS Code 문제 패널에 디자인 시안 HTML의 CSS 에러 90개](#vs-code-문제-패널에-디자인-시안-html의-css-에러-90개)
 - [설계 판단 (Advisor 경고 무시 등)](#설계-판단-advisor-경고-무시-등)
@@ -332,6 +335,22 @@
 - 상황: 사이드바가 `hidden md:flex`로 데스크톱 전용이라 모바일에선 관리자 링크 사라짐
 - 원인: 다인화 후에도 어드민 진입점을 사이드바만 두었음. BottomNav엔 관리자 슬롯 없음
 - 해결: `/settings` 상단에 SSR 프로필 카드(닉네임 + isAdmin일 때 관리자 링크). 데스크톱은 `md:hidden`으로 중복 방지
+- 변경(2026-11-17, #224): 프로필 카드 삭제 → 더보기 시트 '관리자 페이지' 줄(관리자만). 확인은 `lib/useIsAdmin`(사이드바와 같은 promise 공유)
+
+### 모바일 시트를 CSS로 숨겼더니 데스크톱에서 스크롤이 잠김
+- 상황: 시트(`md:hidden`)와 팝오버를 둘 다 그려 두고 CSS로 하나를 숨겼는데, 데스크톱에서 시트를 열면 화면이 스크롤되지 않음
+- 원인: `BottomSheet`는 열리면 body 스크롤을 잠그는데, CSS로 안 보여도 컴포넌트는 마운트돼 open 상태가 그대로 동작
+- 해결: `lib/useIsMobile`(matchMedia + useSyncExternalStore, 서버 false)로 시트와 팝오버 중 하나만 렌더
+
+### 훅이 ref를 객체에 담아 돌려주면 lint `react-hooks/refs`가 다른 값까지 막음
+- 상황: `useAddExerciseForm()`이 `{ nameRef, isPending, … }`를 돌려주자 렌더 중 `f.isPending`을 읽는 줄에서 "Cannot access refs during render"
+- 원인: React 컴파일러 lint는 ref가 든 객체 전체를 ref로 취급
+- 해결: ref는 쓰는 컴포넌트에서 `useRef`로 만들고 훅 인자로 넘김(훅은 ref를 돌려주지 않음)
+
+### Tailwind 폭 클래스를 덧붙였는데 안 먹음 (`w-full` + `w-14`)
+- 상황: 입력칸 공용 클래스(`w-full` 포함)에 `w-14`를 덧붙였더니 여전히 꽉 차서 한 줄에 안 들어감
+- 원인: 같은 속성 두 클래스는 쓴 순서가 아니라 CSS 생성 순서로 이김
+- 해결: 폭이 빠진 별도 상수(`FIELD_INPUT_NUM`, `POPOVER_INPUT_BASE`)를 쓰고 폭은 한 번만. variant끼리 겹칠 때(`not-first:border-l` vs `max-md:border-l-0`)도 클래스를 조건으로 통째로 고름
 
 ### 편집·리스트 행이 좁은 화면에서 뭉개짐
 - 상황: `BlogSourcesManager`·`ExercisesManager` 등 한 줄에 chevron + name + URL/뱃지 + 버튼 여러 개인 flex 행이 모바일에서 겹치거나 밖으로 밀림

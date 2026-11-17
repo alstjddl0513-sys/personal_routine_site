@@ -161,7 +161,8 @@ export function QuestionsManager({
           <p className="text-[15px] font-semibold text-ink-soft">
             질문 <span className="font-bold text-ink-strong">{visibleRows.length}개</span>
           </p>
-          <div className="flex flex-wrap items-center gap-2">
+          {/* 모바일은 가로로 넘기는 한 줄(학습 · 블로그 칩과 같음) */}
+          <div className="no-scrollbar -mx-4 flex items-center gap-2 overflow-x-auto px-4 md:mx-0 md:flex-wrap md:overflow-visible md:px-0">
             {filterChips.map((c) => (
               <ChipButton
                 key={c.key}
@@ -214,7 +215,8 @@ export function QuestionsManager({
                     onClick={() => (isExpanded ? cancelEdit() : beginEdit(row))}
                     aria-expanded={isExpanded}
                     title={row.content}
-                    className={`flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-sm text-left ${FOCUS_RING}`}
+                    // self-stretch — 줄 높이(56px) 전체를 누를 수 있게
+                    className={`flex min-w-0 flex-1 cursor-pointer items-center gap-3 self-stretch rounded-sm text-left ${FOCUS_RING}`}
                   >
                     <span className="flex min-w-22 shrink-0 justify-center">
                       {categoryLabel ? <TagChip>{categoryLabel}</TagChip> : null}
